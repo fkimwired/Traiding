@@ -1,0 +1,26 @@
+{
+  "name": "fable5-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "overrides": {
+    "eslint": "9.39.5",
+    "postcss": "8.5.19"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @fable5/frontend",
+    "contracts:generate": "node scripts/run-contracts.mjs generate",
+    "contracts:check": "node scripts/run-contracts.mjs check",
+    "lint": "npm run lint --workspace @fable5/frontend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:frontend": "npm run test --workspace @fable5/frontend"
+  }
+}

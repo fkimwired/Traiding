@@ -1,0 +1,370 @@
+:root {
+  --ink: #17201d;
+  --muted: #61706a;
+  --paper: #f5f3ec;
+  --panel: #fffdf8;
+  --line: #d8ddd7;
+  --green: #0c6b50;
+  --green-soft: #dcece4;
+  --amber: #a85d16;
+  --amber-soft: #f5e7d1;
+  --red: #a33636;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 80% 5%, rgba(12, 107, 80, 0.08), transparent 28rem),
+    var(--paper);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.simulationBanner {
+  align-items: center;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  font-size: 0.76rem;
+  gap: 0.9rem;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  min-height: 34px;
+  padding: 0.45rem 1rem;
+  text-transform: uppercase;
+}
+
+.simulationBanner span:not(.statusDot) {
+  color: #c9d2ce;
+}
+
+.statusDot {
+  background: #72d6a8;
+  border-radius: 50%;
+  height: 7px;
+  width: 7px;
+}
+
+.primaryNavigation {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1240px;
+  min-height: 84px;
+  padding: 0 2rem;
+}
+
+.brand {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.brandMark {
+  align-items: center;
+  background: var(--green);
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  font-size: 0.8rem;
+  font-weight: 800;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand small {
+  color: var(--muted);
+  font-size: 0.69rem;
+  margin-top: 0.15rem;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.6rem;
+}
+
+.navLinks a {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.navLinks a:hover,
+.navLinks a:focus-visible {
+  color: var(--green);
+}
+
+.pageShell {
+  margin: 0 auto;
+  max-width: 1240px;
+  padding: 5.5rem 2rem 6rem;
+}
+
+.hero {
+  align-items: end;
+  display: grid;
+  gap: 4rem;
+  grid-template-columns: minmax(0, 1.5fr) minmax(250px, 0.5fr);
+}
+
+.eyebrow {
+  color: var(--green);
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.25rem, 7vw, 6.8rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.89;
+  margin: 0;
+}
+
+.heroCopy {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin: 2rem 0 0;
+  max-width: 680px;
+}
+
+.heroStatus {
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  padding-left: 1.5rem;
+}
+
+.heroStatus p {
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.apiStatus {
+  align-items: center;
+  display: flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.apiStatus::before {
+  background: var(--amber);
+  border-radius: 50%;
+  content: "";
+  height: 8px;
+  width: 8px;
+}
+
+.apiStatus-online::before {
+  background: var(--green);
+}
+
+.apiStatus-offline::before {
+  background: var(--red);
+}
+
+.modeGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 5.5rem;
+}
+
+.modeCard {
+  background: rgba(255, 253, 248, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 285px;
+  padding: 1.4rem;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.modeCard:hover,
+.modeCard:focus-visible {
+  border-color: var(--green);
+  transform: translateY(-3px);
+}
+
+.modeNumber {
+  color: var(--green);
+  font: 700 0.72rem/1 Arial, sans-serif;
+  letter-spacing: 0.1em;
+}
+
+.modeCard h2 {
+  font: 500 1.45rem/1.1 Georgia, serif;
+  margin: 2.2rem 0 0.8rem;
+}
+
+.modeCard p {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.cardAction {
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-top: auto;
+}
+
+.gateStrip {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 5rem;
+  padding-top: 2rem;
+}
+
+.gateStrip span {
+  color: var(--green);
+  display: block;
+  font-size: 0.69rem;
+  font-weight: 800;
+  margin-bottom: 0.7rem;
+}
+
+.gateStrip strong {
+  font-family: Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.gateStrip p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.narrowPage {
+  max-width: 920px;
+}
+
+.narrowPage h1 {
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+.phasePlaceholder {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin-top: 4rem;
+  padding: 2.3rem;
+}
+
+.phasePlaceholder > span {
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.phasePlaceholder h2 {
+  font: 500 2rem/1.2 Georgia, serif;
+  margin: 1rem 0;
+}
+
+.phasePlaceholder p {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.warningPlaceholder {
+  border-left: 5px solid var(--amber);
+}
+
+.warningPlaceholder > span {
+  color: var(--amber);
+}
+
+.simulatedPlaceholder {
+  border-left: 5px solid var(--green);
+  box-shadow: inset 0 0 0 1px var(--green-soft);
+}
+
+@media (max-width: 900px) {
+  .primaryNavigation {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 1.2rem;
+    padding-top: 1.2rem;
+  }
+
+  .navLinks {
+    flex-wrap: wrap;
+    gap: 0.9rem 1.2rem;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStatus {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .modeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .simulationBanner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .pageShell {
+    padding: 3.5rem 1.2rem 4rem;
+  }
+
+  .primaryNavigation {
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+
+  .modeGrid,
+  .gateStrip {
+    grid-template-columns: 1fr;
+  }
+}
+

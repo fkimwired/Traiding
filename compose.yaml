@@ -1,0 +1,131 @@
+name: fable5
+
+services:
+  postgres:
+    image: postgres:17.10-alpine
+    environment:
+      # Phase 1 uses one fixed, development-only database identity so the
+      # application URL and PostgreSQL bootstrap credentials cannot diverge.
+      POSTGRES_DB: fable5
+      POSTGRES_USER: fable5
+      POSTGRES_PASSWORD: fable5_dev_only
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.8.0-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 3s
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment: &python_environment
+      FABLE5_ENVIRONMENT: ${FABLE5_ENVIRONMENT:-local}
+      FABLE5_EXECUTION_MODE: paper
+      FABLE5_DATABASE_URL: postgresql+psycopg://fable5:fable5_dev_only@postgres:5432/fable5
+      FABLE5_REDIS_URL: ${FABLE5_REDIS_URL:-redis://redis:6379/0}
+      FABLE5_CORS_ORIGINS: '${FABLE5_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000"]}'
+    command: ["alembic", "-c", "services/api/alembic.ini", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment: *python_environment
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=2)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/jobs/Dockerfile
+    environment: *python_environment
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "fable5_jobs.healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: services/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
