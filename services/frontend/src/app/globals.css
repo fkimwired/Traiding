@@ -318,6 +318,137 @@ h1 {
   box-shadow: inset 0 0 0 1px var(--green-soft);
 }
 
+.mappingSection {
+  margin-top: 3rem;
+}
+
+.mappingBoundary,
+.mappingState,
+.mappingCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.mappingBoundary {
+  border-left: 5px solid var(--green);
+  padding: 1.6rem 1.8rem;
+}
+
+.mappingBoundary h2 {
+  font: 500 1.8rem/1.2 Georgia, serif;
+  margin: 0 0 0.8rem;
+}
+
+.mappingBoundary p:last-child,
+.mappingState {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.mappingState {
+  margin: 1rem 0 0;
+  padding: 1.2rem 1.4rem;
+}
+
+.mappingStateError {
+  border-left: 5px solid var(--red);
+}
+
+.mappingList {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.mappingCard {
+  padding: 1.6rem;
+}
+
+.mappingHeader,
+.mappingLineage {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1rem;
+  justify-content: space-between;
+}
+
+.mappingHeader span,
+.mappingLineage span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mappingHeader h3 {
+  font: 500 1.45rem/1.2 Georgia, serif;
+  margin: 0.35rem 0 0;
+}
+
+.mappingVerdict {
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.55rem 0.8rem;
+}
+
+.mappingEvidence {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.mappingEvidence h4,
+.mappingRationale h4 {
+  font-size: 0.78rem;
+  margin: 0 0 0.6rem;
+}
+
+.mappingEvidence ol,
+.mappingEvidence ul {
+  color: var(--muted);
+  font-family: monospace;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.mappingRationale {
+  border-top: 1px solid var(--line);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+}
+
+.mappingRationale pre {
+  color: var(--muted);
+  font: 0.82rem/1.65 Arial, Helvetica, sans-serif;
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.mappingLineage {
+  border-top: 1px solid var(--line);
+  justify-content: flex-start;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+
+.mappingLineage a {
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
 @media (max-width: 900px) {
   .primaryNavigation {
     align-items: flex-start;
@@ -363,8 +494,8 @@ h1 {
   }
 
   .modeGrid,
-  .gateStrip {
+  .gateStrip,
+  .mappingEvidence {
     grid-template-columns: 1fr;
   }
 }
-

@@ -1,0 +1,9 @@
+{
+  "fixture_id": "synthetic-pairs",
+  "source_authority": "other",
+  "raw_text": "When a stock pair diverges, the source claims it may reconverge over one week; borrow availability is assumed.",
+  "expected_signal_family": "pairs_or_divergence_claim",
+  "expected_testability": "testable",
+  "expected_infra_risk": "unknown",
+  "expected_contribution": "not_blocked_by_corroboration"
+}

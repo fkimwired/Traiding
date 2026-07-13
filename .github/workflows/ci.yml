@@ -1,4 +1,4 @@
-name: phase-1-ci
+name: phase-3-ci
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only
+      - run: python scripts/verify_phase1.py --static-only --phase 3
       - run: docker compose config --quiet
 
   compose-smoke:
@@ -36,4 +36,4 @@ jobs:
     needs: quality
     steps:
       - uses: actions/checkout@v4
-      - run: python scripts/verify_phase1.py
+      - run: python scripts/verify_phase1.py --phase 3

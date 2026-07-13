@@ -1,0 +1,9 @@
+{
+  "fixture_id": "synthetic-ranking",
+  "source_authority": "other",
+  "raw_text": "Rank stocks in a point-in-time universe and select the top-ranked group when scores are refreshed weekly. Include delisting-aware returns and liquid shares.",
+  "expected_signal_family": "cross_sectional_ranking_claim",
+  "expected_testability": "testable",
+  "expected_infra_risk": "unknown",
+  "expected_contribution": "not_blocked_by_corroboration"
+}

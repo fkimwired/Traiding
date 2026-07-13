@@ -225,12 +225,17 @@ the first strategy pack must not emit option signals.
 
 ## Deterministic verdict rules for Phase 3
 
-- Price-pattern framing maps to B and explicitly excludes literal chart images as alpha.
-- Stock-picking/ranking framing maps to A.
-- Social/news framing maps to C; social-only content is manipulation-prone and non-contributing
-  without an official event.
-- Correlation-divergence framing maps to D with `DEFER` and mandatory borrow requirements.
-- Order-flow/book/scalp/sub-second framing maps to E with `REJECT` and no scaffold.
-- Unusual-options framing maps to F with `DEFER_READ_ONLY`.
-- An ambiguous source may map to `NON_TESTABLE`; deterministic mapping must not invent an action rule.
+The closed machine verdict vocabulary is `BUILD_RESEARCH`, `DEFER`, `DEFER_READ_ONLY`,
+`REJECT_PLATFORM`, and `NON_TESTABLE`. “Build first/second/third” remains research-priority prose, not
+additional verdict values. Phase 5 promotion states are a separate later contract.
 
+- A structurally non-testable or ambiguously classified card maps to `NON_TESTABLE` before family
+  rules; deterministic mapping must not invent an action rule or horizon.
+- Price-pattern framing maps to B with `BUILD_RESEARCH` and explicitly excludes literal chart images
+  as alpha.
+- Stock-picking/ranking framing maps to A with `BUILD_RESEARCH`.
+- Social/news framing maps to C with `BUILD_RESEARCH` only when its Phase 2 contribution gate is
+  clear; otherwise it maps to `DEFER` with `OFFICIAL_CORROBORATION_REQUIRED`.
+- Correlation-divergence framing maps to D with `DEFER` and mandatory borrow requirements.
+- Order-flow/book/scalp/sub-second framing maps to E with `REJECT_PLATFORM` and no scaffold.
+- Unusual-options framing maps to F with `DEFER_READ_ONLY`.

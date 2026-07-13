@@ -8,7 +8,7 @@ from fable5_jobs.config import WorkerSettings
 def run() -> None:
     settings = WorkerSettings()
     connection: Redis = Redis.from_url(settings.redis_url)
-    worker = Worker([QUEUE_NAME], connection=connection, name="fable5-phase1-worker")
+    worker = Worker([QUEUE_NAME], connection=connection, name="fable5-research-worker")
     worker.work(with_scheduler=False)
 
 

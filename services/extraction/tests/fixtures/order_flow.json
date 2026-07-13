@@ -1,0 +1,9 @@
+{
+  "fixture_id": "synthetic-order-flow",
+  "source_authority": "other",
+  "raw_text": "When full-depth order-book imbalance changes within milliseconds, the source describes a scalp over a sub-second horizon.",
+  "expected_signal_family": "order_flow_claim",
+  "expected_testability": "testable",
+  "expected_infra_risk": "high",
+  "expected_contribution": "not_blocked_by_corroboration"
+}

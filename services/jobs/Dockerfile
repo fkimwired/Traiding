@@ -8,7 +8,9 @@ WORKDIR /app
 
 COPY pyproject.toml requirements.lock README.md ./
 COPY services/api ./services/api
+COPY services/extraction ./services/extraction
 COPY services/jobs ./services/jobs
+COPY services/mapping ./services/mapping
 
 RUN python -m pip install --no-cache-dir --constraint requirements.lock .
 

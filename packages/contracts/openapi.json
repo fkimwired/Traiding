@@ -1,6 +1,149 @@
 {
   "components": {
     "schemas": {
+      "ActionRuleEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          }
+        },
+        "required": [
+          "state",
+          "claim_ids"
+        ],
+        "title": "ActionRuleEvidence",
+        "type": "object"
+      },
+      "AmbiguityFlag": {
+        "enum": [
+          "synthetic_fixture",
+          "source_url_not_retrieved",
+          "social_manipulation_risk",
+          "official_corroboration_required",
+          "missing_action_rule",
+          "ambiguous_action_rule",
+          "missing_forecast_horizon",
+          "ambiguous_forecast_horizon",
+          "missing_raw_text"
+        ],
+        "title": "AmbiguityFlag",
+        "type": "string"
+      },
+      "AssetClass": {
+        "enum": [
+          "equity",
+          "etf",
+          "futures",
+          "options",
+          "multi_asset"
+        ],
+        "title": "AssetClass",
+        "type": "string"
+      },
+      "AssetClassEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssetClass"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "value",
+          "claim_ids"
+        ],
+        "title": "AssetClassEvidence",
+        "type": "object"
+      },
+      "AuthorityVerificationMethod": {
+        "enum": [
+          "manual_user_attestation",
+          "synthetic_fixture"
+        ],
+        "title": "AuthorityVerificationMethod",
+        "type": "string"
+      },
+      "CanonicalFamily": {
+        "enum": [
+          "A_CROSS_SECTIONAL_EQUITY_RANKING",
+          "B_TIME_SERIES_MOMENTUM_REGIME",
+          "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+          "D_PAIRS_STATISTICAL_ARBITRAGE",
+          "E_ORDER_BOOK_MICROSTRUCTURE",
+          "F_OPTIONS_FLOW_IV_RV_ANALYTICS"
+        ],
+        "title": "CanonicalFamily",
+        "type": "string"
+      },
+      "CardWithMemo": {
+        "additionalProperties": false,
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/TradingIdeaCard"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/ResearchMemo"
+          }
+        },
+        "required": [
+          "card",
+          "memo"
+        ],
+        "title": "CardWithMemo",
+        "type": "object"
+      },
+      "ContentState": {
+        "enum": [
+          "supplied_text",
+          "retrieved_text",
+          "url_only_unretrieved"
+        ],
+        "title": "ContentState",
+        "type": "string"
+      },
+      "ContributionStatus": {
+        "enum": [
+          "not_blocked_by_corroboration",
+          "blocked_official_corroboration_required"
+        ],
+        "title": "ContributionStatus",
+        "type": "string"
+      },
+      "CorroborationStatus": {
+        "enum": [
+          "not_required",
+          "missing",
+          "linked_unverified",
+          "verified"
+        ],
+        "title": "CorroborationStatus",
+        "type": "string"
+      },
       "DependencyStatus": {
         "additionalProperties": false,
         "properties": {
@@ -18,6 +161,247 @@
           }
         },
         "title": "DependencyStatus",
+        "type": "object"
+      },
+      "EvidenceState": {
+        "enum": [
+          "source_supported",
+          "not_stated",
+          "ambiguous",
+          "not_applicable"
+        ],
+        "title": "EvidenceState",
+        "type": "string"
+      },
+      "ExecutionStyle": {
+        "enum": [
+          "high_frequency_claim",
+          "intraday_claim",
+          "periodic_research_claim",
+          "read_only_analytics_claim"
+        ],
+        "title": "ExecutionStyle",
+        "type": "string"
+      },
+      "ExecutionStyleEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionStyle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "value",
+          "claim_ids"
+        ],
+        "title": "ExecutionStyleEvidence",
+        "type": "object"
+      },
+      "ExtractionEventType": {
+        "enum": [
+          "requested",
+          "queued",
+          "enqueue_failed",
+          "started",
+          "succeeded",
+          "failed"
+        ],
+        "title": "ExtractionEventType",
+        "type": "string"
+      },
+      "ExtractionRequestRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "extraction_config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Config Sha256",
+            "type": "string"
+          },
+          "extraction_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Id"
+          },
+          "extraction_model_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Revision"
+          },
+          "extraction_prompt_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Sha256"
+          },
+          "extraction_prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Version"
+          },
+          "extraction_request_id": {
+            "format": "uuid",
+            "title": "Extraction Request Id",
+            "type": "string"
+          },
+          "extraction_schema_version": {
+            "default": "phase2-trading-idea-card-v2",
+            "title": "Extraction Schema Version",
+            "type": "string"
+          },
+          "extractor_id": {
+            "default": "fable5-deterministic-extractor",
+            "title": "Extractor Id",
+            "type": "string"
+          },
+          "extractor_kind": {
+            "$ref": "#/components/schemas/ExtractorKind",
+            "default": "deterministic_mock"
+          },
+          "extractor_version": {
+            "default": "1",
+            "title": "Extractor Version",
+            "type": "string"
+          },
+          "latest_event": {
+            "$ref": "#/components/schemas/ExtractionEventType"
+          },
+          "request_fingerprint": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint",
+            "type": "string"
+          },
+          "requested_at_utc": {
+            "format": "date-time",
+            "title": "Requested At Utc",
+            "type": "string"
+          },
+          "rq_job_id": {
+            "title": "Rq Job Id",
+            "type": "string"
+          },
+          "source_version_id": {
+            "format": "uuid",
+            "title": "Source Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "extraction_config_sha256",
+          "extraction_request_id",
+          "source_version_id",
+          "request_fingerprint",
+          "rq_job_id",
+          "latest_event",
+          "requested_at_utc"
+        ],
+        "title": "ExtractionRequestRecord",
+        "type": "object"
+      },
+      "ExtractorKind": {
+        "enum": [
+          "deterministic_mock",
+          "llm"
+        ],
+        "title": "ExtractorKind",
+        "type": "string"
+      },
+      "ForecastHorizon": {
+        "enum": [
+          "sub_minute",
+          "intraday",
+          "next_day",
+          "multi_day",
+          "weekly",
+          "monthly"
+        ],
+        "title": "ForecastHorizon",
+        "type": "string"
+      },
+      "ForecastHorizonEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastHorizon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "value",
+          "claim_ids"
+        ],
+        "title": "ForecastHorizonEvidence",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
         "type": "object"
       },
       "HealthResponse": {
@@ -45,6 +429,194 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "InfraRisk": {
+        "enum": [
+          "unknown",
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "InfraRisk",
+        "type": "string"
+      },
+      "MappingEvidenceReference": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "phase2_field": {
+            "enum": [
+              "signal_family",
+              "forecast_horizon",
+              "execution_style",
+              "required_data",
+              "testability",
+              "infra_risk",
+              "contribution_status",
+              "corroboration_status"
+            ],
+            "title": "Phase2 Field",
+            "type": "string"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "phase2_field"
+        ],
+        "title": "MappingEvidenceReference",
+        "type": "object"
+      },
+      "MappingRationale": {
+        "additionalProperties": false,
+        "properties": {
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "rationale_id": {
+            "format": "uuid",
+            "title": "Rationale Id",
+            "type": "string"
+          },
+          "template_version": {
+            "title": "Template Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rationale_id",
+          "mapping_id",
+          "template_version",
+          "markdown",
+          "content_sha256",
+          "created_at_utc"
+        ],
+        "title": "MappingRationale",
+        "type": "object"
+      },
+      "MappingReasonCode": {
+        "enum": [
+          "missing_raw_text",
+          "missing_action_rule",
+          "ambiguous_action_rule",
+          "missing_forecast_horizon",
+          "ambiguous_forecast_horizon",
+          "MISSING_CANONICAL_FAMILY",
+          "AMBIGUOUS_CANONICAL_FAMILY",
+          "PLATFORM_INFRASTRUCTURE_MISMATCH",
+          "OFFICIAL_CORROBORATION_REQUIRED",
+          "BORROW_AND_BREAK_REQUIREMENTS",
+          "READ_ONLY_ANALYTICS_ONLY",
+          "CANON_A_RULE_MATCHED",
+          "CANON_B_RULE_MATCHED",
+          "CANON_C_RULE_MATCHED"
+        ],
+        "title": "MappingReasonCode",
+        "type": "string"
+      },
+      "MappingRuleId": {
+        "enum": [
+          "P3-001-NON-TESTABLE-PRECEDENCE",
+          "P3-002-PLATFORM-MISMATCH",
+          "P3-003-SOCIAL-CORROBORATION",
+          "P3-004-PAIRS-REQUIREMENTS",
+          "P3-005-OPTIONS-READ-ONLY",
+          "P3-CANON-A",
+          "P3-CANON-B",
+          "P3-CANON-C",
+          "P3-CANON-D",
+          "P3-CANON-E",
+          "P3-CANON-F"
+        ],
+        "title": "MappingRuleId",
+        "type": "string"
+      },
+      "MappingWithRationale": {
+        "additionalProperties": false,
+        "properties": {
+          "mapping": {
+            "$ref": "#/components/schemas/ResearchMapping"
+          },
+          "rationale": {
+            "$ref": "#/components/schemas/MappingRationale"
+          }
+        },
+        "required": [
+          "mapping",
+          "rationale"
+        ],
+        "title": "MappingWithRationale",
+        "type": "object"
+      },
+      "QuotedClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "exact_text": {
+            "title": "Exact Text",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/components/schemas/SourceSpan"
+          }
+        },
+        "required": [
+          "claim_id",
+          "kind",
+          "span",
+          "exact_text"
+        ],
+        "title": "QuotedClaim",
+        "type": "object"
+      },
       "ReadinessResponse": {
         "additionalProperties": false,
         "properties": {
@@ -68,6 +640,1131 @@
           "dependencies"
         ],
         "title": "ReadinessResponse",
+        "type": "object"
+      },
+      "RequiredData": {
+        "enum": [
+          "point_in_time_universe",
+          "delisting_aware_returns",
+          "ohlcv",
+          "official_text",
+          "social_text",
+          "borrow_availability",
+          "full_depth_order_book",
+          "options_quotes_and_trades"
+        ],
+        "title": "RequiredData",
+        "type": "string"
+      },
+      "RequiredDataEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredData"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "state",
+          "values",
+          "claim_ids"
+        ],
+        "title": "RequiredDataEvidence",
+        "type": "object"
+      },
+      "ResearchMapping": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_family": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CanonicalFamily"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "card_id": {
+            "format": "uuid",
+            "title": "Card Id",
+            "type": "string"
+          },
+          "card_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Card Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "extraction_config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Config Sha256",
+            "type": "string"
+          },
+          "extraction_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Id"
+          },
+          "extraction_model_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Revision"
+          },
+          "extraction_prompt_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Sha256"
+          },
+          "extraction_prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Version"
+          },
+          "extraction_request_fingerprint": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Request Fingerprint",
+            "type": "string"
+          },
+          "extraction_request_id": {
+            "format": "uuid",
+            "title": "Extraction Request Id",
+            "type": "string"
+          },
+          "extraction_schema_version": {
+            "title": "Extraction Schema Version",
+            "type": "string"
+          },
+          "extractor_id": {
+            "title": "Extractor Id",
+            "type": "string"
+          },
+          "extractor_kind": {
+            "$ref": "#/components/schemas/ExtractorKind"
+          },
+          "extractor_version": {
+            "title": "Extractor Version",
+            "type": "string"
+          },
+          "mapper_rule_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapper Rule Set Sha256",
+            "type": "string"
+          },
+          "mapper_rule_set_version": {
+            "title": "Mapper Rule Set Version",
+            "type": "string"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "mapping_version": {
+            "minimum": 1.0,
+            "title": "Mapping Version",
+            "type": "integer"
+          },
+          "matched_rule_ids": {
+            "items": {
+              "$ref": "#/components/schemas/MappingRuleId"
+            },
+            "title": "Matched Rule Ids",
+            "type": "array"
+          },
+          "official_corroboration_source_version_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "rationale_template_version": {
+            "title": "Rationale Template Version",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/MappingReasonCode"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "source_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Content Sha256",
+            "type": "string"
+          },
+          "source_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/MappingEvidenceReference"
+            },
+            "title": "Source Evidence",
+            "type": "array"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_version": {
+            "minimum": 1.0,
+            "title": "Source Version",
+            "type": "integer"
+          },
+          "source_version_id": {
+            "format": "uuid",
+            "title": "Source Version Id",
+            "type": "string"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ResearchVerdict"
+          }
+        },
+        "required": [
+          "mapping_id",
+          "mapping_version",
+          "card_id",
+          "card_sha256",
+          "mapping_input_sha256",
+          "extraction_request_id",
+          "extraction_request_fingerprint",
+          "source_id",
+          "source_version_id",
+          "source_version",
+          "source_content_sha256",
+          "extractor_kind",
+          "extractor_id",
+          "extractor_version",
+          "extraction_schema_version",
+          "extraction_config_sha256",
+          "canonical_family",
+          "verdict",
+          "matched_rule_ids",
+          "reason_codes",
+          "mapper_rule_set_version",
+          "mapper_rule_set_sha256",
+          "source_evidence",
+          "rationale_template_version",
+          "created_at_utc"
+        ],
+        "title": "ResearchMapping",
+        "type": "object"
+      },
+      "ResearchMemo": {
+        "additionalProperties": false,
+        "properties": {
+          "card_id": {
+            "format": "uuid",
+            "title": "Card Id",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "memo_id": {
+            "format": "uuid",
+            "title": "Memo Id",
+            "type": "string"
+          },
+          "template_version": {
+            "const": "phase2-memo-v1",
+            "default": "phase2-memo-v1",
+            "title": "Template Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "memo_id",
+          "card_id",
+          "markdown",
+          "content_sha256",
+          "created_at_utc"
+        ],
+        "title": "ResearchMemo",
+        "type": "object"
+      },
+      "ResearchVerdict": {
+        "enum": [
+          "BUILD_RESEARCH",
+          "DEFER",
+          "DEFER_READ_ONLY",
+          "REJECT_PLATFORM",
+          "NON_TESTABLE"
+        ],
+        "title": "ResearchVerdict",
+        "type": "string"
+      },
+      "RiskAssumption": {
+        "enum": [
+          "liquidity",
+          "low_latency",
+          "borrow_available",
+          "official_corroboration",
+          "volatility_stability"
+        ],
+        "title": "RiskAssumption",
+        "type": "string"
+      },
+      "RiskAssumptionsEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/RiskAssumption"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "state",
+          "values",
+          "claim_ids"
+        ],
+        "title": "RiskAssumptionsEvidence",
+        "type": "object"
+      },
+      "SignalFamily": {
+        "enum": [
+          "cross_sectional_ranking_claim",
+          "trend_or_pattern_claim",
+          "social_or_news_claim",
+          "pairs_or_divergence_claim",
+          "order_flow_claim",
+          "unusual_options_claim"
+        ],
+        "title": "SignalFamily",
+        "type": "string"
+      },
+      "SignalFamilyEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/EvidenceState"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignalFamily"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "value",
+          "claim_ids"
+        ],
+        "title": "SignalFamilyEvidence",
+        "type": "object"
+      },
+      "SourceAuthority": {
+        "enum": [
+          "official",
+          "social",
+          "news",
+          "other",
+          "unknown"
+        ],
+        "title": "SourceAuthority",
+        "type": "string"
+      },
+      "SourceCorrectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verification_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityVerificationMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ingest_idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingest Idempotency Key"
+          },
+          "official_corroboration_source_version_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "raw_text": {
+            "title": "Raw Text",
+            "type": "string"
+          },
+          "retrieved_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At Utc"
+          },
+          "source_authority": {
+            "$ref": "#/components/schemas/SourceAuthority",
+            "default": "unknown"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "required": [
+          "source_type"
+        ],
+        "title": "SourceCorrectionRequest",
+        "type": "object"
+      },
+      "SourceCreateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExtractionRequestRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRecord"
+          },
+          "source_version": {
+            "$ref": "#/components/schemas/SourceVersion"
+          }
+        },
+        "required": [
+          "source",
+          "source_version",
+          "extraction"
+        ],
+        "title": "SourceCreateResponse",
+        "type": "object"
+      },
+      "SourceDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/SourceRecord"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/SourceVersion"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source",
+          "versions"
+        ],
+        "title": "SourceDetailResponse",
+        "type": "object"
+      },
+      "SourceIntakeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verification_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityVerificationMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ingest_idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingest Idempotency Key"
+          },
+          "official_corroboration_source_version_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "raw_text": {
+            "title": "Raw Text",
+            "type": "string"
+          },
+          "retrieved_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At Utc"
+          },
+          "source_authority": {
+            "$ref": "#/components/schemas/SourceAuthority",
+            "default": "unknown"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "required": [
+          "source_type"
+        ],
+        "title": "SourceIntakeRequest",
+        "type": "object"
+      },
+      "SourceRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "created_at_utc"
+        ],
+        "title": "SourceRecord",
+        "type": "object"
+      },
+      "SourceSpan": {
+        "additionalProperties": false,
+        "properties": {
+          "end_byte": {
+            "exclusiveMinimum": 0.0,
+            "title": "End Byte",
+            "type": "integer"
+          },
+          "segment_id": {
+            "title": "Segment Id",
+            "type": "string"
+          },
+          "start_byte": {
+            "minimum": 0.0,
+            "title": "Start Byte",
+            "type": "integer"
+          },
+          "text_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Text Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "segment_id",
+          "start_byte",
+          "end_byte",
+          "text_sha256"
+        ],
+        "title": "SourceSpan",
+        "type": "object"
+      },
+      "SourceType": {
+        "enum": [
+          "pasted_caption",
+          "transcript",
+          "manual_notes",
+          "screenshot_transcript",
+          "url_provenance",
+          "synthetic_fixture"
+        ],
+        "title": "SourceType",
+        "type": "string"
+      },
+      "SourceVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "authority_verification_method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityVerificationMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "content_state": {
+            "$ref": "#/components/schemas/ContentState"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "official_corroboration_source_version_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "parent_source_version_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Source Version Id"
+          },
+          "raw_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Text"
+          },
+          "retrieved_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At Utc"
+          },
+          "source_authority": {
+            "$ref": "#/components/schemas/SourceAuthority"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "source_version": {
+            "minimum": 1.0,
+            "title": "Source Version",
+            "type": "integer"
+          },
+          "source_version_id": {
+            "format": "uuid",
+            "title": "Source Version Id",
+            "type": "string"
+          },
+          "supplied_at_utc": {
+            "format": "date-time",
+            "title": "Supplied At Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_version_id",
+          "source_id",
+          "source_version",
+          "parent_source_version_id",
+          "source_type",
+          "source_authority",
+          "source_url",
+          "content_state",
+          "raw_text",
+          "content_sha256",
+          "supplied_at_utc",
+          "retrieved_at_utc",
+          "authority_verification_method",
+          "created_at_utc"
+        ],
+        "title": "SourceVersion",
+        "type": "object"
+      },
+      "TestabilityReason": {
+        "enum": [
+          "missing_raw_text",
+          "missing_action_rule",
+          "ambiguous_action_rule",
+          "missing_forecast_horizon",
+          "ambiguous_forecast_horizon"
+        ],
+        "title": "TestabilityReason",
+        "type": "string"
+      },
+      "TestabilityStatus": {
+        "enum": [
+          "testable",
+          "non_testable"
+        ],
+        "title": "TestabilityStatus",
+        "type": "string"
+      },
+      "TradingIdeaCard": {
+        "additionalProperties": false,
+        "properties": {
+          "action_rule": {
+            "$ref": "#/components/schemas/ActionRuleEvidence"
+          },
+          "ambiguity_flags": {
+            "items": {
+              "$ref": "#/components/schemas/AmbiguityFlag"
+            },
+            "title": "Ambiguity Flags",
+            "type": "array"
+          },
+          "asset_class": {
+            "$ref": "#/components/schemas/AssetClassEvidence"
+          },
+          "card_id": {
+            "format": "uuid",
+            "title": "Card Id",
+            "type": "string"
+          },
+          "contribution_status": {
+            "$ref": "#/components/schemas/ContributionStatus"
+          },
+          "corroboration_status": {
+            "$ref": "#/components/schemas/CorroborationStatus"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "execution_style": {
+            "$ref": "#/components/schemas/ExecutionStyleEvidence"
+          },
+          "extraction_config_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Config Sha256",
+            "type": "string"
+          },
+          "extraction_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Id"
+          },
+          "extraction_model_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Model Revision"
+          },
+          "extraction_prompt_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Sha256"
+          },
+          "extraction_prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Prompt Version"
+          },
+          "extraction_request_id": {
+            "format": "uuid",
+            "title": "Extraction Request Id",
+            "type": "string"
+          },
+          "extraction_schema_version": {
+            "title": "Extraction Schema Version",
+            "type": "string"
+          },
+          "extractor_id": {
+            "title": "Extractor Id",
+            "type": "string"
+          },
+          "extractor_kind": {
+            "$ref": "#/components/schemas/ExtractorKind"
+          },
+          "extractor_version": {
+            "title": "Extractor Version",
+            "type": "string"
+          },
+          "forecast_horizon": {
+            "$ref": "#/components/schemas/ForecastHorizonEvidence"
+          },
+          "infra_risk": {
+            "$ref": "#/components/schemas/InfraRisk"
+          },
+          "official_corroboration_source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Ids",
+            "type": "array"
+          },
+          "official_corroboration_source_version_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "paraphrased_claim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paraphrased Claim"
+          },
+          "quoted_claims": {
+            "items": {
+              "$ref": "#/components/schemas/QuotedClaim"
+            },
+            "title": "Quoted Claims",
+            "type": "array"
+          },
+          "raw_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Text"
+          },
+          "required_data": {
+            "$ref": "#/components/schemas/RequiredDataEvidence"
+          },
+          "research_priority_score": {
+            "title": "Research Priority Score",
+            "type": "null"
+          },
+          "risk_assumptions": {
+            "$ref": "#/components/schemas/RiskAssumptionsEvidence"
+          },
+          "signal_family": {
+            "$ref": "#/components/schemas/SignalFamilyEvidence"
+          },
+          "source_authority": {
+            "$ref": "#/components/schemas/SourceAuthority"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "source_version": {
+            "minimum": 1.0,
+            "title": "Source Version",
+            "type": "integer"
+          },
+          "source_version_id": {
+            "format": "uuid",
+            "title": "Source Version Id",
+            "type": "string"
+          },
+          "synthetic_fixture": {
+            "default": false,
+            "title": "Synthetic Fixture",
+            "type": "boolean"
+          },
+          "testability_reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/TestabilityReason"
+            },
+            "title": "Testability Reason Codes",
+            "type": "array"
+          },
+          "testability_score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Testability Score",
+            "type": "number"
+          },
+          "testability_score_method": {
+            "const": "phase2-testability-v1",
+            "default": "phase2-testability-v1",
+            "title": "Testability Score Method",
+            "type": "string"
+          },
+          "testability_status": {
+            "$ref": "#/components/schemas/TestabilityStatus"
+          }
+        },
+        "required": [
+          "card_id",
+          "extraction_request_id",
+          "source_id",
+          "source_version_id",
+          "source_authority",
+          "source_url",
+          "source_version",
+          "raw_text",
+          "quoted_claims",
+          "paraphrased_claim",
+          "asset_class",
+          "forecast_horizon",
+          "signal_family",
+          "execution_style",
+          "required_data",
+          "action_rule",
+          "risk_assumptions",
+          "ambiguity_flags",
+          "testability_status",
+          "testability_reason_codes",
+          "testability_score",
+          "infra_risk",
+          "research_priority_score",
+          "corroboration_status",
+          "contribution_status",
+          "official_corroboration_source_ids",
+          "official_corroboration_source_version_ids",
+          "extractor_kind",
+          "extractor_id",
+          "extractor_version",
+          "extraction_model_id",
+          "extraction_model_revision",
+          "extraction_prompt_version",
+          "extraction_prompt_sha256",
+          "extraction_schema_version",
+          "extraction_config_sha256",
+          "created_at_utc"
+        ],
+        "title": "TradingIdeaCard",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
         "type": "object"
       }
     }
@@ -121,6 +1818,655 @@
         "summary": "Ready",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/v1/cards": {
+      "get": {
+        "operationId": "list_cards_v1_cards_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TradingIdeaCard"
+                  },
+                  "title": "Response List Cards V1 Cards Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Cards",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/cards/{card_id}": {
+      "get": {
+        "operationId": "get_card_v1_cards__card_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Card Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardWithMemo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Card",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/cards/{card_id}/mappings": {
+      "post": {
+        "operationId": "create_mapping_v1_cards__card_id__mappings_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Card Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingWithRationale"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Mapping",
+        "tags": [
+          "canon-mapping"
+        ]
+      }
+    },
+    "/v1/cards/{card_id}/memo": {
+      "get": {
+        "operationId": "get_memo_v1_cards__card_id__memo_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Card Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchMemo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Memo",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/extractions": {
+      "get": {
+        "operationId": "list_extractions_v1_extractions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExtractionRequestRecord"
+                  },
+                  "title": "Response List Extractions V1 Extractions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Extractions",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/extractions/{request_id}": {
+      "get": {
+        "operationId": "get_extraction_v1_extractions__request_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionRequestRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Extraction",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/mappings": {
+      "get": {
+        "operationId": "list_mappings_v1_mappings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "card_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Card Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MappingWithRationale"
+                  },
+                  "title": "Response List Mappings V1 Mappings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Mappings",
+        "tags": [
+          "canon-mapping"
+        ]
+      }
+    },
+    "/v1/mappings/{mapping_id}": {
+      "get": {
+        "operationId": "get_mapping_v1_mappings__mapping_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mapping_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mapping Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingWithRationale"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Mapping",
+        "tags": [
+          "canon-mapping"
+        ]
+      }
+    },
+    "/v1/source-versions/{source_version_id}": {
+      "get": {
+        "operationId": "get_source_version_v1_source_versions__source_version_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceVersion"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Source Version",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/source-versions/{source_version_id}/extractions": {
+      "post": {
+        "operationId": "create_extraction_v1_source_versions__source_version_id__extractions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionRequestRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Extraction",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/sources": {
+      "get": {
+        "operationId": "list_sources_v1_sources_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceRecord"
+                  },
+                  "title": "Response List Sources V1 Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sources",
+        "tags": [
+          "idea-intake"
+        ]
+      },
+      "post": {
+        "operationId": "create_source_v1_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceIntakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceCreateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Source",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/sources/{source_id}": {
+      "get": {
+        "operationId": "get_source_v1_sources__source_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Source",
+        "tags": [
+          "idea-intake"
+        ]
+      }
+    },
+    "/v1/sources/{source_id}/versions": {
+      "post": {
+        "operationId": "add_source_version_v1_sources__source_id__versions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceCreateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Source Version",
+        "tags": [
+          "idea-intake"
         ]
       }
     }

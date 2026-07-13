@@ -30,11 +30,22 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["services/api/src", "services/jobs/src"]
+where = [
+  "services/api/src",
+  "services/extraction/src",
+  "services/jobs/src",
+  "services/mapping/src",
+]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
-testpaths = ["tests", "services/api/tests", "services/jobs/tests"]
+testpaths = [
+  "tests",
+  "services/api/tests",
+  "services/extraction/tests",
+  "services/jobs/tests",
+  "services/mapping/tests",
+]
 
 [tool.ruff]
 line-length = 100
@@ -50,5 +61,15 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["services/api/src", "services/jobs/src"]
-mypy_path = ["services/api/src", "services/jobs/src"]
+files = [
+  "services/api/src",
+  "services/extraction/src",
+  "services/jobs/src",
+  "services/mapping/src",
+]
+mypy_path = [
+  "services/api/src",
+  "services/extraction/src",
+  "services/jobs/src",
+  "services/mapping/src",
+]

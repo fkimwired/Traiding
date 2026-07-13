@@ -21,7 +21,7 @@ contract-check:
 	npm run contracts:check
 
 check: lint typecheck contract-check test
-	python scripts/verify_phase1.py --static-only
+	python scripts/verify_phase1.py --static-only --phase 3
 
 up:
 	docker compose up --build --wait
@@ -30,4 +30,4 @@ down:
 	docker compose down
 
 smoke:
-	python scripts/verify_phase1.py
+	python scripts/verify_phase1.py --phase 3

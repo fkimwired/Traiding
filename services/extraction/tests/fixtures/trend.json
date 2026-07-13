@@ -1,0 +1,9 @@
+{
+  "fixture_id": "synthetic-trend",
+  "source_authority": "other",
+  "raw_text": "When the moving average crosses, the source claims a trend breakout in liquid ETFs.",
+  "expected_signal_family": "trend_or_pattern_claim",
+  "expected_testability": "non_testable",
+  "expected_infra_risk": "unknown",
+  "expected_contribution": "not_blocked_by_corroboration"
+}

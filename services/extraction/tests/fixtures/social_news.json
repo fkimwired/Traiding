@@ -1,0 +1,9 @@
+{
+  "fixture_id": "synthetic-social-news",
+  "source_authority": "social",
+  "raw_text": "If Reddit attention rises around an issuer event, the post claims news sentiment predicts the next day for stocks.",
+  "expected_signal_family": "social_or_news_claim",
+  "expected_testability": "testable",
+  "expected_infra_risk": "unknown",
+  "expected_contribution": "blocked_official_corroboration_required"
+}

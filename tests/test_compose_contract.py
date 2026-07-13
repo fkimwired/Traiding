@@ -56,3 +56,16 @@ def test_database_identity_cannot_diverge_from_the_application_url() -> None:
     assert "POSTGRES_USER=" not in example_environment
     assert "POSTGRES_PASSWORD=" not in example_environment
     assert "FABLE5_DATABASE_URL=" not in example_environment
+
+
+def test_phase2_worker_keeps_the_research_queue_and_database_dependency() -> None:
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text(encoding="utf-8"))
+    worker = compose["services"]["worker"]
+    assert worker["environment"]["FABLE5_EXECUTION_MODE"] == "paper"
+    assert worker["environment"]["FABLE5_DATABASE_URL"].endswith("@postgres:5432/fable5")
+    assert worker["depends_on"]["migrate"]["condition"] == "service_completed_successfully"
+
+    worker_source = (ROOT / "services/jobs/src/fable5_jobs/worker.py").read_text(encoding="utf-8")
+    queue_source = (ROOT / "services/jobs/src/fable5_jobs/__init__.py").read_text(encoding="utf-8")
+    assert 'QUEUE_NAME = "research"' in queue_source
+    assert "fable5-research-worker" in worker_source

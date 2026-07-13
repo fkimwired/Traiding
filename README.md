@@ -5,21 +5,36 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 1 status
+## Phase 3 implementation status
 
-Implemented now:
+Implemented and verified by the full isolated Compose acceptance gate:
 
-- Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an idle RQ
-  research worker, and Next.js;
+- Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
+  worker, and Next.js;
 - distinct `GET /health` liveness and `GET /ready` dependency-readiness endpoints;
 - reversible PostgreSQL baseline migration with an append-only research audit spine;
 - FastAPI-owned OpenAPI with generated TypeScript contracts and drift checks;
 - four-mode frontend navigation with a persistent simulation/advice boundary;
-- Python/frontend unit tests, lint/type checks, CI, and a Phase 1 verifier;
+- Python/frontend unit tests, lint/type checks, CI, and a phase-aware verifier;
 - substantive strategy, validation, risk, provider, compliance, and handoff documentation.
+- lossless URL/text intake with immutable, correction-aware source versions and exact UTF-8 hashes;
+- a canonical Pydantic `TradingIdeaCard` with explicit evidence, testability, infrastructure-risk,
+  and social-corroboration states;
+- deterministic synthetic/mock extraction on the existing `research` queue, idempotent extraction
+  fingerprints, append-only events, and deterministic Markdown memos;
+- reversible Phase 2 persistence whose source, extraction, card, corroboration, and memo records
+  reject update, delete, and truncate;
+- create/read/list-only Phase 2 APIs and regenerated TypeScript contracts;
+- six clearly labeled synthetic archetype fixtures plus adversarial safety and provenance tests.
+- a pure, table-driven canon mapper whose closed family/verdict vocabulary cannot be overridden by
+  source text, clients, or an LLM;
+- fail-closed mapping precedence for non-testable/ambiguous, HFT, social-corroboration, pairs, and
+  read-only-options outcomes;
+- immutable, versioned mapping and deterministic rationale records with exact Phase 2 lineage;
+- create/read/list-only Phase 3 mapping APIs and source-linked rationale presentation in Idea Intake.
 
-Intentionally absent: extraction, strategy mapping code, real-data adapters, backtesting, models,
-signals, portfolio risk enforcement, broker adapters, paper orders, and every live-order capability.
+Intentionally absent: real-data adapters, feature pipelines, backtesting, alpha models, signals,
+portfolio risk enforcement, broker adapters, paper orders, and every live-order capability.
 
 ## Prerequisites
 
@@ -27,7 +42,9 @@ signals, portfolio risk enforcement, broker adapters, paper orders, and every li
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 1.
+No data-provider, LLM, broker, or commercial credential is needed for Phase 3. Local and CI extraction
+uses the deterministic mock; mapping is pure deterministic code; source URLs are stored as provenance
+and are not fetched.
 
 ## Start the full stack
 
@@ -87,17 +104,17 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 1 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 3 policy checks:
 
 ```powershell
 .\scripts\check.ps1
 ```
 
-Run the isolated full-stack acceptance verifier (it creates and removes its own Compose project and
-volumes):
+Run the isolated full-stack Phase 3 acceptance verifier (it creates and removes its own Compose
+project and volumes):
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\verify_phase1.py
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 3
 ```
 
 ### macOS/Linux/CI
@@ -143,23 +160,28 @@ docker compose run --rm migrate alembic -c services/api/alembic.ini current
 docker compose run --rm migrate alembic -c services/api/alembic.ini upgrade head
 ```
 
-Applied revisions are immutable. Phase 2 must add a new reversible revision rather than editing the
-baseline.
+Applied revisions are immutable. `0002_phase2` adds append-only source, source-version,
+corroboration, extraction-request/event, card, and memo records without editing the Phase 1 baseline.
+`0003_phase3` adds append-only mapping versions, database-validated parent lineage, deferred exact
+corroboration-set equality, post-finalization append guards, and deterministic rationale artifacts.
+The Phase 3 acceptance cycle
+runs real two-writer and lineage-negative tests, snapshots every Phase 1/2 row, downgrades
+specifically to `0002_phase2`, proves those rows are byte-identical, and re-upgrades to head.
 
 ## Architecture
 
-| Component | Phase 1 responsibility | Boundary |
+| Component | Current responsibility | Boundary |
 |---|---|---|
-| `frontend` | Next.js navigation and simulation disclosure | no research workflow or order UI behavior |
-| `api` | typed liveness/readiness and OpenAPI authority | no domain endpoints yet |
+| `frontend` | Navigation, simulation disclosure, and source-linked deterministic rationale | no actionable paper-order controls |
+| `api` | Health/readiness plus typed source/card/mapping create/read/list authority | no signal, performance, or execution endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
-| `worker` | idle RQ consumer on `research` queue | no extraction/backtest/strategy task yet |
-| `postgres` | durable migration/audit foundation | no Phase 2 domain records yet |
+| `worker` | deterministic extraction on the `research` queue | no strategy/backtest/trading queue |
+| `postgres` | Immutable audit, provenance, mapping, and rationale records | no evaluation, risk, or order records |
 | `redis` | queue/cache connectivity | no trading queue exists |
 | `packages/contracts` | generated OpenAPI TypeScript | never a second schema authority |
 
 Model tracking will use an MLflow-compatible interface when Phase 5 defines experiment artifacts; no
-MLflow service or dependency is added prematurely in Phase 1.
+MLflow service or dependency is added prematurely.
 
 ## Repository guide
 
@@ -168,8 +190,11 @@ MLflow service or dependency is added prematurely in Phase 1.
 - `docs/EVALS.md`: point-in-time, nested chronological, DSR, PBO, leakage, costs, and promotion gates.
 - `docs/DATA_SOURCES.md`: current provider landscape, adapter metadata, and entitlement cautions.
 - `docs/IMPLEMENTATION_PLAN.md`: phase dependencies and the required handoff template.
-- `docs/handoffs/PHASE_02.md`: ready-to-paste Phase 2 implementation task.
-- `services/*`: Phase 1 runtime services; future directories contain boundary documentation only.
+- `docs/PHASE_02_SCHEMA_DECISIONS.md`: frozen evidence, null, testability, and corroboration semantics.
+- `docs/PHASE_03_MAPPING_DECISIONS.md`: frozen family, rule, reason, precedence, and rationale semantics.
+- `docs/handoffs/PHASE_04.md`: ready-to-paste point-in-time adapter/snapshot task.
+- `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
+- `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -182,5 +207,6 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Use `docs/handoffs/PHASE_02.md` to implement lossless source intake and `TradingIdeaCard` extraction.
-Stop again after Phase 2. Do not begin deterministic strategy mapping or backtesting in that task.
+After the full Phase 3 acceptance gate passes, use `docs/handoffs/PHASE_04.md` for point-in-time data
+contracts, immutable snapshots, and deterministic mock adapters only. Do not begin features,
+backtesting, signals, risk execution, paper orders, or any live capability in that task.

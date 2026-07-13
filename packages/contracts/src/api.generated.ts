@@ -38,10 +38,285 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cards */
+        get: operations["list_cards_v1_cards_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/{card_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Card */
+        get: operations["get_card_v1_cards__card_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/{card_id}/mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Mapping */
+        post: operations["create_mapping_v1_cards__card_id__mappings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/{card_id}/memo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Memo */
+        get: operations["get_memo_v1_cards__card_id__memo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/extractions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Extractions */
+        get: operations["list_extractions_v1_extractions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/extractions/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Extraction */
+        get: operations["get_extraction_v1_extractions__request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Mappings */
+        get: operations["list_mappings_v1_mappings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mappings/{mapping_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Mapping */
+        get: operations["get_mapping_v1_mappings__mapping_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/source-versions/{source_version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source Version */
+        get: operations["get_source_version_v1_source_versions__source_version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/source-versions/{source_version_id}/extractions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Extraction */
+        post: operations["create_extraction_v1_source_versions__source_version_id__extractions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["list_sources_v1_sources_get"];
+        put?: never;
+        /** Create Source */
+        post: operations["create_source_v1_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source */
+        get: operations["get_source_v1_sources__source_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sources/{source_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Source Version */
+        post: operations["add_source_version_v1_sources__source_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActionRuleEvidence */
+        ActionRuleEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+        };
+        /**
+         * AmbiguityFlag
+         * @enum {string}
+         */
+        AmbiguityFlag: "synthetic_fixture" | "source_url_not_retrieved" | "social_manipulation_risk" | "official_corroboration_required" | "missing_action_rule" | "ambiguous_action_rule" | "missing_forecast_horizon" | "ambiguous_forecast_horizon" | "missing_raw_text";
+        /**
+         * AssetClass
+         * @enum {string}
+         */
+        AssetClass: "equity" | "etf" | "futures" | "options" | "multi_asset";
+        /** AssetClassEvidence */
+        AssetClassEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            value: components["schemas"]["AssetClass"] | null;
+        };
+        /**
+         * AuthorityVerificationMethod
+         * @enum {string}
+         */
+        AuthorityVerificationMethod: "manual_user_attestation" | "synthetic_fixture";
+        /**
+         * CanonicalFamily
+         * @enum {string}
+         */
+        CanonicalFamily: "A_CROSS_SECTIONAL_EQUITY_RANKING" | "B_TIME_SERIES_MOMENTUM_REGIME" | "C_OFFICIAL_EVENT_TEXT_OVERLAY" | "D_PAIRS_STATISTICAL_ARBITRAGE" | "E_ORDER_BOOK_MICROSTRUCTURE" | "F_OPTIONS_FLOW_IV_RV_ANALYTICS";
+        /** CardWithMemo */
+        CardWithMemo: {
+            card: components["schemas"]["TradingIdeaCard"];
+            memo: components["schemas"]["ResearchMemo"];
+        };
+        /**
+         * ContentState
+         * @enum {string}
+         */
+        ContentState: "supplied_text" | "retrieved_text" | "url_only_unretrieved";
+        /**
+         * ContributionStatus
+         * @enum {string}
+         */
+        ContributionStatus: "not_blocked_by_corroboration" | "blocked_official_corroboration_required";
+        /**
+         * CorroborationStatus
+         * @enum {string}
+         */
+        CorroborationStatus: "not_required" | "missing" | "linked_unverified" | "verified";
         /** DependencyStatus */
         DependencyStatus: {
             /**
@@ -56,6 +331,100 @@ export interface components {
              * @constant
              */
             redis: "ok";
+        };
+        /**
+         * EvidenceState
+         * @enum {string}
+         */
+        EvidenceState: "source_supported" | "not_stated" | "ambiguous" | "not_applicable";
+        /**
+         * ExecutionStyle
+         * @enum {string}
+         */
+        ExecutionStyle: "high_frequency_claim" | "intraday_claim" | "periodic_research_claim" | "read_only_analytics_claim";
+        /** ExecutionStyleEvidence */
+        ExecutionStyleEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            value: components["schemas"]["ExecutionStyle"] | null;
+        };
+        /**
+         * ExtractionEventType
+         * @enum {string}
+         */
+        ExtractionEventType: "requested" | "queued" | "enqueue_failed" | "started" | "succeeded" | "failed";
+        /** ExtractionRequestRecord */
+        ExtractionRequestRecord: {
+            /** Extraction Config Sha256 */
+            extraction_config_sha256: string;
+            /** Extraction Model Id */
+            extraction_model_id?: string | null;
+            /** Extraction Model Revision */
+            extraction_model_revision?: string | null;
+            /** Extraction Prompt Sha256 */
+            extraction_prompt_sha256?: string | null;
+            /** Extraction Prompt Version */
+            extraction_prompt_version?: string | null;
+            /**
+             * Extraction Request Id
+             * Format: uuid
+             */
+            extraction_request_id: string;
+            /**
+             * Extraction Schema Version
+             * @default phase2-trading-idea-card-v2
+             */
+            extraction_schema_version: string;
+            /**
+             * Extractor Id
+             * @default fable5-deterministic-extractor
+             */
+            extractor_id: string;
+            /** @default deterministic_mock */
+            extractor_kind: components["schemas"]["ExtractorKind"];
+            /**
+             * Extractor Version
+             * @default 1
+             */
+            extractor_version: string;
+            latest_event: components["schemas"]["ExtractionEventType"];
+            /** Request Fingerprint */
+            request_fingerprint: string;
+            /**
+             * Requested At Utc
+             * Format: date-time
+             */
+            requested_at_utc: string;
+            /** Rq Job Id */
+            rq_job_id: string;
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+        };
+        /**
+         * ExtractorKind
+         * @enum {string}
+         */
+        ExtractorKind: "deterministic_mock" | "llm";
+        /**
+         * ForecastHorizon
+         * @enum {string}
+         */
+        ForecastHorizon: "sub_minute" | "intraday" | "next_day" | "multi_day" | "weekly" | "monthly";
+        /** ForecastHorizonEvidence */
+        ForecastHorizonEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            value: components["schemas"]["ForecastHorizon"] | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
         };
         /** HealthResponse */
         HealthResponse: {
@@ -78,6 +447,76 @@ export interface components {
              */
             status: "ok";
         };
+        /**
+         * InfraRisk
+         * @enum {string}
+         */
+        InfraRisk: "unknown" | "low" | "medium" | "high";
+        /** MappingEvidenceReference */
+        MappingEvidenceReference: {
+            /**
+             * Claim Ids
+             * @default []
+             */
+            claim_ids: string[];
+            /**
+             * Phase2 Field
+             * @enum {string}
+             */
+            phase2_field: "signal_family" | "forecast_horizon" | "execution_style" | "required_data" | "testability" | "infra_risk" | "contribution_status" | "corroboration_status";
+            state?: components["schemas"]["EvidenceState"] | null;
+            /** Value */
+            value?: string | null;
+        };
+        /** MappingRationale */
+        MappingRationale: {
+            /** Content Sha256 */
+            content_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Markdown */
+            markdown: string;
+            /**
+             * Rationale Id
+             * Format: uuid
+             */
+            rationale_id: string;
+            /** Template Version */
+            template_version: string;
+        };
+        /**
+         * MappingReasonCode
+         * @enum {string}
+         */
+        MappingReasonCode: "missing_raw_text" | "missing_action_rule" | "ambiguous_action_rule" | "missing_forecast_horizon" | "ambiguous_forecast_horizon" | "MISSING_CANONICAL_FAMILY" | "AMBIGUOUS_CANONICAL_FAMILY" | "PLATFORM_INFRASTRUCTURE_MISMATCH" | "OFFICIAL_CORROBORATION_REQUIRED" | "BORROW_AND_BREAK_REQUIREMENTS" | "READ_ONLY_ANALYTICS_ONLY" | "CANON_A_RULE_MATCHED" | "CANON_B_RULE_MATCHED" | "CANON_C_RULE_MATCHED";
+        /**
+         * MappingRuleId
+         * @enum {string}
+         */
+        MappingRuleId: "P3-001-NON-TESTABLE-PRECEDENCE" | "P3-002-PLATFORM-MISMATCH" | "P3-003-SOCIAL-CORROBORATION" | "P3-004-PAIRS-REQUIREMENTS" | "P3-005-OPTIONS-READ-ONLY" | "P3-CANON-A" | "P3-CANON-B" | "P3-CANON-C" | "P3-CANON-D" | "P3-CANON-E" | "P3-CANON-F";
+        /** MappingWithRationale */
+        MappingWithRationale: {
+            mapping: components["schemas"]["ResearchMapping"];
+            rationale: components["schemas"]["MappingRationale"];
+        };
+        /** QuotedClaim */
+        QuotedClaim: {
+            /** Claim Id */
+            claim_id: string;
+            /** Exact Text */
+            exact_text: string;
+            /** Kind */
+            kind: string;
+            span: components["schemas"]["SourceSpan"];
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             dependencies: components["schemas"]["DependencyStatus"];
@@ -93,6 +532,392 @@ export interface components {
              * @constant
              */
             status: "ready";
+        };
+        /**
+         * RequiredData
+         * @enum {string}
+         */
+        RequiredData: "point_in_time_universe" | "delisting_aware_returns" | "ohlcv" | "official_text" | "social_text" | "borrow_availability" | "full_depth_order_book" | "options_quotes_and_trades";
+        /** RequiredDataEvidence */
+        RequiredDataEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            /** Values */
+            values: components["schemas"]["RequiredData"][];
+        };
+        /** ResearchMapping */
+        ResearchMapping: {
+            canonical_family: components["schemas"]["CanonicalFamily"] | null;
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            /** Card Sha256 */
+            card_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Extraction Config Sha256 */
+            extraction_config_sha256: string;
+            /** Extraction Model Id */
+            extraction_model_id?: string | null;
+            /** Extraction Model Revision */
+            extraction_model_revision?: string | null;
+            /** Extraction Prompt Sha256 */
+            extraction_prompt_sha256?: string | null;
+            /** Extraction Prompt Version */
+            extraction_prompt_version?: string | null;
+            /** Extraction Request Fingerprint */
+            extraction_request_fingerprint: string;
+            /**
+             * Extraction Request Id
+             * Format: uuid
+             */
+            extraction_request_id: string;
+            /** Extraction Schema Version */
+            extraction_schema_version: string;
+            /** Extractor Id */
+            extractor_id: string;
+            extractor_kind: components["schemas"]["ExtractorKind"];
+            /** Extractor Version */
+            extractor_version: string;
+            /** Mapper Rule Set Sha256 */
+            mapper_rule_set_sha256: string;
+            /** Mapper Rule Set Version */
+            mapper_rule_set_version: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /** Matched Rule Ids */
+            matched_rule_ids: components["schemas"]["MappingRuleId"][];
+            /**
+             * Official Corroboration Source Version Ids
+             * @default []
+             */
+            official_corroboration_source_version_ids: string[];
+            /** Rationale Template Version */
+            rationale_template_version: string;
+            /** Reason Codes */
+            reason_codes: components["schemas"]["MappingReasonCode"][];
+            /** Source Content Sha256 */
+            source_content_sha256: string;
+            /** Source Evidence */
+            source_evidence: components["schemas"]["MappingEvidenceReference"][];
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Source Version */
+            source_version: number;
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+            verdict: components["schemas"]["ResearchVerdict"];
+        };
+        /** ResearchMemo */
+        ResearchMemo: {
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            /** Content Sha256 */
+            content_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Markdown */
+            markdown: string;
+            /**
+             * Memo Id
+             * Format: uuid
+             */
+            memo_id: string;
+            /**
+             * Template Version
+             * @default phase2-memo-v1
+             * @constant
+             */
+            template_version: "phase2-memo-v1";
+        };
+        /**
+         * ResearchVerdict
+         * @enum {string}
+         */
+        ResearchVerdict: "BUILD_RESEARCH" | "DEFER" | "DEFER_READ_ONLY" | "REJECT_PLATFORM" | "NON_TESTABLE";
+        /**
+         * RiskAssumption
+         * @enum {string}
+         */
+        RiskAssumption: "liquidity" | "low_latency" | "borrow_available" | "official_corroboration" | "volatility_stability";
+        /** RiskAssumptionsEvidence */
+        RiskAssumptionsEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            /** Values */
+            values: components["schemas"]["RiskAssumption"][];
+        };
+        /**
+         * SignalFamily
+         * @enum {string}
+         */
+        SignalFamily: "cross_sectional_ranking_claim" | "trend_or_pattern_claim" | "social_or_news_claim" | "pairs_or_divergence_claim" | "order_flow_claim" | "unusual_options_claim";
+        /** SignalFamilyEvidence */
+        SignalFamilyEvidence: {
+            /** Claim Ids */
+            claim_ids: string[];
+            state: components["schemas"]["EvidenceState"];
+            value: components["schemas"]["SignalFamily"] | null;
+        };
+        /**
+         * SourceAuthority
+         * @enum {string}
+         */
+        SourceAuthority: "official" | "social" | "news" | "other" | "unknown";
+        /** SourceCorrectionRequest */
+        SourceCorrectionRequest: {
+            authority_verification_method?: components["schemas"]["AuthorityVerificationMethod"] | null;
+            /** Ingest Idempotency Key */
+            ingest_idempotency_key?: string | null;
+            /** Official Corroboration Source Version Ids */
+            official_corroboration_source_version_ids?: string[];
+            /** Raw Text */
+            raw_text?: string;
+            /** Retrieved At Utc */
+            retrieved_at_utc?: string | null;
+            /** @default unknown */
+            source_authority: components["schemas"]["SourceAuthority"];
+            source_type: components["schemas"]["SourceType"];
+            /** Source Url */
+            source_url?: string | null;
+        };
+        /** SourceCreateResponse */
+        SourceCreateResponse: {
+            extraction: components["schemas"]["ExtractionRequestRecord"] | null;
+            source: components["schemas"]["SourceRecord"];
+            source_version: components["schemas"]["SourceVersion"];
+        };
+        /** SourceDetailResponse */
+        SourceDetailResponse: {
+            source: components["schemas"]["SourceRecord"];
+            /** Versions */
+            versions: components["schemas"]["SourceVersion"][];
+        };
+        /** SourceIntakeRequest */
+        SourceIntakeRequest: {
+            authority_verification_method?: components["schemas"]["AuthorityVerificationMethod"] | null;
+            /** Ingest Idempotency Key */
+            ingest_idempotency_key?: string | null;
+            /** Official Corroboration Source Version Ids */
+            official_corroboration_source_version_ids?: string[];
+            /** Raw Text */
+            raw_text?: string;
+            /** Retrieved At Utc */
+            retrieved_at_utc?: string | null;
+            /** @default unknown */
+            source_authority: components["schemas"]["SourceAuthority"];
+            source_type: components["schemas"]["SourceType"];
+            /** Source Url */
+            source_url?: string | null;
+        };
+        /** SourceRecord */
+        SourceRecord: {
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+        };
+        /** SourceSpan */
+        SourceSpan: {
+            /** End Byte */
+            end_byte: number;
+            /** Segment Id */
+            segment_id: string;
+            /** Start Byte */
+            start_byte: number;
+            /** Text Sha256 */
+            text_sha256: string;
+        };
+        /**
+         * SourceType
+         * @enum {string}
+         */
+        SourceType: "pasted_caption" | "transcript" | "manual_notes" | "screenshot_transcript" | "url_provenance" | "synthetic_fixture";
+        /** SourceVersion */
+        SourceVersion: {
+            authority_verification_method: components["schemas"]["AuthorityVerificationMethod"] | null;
+            /** Content Sha256 */
+            content_sha256: string;
+            content_state: components["schemas"]["ContentState"];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Official Corroboration Source Version Ids */
+            official_corroboration_source_version_ids?: string[];
+            /** Parent Source Version Id */
+            parent_source_version_id: string | null;
+            /** Raw Text */
+            raw_text: string | null;
+            /** Retrieved At Utc */
+            retrieved_at_utc: string | null;
+            source_authority: components["schemas"]["SourceAuthority"];
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            source_type: components["schemas"]["SourceType"];
+            /** Source Url */
+            source_url: string | null;
+            /** Source Version */
+            source_version: number;
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+            /**
+             * Supplied At Utc
+             * Format: date-time
+             */
+            supplied_at_utc: string;
+        };
+        /**
+         * TestabilityReason
+         * @enum {string}
+         */
+        TestabilityReason: "missing_raw_text" | "missing_action_rule" | "ambiguous_action_rule" | "missing_forecast_horizon" | "ambiguous_forecast_horizon";
+        /**
+         * TestabilityStatus
+         * @enum {string}
+         */
+        TestabilityStatus: "testable" | "non_testable";
+        /** TradingIdeaCard */
+        TradingIdeaCard: {
+            action_rule: components["schemas"]["ActionRuleEvidence"];
+            /** Ambiguity Flags */
+            ambiguity_flags: components["schemas"]["AmbiguityFlag"][];
+            asset_class: components["schemas"]["AssetClassEvidence"];
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            contribution_status: components["schemas"]["ContributionStatus"];
+            corroboration_status: components["schemas"]["CorroborationStatus"];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            execution_style: components["schemas"]["ExecutionStyleEvidence"];
+            /** Extraction Config Sha256 */
+            extraction_config_sha256: string;
+            /** Extraction Model Id */
+            extraction_model_id: string | null;
+            /** Extraction Model Revision */
+            extraction_model_revision: string | null;
+            /** Extraction Prompt Sha256 */
+            extraction_prompt_sha256: string | null;
+            /** Extraction Prompt Version */
+            extraction_prompt_version: string | null;
+            /**
+             * Extraction Request Id
+             * Format: uuid
+             */
+            extraction_request_id: string;
+            /** Extraction Schema Version */
+            extraction_schema_version: string;
+            /** Extractor Id */
+            extractor_id: string;
+            extractor_kind: components["schemas"]["ExtractorKind"];
+            /** Extractor Version */
+            extractor_version: string;
+            forecast_horizon: components["schemas"]["ForecastHorizonEvidence"];
+            infra_risk: components["schemas"]["InfraRisk"];
+            /** Official Corroboration Source Ids */
+            official_corroboration_source_ids: string[];
+            /** Official Corroboration Source Version Ids */
+            official_corroboration_source_version_ids: string[];
+            /** Paraphrased Claim */
+            paraphrased_claim: string | null;
+            /** Quoted Claims */
+            quoted_claims: components["schemas"]["QuotedClaim"][];
+            /** Raw Text */
+            raw_text: string | null;
+            required_data: components["schemas"]["RequiredDataEvidence"];
+            /** Research Priority Score */
+            research_priority_score: null;
+            risk_assumptions: components["schemas"]["RiskAssumptionsEvidence"];
+            signal_family: components["schemas"]["SignalFamilyEvidence"];
+            source_authority: components["schemas"]["SourceAuthority"];
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Source Version */
+            source_version: number;
+            /**
+             * Source Version Id
+             * Format: uuid
+             */
+            source_version_id: string;
+            /**
+             * Synthetic Fixture
+             * @default false
+             */
+            synthetic_fixture: boolean;
+            /** Testability Reason Codes */
+            testability_reason_codes: components["schemas"]["TestabilityReason"][];
+            /** Testability Score */
+            testability_score: number;
+            /**
+             * Testability Score Method
+             * @default phase2-testability-v1
+             * @constant
+             */
+            testability_score_method: "phase2-testability-v1";
+            testability_status: components["schemas"]["TestabilityStatus"];
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
         };
     };
     responses: never;
@@ -147,6 +972,447 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_cards_v1_cards_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradingIdeaCard"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_card_v1_cards__card_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardWithMemo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_mapping_v1_cards__card_id__mappings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingWithRationale"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_memo_v1_cards__card_id__memo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMemo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_extractions_v1_extractions_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionRequestRecord"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_extraction_v1_extractions__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionRequestRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_mappings_v1_mappings_get: {
+        parameters: {
+            query?: {
+                card_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingWithRationale"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_mapping_v1_mappings__mapping_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingWithRationale"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_version_v1_source_versions__source_version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceVersion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_extraction_v1_source_versions__source_version_id__extractions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionRequestRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sources_v1_sources_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceRecord"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_source_v1_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceIntakeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_v1_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_source_version_v1_sources__source_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
