@@ -72,6 +72,9 @@ PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA = (
     "source-decimal-times-frozen-multiplier-quantized-1e-12-v1"
 )
 PHASE6_SOURCE_FEATURE_DERIVATION_QUANTUM = Decimal("1e-12")
+PHASE6_REPORT_SCOPE_SOURCE_EVIDENCE_HASH_DOMAIN = "phase6-report-scope-source-evidence-v1"
+PHASE6_REGIME_EVIDENCE_AVAILABILITY_HASH_DOMAIN = "phase6-regime-evidence-availability-v1"
+PHASE6_REGIME_EVIDENCE_HASH_DOMAIN = "phase6-regime-evidence-v2"
 PHASE5_ADVERSARIAL_DEPENDENCY_REVIEW_VERSION = "phase5-adversarial-dependency-review-v1"
 PHASE5_ADVERSARIAL_DEPENDENCY_REVIEW_HASH_DOMAIN = "phase5-adversarial-dependency-review-v1"
 PHASE5_DECIMAL_QUANTUM = Decimal("1e-24")
@@ -672,6 +675,119 @@ class SyntheticSourceObservationExpectation(StrictModel):
                 raise ValueError("membership expectation cannot use numeric sample bindings")
         elif not isinstance(payload, OhlcvBarPayload) and self.value_bindings:
             raise ValueError("metadata-only source expectations cannot use numeric sample bindings")
+        return self
+
+
+class ReportScopeSourceRole(StrEnum):
+    """Typed non-sample roles for immutable observations required by Phase 6."""
+
+    PREPARED_FEATURE_GRAPH = "prepared_feature_graph"
+    PREPARED_LABEL_GRAPH = "prepared_label_graph"
+    TRAIN_ONLY_TRANSFORM = "train_only_transform"
+    LIFECYCLE_TEST = "lifecycle_test"
+    OFFICIAL_CORROBORATION = "official_corroboration"
+
+
+class ReportScopeSourceEvidence(StrictModel):
+    """Hash-bound explanation for a report source that is not a sample feature input."""
+
+    schema_version: Literal["phase6-report-scope-source-evidence-v1"] = (
+        "phase6-report-scope-source-evidence-v1"
+    )
+    role: ReportScopeSourceRole
+    prepared_pipeline_input_sha256: SHA256
+    source_observation_keys: tuple[SourceObservationKey, ...] = Field(min_length=1)
+    evidence_sha256: SHA256
+
+    @model_validator(mode="after")
+    def validate_scope_evidence(self) -> Self:
+        keys = tuple(
+            (str(item.capability), str(item.normalized_observation_id))
+            for item in self.source_observation_keys
+        )
+        if keys != tuple(sorted(keys)) or len(keys) != len(set(keys)):
+            raise ValueError("report-scope source keys must be unique and canonically sorted")
+        content = self.model_dump(mode="python", exclude={"evidence_sha256"})
+        if self.evidence_sha256 != domain_sha256(
+            PHASE6_REPORT_SCOPE_SOURCE_EVIDENCE_HASH_DOMAIN,
+            content,
+        ):
+            raise ValueError("report-scope source evidence hash must match its exact preimage")
+        return self
+
+
+class Phase6RegimeEvidenceAvailability(StrictModel):
+    """Bind either observed PIT regime sources or explicit unavailable projections."""
+
+    schema_version: Literal["phase6-regime-evidence-v2"] = "phase6-regime-evidence-v2"
+    prepared_pipeline_input_sha256: SHA256
+    rate_evidence_available: bool
+    rate_evidence_reason: Identifier | None
+    rate_compatibility_projection: Identifier | None
+    rate_definition_id: Identifier | None = None
+    rate_source_observation_keys: tuple[SourceObservationKey, ...] = ()
+    crisis_geometry_available: bool
+    crisis_evidence_reason: Identifier | None
+    crisis_compatibility_projection: Identifier | None
+    crisis_definition_id: Identifier | None = None
+    crisis_window_ids: tuple[Identifier, ...] = ()
+    crisis_source_observation_keys: tuple[SourceObservationKey, ...] = ()
+    evidence_sha256: SHA256
+
+    @model_validator(mode="after")
+    def validate_availability_evidence(self) -> Self:
+        rate_keys = tuple(
+            (str(item.capability), str(item.normalized_observation_id))
+            for item in self.rate_source_observation_keys
+        )
+        crisis_keys = tuple(
+            (str(item.capability), str(item.normalized_observation_id))
+            for item in self.crisis_source_observation_keys
+        )
+        for keys, field_name in (
+            (rate_keys, "rate source keys"),
+            (crisis_keys, "crisis source keys"),
+        ):
+            if keys != tuple(sorted(keys)) or len(keys) != len(set(keys)):
+                raise ValueError(f"{field_name} must be unique and canonically sorted")
+        if self.rate_evidence_available:
+            if (
+                self.rate_evidence_reason is not None
+                or self.rate_compatibility_projection is not None
+                or self.rate_definition_id is None
+                or len(self.rate_source_observation_keys) < 2
+            ):
+                raise ValueError("available rate evidence requires exact observed sources")
+        elif (
+            self.rate_evidence_reason != "rate_regime_source_unavailable"
+            or self.rate_compatibility_projection != "zero-at-decision-not-observed-v1"
+            or self.rate_definition_id is not None
+            or self.rate_source_observation_keys
+        ):
+            raise ValueError("unavailable rate evidence must use the explicit zero projection")
+        if self.crisis_geometry_available:
+            if (
+                self.crisis_evidence_reason is not None
+                or self.crisis_compatibility_projection is not None
+                or self.crisis_definition_id is None
+                or not self.crisis_window_ids
+                or not self.crisis_source_observation_keys
+            ):
+                raise ValueError("available crisis evidence requires exact predeclared sources")
+        elif (
+            self.crisis_evidence_reason != "crisis_window_geometry_unavailable"
+            or self.crisis_compatibility_projection != "empty-membership-not-observed-v1"
+            or self.crisis_definition_id is not None
+            or self.crisis_window_ids
+            or self.crisis_source_observation_keys
+        ):
+            raise ValueError("unavailable crisis evidence must use the explicit empty projection")
+        content = self.model_dump(mode="python", exclude={"evidence_sha256"})
+        if self.evidence_sha256 != domain_sha256(
+            PHASE6_REGIME_EVIDENCE_HASH_DOMAIN,
+            content,
+        ):
+            raise ValueError("regime availability evidence hash must match its exact preimage")
         return self
 
 
@@ -1653,6 +1769,8 @@ class SyntheticEvaluationFixture(StrictModel):
     source_observation_expectations: tuple[SyntheticSourceObservationExpectation, ...] = Field(
         min_length=1
     )
+    report_scope_source_evidence: tuple[ReportScopeSourceEvidence, ...] = ()
+    phase6_regime_evidence: Phase6RegimeEvidenceAvailability | None = None
     samples: tuple[SyntheticSample, ...] = Field(min_length=4)
     trials: tuple[SyntheticTrial, ...] = Field(min_length=2)
     warnings: tuple[str, ...] = Field(min_length=1)
@@ -1675,6 +1793,26 @@ class SyntheticEvaluationFixture(StrictModel):
         if sample_ids != tuple(sorted(sample_ids)) or len(sample_ids) != len(set(sample_ids)):
             raise ValueError("synthetic sample identities must be unique and canonically sorted")
         declared = set(expectation_keys)
+        scope_roles = tuple(item.role.value for item in self.report_scope_source_evidence)
+        if scope_roles != tuple(sorted(scope_roles)) or len(scope_roles) != len(set(scope_roles)):
+            raise ValueError("report-scope source roles must be unique and canonically sorted")
+        pipeline_hashes = {
+            item.prepared_pipeline_input_sha256 for item in self.report_scope_source_evidence
+        }
+        if len(pipeline_hashes) > 1:
+            raise ValueError("report-scope source evidence must bind one prepared pipeline")
+        scope_keys = tuple(
+            (
+                str(key.capability),
+                str(key.normalized_observation_id),
+            )
+            for evidence in self.report_scope_source_evidence
+            for key in evidence.source_observation_keys
+        )
+        if len(scope_keys) != len(set(scope_keys)):
+            raise ValueError("a report-scope source can have exactly one typed role")
+        scope_key_set = set(scope_keys)
+        sample_key_set: set[tuple[str, str]] = set()
         for sample in self.samples:
             keys = {
                 (str(key.capability), str(key.normalized_observation_id))
@@ -1682,10 +1820,68 @@ class SyntheticEvaluationFixture(StrictModel):
             }
             if not keys.issubset(declared):
                 raise ValueError("every sample source observation must be declared by the fixture")
-        # A report-wide expectation may be a capability witness that is intentionally
-        # absent from an individual sample's PIT feature subset. Sample keys remain a
-        # strict subset of the declared immutable observations; Phase 5 policy checks
-        # still require the exact report-wide capability union.
+            sample_key_set.update(keys)
+        if sample_key_set & scope_key_set:
+            raise ValueError("sample inputs and report-scope sources must be disjoint")
+        consumed = sample_key_set | scope_key_set
+        if consumed != declared:
+            missing = tuple(sorted(declared - consumed))
+            extra = tuple(sorted(consumed - declared))
+            raise ValueError(
+                "every source expectation requires a sample input or typed report-scope role: "
+                f"missing={missing}; extra={extra}"
+            )
+        if pipeline_hashes:
+            prepared_pipeline_sha256 = next(iter(pipeline_hashes))
+            if any(
+                trial.status is TrialStatus.COMPLETED
+                and trial.configuration.get("phase6_pipeline_input_sha256")
+                != prepared_pipeline_sha256
+                for trial in self.trials
+            ):
+                raise ValueError(
+                    "completed trials must bind the report-scope prepared pipeline hash"
+                )
+        if self.phase6_regime_evidence is not None:
+            if pipeline_hashes != {self.phase6_regime_evidence.prepared_pipeline_input_sha256}:
+                raise ValueError(
+                    "regime availability evidence must bind the report-scope prepared pipeline"
+                )
+            evidence = self.phase6_regime_evidence
+            if not evidence.rate_evidence_available and any(
+                sample.rate_change != 0 or sample.rate_available_at_utc != sample.decision_time_utc
+                for sample in self.samples
+            ):
+                raise ValueError("unavailable rate evidence requires the explicit zero projection")
+            if not evidence.crisis_geometry_available and any(
+                sample.crisis_window_ids for sample in self.samples
+            ):
+                raise ValueError(
+                    "unavailable crisis evidence requires the explicit empty projection"
+                )
+            declared_keys = {
+                (str(item.key.capability), str(item.key.normalized_observation_id))
+                for item in self.source_observation_expectations
+            }
+            observed_rate_keys = {
+                (str(item.capability), str(item.normalized_observation_id))
+                for item in evidence.rate_source_observation_keys
+            }
+            observed_crisis_keys = {
+                (str(item.capability), str(item.normalized_observation_id))
+                for item in evidence.crisis_source_observation_keys
+            }
+            if not (observed_rate_keys | observed_crisis_keys).issubset(declared_keys):
+                raise ValueError("regime evidence sources must be declared by the fixture")
+            if evidence.rate_evidence_available and any(
+                sample.rate_available_at_utc > sample.decision_time_utc for sample in self.samples
+            ):
+                raise ValueError("observed rate evidence must be available by every decision")
+            if evidence.crisis_geometry_available and any(
+                not set(sample.crisis_window_ids).issubset(evidence.crisis_window_ids)
+                for sample in self.samples
+            ):
+                raise ValueError("sample crisis membership must use predeclared windows")
         return self
 
 

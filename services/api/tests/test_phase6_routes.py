@@ -116,6 +116,7 @@ def completed_artifact() -> ResearchRunArtifact:
         mapping=mapping,
         prepared=prepared,
         report=report,
+        snapshots=snapshot_tuple,
     )
 
 
@@ -135,7 +136,15 @@ def test_create_returns_complete_explainable_research_artifact(
     body = response.json()
     assert body["run_id"] == str(completed_artifact.run_id)
     assert body["artifact_sha256"] == completed_artifact.artifact_sha256
-    assert body["phase5_evaluation"]["promotion_state"] == "PASS_RESEARCH"
+    assert body["phase5_evaluation"]["promotion_state"] == "FAIL_REJECT"
+    assert len(body["model_output_sets"]) == 4
+    for output_set in body["model_output_sets"]:
+        assert len(output_set["outputs"]) == len(body["feature_rows"])
+        assert len(output_set["ledger_cells"]) == len(body["feature_rows"])
+        assert [item["sample_id"] for item in output_set["outputs"]] == [
+            item["sample_id"] for item in output_set["ledger_cells"]
+        ]
+    assert body["calendar_source_references"] == []
     assert body["family_evidence"]["llm_is_extraction_only"] is True
     corroboration = body["family_evidence"]["corroborations"][0]
     assert corroboration["exact_match"] is True
@@ -183,21 +192,50 @@ def test_create_delegates_only_typed_server_resolvable_identities() -> None:
     )
 
 
-def test_create_rejects_client_supplied_metrics_hashes_thresholds_times_and_verdicts() -> None:
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("metrics", {}),
+        ("results", {}),
+        ("artifact_sha256", "0" * 64),
+        ("hashes", {}),
+        ("thresholds", {}),
+        ("created_at_utc", "2026-07-14T00:00:00Z"),
+        ("timestamps", {}),
+        ("positions", []),
+        ("trials", []),
+        ("trial_results", []),
+        ("promotion_state", "PASS_RESEARCH"),
+        ("verdict", "BUILD_RESEARCH"),
+    ),
+)
+def test_create_rejects_each_client_supplied_authoritative_field(
+    field: str,
+    value: object,
+) -> None:
     workflow = MagicMock(spec=ResearchWorkflow)
-    payload = {
-        **_payload(),
-        "metrics": {},
-        "artifact_sha256": "0" * 64,
-        "thresholds": {},
-        "created_at_utc": "2026-07-14T00:00:00Z",
-        "trials": [],
-        "trial_results": [],
-        "promotion_state": "PASS_RESEARCH",
-        "verdict": "BUILD_RESEARCH",
-    }
+    payload = {**_payload(), field: value}
 
     response = _client(workflow).post("/v1/research-runs", json=payload)
+
+    assert response.status_code == 422
+    workflow.create_run.assert_not_called()
+
+
+def test_create_rejects_more_than_ten_snapshot_identities_before_workflow() -> None:
+    workflow = MagicMock(spec=ResearchWorkflow)
+    snapshot_ids = sorted(
+        (UUID(int=index) for index in range(1, 12)),
+        key=str,
+    )
+
+    response = _client(workflow).post(
+        "/v1/research-runs",
+        json={
+            **_payload(),
+            "snapshot_ids": [str(snapshot_id) for snapshot_id in snapshot_ids],
+        },
+    )
 
     assert response.status_code == 422
     workflow.create_run.assert_not_called()

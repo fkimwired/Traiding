@@ -12,6 +12,7 @@ DATA_SRC = ROOT / "services/data/src"
 sys.path.insert(0, str(DATA_SRC))
 
 from fable5_data.contracts import (  # noqa: E402
+    PHASE4_DATA_CAPABILITIES,
     PHASE4_SCHEMA_CONSTANTS,
     PHASE6_DATA_CONTRACT_CONSTANTS,
     AvailabilityConvention,
@@ -234,13 +235,13 @@ def test_phase4_sql_vocabularies_and_versions_equal_contract_authority() -> None
 
     phase6_quality_codes = set(PHASE6_DATA_CONTRACT_CONSTANTS["additive_quality_codes"])
     phase4_enum_values = {
+        DataCapability: tuple(item.value for item in PHASE4_DATA_CAPABILITIES),
         DataRecordType: tuple(PHASE4_SCHEMA_CONSTANTS["record_types"]),
         DataQualityCode: tuple(
             value for value in enum_values(DataQualityCode) if value not in phase6_quality_codes
         ),
     }
     for enum_type in (
-        DataCapability,
         ConstituentDisposition,
         FindingDisposition,
         DataQualitySeverity,

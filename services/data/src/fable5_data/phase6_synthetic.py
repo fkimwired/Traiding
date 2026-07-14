@@ -130,6 +130,14 @@ def _weekday_dates(start: date, end: date) -> tuple[str, ...]:
 
 _BAR_DATES: Final = _weekday_dates(date(2019, 3, 1), date(2020, 4, 30))
 _VOLATILITY_INPUT_END_DATE: Final = "2020-03-31"
+_ACTIVE_PRICE_CYCLE: Final[tuple[Decimal, ...]] = (
+    Decimal("0"),
+    Decimal("0.20"),
+    Decimal("-0.15"),
+    Decimal("0.10"),
+    Decimal("-0.20"),
+    Decimal("0.15"),
+)
 
 
 def _security_bar_dates(security: _SecurityFixture) -> tuple[str, ...]:
@@ -148,11 +156,15 @@ def _synthetic_market_point(
     index = Decimal(bar_index - 1)
     if security_index == 1:
         if day < "2020-01-09":
-            close = Decimal("28") + index * Decimal("0.045")
+            trend_close = Decimal("28") + index * Decimal("0.045")
         else:
             split_index = Decimal(_BAR_DATES.index("2020-01-09"))
             pre_split = Decimal("28") + split_index * Decimal("0.045")
-            close = pre_split / Decimal("2") + (index - split_index) * Decimal("0.035")
+            trend_close = pre_split / Decimal("2") + (index - split_index) * Decimal("0.035")
+        # The immutable synthetic path deliberately contains a deterministic cycle.
+        # This gives B/C research labels both signs without deriving any model output
+        # from a future label or manufacturing a return inside the evaluation bridge.
+        close = trend_close + _ACTIVE_PRICE_CYCLE[(bar_index - 1) % len(_ACTIVE_PRICE_CYCLE)]
         volume = Decimal("900000") + (index % Decimal("17")) * Decimal("25000")
     elif security_index == 2:
         close = Decimal("36") - index * Decimal("0.025")
@@ -415,6 +427,91 @@ def _calendar_records() -> list[dict[str, object]]:
             )
         )
     return records
+
+
+def _macro_regime_records() -> list[dict[str, object]]:
+    """Return predeclared PIT rate and stress-window evidence for the positive A fixture."""
+
+    return [
+        _record(
+            alias="macro_rate_202001",
+            capability=DataCapability.MACRO_REGIME_INPUTS,
+            record_type="macro_rate_observation",
+            logical_key={
+                "series_id": "synthetic-policy-rate",
+                "observation_period_end": "2019-12-31",
+                "vintage_id": "synthetic-rate-vintage-2020-01",
+            },
+            instrument_id=None,
+            listing_id=None,
+            event_time="2019-12-31T23:59:59Z",
+            available_at="2020-01-02T13:00:00Z",
+            valid_from="2020-01-02T13:00:00Z",
+            valid_to="2020-02-03T13:00:00Z",
+            unit="percentage-points",
+            currency=None,
+            payload={
+                "record_type": "macro_rate_observation",
+                "series_id": "synthetic-policy-rate",
+                "observation_period_end": "2019-12-31",
+                "released_at": "2020-01-02T13:00:00Z",
+                "vintage_id": "synthetic-rate-vintage-2020-01",
+                "rate_value": "1.60",
+                "previous_rate_value": "1.50",
+                "rate_change": "0.10",
+            },
+        ),
+        _record(
+            alias="macro_rate_202002",
+            capability=DataCapability.MACRO_REGIME_INPUTS,
+            record_type="macro_rate_observation",
+            logical_key={
+                "series_id": "synthetic-policy-rate",
+                "observation_period_end": "2020-01-31",
+                "vintage_id": "synthetic-rate-vintage-2020-02",
+            },
+            instrument_id=None,
+            listing_id=None,
+            event_time="2020-01-31T23:59:59Z",
+            available_at="2020-02-03T13:00:00Z",
+            valid_from="2020-02-03T13:00:00Z",
+            valid_to=None,
+            unit="percentage-points",
+            currency=None,
+            payload={
+                "record_type": "macro_rate_observation",
+                "series_id": "synthetic-policy-rate",
+                "observation_period_end": "2020-01-31",
+                "released_at": "2020-02-03T13:00:00Z",
+                "vintage_id": "synthetic-rate-vintage-2020-02",
+                "rate_value": "1.40",
+                "previous_rate_value": "1.60",
+                "rate_change": "-0.20",
+            },
+        ),
+        _record(
+            alias="crisis_window_20200129",
+            capability=DataCapability.MACRO_REGIME_INPUTS,
+            record_type="crisis_window_definition",
+            logical_key={"crisis_window_id": "synthetic-predeclared-stress-2020-01"},
+            instrument_id=None,
+            listing_id=None,
+            event_time="2019-12-01T00:00:00Z",
+            available_at="2019-12-01T00:00:00Z",
+            valid_from="2019-12-01T00:00:00Z",
+            valid_to=None,
+            unit="utc-interval",
+            currency=None,
+            payload={
+                "record_type": "crisis_window_definition",
+                "crisis_window_id": "synthetic-predeclared-stress-2020-01",
+                "definition_method_id": "synthetic-predeclared-calendar-window-v1",
+                "declared_at": "2019-12-01T00:00:00Z",
+                "window_start": "2020-01-29T00:00:00Z",
+                "window_end": "2020-02-04T00:00:00Z",
+            },
+        ),
+    ]
 
 
 def _market_records() -> list[dict[str, object]]:
@@ -766,6 +863,7 @@ def load_phase6_fixture_records(
         *_identity_records(),
         *_membership_records(),
         *_calendar_records(),
+        *_macro_regime_records(),
         *_market_records(),
         *_fundamental_records(),
         *_official_records(official_ids),

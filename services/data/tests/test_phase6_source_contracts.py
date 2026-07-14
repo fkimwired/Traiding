@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from decimal import Decimal
 from uuid import UUID
 
 import pytest
@@ -8,13 +9,16 @@ from fable5_data.canonical import canonical_json_bytes, raw_payload_sha256
 from fable5_data.contracts import (
     AUTHORIZED_CAPABILITIES,
     CAPABILITY_RECORD_TYPES,
+    PHASE4_DATA_CAPABILITIES,
     PHASE4_SCHEMA_CONSTANTS,
     PHASE6_DATA_CONTRACT_CONSTANTS,
     PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
     AuthorizedMappingIdentity,
+    CrisisWindowDefinitionPayload,
     DataCapability,
     DataQualityCode,
     DataRecordType,
+    MacroRateObservationPayload,
     OfficialDocumentContentPayload,
     SectorClassificationPayload,
     SnapshotBuildBlockedResult,
@@ -275,7 +279,7 @@ def test_phase4_default_fixture_profile_and_every_record_identity_remain_byte_id
     )
     assert actual == expected
     assert SyntheticPointInTimeAdapter().all_results() == tuple(
-        build_synthetic_results()[capability] for capability in DataCapability
+        build_synthetic_results()[capability] for capability in PHASE4_DATA_CAPABILITIES
     )
     assert PHASE4_SCHEMA_CONSTANTS["record_types"] == (
         "instrument_identity",
@@ -299,7 +303,7 @@ def test_phase6_fixture_is_complete_deterministic_and_quality_accepted_for_every
 
     assert first.all_results() == second.all_results()
     assert phase6_fixture_set_sha256() == (
-        "883677c3fa1419b775df57da3d5b5b691b6cf8ec1a1796d2326da9f47753a196"
+        "010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d"
     )
     assert PHASE6_SYNTHETIC_MOCK_CONFIGURATION.fixture_set_version == (
         PHASE6_SYNTHETIC_FIXTURE_SET_VERSION
@@ -308,6 +312,8 @@ def test_phase6_fixture_is_complete_deterministic_and_quality_accepted_for_every
         "sector_classification",
         "official_document_content",
         "social_attention",
+        "macro_rate_observation",
+        "crisis_window_definition",
     )
     assert (
         DataCapability.SECURITY_MASTER
@@ -316,6 +322,10 @@ def test_phase6_fixture_is_complete_deterministic_and_quality_accepted_for_every
     assert (
         DataCapability.UNIVERSE_MEMBERSHIP
         in AUTHORIZED_CAPABILITIES[CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME]
+    )
+    assert (
+        DataCapability.MACRO_REGIME_INPUTS
+        in AUTHORIZED_CAPABILITIES[CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING]
     )
     assert AUTHORIZED_CAPABILITIES[CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY] == {
         DataCapability.SECURITY_MASTER,
@@ -337,6 +347,27 @@ def test_phase6_fixture_is_complete_deterministic_and_quality_accepted_for_every
     assert record_types.count(DataRecordType.OFFICIAL_DOCUMENT_EVENT) == 2
     assert record_types.count(DataRecordType.OFFICIAL_DOCUMENT_CONTENT) == 2
     assert record_types.count(DataRecordType.SOCIAL_ATTENTION) == 1
+    assert record_types.count(DataRecordType.MACRO_RATE_OBSERVATION) == 2
+    assert record_types.count(DataRecordType.CRISIS_WINDOW_DEFINITION) == 1
+    macro_payloads = [
+        item.payload
+        for item in all_observations
+        if item.payload.record_type == "macro_rate_observation"
+    ]
+    assert all(isinstance(item, MacroRateObservationPayload) for item in macro_payloads)
+    assert {
+        item.rate_change for item in macro_payloads if isinstance(item, MacroRateObservationPayload)
+    } == {
+        Decimal("-0.20"),
+        Decimal("0.10"),
+    }
+    crisis_payload = next(
+        item.payload
+        for item in all_observations
+        if item.payload.record_type == "crisis_window_definition"
+    )
+    assert isinstance(crisis_payload, CrisisWindowDefinitionPayload)
+    assert crisis_payload.declared_at < crisis_payload.window_start < crisis_payload.window_end
     listing_statuses = {
         item.payload.status.value
         for item in all_observations
@@ -362,6 +393,27 @@ def test_phase6_fixture_is_complete_deterministic_and_quality_accepted_for_every
         assert isinstance(quality, QualityAcceptedResult), capability
 
 
+def test_phase6_macro_regime_payloads_reject_false_change_and_ex_post_window() -> None:
+    with pytest.raises(ValidationError, match="current minus previous"):
+        MacroRateObservationPayload(
+            series_id="synthetic-policy-rate",
+            observation_period_end=datetime(2020, 1, 1, tzinfo=UTC).date(),
+            released_at=datetime(2020, 1, 2, tzinfo=UTC),
+            vintage_id="synthetic-vintage",
+            rate_value=Decimal("1.5"),
+            previous_rate_value=Decimal("1.4"),
+            rate_change=Decimal("0.2"),
+        )
+    with pytest.raises(ValidationError, match="declared before"):
+        CrisisWindowDefinitionPayload(
+            crisis_window_id="synthetic-window",
+            definition_method_id="predeclared-calendar-window-v1",
+            declared_at=datetime(2020, 1, 2, tzinfo=UTC),
+            window_start=datetime(2020, 1, 1, tzinfo=UTC),
+            window_end=datetime(2020, 1, 3, tzinfo=UTC),
+        )
+
+
 def test_phase6_resolver_binds_original_and_later_correction_to_exact_mapping_sources() -> None:
     source_ids = (
         UUID("dddddddd-dddd-5ddd-8ddd-dddddddddddd"),
@@ -374,7 +426,7 @@ def test_phase6_resolver_binds_original_and_later_correction_to_exact_mapping_so
     adapter, catalog = resolve_phase6_synthetic_adapter(mapping)
     official = adapter.fetch(DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA)
 
-    assert len(catalog.observations) == 1200
+    assert len(catalog.observations) == 1203
     official_source_ids = {
         item.payload.official_source_version_id
         for item in official.batch.normalized_observations

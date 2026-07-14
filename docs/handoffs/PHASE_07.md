@@ -34,6 +34,20 @@ must never grant approval. Approval requires a separately versioned policy, huma
 authorization evidence, expiry, revocation, scope, complete Phase 6 lineage, and pre-order
 risk rules. Missing, stale, revoked, conflicting, or uncomputable evidence must fail closed.
 
+The accepted Phase 6 deterministic corpus contains exactly one persisted synthetic
+`PASS_RESEARCH` artifact: `phase6-a-pass-v2`. `phase6-a-fail-cost-v2`, both Family B artifacts,
+and `phase6-c-pass-v2` are `FAIL_REJECT`; the corroboration-negative Family C request blocks
+before persistence. Configuration ids containing `-pass-` are immutable fixture identities, not
+verdicts. Phase 7 must derive eligibility from the immutable Phase 6 promotion state and complete
+lineage, never from an id token. It must not relabel, special-case, or manufacture a Phase 6
+result.
+
+`phase6-a-pass-v2` may exercise only the research-eligibility prerequisite. A request containing
+that artifact alone must still fail closed. A positive approval artifact may be created only when
+the same pre-existing immutable Phase 6 result is accompanied by every separately required,
+valid human authorization, policy, scope, expiry, revocation, lineage, and pre-order-risk input.
+The result remains synthetic and cannot authorize an order or imply execution readiness.
+
 Preserve migrations 0001 through 0006, all existing rows, all Phase 5 gates, all Phase 6
 artifacts, and generated-contract authority. If schema changes are required, add reversible
 migration 0007 with `down_revision="0006_phase6"`. New approval/risk artifacts must be
@@ -50,11 +64,13 @@ Expose create/read/list APIs only. Clients cannot supply approvals, verdicts, ha
 thresholds, timestamps, risk results, expiry/revocation states, or Phase 6 metrics. Generate
 TypeScript only from FastAPI/Pydantic OpenAPI.
 
-Prove deterministic positive and negative approval fixtures, two-writer idempotency,
-revocation/expiry/staleness behavior, complete Phase 6 lineage, immutable prior-row bytes,
-append-only rejection, the `0007 -> 0006 -> 0007` migration cycle if 0007 exists,
-generated-contract parity, and the continued absence of broker/order/position/paper-execution
-and live paths.
+Prove that every `FAIL_REJECT` or blocked Phase 6 fixture is ineligible; that
+`phase6-a-pass-v2` alone cannot approve; and that any positive approval path requires the exact
+pre-existing A artifact plus all independently valid approval evidence. Also prove two-writer
+idempotency, revocation/expiry/staleness behavior, complete Phase 6 lineage, immutable prior-row
+bytes, append-only rejection, the `0007 -> 0006 -> 0007` migration cycle if 0007 exists,
+generated-contract parity, and the continued absence of broker/order/position/paper-execution and
+live paths. Do not weaken or replace a Phase 5/6 gate to exercise an approval branch.
 
 Run:
 

@@ -129,6 +129,7 @@ def _validate_attempt_row(
         row["ordinal"] == item.ordinal
         and row["phase5_report_id"] == phase5_report_id
         and row["phase5_trial_id"] == item.phase5_trial_id
+        and row["phase5_trial_key"] == item.phase5_trial_key
         and row["status"] == item.status.value
         and row["config_sha256"] == item.configuration_sha256
         and row["failure_reason"] == item.failure_reason
@@ -240,6 +241,31 @@ def _validate_root_columns(row: RowMapping, artifact: ResearchRunArtifact) -> No
         and row["no_real_performance_claimed"] is artifact.no_real_performance_claimed
         and row["paper_approval_granted"] is artifact.paper_approval_granted,
         "persisted Phase 6 run columns conflict with canonical artifact payload",
+    )
+
+
+def _summary_from_row(row: RowMapping) -> ResearchRunSummary:
+    _require(
+        row["synthetic"] is True
+        and row["no_real_performance_claimed"] is True
+        and row["pass_research_is_not_paper_approval"] is True
+        and row["paper_approval_granted"] is False,
+        "persisted Phase 6 run summary exceeded its research-only boundary",
+    )
+    return ResearchRunSummary.model_validate(
+        {
+            "run_id": row["id"],
+            "artifact_sha256": row["artifact_sha256"],
+            "configuration_id": row["configuration_id"],
+            "family": row["canonical_family"],
+            "promotion_state": row["promotion_state"],
+            "status": row["status"],
+            "synthetic": row["synthetic"],
+            "no_real_performance_claimed": row["no_real_performance_claimed"],
+            "pass_research_is_not_paper_approval": row["pass_research_is_not_paper_approval"],
+            "created_at_utc": row["created_at_utc"],
+            "reason_codes": row["reason_codes"],
+        }
     )
 
 
@@ -608,26 +634,21 @@ class ResearchRepository:
                 rows = list(
                     connection.execute(
                         text(
-                            "SELECT * FROM research_pipeline_runs "
+                            "SELECT id, artifact_sha256, configuration_id, "
+                            "canonical_family, promotion_state, status, "
+                            "(artifact_payload->>'synthetic')::boolean AS synthetic, "
+                            "no_real_performance_claimed, paper_approval_granted, "
+                            "(artifact_payload->>"
+                            "'pass_research_is_not_paper_approval')::boolean AS "
+                            "pass_research_is_not_paper_approval, "
+                            "created_at_utc, reason_codes "
+                            "FROM research_pipeline_runs "
                             "ORDER BY created_at_utc DESC, id DESC LIMIT :limit"
                         ),
                         {"limit": limit},
                     ).mappings()
                 )
-                artifacts = [self._load_run(connection, row["id"], root_row=row) for row in rows]
-                return [
-                    ResearchRunSummary(
-                        run_id=item.run_id,
-                        artifact_sha256=item.artifact_sha256,
-                        configuration_id=item.configuration_id,
-                        family=item.family,
-                        promotion_state=item.phase5_evaluation.promotion_state,
-                        status=item.status,
-                        created_at_utc=item.created_at_utc,
-                        reason_codes=item.reason_codes,
-                    )
-                    for item in artifacts
-                ]
+                return [_summary_from_row(row) for row in rows]
         except ResearchRepositoryConflict:
             raise
         except (TypeError, ValueError) as exc:

@@ -8,6 +8,7 @@ from uuid import UUID
 from fable5_backtester.contracts import EvaluationReport, FrozenEvaluationPolicy, PromotionState
 from fable5_backtester.engine import EvaluationEngineBlocked, evaluate_synthetic_fixture
 from fable5_backtester.workflow import EvaluationWorkflowConflict
+from fable5_data.canonical import canonical_json_bytes
 from fable5_data.contracts import (
     AUTHORIZED_CAPABILITIES,
     PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
@@ -29,6 +30,7 @@ from fable5_research.contracts import (
     ResearchRunCreateRequest,
     ResearchRunSummary,
 )
+from fable5_research.integrity import validate_phase6_evaluation_bridge
 from fable5_research.phase5 import build_phase5_inputs, configuration_family
 from fable5_research.preparation import prepare_research_pipeline
 from fable5_research.repository import (
@@ -70,6 +72,18 @@ class EvaluationStore(Protocol):
 
 class SnapshotStore(Protocol):
     def get_snapshot(self, snapshot_id: UUID) -> SnapshotBundle: ...
+
+
+def _same_evaluation_report_content(
+    persisted: EvaluationReport,
+    candidate: EvaluationReport,
+) -> bool:
+    """Compare immutable report evidence while letting the first server timestamp win."""
+
+    excluded = {"created_at_utc"}
+    return canonical_json_bytes(
+        persisted.model_dump(mode="python", exclude=excluded)
+    ) == canonical_json_bytes(candidate.model_dump(mode="python", exclude=excluded))
 
 
 _C_FAIL_REQUIRED_OFFICIAL_SOURCE_VERSION_ID = UUID("ffffffff-ffff-5fff-8fff-fffffffffff6")
@@ -232,12 +246,21 @@ class ResearchWorkflow:
                 snapshots=snapshots,
                 code_version_git_sha=self.code_version_git_sha,
             )
+            validate_phase6_evaluation_bridge(
+                policy=policy,
+                fixture=fixture,
+                prepared=prepared,
+                report=report,
+            )
             stored_report = self.evaluation_repository.create_report(report)
+            if not _same_evaluation_report_content(stored_report, report):
+                raise ResearchWorkflowConflict("persisted Phase 5 report changed")
             artifact = build_research_artifact(
                 configuration_id=request.research_configuration_id,
                 mapping=mapping,
                 prepared=prepared,
                 report=stored_report,
+                snapshots=snapshots,
             )
             return self.repository.create_run(artifact)
         except EvaluationEngineBlocked as exc:

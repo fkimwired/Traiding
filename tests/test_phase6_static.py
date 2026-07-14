@@ -7,6 +7,11 @@ from uuid import UUID
 
 import pytest
 from fable5_backtester.contracts import GateCode, LeakageCode
+from fable5_data.contracts import PHASE6_SYNTHETIC_FIXTURE_SET_VERSION
+from fable5_data.phase6_synthetic import (
+    load_phase6_fixture_records,
+    phase6_fixture_set_sha256,
+)
 from fable5_research.contracts import (
     ResearchAttemptStatus,
     ResearchConfigurationId,
@@ -54,6 +59,7 @@ PHASE5_GATE_IMPLEMENTATION_SHA256 = {
 PHASE4_BASE_FUNCTION_PROSRC_SHA256 = {
     "940e8e9b175cad7e0cc986b97cde39e1ef115022983114bcf73cff9918da4a27",
     "bf41f4906b94991731d80fbf1756dbad087081d552acc6d328e6b4eff6cca4af",
+    "24ae95de6e20c0231ca277d644dd3d518ce2830b00c2a4439877e8da59bf90ed",
 }
 
 
@@ -132,7 +138,10 @@ def test_phase6_verifier_uses_full_pit_capabilities_and_standard_leakage_evidenc
         '"universe_membership": 5',
         '"ohlcv": 852',
         '"trading_calendar": 305',
-        "sum(one_source_constituent_counts.values()) != 1195",
+        '"macro_regime_inputs": 3',
+        "sum(one_source_constituent_counts.values()) != 1198",
+        'configuration.get("fixture_set_version") != PHASE_6_FIXTURE_SET_VERSION',
+        'adapter.get("adapter_version") != "phase6-synthetic-pit-adapter-v2"',
         '"phase5-leakage-l01-evidence-v1"',
         '"phase5-leakage-l05-evidence-v1"',
         'social_reference.get("record_type") != "social_attention"',
@@ -143,18 +152,80 @@ def test_phase6_verifier_uses_full_pit_capabilities_and_standard_leakage_evidenc
     assert "not-applicable-evidence" not in phase6_api
 
     decisions = normalized(ROOT / "docs/PHASE_06_RESEARCH_DECISIONS.md")
-    assert "1,195 deterministic records" in decisions
+    assert "1,198 deterministic records" in decisions
     assert "305 calendar sessions" in decisions
+    assert "phase6-synthetic-pit-fixtures-v2" in decisions
+    assert "010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d" in (decisions)
+    assert PHASE6_SYNTHETIC_FIXTURE_SET_VERSION == "phase6-synthetic-pit-fixtures-v2"
+    assert len(load_phase6_fixture_records()) == 1198
+    assert phase6_fixture_set_sha256() == (
+        "010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d"
+    )
+
+
+def test_phase6_verifier_reconciles_trial_economics_and_label_blind_confirmation() -> None:
+    verifier = normalized(ROOT / "scripts/verify_phase1.py")
+    phase6_api = verifier.split("def verify_phase6_api", 1)[1].split("def compose_exec", 1)[0]
+
+    for required_evidence in (
+        'artifact.get("model_output_sets")',
+        'artifact.get("source_reproduction_audit")',
+        'artifact.get("regime_evidence")',
+        '"phase6-long-flat-weight-times-label-quantized-v1"',
+        'cell.get("synthetic_research_weight")',
+        'configuration["phase6_trial_cost_ledger_json"]',
+        'Decimal("0.000000000001")',
+        'configuration.get("inner_validation_gross_returns_json")',
+        'configuration.get("outer_gross_returns_json")',
+        'entry.get("predicted_value")',
+        'entry.get("baseline_net_return")',
+        "OOS ledger does not exactly cover outer folds",
+        "completed-trial calendars do not cover exact OOS rows",
+        "OOS row does not use its inner-fold winner",
+        'walk_forward.get("final_confirmation_start_utc")',
+        'walk_forward.get("final_confirmation_end_utc")',
+        'chronology_inputs.get("confirmation_sample_count") != 1',
+        'chronology_inputs.get("post_confirmation_sample_count") != 0',
+        "fixture does not exactly apply confirmation purge",
+        "Phase 6 A positive fixture did not pass all 12 unchanged gates",
+        "did not truthfully reject on PBO/regime",
+        "Phase 6 C did not truthfully reject on DSR/PBO/regime",
+        "Phase 6 A PIT macro-rate/crisis evidence is incomplete",
+    ):
+        assert required_evidence in phase6_api
+
+    contracts = normalized(ROOT / "services/research/src/fable5_research/contracts.py")
+    for required_contract in (
+        "class ResearchTransformTrainingSample(StrictModel):",
+        "class ResearchLedgerCell(StrictModel):",
+        "class ResearchModelOutputSet(StrictModel):",
+        "class ResearchTrialEconomics(StrictModel):",
+        "class PreparedPipelineReproductionAudit(StrictModel):",
+        "class PreparedRegimeEvidence(StrictModel):",
+        "class ResearchConfirmationInterval(StrictModel):",
+        "class ResearchBoundaryExclusion(StrictModel):",
+        "research ledger gross return must use the frozen payoff formula",
+        "transform fit statistics must derive from ordered raw train values",
+    ):
+        assert required_contract in contracts
+
+    integrity = normalized(ROOT / "services/research/src/fable5_research/integrity.py")
+    for reason_code in (
+        "phase6_confirmation_boundary_purge_mismatch",
+        "phase6_trial_return_cell_mismatch",
+        "phase6_oos_model_output_or_return_mismatch",
+    ):
+        assert reason_code in integrity
 
 
 def test_phase6_has_only_the_six_frozen_server_owned_fixture_ids() -> None:
     assert {item.value for item in ResearchConfigurationId} == {
-        "phase6-a-pass-v1",
-        "phase6-a-fail-cost-v1",
-        "phase6-b-pass-v1",
-        "phase6-b-fail-crash-v1",
-        "phase6-c-pass-v1",
-        "phase6-c-fail-corroboration-v1",
+        "phase6-a-pass-v2",
+        "phase6-a-fail-cost-v2",
+        "phase6-b-pass-v2",
+        "phase6-b-fail-crash-v2",
+        "phase6-c-pass-v2",
+        "phase6-c-fail-corroboration-v2",
     }
     assert {item.value for item in ResearchAttemptStatus} == {
         "completed",
@@ -184,6 +255,31 @@ def test_phase6_has_only_the_six_frozen_server_owned_fixture_ids() -> None:
                 "promotion_state": "PASS_RESEARCH",
             }
         )
+
+
+def test_phase6_decisions_and_phase7_handoff_state_the_accepted_outcomes() -> None:
+    decisions = normalized(ROOT / "docs/PHASE_06_RESEARCH_DECISIONS.md")
+    handoff = normalized(ROOT / "docs/handoffs/PHASE_07.md")
+
+    for evidence in (
+        "`phase6-a-pass-v2` is the one synthetic",
+        "passes all 12 unchanged gates",
+        "rejected only by `COST_STRESS`",
+        "Both Family B configurations finish `FAIL_REJECT`",
+        "`phase6-c-pass-v2` truthfully finishes `FAIL_REJECT`",
+        "Final confirmation is an explicit label-blind contract outside the feature-row",
+        "Typed trial-economics artifacts",
+        "hash-bound reproduction audit",
+    ):
+        assert evidence in decisions
+    assert "Every currently persisted Phase 6 report is `FAIL_REJECT`" not in decisions
+    assert "last chronological prepared row is the nonempty final-confirmation sample" not in (
+        decisions
+    )
+
+    assert "exactly one persisted synthetic" in handoff
+    assert "`phase6-a-pass-v2` alone cannot approve" in handoff
+    assert "currently contains no persisted `PASS_RESEARCH`" not in handoff
 
 
 def test_phase6_specification_cannot_run_without_every_policy_declaration() -> None:

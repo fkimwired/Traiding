@@ -1201,6 +1201,54 @@
         "title": "CostScenario",
         "type": "string"
       },
+      "CrisisWindowDefinitionPayload": {
+        "additionalProperties": false,
+        "description": "Predeclared synthetic stress-window geometry, not an ex-post result label.",
+        "properties": {
+          "crisis_window_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Crisis Window Id",
+            "type": "string"
+          },
+          "declared_at": {
+            "format": "date-time",
+            "title": "Declared At",
+            "type": "string"
+          },
+          "definition_method_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Definition Method Id",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "crisis_window_definition",
+            "default": "crisis_window_definition",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "crisis_window_id",
+          "definition_method_id",
+          "declared_at",
+          "window_start",
+          "window_end"
+        ],
+        "title": "CrisisWindowDefinitionPayload",
+        "type": "object"
+      },
       "CrossSectionRankEvidence": {
         "additionalProperties": false,
         "properties": {
@@ -1331,6 +1379,20 @@
             "title": "Member Sha256",
             "type": "string"
           },
+          "membership_source_reference": {
+            "$ref": "#/components/schemas/ResearchSourceReference"
+          },
+          "membership_status": {
+            "const": "included",
+            "default": "included",
+            "title": "Membership Status",
+            "type": "string"
+          },
+          "membership_universe_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Membership Universe Id",
+            "type": "string"
+          },
           "nonlinear_score": {
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Nonlinear Score",
@@ -1352,6 +1414,8 @@
           "instrument_id",
           "listing_id",
           "sector_id",
+          "membership_universe_id",
+          "membership_source_reference",
           "features",
           "linear_score",
           "linear_rank",
@@ -1377,7 +1441,8 @@
           "as_reported_fundamentals",
           "trading_calendar",
           "volatility_return_inputs",
-          "official_document_event_metadata"
+          "official_document_event_metadata",
+          "macro_regime_inputs"
         ],
         "title": "DataCapability",
         "type": "string"
@@ -1540,7 +1605,8 @@
             "default": "phase4-data-quality-v1",
             "enum": [
               "phase4-data-quality-v1",
-              "phase6-data-contract-quality-v1"
+              "phase6-data-contract-quality-v1",
+              "phase6-data-contract-quality-v2"
             ],
             "title": "Rule Set Version",
             "type": "string"
@@ -1711,7 +1777,8 @@
             "default": "phase4-data-quality-v1",
             "enum": [
               "phase4-data-quality-v1",
-              "phase6-data-contract-quality-v1"
+              "phase6-data-contract-quality-v1",
+              "phase6-data-contract-quality-v2"
             ],
             "title": "Rule Set Version",
             "type": "string"
@@ -1764,7 +1831,9 @@
           "volatility_return_input",
           "sector_classification",
           "official_document_content",
-          "social_attention"
+          "social_attention",
+          "macro_rate_observation",
+          "crisis_window_definition"
         ],
         "title": "DataRecordType",
         "type": "string"
@@ -2760,8 +2829,8 @@
             "type": "array"
           },
           "nonlinear_model_id": {
-            "const": "frozen-depth-two-tree-v1",
-            "default": "frozen-depth-two-tree-v1",
+            "const": "frozen-depth-two-tree-v2",
+            "default": "frozen-depth-two-tree-v2",
             "title": "Nonlinear Model Id",
             "type": "string"
           },
@@ -2822,24 +2891,29 @@
             "type": "array"
           },
           "crash_concentration": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Crash Concentration"
+            "title": "Crash Concentration",
+            "type": "null"
           },
           "crash_concentration_limit": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Crash Concentration Limit",
-            "type": "string"
+            "type": "null"
           },
           "crash_evidence_complete": {
+            "const": false,
+            "default": false,
             "title": "Crash Evidence Complete",
+            "type": "boolean"
+          },
+          "crisis_evidence_reason": {
+            "const": "crisis_window_geometry_unavailable",
+            "default": "crisis_window_geometry_unavailable",
+            "title": "Crisis Evidence Reason",
+            "type": "string"
+          },
+          "crisis_geometry_available": {
+            "const": false,
+            "default": false,
+            "title": "Crisis Geometry Available",
             "type": "boolean"
           },
           "drawdown_formula_id": {
@@ -2893,6 +2967,18 @@
             "title": "Nominal Feature Price Basis",
             "type": "string"
           },
+          "rate_evidence_available": {
+            "const": false,
+            "default": false,
+            "title": "Rate Evidence Available",
+            "type": "boolean"
+          },
+          "rate_evidence_reason": {
+            "const": "rate_regime_source_unavailable",
+            "default": "rate_regime_source_unavailable",
+            "title": "Rate Evidence Reason",
+            "type": "string"
+          },
           "raw_nominal_bar_count": {
             "minimum": 253.0,
             "title": "Raw Nominal Bar Count",
@@ -2907,7 +2993,7 @@
             "items": {
               "$ref": "#/components/schemas/RegimeResult"
             },
-            "minItems": 3,
+            "minItems": 1,
             "title": "Regime Results",
             "type": "array"
           },
@@ -2927,9 +3013,7 @@
           "lifecycle",
           "lifecycle_tests",
           "corporate_action_source_references",
-          "regime_results",
-          "crash_evidence_complete",
-          "crash_concentration_limit"
+          "regime_results"
         ],
         "title": "FamilyBEvidence",
         "type": "object"
@@ -4179,6 +4263,66 @@
         "title": "ListingStatus",
         "type": "string"
       },
+      "MacroRateObservationPayload": {
+        "additionalProperties": false,
+        "description": "Vintage-aware synthetic policy-rate input, never a signal or model decision.",
+        "properties": {
+          "observation_period_end": {
+            "format": "date",
+            "title": "Observation Period End",
+            "type": "string"
+          },
+          "previous_rate_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Previous Rate Value",
+            "type": "string"
+          },
+          "rate_change": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rate Change",
+            "type": "string"
+          },
+          "rate_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rate Value",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "macro_rate_observation",
+            "default": "macro_rate_observation",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "released_at": {
+            "format": "date-time",
+            "title": "Released At",
+            "type": "string"
+          },
+          "series_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Series Id",
+            "type": "string"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series_id",
+          "observation_period_end",
+          "released_at",
+          "vintage_id",
+          "rate_value",
+          "previous_rate_value",
+          "rate_change"
+        ],
+        "title": "MacroRateObservationPayload",
+        "type": "object"
+      },
       "MappingEvidenceReference": {
         "additionalProperties": false,
         "properties": {
@@ -4483,7 +4627,8 @@
             "default": "phase4-synthetic-pit-fixtures-v1",
             "enum": [
               "phase4-synthetic-pit-fixtures-v1",
-              "phase6-synthetic-pit-fixtures-v1"
+              "phase6-synthetic-pit-fixtures-v1",
+              "phase6-synthetic-pit-fixtures-v2"
             ],
             "title": "Fixture Set Version",
             "type": "string"
@@ -4665,9 +4810,11 @@
                 "as_reported_fundamental": "#/components/schemas/AsReportedFundamentalPayload",
                 "calendar_session": "#/components/schemas/CalendarSessionPayload",
                 "corporate_action": "#/components/schemas/CorporateActionPayload",
+                "crisis_window_definition": "#/components/schemas/CrisisWindowDefinitionPayload",
                 "delisting_event": "#/components/schemas/DelistingEventPayload",
                 "instrument_identity": "#/components/schemas/InstrumentIdentityPayload",
                 "listing_identity": "#/components/schemas/ListingIdentityPayload",
+                "macro_rate_observation": "#/components/schemas/MacroRateObservationPayload",
                 "official_document_content": "#/components/schemas/OfficialDocumentContentPayload",
                 "official_document_event": "#/components/schemas/OfficialDocumentEventPayload",
                 "ohlcv_bar": "#/components/schemas/OhlcvBarPayload",
@@ -4717,6 +4864,12 @@
               },
               {
                 "$ref": "#/components/schemas/SocialAttentionPayload"
+              },
+              {
+                "$ref": "#/components/schemas/MacroRateObservationPayload"
+              },
+              {
+                "$ref": "#/components/schemas/CrisisWindowDefinitionPayload"
               }
             ],
             "title": "Payload"
@@ -5784,6 +5937,245 @@
         "title": "PolicyDeclaration",
         "type": "object"
       },
+      "PreparedCrisisWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "crisis_window_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Crisis Window Id",
+            "type": "string"
+          },
+          "declared_at_utc": {
+            "format": "date-time",
+            "title": "Declared At Utc",
+            "type": "string"
+          },
+          "definition_method_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Definition Method Id",
+            "type": "string"
+          },
+          "source_reference": {
+            "$ref": "#/components/schemas/ResearchSourceReference"
+          },
+          "window_end_utc": {
+            "format": "date-time",
+            "title": "Window End Utc",
+            "type": "string"
+          },
+          "window_start_utc": {
+            "format": "date-time",
+            "title": "Window Start Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "crisis_window_id",
+          "definition_method_id",
+          "declared_at_utc",
+          "window_start_utc",
+          "window_end_utc",
+          "source_reference"
+        ],
+        "title": "PreparedCrisisWindow",
+        "type": "object"
+      },
+      "PreparedPipelineReproductionAudit": {
+        "additionalProperties": false,
+        "description": "Hash-bound proof that immutable snapshots reproduce the prepared payload.",
+        "properties": {
+          "audit_id": {
+            "format": "uuid",
+            "title": "Audit Id",
+            "type": "string"
+          },
+          "audit_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Audit Sha256",
+            "type": "string"
+          },
+          "configuration_id": {
+            "$ref": "#/components/schemas/ResearchConfigurationId"
+          },
+          "exact_match": {
+            "const": true,
+            "default": true,
+            "title": "Exact Match",
+            "type": "boolean"
+          },
+          "reproduced_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reproduced Payload Sha256",
+            "type": "string"
+          },
+          "reproduced_pipeline_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reproduced Pipeline Input Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-prepared-source-reproduction-audit-v1",
+            "default": "phase6-prepared-source-reproduction-audit-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_bindings": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSnapshotBinding"
+            },
+            "minItems": 1,
+            "title": "Snapshot Bindings",
+            "type": "array"
+          },
+          "snapshot_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Set Sha256",
+            "type": "string"
+          },
+          "supplied_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Supplied Payload Sha256",
+            "type": "string"
+          },
+          "supplied_pipeline_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Supplied Pipeline Input Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audit_id",
+          "audit_sha256",
+          "configuration_id",
+          "snapshot_bindings",
+          "snapshot_set_sha256",
+          "supplied_pipeline_input_sha256",
+          "reproduced_pipeline_input_sha256",
+          "supplied_payload_sha256",
+          "reproduced_payload_sha256"
+        ],
+        "title": "PreparedPipelineReproductionAudit",
+        "type": "object"
+      },
+      "PreparedRateRegimeObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "previous_rate_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Previous Rate Value",
+            "type": "string"
+          },
+          "rate_change": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rate Change",
+            "type": "string"
+          },
+          "rate_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rate Value",
+            "type": "string"
+          },
+          "released_at_utc": {
+            "format": "date-time",
+            "title": "Released At Utc",
+            "type": "string"
+          },
+          "series_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Series Id",
+            "type": "string"
+          },
+          "source_reference": {
+            "$ref": "#/components/schemas/ResearchSourceReference"
+          },
+          "vintage_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series_id",
+          "vintage_id",
+          "released_at_utc",
+          "rate_value",
+          "previous_rate_value",
+          "rate_change",
+          "source_reference"
+        ],
+        "title": "PreparedRateRegimeObservation",
+        "type": "object"
+      },
+      "PreparedRegimeEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "crisis_definition_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Crisis Definition Id",
+            "type": "string"
+          },
+          "crisis_windows": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PreparedCrisisWindow"
+            },
+            "title": "Crisis Windows",
+            "type": "array"
+          },
+          "evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "evidence_state": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Evidence State",
+            "type": "string"
+          },
+          "rate_definition_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Rate Definition Id",
+            "type": "string"
+          },
+          "rate_observations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PreparedRateRegimeObservation"
+            },
+            "title": "Rate Observations",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "phase6-prepared-regime-evidence-v2",
+            "default": "phase6-prepared-regime-evidence-v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "evidence_state",
+          "rate_definition_id",
+          "crisis_definition_id",
+          "evidence_sha256"
+        ],
+        "title": "PreparedRegimeEvidence",
+        "type": "object"
+      },
       "PreprocessingFitRecord": {
         "additionalProperties": false,
         "properties": {
@@ -6529,6 +6921,14 @@
             "title": "Baseline Output Sha256",
             "type": "string"
           },
+          "baseline_outputs": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchModelOutput"
+            },
+            "minItems": 1,
+            "title": "Baseline Outputs",
+            "type": "array"
+          },
           "candidate_metric": {
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Candidate Metric",
@@ -6543,6 +6943,14 @@
             "pattern": "^[0-9a-f]{64}$",
             "title": "Candidate Output Sha256",
             "type": "string"
+          },
+          "candidate_outputs": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchModelOutput"
+            },
+            "minItems": 1,
+            "title": "Candidate Outputs",
+            "type": "array"
           },
           "comparison_id": {
             "format": "uuid",
@@ -6602,6 +7010,8 @@
           "metric_id",
           "candidate_metric",
           "baseline_metric",
+          "candidate_outputs",
+          "baseline_outputs",
           "candidate_output_sha256",
           "baseline_output_sha256",
           "label_sha256",
@@ -6611,17 +7021,168 @@
         "title": "ResearchBaselineComparison",
         "type": "object"
       },
+      "ResearchBoundaryExclusion": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_time_utc": {
+            "format": "date-time",
+            "title": "Decision Time Utc",
+            "type": "string"
+          },
+          "exclusion_id": {
+            "format": "uuid",
+            "title": "Exclusion Id",
+            "type": "string"
+          },
+          "exclusion_rule": {
+            "const": "label-interval-intersects-confirmation-v1",
+            "default": "label-interval-intersects-confirmation-v1",
+            "title": "Exclusion Rule",
+            "type": "string"
+          },
+          "exclusion_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Exclusion Sha256",
+            "type": "string"
+          },
+          "label_opened": {
+            "const": false,
+            "default": false,
+            "title": "Label Opened",
+            "type": "boolean"
+          },
+          "label_source_references": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Label Source References",
+            "type": "array"
+          },
+          "label_t0_utc": {
+            "format": "date-time",
+            "title": "Label T0 Utc",
+            "type": "string"
+          },
+          "label_t1_utc": {
+            "format": "date-time",
+            "title": "Label T1 Utc",
+            "type": "string"
+          },
+          "label_value": {
+            "title": "Label Value",
+            "type": "null"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-confirmation-boundary-exclusion-v1",
+            "default": "phase6-confirmation-boundary-exclusion-v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exclusion_id",
+          "exclusion_sha256",
+          "sample_id",
+          "decision_time_utc",
+          "label_t0_utc",
+          "label_t1_utc"
+        ],
+        "title": "ResearchBoundaryExclusion",
+        "type": "object"
+      },
       "ResearchConfigurationId": {
         "enum": [
-          "phase6-a-pass-v1",
-          "phase6-a-fail-cost-v1",
-          "phase6-b-pass-v1",
-          "phase6-b-fail-crash-v1",
-          "phase6-c-pass-v1",
-          "phase6-c-fail-corroboration-v1"
+          "phase6-a-pass-v2",
+          "phase6-a-fail-cost-v2",
+          "phase6-b-pass-v2",
+          "phase6-b-fail-crash-v2",
+          "phase6-c-pass-v2",
+          "phase6-c-fail-corroboration-v2"
         ],
         "title": "ResearchConfigurationId",
         "type": "string"
+      },
+      "ResearchConfirmationInterval": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmation_id": {
+            "format": "uuid",
+            "title": "Confirmation Id",
+            "type": "string"
+          },
+          "confirmation_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Confirmation Sha256",
+            "type": "string"
+          },
+          "interval_end_utc": {
+            "format": "date-time",
+            "title": "Interval End Utc",
+            "type": "string"
+          },
+          "interval_start_utc": {
+            "format": "date-time",
+            "title": "Interval Start Utc",
+            "type": "string"
+          },
+          "label_opened": {
+            "const": false,
+            "default": false,
+            "title": "Label Opened",
+            "type": "boolean"
+          },
+          "label_source_references": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Label Source References",
+            "type": "array"
+          },
+          "label_value": {
+            "title": "Label Value",
+            "type": "null"
+          },
+          "opening_rule": {
+            "const": "reserved-before-design-label-remains-unopened-v1",
+            "default": "reserved-before-design-label-remains-unopened-v1",
+            "title": "Opening Rule",
+            "type": "string"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-label-blind-confirmation-interval-v1",
+            "default": "phase6-label-blind-confirmation-interval-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "confirmation_id",
+          "confirmation_sha256",
+          "sample_id",
+          "interval_start_utc",
+          "interval_end_utc",
+          "source_references"
+        ],
+        "title": "ResearchConfirmationInterval",
+        "type": "object"
       },
       "ResearchFeatureRow": {
         "additionalProperties": false,
@@ -6800,6 +7361,143 @@
           "train_fit_id"
         ],
         "title": "ResearchFeatureValue",
+        "type": "object"
+      },
+      "ResearchLedgerCell": {
+        "additionalProperties": false,
+        "properties": {
+          "allocation_rule_id": {
+            "enum": [
+              "phase6-a-score-positive-long-flat-v1",
+              "phase6-a-tree-score-positive-long-flat-v1",
+              "phase6-a-hash-parity-baseline-control-v14",
+              "phase6-a-hash-parity-negative-control-v35",
+              "phase6-b-score-ge-0.002119768628-long-flat-v1",
+              "phase6-b-score-ge-0.132423292369-long-flat-v1",
+              "phase6-b-hash-parity-zero-control-v1424",
+              "phase6-b-hash-parity-negative-control-v20",
+              "phase6-c-score-ge-0.2-long-flat-v1",
+              "phase6-c-score-ge-minus-0.06-long-flat-v1",
+              "phase6-c-hash-parity-event-control-v6",
+              "phase6-c-hash-parity-negative-control-v2"
+            ],
+            "title": "Allocation Rule Id",
+            "type": "string"
+          },
+          "cell_id": {
+            "format": "uuid",
+            "title": "Cell Id",
+            "type": "string"
+          },
+          "cell_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cell Sha256",
+            "type": "string"
+          },
+          "label_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Label Sha256",
+            "type": "string"
+          },
+          "label_source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Label Source References",
+            "type": "array"
+          },
+          "label_t0_utc": {
+            "format": "date-time",
+            "title": "Label T0 Utc",
+            "type": "string"
+          },
+          "label_t1_utc": {
+            "format": "date-time",
+            "title": "Label T1 Utc",
+            "type": "string"
+          },
+          "label_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Label Value",
+            "type": "string"
+          },
+          "model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_output": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Model Output",
+            "type": "string"
+          },
+          "model_output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Model Output Sha256",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "payoff_formula_id": {
+            "const": "phase6-long-flat-weight-times-label-quantized-v1",
+            "default": "phase6-long-flat-weight-times-label-quantized-v1",
+            "title": "Payoff Formula Id",
+            "type": "string"
+          },
+          "return_status": {
+            "$ref": "#/components/schemas/ResearchReturnStatus"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-research-ledger-cell-v2",
+            "default": "phase6-research-ledger-cell-v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "synthetic_gross_return": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Synthetic Gross Return",
+            "type": "string"
+          },
+          "synthetic_research_weight": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Synthetic Research Weight",
+            "type": "string"
+          },
+          "trial_key": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Trial Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "cell_id",
+          "cell_sha256",
+          "trial_key",
+          "model_id",
+          "sample_id",
+          "model_output",
+          "model_output_sha256",
+          "synthetic_research_weight",
+          "allocation_rule_id",
+          "return_status",
+          "label_t0_utc",
+          "label_t1_utc",
+          "label_value",
+          "label_source_references",
+          "label_sha256",
+          "synthetic_gross_return"
+        ],
+        "title": "ResearchLedgerCell",
         "type": "object"
       },
       "ResearchMapping": {
@@ -7061,6 +7759,108 @@
         "title": "ResearchMemo",
         "type": "object"
       },
+      "ResearchModelOutput": {
+        "additionalProperties": false,
+        "properties": {
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "output_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Output Value",
+            "type": "string"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "sample_id",
+          "output_value"
+        ],
+        "title": "ResearchModelOutput",
+        "type": "object"
+      },
+      "ResearchModelOutputSet": {
+        "additionalProperties": false,
+        "properties": {
+          "ledger_cells": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchLedgerCell"
+            },
+            "minItems": 1,
+            "title": "Ledger Cells",
+            "type": "array"
+          },
+          "model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Model Output Sha256",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "output_semantics": {
+            "const": "synthetic_research_model_output",
+            "default": "synthetic_research_model_output",
+            "title": "Output Semantics",
+            "type": "string"
+          },
+          "output_set_id": {
+            "format": "uuid",
+            "title": "Output Set Id",
+            "type": "string"
+          },
+          "output_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Output Set Sha256",
+            "type": "string"
+          },
+          "outputs": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchModelOutput"
+            },
+            "minItems": 1,
+            "title": "Outputs",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "phase6-phase5-model-output-set-v2",
+            "default": "phase6-phase5-model-output-set-v2",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "trial_key": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Trial Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "output_set_id",
+          "output_set_sha256",
+          "model_output_sha256",
+          "trial_key",
+          "model_id",
+          "outputs",
+          "ledger_cells"
+        ],
+        "title": "ResearchModelOutputSet",
+        "type": "object"
+      },
       "ResearchPipelineSpecification": {
         "additionalProperties": false,
         "properties": {
@@ -7134,8 +7934,8 @@
             "type": "array"
           },
           "schema_version": {
-            "const": "phase6-research-specification-v1",
-            "default": "phase6-research-specification-v1",
+            "const": "phase6-research-specification-v2",
+            "default": "phase6-research-specification-v2",
             "title": "Schema Version",
             "type": "string"
           },
@@ -7220,8 +8020,8 @@
         "additionalProperties": false,
         "properties": {
           "artifact_schema_version": {
-            "const": "phase6-research-artifact-v1",
-            "default": "phase6-research-artifact-v1",
+            "const": "phase6-research-artifact-v2",
+            "default": "phase6-research-artifact-v2",
             "title": "Artifact Schema Version",
             "type": "string"
           },
@@ -7246,6 +8046,22 @@
             "title": "Baseline Comparisons",
             "type": "array"
           },
+          "boundary_exclusions": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchBoundaryExclusion"
+            },
+            "minItems": 1,
+            "title": "Boundary Exclusions",
+            "type": "array"
+          },
+          "calendar_source_references": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "title": "Calendar Source References",
+            "type": "array"
+          },
           "code_version_git_sha": {
             "pattern": "^[0-9a-f]{40}$",
             "title": "Code Version Git Sha",
@@ -7258,6 +8074,9 @@
             "pattern": "^[0-9a-f]{64}$",
             "title": "Configuration Sha256",
             "type": "string"
+          },
+          "confirmation_interval": {
+            "$ref": "#/components/schemas/ResearchConfirmationInterval"
           },
           "created_at_utc": {
             "format": "date-time",
@@ -7323,6 +8142,15 @@
             "title": "Mapping Version",
             "type": "integer"
           },
+          "model_output_sets": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchModelOutputSet"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Model Output Sets",
+            "type": "array"
+          },
           "no_real_performance_claimed": {
             "const": true,
             "default": true,
@@ -7362,6 +8190,9 @@
             "title": "Reason Codes",
             "type": "array"
           },
+          "regime_evidence": {
+            "$ref": "#/components/schemas/PreparedRegimeEvidence"
+          },
           "request_fingerprint_sha256": {
             "pattern": "^[0-9a-f]{64}$",
             "title": "Request Fingerprint Sha256",
@@ -7393,6 +8224,9 @@
             "title": "Snapshot Bundle Sha256",
             "type": "string"
           },
+          "source_reproduction_audit": {
+            "$ref": "#/components/schemas/PreparedPipelineReproductionAudit"
+          },
           "specification": {
             "$ref": "#/components/schemas/ResearchPipelineSpecification"
           },
@@ -7404,6 +8238,15 @@
             "default": true,
             "title": "Synthetic",
             "type": "boolean"
+          },
+          "trial_economics": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchTrialEconomics"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Trial Economics",
+            "type": "array"
           },
           "warnings": {
             "items": {
@@ -7426,10 +8269,16 @@
           "family",
           "specification",
           "snapshot_bindings",
+          "regime_evidence",
+          "confirmation_interval",
+          "boundary_exclusions",
+          "source_reproduction_audit",
           "snapshot_bundle_sha256",
           "feature_rows",
           "feature_lineage_sha256",
           "scores",
+          "model_output_sets",
+          "trial_economics",
           "attempts",
           "baseline_comparisons",
           "family_evidence",
@@ -7486,6 +8335,7 @@
               "format": "uuid",
               "type": "string"
             },
+            "maxItems": 10,
             "minItems": 1,
             "title": "Snapshot Ids",
             "type": "array"
@@ -7918,6 +8768,14 @@
             "title": "Train Sample Ids",
             "type": "array"
           },
+          "train_samples": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchTransformTrainingSample"
+            },
+            "minItems": 2,
+            "title": "Train Samples",
+            "type": "array"
+          },
           "transform_id": {
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
             "title": "Transform Id",
@@ -7932,12 +8790,186 @@
           "sector_id",
           "train_sample_ids",
           "train_entity_ids",
+          "train_samples",
           "mean",
           "standard_deviation",
           "source_references",
           "statistic_sha256"
         ],
         "title": "ResearchTransformFit",
+        "type": "object"
+      },
+      "ResearchTransformTrainingSample": {
+        "additionalProperties": false,
+        "properties": {
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "information_time_utc": {
+            "format": "date-time",
+            "title": "Information Time Utc",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "raw_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Raw Value",
+            "type": "string"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ordinal",
+          "sample_id",
+          "entity_id",
+          "information_time_utc",
+          "raw_value",
+          "source_references"
+        ],
+        "title": "ResearchTransformTrainingSample",
+        "type": "object"
+      },
+      "ResearchTrialEconomics": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cost Set Sha256",
+            "type": "string"
+          },
+          "economics_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Economics Sha256",
+            "type": "string"
+          },
+          "model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "output_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Output Set Sha256",
+            "type": "string"
+          },
+          "sample_economics": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchTrialSampleEconomics"
+            },
+            "minItems": 1,
+            "title": "Sample Economics",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "phase6-trial-economics-v1",
+            "default": "phase6-trial-economics-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "trial_key": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Trial Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "trial_key",
+          "model_id",
+          "output_set_sha256",
+          "sample_economics",
+          "cost_set_sha256",
+          "economics_sha256"
+        ],
+        "title": "ResearchTrialEconomics",
+        "type": "object"
+      },
+      "ResearchTrialSampleEconomics": {
+        "additionalProperties": false,
+        "properties": {
+          "cost_entries": {
+            "items": {
+              "$ref": "#/components/schemas/CostLedgerEntry"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Cost Entries",
+            "type": "array"
+          },
+          "evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "model_output": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Model Output",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "return_status": {
+            "$ref": "#/components/schemas/ResearchReturnStatus"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-trial-sample-economics-v1",
+            "default": "phase6-trial-sample-economics-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "synthetic_gross_return": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Synthetic Gross Return",
+            "type": "string"
+          },
+          "synthetic_research_weight": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Synthetic Research Weight",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "sample_id",
+          "model_output",
+          "synthetic_research_weight",
+          "return_status",
+          "synthetic_gross_return",
+          "cost_entries",
+          "evidence_sha256"
+        ],
+        "title": "ResearchTrialSampleEconomics",
         "type": "object"
       },
       "ResearchValidationErrorResponse": {

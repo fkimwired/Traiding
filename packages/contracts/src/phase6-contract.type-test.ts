@@ -11,6 +11,13 @@ type TextFeatureExtraction = components["schemas"]["TextFeatureExtraction"];
 type StructuredTextFeatures = components["schemas"]["StructuredTextFeatures"];
 type ResearchBaselineComparison =
   components["schemas"]["ResearchBaselineComparison"];
+type ResearchModelOutputSet = components["schemas"]["ResearchModelOutputSet"];
+type ResearchLedgerCell = components["schemas"]["ResearchLedgerCell"];
+type ResearchTrialEconomics = components["schemas"]["ResearchTrialEconomics"];
+type ResearchBoundaryExclusion =
+  components["schemas"]["ResearchBoundaryExclusion"];
+type PreparedPipelineReproductionAudit =
+  components["schemas"]["PreparedPipelineReproductionAudit"];
 
 type CreateRun = paths["/v1/research-runs"]["post"];
 type ListRuns = paths["/v1/research-runs"]["get"];
@@ -19,7 +26,7 @@ type GetRun = paths["/v1/research-runs/{run_id}"]["get"];
 const createRequest: ResearchRunCreateRequest = {
   mapping_id: "aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa",
   snapshot_ids: ["bbbbbbbb-bbbb-5bbb-8bbb-bbbbbbbbbbbb"],
-  research_configuration_id: "phase6-c-pass-v1",
+  research_configuration_id: "phase6-c-pass-v2",
 };
 
 const clientSuppliedMetrics: ResearchRunCreateRequest = {
@@ -94,12 +101,12 @@ type GetReturnsCompleteArtifact = Expect<Equal<Get200, ResearchRunArtifact>>;
 type ExactConfigurationVocabulary = Expect<
   Equal<
     ResearchConfigurationId,
-    | "phase6-a-pass-v1"
-    | "phase6-a-fail-cost-v1"
-    | "phase6-b-pass-v1"
-    | "phase6-b-fail-crash-v1"
-    | "phase6-c-pass-v1"
-    | "phase6-c-fail-corroboration-v1"
+    | "phase6-a-pass-v2"
+    | "phase6-a-fail-cost-v2"
+    | "phase6-b-pass-v2"
+    | "phase6-b-fail-crash-v2"
+    | "phase6-c-pass-v2"
+    | "phase6-c-fail-corroboration-v2"
   >
 >;
 
@@ -136,6 +143,24 @@ const exactSourceLineage = artifact.feature_rows.flatMap((row) =>
 const exactLabelLineage = artifact.feature_rows.flatMap(
   (row) => row.label_source_references,
 );
+const exactCalendarLineage = artifact.calendar_source_references;
+const exactModelOutputSets: ResearchModelOutputSet[] = artifact.model_output_sets;
+const exactResearchLedger: ResearchLedgerCell[] = artifact.model_output_sets.flatMap(
+  (outputSet) => outputSet.ledger_cells,
+);
+const exactTrialEconomics: ResearchTrialEconomics[] = artifact.trial_economics;
+const labelBlindConfirmationValue: null | undefined =
+  artifact.confirmation_interval.label_value;
+const confirmationLabelRemainsClosed: false | undefined =
+  artifact.confirmation_interval.label_opened;
+const exactBoundaryExclusions: ResearchBoundaryExclusion[] =
+  artifact.boundary_exclusions;
+const exactSourceReproduction: PreparedPipelineReproductionAudit =
+  artifact.source_reproduction_audit;
+const sourceReproductionMatches: true | undefined =
+  exactSourceReproduction.exact_match;
+const regimeEvidenceState: "available" | "unavailable" =
+  artifact.regime_evidence.evidence_state;
 const pipelineInputSha256: string = artifact.pipeline_input_sha256;
 declare const baselineComparison: ResearchBaselineComparison;
 const descriptiveOnlyComparisonScope:
@@ -154,6 +179,16 @@ const adjustedReturnObservationCount: number =
   familyB.adjusted_return_observation_count;
 const lifecycleTests: components["schemas"]["LifecycleTestEvidence"][] =
   familyB.lifecycle_tests;
+const rateEvidenceUnavailable: false = familyB.rate_evidence_available;
+const rateEvidenceReason: "rate_regime_source_unavailable" =
+  familyB.rate_evidence_reason;
+const crisisGeometryUnavailable: false = familyB.crisis_geometry_available;
+const crisisEvidenceReason: "crisis_window_geometry_unavailable" =
+  familyB.crisis_evidence_reason;
+const crashEvidenceIncomplete: false = familyB.crash_evidence_complete;
+const absentCrashConcentration: null | undefined = familyB.crash_concentration;
+const absentCrashConcentrationLimit: null | undefined =
+  familyB.crash_concentration_limit;
 
 declare const corroboration: components["schemas"]["SocialOfficialCorroboration"];
 const exactSocialSource = corroboration.social_source_reference;
@@ -203,6 +238,16 @@ void [
   completeAttemptRegistry,
   exactSourceLineage,
   exactLabelLineage,
+  exactCalendarLineage,
+  exactModelOutputSets,
+  exactResearchLedger,
+  exactTrialEconomics,
+  labelBlindConfirmationValue,
+  confirmationLabelRemainsClosed,
+  exactBoundaryExclusions,
+  exactSourceReproduction,
+  sourceReproductionMatches,
+  regimeEvidenceState,
   pipelineInputSha256,
   descriptiveOnlyComparisonScope,
   comparisonWasNotUsedForSelection,
@@ -210,6 +255,13 @@ void [
   rawNominalBarCount,
   adjustedReturnObservationCount,
   lifecycleTests,
+  rateEvidenceUnavailable,
+  rateEvidenceReason,
+  crisisGeometryUnavailable,
+  crisisEvidenceReason,
+  crashEvidenceIncomplete,
+  absentCrashConcentration,
+  absentCrashConcentrationLimit,
   exactSocialSource,
   exactOfficialSource,
   sourceBackedNonTextBaseline,

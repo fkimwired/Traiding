@@ -239,8 +239,12 @@ PHASE_6_REQUIRED_PATHS = (
     "services/research/src/fable5_research/artifacts.py",
     "services/research/src/fable5_research/canonical.py",
     "services/research/src/fable5_research/contracts.py",
+    "services/research/src/fable5_research/integrity.py",
     "services/research/src/fable5_research/phase5.py",
+    "services/research/src/fable5_research/preparation.py",
+    "services/research/src/fable5_research/reproduction.py",
     "services/research/src/fable5_research/repository.py",
+    "services/research/src/fable5_research/trial_costs.py",
     "services/research/src/fable5_research/workflow.py",
     "services/research/tests",
     "packages/contracts/src/phase6-contract.type-test.ts",
@@ -269,6 +273,7 @@ PHASE_4_CAPABILITIES = {
     "volatility_return_inputs",
     "official_document_event_metadata",
 }
+PHASE_6_ADDITIVE_CAPABILITIES = {"macro_regime_inputs"}
 PHASE_4_RECORD_TYPES = {
     "instrument_identity",
     "listing_identity",
@@ -285,7 +290,43 @@ PHASE_6_ADDITIVE_RECORD_TYPES = {
     "sector_classification",
     "official_document_content",
     "social_attention",
+    "macro_rate_observation",
+    "crisis_window_definition",
 }
+PHASE_6_FIXTURE_SET_VERSION = "phase6-synthetic-pit-fixtures-v2"
+PHASE_6_FIXTURE_SET_SHA256 = "010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d"
+PHASE_6_REQUEST_TIMEOUT_SECONDS = 240
+PHASE_6_FAMILY_B_COST_VOLATILITY_PROJECTION_ID = "phase6-family-b-cost-volatility-1e-8-half-even-v1"
+PHASE_6_FAMILY_B_COST_VOLATILITY_QUANTUM = "0.00000001"
+PHASE_6_FAMILY_B_TRANSACTION_COST_MODEL_ID = (
+    "phase5-component-cost-model-v1-with-" + PHASE_6_FAMILY_B_COST_VOLATILITY_PROJECTION_ID
+)
+PHASE_6_COST_IDENTITY_FIELDS = ("cost_entry_id", "cost_entry_sha256", "ordinal")
+PHASE_6_COST_EXACT_FIELDS = (
+    "scenario",
+    "sample_id",
+    "allocation_input_sha256",
+    "return_status",
+    "fill_status",
+    "hard_to_borrow_available",
+    "capacity_breached",
+)
+PHASE_6_COST_DECIMAL_FIELDS = (
+    "requested_quantity",
+    "filled_quantity",
+    "rejected_quantity",
+    "unfilled_quantity",
+    "gross_return",
+    "fee_cost",
+    "spread_cost",
+    "impact_cost",
+    "latency_cost",
+    "borrow_cost",
+    "capacity_cost",
+    "total_cost",
+    "net_return",
+    "participation_rate",
+)
 PHASE_4_SCHEMA_VERSIONS = {
     "phase4-canonical-json-v1",
     "phase4-data-snapshot-v1",
@@ -338,14 +379,17 @@ PHASE_4_BASE_FUNCTION_PROSRC_SHA256 = {
     "validate_phase4_snapshot_request()": (
         "bf41f4906b94991731d80fbf1756dbad087081d552acc6d328e6b4eff6cca4af"
     ),
+    "validate_phase4_normalized_observation()": (
+        "24ae95de6e20c0231ca277d644dd3d518ce2830b00c2a4439877e8da59bf90ed"
+    ),
 }
 PHASE_6_CONFIGURATION_IDS = {
-    "phase6-a-pass-v1",
-    "phase6-a-fail-cost-v1",
-    "phase6-b-pass-v1",
-    "phase6-b-fail-crash-v1",
-    "phase6-c-pass-v1",
-    "phase6-c-fail-corroboration-v1",
+    "phase6-a-pass-v2",
+    "phase6-a-fail-cost-v2",
+    "phase6-b-pass-v2",
+    "phase6-b-fail-crash-v2",
+    "phase6-c-pass-v2",
+    "phase6-c-fail-corroboration-v2",
 }
 PHASE_6_FAMILIES = {
     "A_CROSS_SECTIONAL_EQUITY_RANKING",
@@ -429,6 +473,30 @@ def phase_number(value: str) -> int:
 
 def normalized(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def phase6_cost_entries_match(
+    left: object,
+    right: object,
+    *,
+    require_identity: bool,
+) -> bool:
+    """Compare cost evidence using the Phase 5 Decimal semantics, not JSON text scale."""
+
+    if not isinstance(left, dict) or not isinstance(right, dict):
+        return False
+    exact_fields = PHASE_6_COST_EXACT_FIELDS + (
+        PHASE_6_COST_IDENTITY_FIELDS if require_identity else ()
+    )
+    if any(left.get(field) != right.get(field) for field in exact_fields):
+        return False
+    try:
+        return all(
+            Decimal(str(left.get(field))) == Decimal(str(right.get(field)))
+            for field in PHASE_6_COST_DECIMAL_FIELDS
+        )
+    except (ArithmeticError, ValueError):
+        return False
 
 
 def enum_string_values(path: Path, class_name: str) -> set[str]:
@@ -906,10 +974,27 @@ def verify_static(phase: int = 1) -> None:
                 )
 
         actual_capabilities = enum_string_values(contracts_path, "DataCapability")
-        if actual_capabilities != PHASE_4_CAPABILITIES:
+        allowed_capability_vocabularies = {
+            frozenset(PHASE_4_CAPABILITIES),
+            frozenset(PHASE_4_CAPABILITIES | PHASE_6_ADDITIVE_CAPABILITIES),
+        }
+        if frozenset(actual_capabilities) not in allowed_capability_vocabularies:
             raise AssertionError(
-                f"Phase 4 capability vocabulary is not exact: {sorted(actual_capabilities)}"
+                f"Phase 4/6 capability vocabulary is not exact: {sorted(actual_capabilities)}"
             )
+        if actual_capabilities != PHASE_4_CAPABILITIES:
+            if (
+                actual_capabilities != PHASE_4_CAPABILITIES | PHASE_6_ADDITIVE_CAPABILITIES
+                or "PHASE4_DATA_CAPABILITIES: Final = tuple(" not in contracts
+                or "if item is not DataCapability.MACRO_REGIME_INPUTS" not in contracts
+            ):
+                raise AssertionError(
+                    "Phase 6 additive capability changed the frozen Phase 4 capability set"
+                )
+        if phase >= 6 and actual_capabilities != (
+            PHASE_4_CAPABILITIES | PHASE_6_ADDITIVE_CAPABILITIES
+        ):
+            raise AssertionError("Phase 6 macro-regime capability is missing")
         actual_record_types = enum_string_values(contracts_path, "DataRecordType")
         expected_record_types = PHASE_4_RECORD_TYPES | (
             PHASE_6_ADDITIVE_RECORD_TYPES if phase >= 6 else set()
@@ -1032,8 +1117,11 @@ def verify_static(phase: int = 1) -> None:
         ):
             if component not in components:
                 raise AssertionError(f"Phase 4 OpenAPI is missing {component}")
-        if set(components["DataCapability"].get("enum", [])) != PHASE_4_CAPABILITIES:
-            raise AssertionError("DataCapability OpenAPI vocabulary is not exact")
+        expected_openapi_capabilities = PHASE_4_CAPABILITIES | (
+            PHASE_6_ADDITIVE_CAPABILITIES if phase >= 6 else set()
+        )
+        if set(components["DataCapability"].get("enum", [])) != expected_openapi_capabilities:
+            raise AssertionError("Phase 4/6 DataCapability OpenAPI vocabulary is not exact")
         request_schema = components["SnapshotCreateRequest"]
         request_fields = set(request_schema.get("properties", {}))
         expected_request_fields = {
@@ -1238,6 +1326,9 @@ def verify_static(phase: int = 1) -> None:
             "validate_phase4_snapshot_request",
             "validate_phase5_report_source_lineage_phase5_base",
             "social_attention",
+            "macro_regime_inputs",
+            "macro_rate_observation",
+            "crisis_window_definition",
             "social_source_reference",
             "official_source_reference",
             PHASE_6_APPEND_ONLY_ERROR,
@@ -1272,16 +1363,33 @@ def verify_static(phase: int = 1) -> None:
         )
         if actual_configuration_ids != PHASE_6_CONFIGURATION_IDS:
             raise AssertionError(
-                "Phase 6 deterministic pass/fail fixture vocabulary is not exact: "
+                "Phase 6 deterministic configuration identity vocabulary is not exact: "
                 f"{sorted(actual_configuration_ids)}"
             )
         for required_contract in (
             "class ResearchPipelineSpecification(StrictModel):",
+            "class PreparedRegimeEvidence(StrictModel):",
+            "class ResearchConfirmationInterval(StrictModel):",
+            "class ResearchBoundaryExclusion(StrictModel):",
             "class FamilyAEvidence(StrictModel):",
             "class FamilyBEvidence(StrictModel):",
             "class FamilyCEvidence(StrictModel):",
             "class Phase5EvaluationLink(StrictModel):",
+            "class ResearchLedgerCell(StrictModel):",
+            "class ResearchModelOutputSet(StrictModel):",
+            "class ResearchTrialEconomics(StrictModel):",
+            "class PreparedPipelineReproductionAudit(StrictModel):",
             "class ResearchRunArtifact(StrictModel):",
+            "class ResearchTransformTrainingSample(StrictModel):",
+            "phase6-long-flat-weight-times-label-quantized-v1",
+            "phase6-research-artifact-v2",
+            "phase6-research-specification-v2",
+            "phase6-prepared-research-pipeline-v2",
+            "phase6-deterministic-research-fixtures-v2",
+            "phase6-prepared-regime-evidence-v2",
+            "phase6-label-blind-confirmation-interval-v1",
+            "rate_regime_source_unavailable",
+            "crisis_window_geometry_unavailable",
             "structured_text_extraction_only",
             "structured_features_only",
             "no_image_candlestick_or_named_pattern_classifier",
@@ -1298,11 +1406,47 @@ def verify_static(phase: int = 1) -> None:
             "REGISTERED_POLICY",
             "PASS_RESEARCH is a research result and is not paper approval.",
             "PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA",
+            "_phase5_rows_with_real_confirmation",
+            "phase6_model_output_sha256",
+            "phase6_ledger_cell_set_sha256",
         ):
             if phase5_bridge_evidence not in phase5_bridge:
                 raise AssertionError(
                     "Phase 6 does not bind research evidence to the unchanged Phase 5 engine: "
                     f"{phase5_bridge_evidence}"
+                )
+
+        phase6_data_contracts = normalized(ROOT / "services/data/src/fable5_data/contracts.py")
+        phase6_data_fixtures = normalized(
+            ROOT / "services/data/tests/test_phase6_source_contracts.py"
+        )
+        decisions = normalized(ROOT / "docs/PHASE_06_RESEARCH_DECISIONS.md")
+        for exact_fixture_evidence in (
+            PHASE_6_FIXTURE_SET_VERSION,
+            PHASE_6_FIXTURE_SET_SHA256,
+            "1,198 deterministic records",
+        ):
+            if exact_fixture_evidence not in decisions:
+                raise AssertionError(
+                    f"Phase 6 decisions omit exact v2 fixture evidence: {exact_fixture_evidence}"
+                )
+        if (
+            PHASE_6_FIXTURE_SET_VERSION not in phase6_data_contracts
+            or PHASE_6_FIXTURE_SET_SHA256 not in phase6_data_fixtures
+        ):
+            raise AssertionError("Phase 6 v2 fixture version/hash is not frozen in tests")
+
+        integrity = normalized(research_root / "integrity.py")
+        for integrity_evidence in (
+            "validate_phase6_evaluation_bridge",
+            "phase6_confirmation_boundary_purge_mismatch",
+            "phase6_oos_model_output_or_return_mismatch",
+            "phase6_trial_return_cell_mismatch",
+        ):
+            if integrity_evidence not in integrity:
+                raise AssertionError(
+                    "Phase 6 fail-closed bridge integrity evidence is missing: "
+                    f"{integrity_evidence}"
                 )
 
         leakage_contracts = normalized(
@@ -1366,12 +1510,21 @@ def verify_static(phase: int = 1) -> None:
             "FamilyBEvidence",
             "FamilyCEvidence",
             "Phase5EvaluationLink",
+            "PreparedPipelineReproductionAudit",
+            "PreparedRegimeEvidence",
+            "ResearchBoundaryExclusion",
+            "ResearchConfirmationInterval",
+            "ResearchLedgerCell",
+            "ResearchModelOutputSet",
+            "ResearchTrialEconomics",
+            "ResearchTrialSampleEconomics",
             "ResearchConfigurationId",
             "ResearchRunArtifact",
             "ResearchRunCreateRequest",
             "ResearchRunSummary",
             "StructuredTextFeatures",
             "TextFeatureExtraction",
+            "ResearchTransformTrainingSample",
         ):
             if component not in components:
                 raise AssertionError(f"Phase 6 OpenAPI is missing {component}")
@@ -1478,6 +1631,8 @@ def verify_static(phase: int = 1) -> None:
             "ResearchRunArtifact:",
             "ResearchRunCreateRequest:",
             "ResearchRunSummary:",
+            "ResearchLedgerCell:",
+            "ResearchModelOutputSet:",
             "TextFeatureExtraction:",
             '"/v1/research-runs"',
             '"/v1/research-runs/{run_id}"',
@@ -2682,6 +2837,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             "as_reported_fundamentals",
             "corporate_actions",
             "delistings",
+            "macro_regime_inputs",
             "ohlcv",
             "security_master",
             "universe_membership",
@@ -2706,6 +2862,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         "as_reported_fundamentals": 12,
         "corporate_actions": 1,
         "delistings": 1,
+        "macro_regime_inputs": 3,
         "official_document_event_metadata": 5,
         "ohlcv": 852,
         "security_master": 11,
@@ -2714,24 +2871,24 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         "volatility_return_inputs": 3,
     }
     if (
-        sum(one_source_constituent_counts.values()) != 1195
+        sum(one_source_constituent_counts.values()) != 1198
         or one_source_constituent_counts["trading_calendar"] != 305
     ):
         raise AssertionError("Phase 6 one-source fixture accounting is internally inconsistent")
     configuration_families = {
-        "phase6-a-pass-v1": "A_CROSS_SECTIONAL_EQUITY_RANKING",
-        "phase6-a-fail-cost-v1": "A_CROSS_SECTIONAL_EQUITY_RANKING",
-        "phase6-b-pass-v1": "B_TIME_SERIES_MOMENTUM_REGIME",
-        "phase6-b-fail-crash-v1": "B_TIME_SERIES_MOMENTUM_REGIME",
-        "phase6-c-pass-v1": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
-        "phase6-c-fail-corroboration-v1": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+        "phase6-a-pass-v2": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+        "phase6-a-fail-cost-v2": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+        "phase6-b-pass-v2": "B_TIME_SERIES_MOMENTUM_REGIME",
+        "phase6-b-fail-crash-v2": "B_TIME_SERIES_MOMENTUM_REGIME",
+        "phase6-c-pass-v2": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+        "phase6-c-fail-corroboration-v2": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
     }
     expected_states = {
-        "phase6-a-pass-v1": "PASS_RESEARCH",
-        "phase6-a-fail-cost-v1": "FAIL_REJECT",
-        "phase6-b-pass-v1": "PASS_RESEARCH",
-        "phase6-b-fail-crash-v1": "RESEARCH_ONLY_REGIME_DEPENDENT",
-        "phase6-c-pass-v1": "PASS_RESEARCH",
+        "phase6-a-pass-v2": "PASS_RESEARCH",
+        "phase6-a-fail-cost-v2": "FAIL_REJECT",
+        "phase6-b-pass-v2": "FAIL_REJECT",
+        "phase6-b-fail-crash-v2": "FAIL_REJECT",
+        "phase6-c-pass-v2": "FAIL_REJECT",
     }
 
     mapping_results = request_json(f"{api_url}/v1/mappings?limit=100")
@@ -2757,7 +2914,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
                 "mapping_id": mappings[family]["mapping_id"],
                 "as_of_utc": "2024-01-03T00:00:00Z",
                 "capability": capability,
-                "mock_configuration_id": "phase6-synthetic-default-v1",
+                "mock_configuration_id": "phase6-synthetic-default-v2",
             }
             created = request_json(
                 f"{api_url}/v1/data-snapshots",
@@ -2786,11 +2943,26 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
                 )
             snapshot_id = snapshot.get("snapshot_id")
             snapshot_sha256 = snapshot.get("snapshot_sha256")
+            manifest = snapshot.get("manifest")
+            manifest_payload = manifest.get("payload") if isinstance(manifest, dict) else None
+            configuration = (
+                manifest_payload.get("configuration")
+                if isinstance(manifest_payload, dict)
+                else None
+            )
+            adapter = (
+                manifest_payload.get("adapter") if isinstance(manifest_payload, dict) else None
+            )
             if (
                 not isinstance(snapshot_id, str)
                 or not isinstance(snapshot_sha256, str)
                 or re.fullmatch(r"[0-9a-f]{64}", snapshot_sha256) is None
                 or any(item.get("snapshot_id") != snapshot_id for item in constituents)
+                or not isinstance(configuration, dict)
+                or configuration.get("configuration_id") != "phase6-synthetic-default-v2"
+                or configuration.get("fixture_set_version") != PHASE_6_FIXTURE_SET_VERSION
+                or not isinstance(adapter, dict)
+                or adapter.get("adapter_version") != "phase6-synthetic-pit-adapter-v2"
             ):
                 raise AssertionError(f"Phase 6 {capability} snapshot lineage is invalid")
             snapshot_ids.append(snapshot_id)
@@ -2812,8 +2984,8 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         return request_json(
             f"{api_url}/v1/research-runs",
             method="POST",
-            payload=payload_for("phase6-a-pass-v1"),
-            timeout_seconds=120,
+            payload=payload_for("phase6-a-pass-v2"),
+            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
         )
 
     with ThreadPoolExecutor(max_workers=2) as executor:
@@ -2821,21 +2993,21 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
     if not all(isinstance(item, dict) for item in concurrent) or concurrent[0] != concurrent[1]:
         raise AssertionError("Concurrent identical Phase 6 creation was not idempotent")
 
-    artifacts: dict[str, dict[str, object]] = {"phase6-a-pass-v1": dict(concurrent[0])}
+    artifacts: dict[str, dict[str, object]] = {"phase6-a-pass-v2": dict(concurrent[0])}
     for configuration_id in expected_states:
-        if configuration_id == "phase6-a-pass-v1":
+        if configuration_id == "phase6-a-pass-v2":
             continue
         created = request_json(
             f"{api_url}/v1/research-runs",
             method="POST",
             payload=payload_for(configuration_id),
-            timeout_seconds=120,
+            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
         )
         repeated = request_json(
             f"{api_url}/v1/research-runs",
             method="POST",
             payload=payload_for(configuration_id),
-            timeout_seconds=120,
+            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
         )
         if not isinstance(created, dict) or created != repeated:
             raise AssertionError(f"Phase 6 {configuration_id} run was not idempotent")
@@ -2844,12 +3016,12 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
     blocked = request_error_json(
         f"{api_url}/v1/research-runs",
         expected_status=422,
-        payload=payload_for("phase6-c-fail-corroboration-v1"),
+        payload=payload_for("phase6-c-fail-corroboration-v2"),
     )
     repeated_blocked = request_error_json(
         f"{api_url}/v1/research-runs",
         expected_status=422,
-        payload=payload_for("phase6-c-fail-corroboration-v1"),
+        payload=payload_for("phase6-c-fail-corroboration-v2"),
     )
     if (
         blocked != repeated_blocked
@@ -2859,7 +3031,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
     ):
         raise AssertionError("Phase 6 official-corroboration negative fixture did not fail closed")
     forbidden = {
-        **payload_for("phase6-a-pass-v1"),
+        **payload_for("phase6-a-pass-v2"),
         "metrics": {},
         "artifact_sha256": "0" * 64,
         "thresholds": {},
@@ -2884,6 +3056,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             or not isinstance(artifact_sha256, str)
             or re.fullmatch(r"[0-9a-f]{64}", artifact_sha256) is None
             or artifact.get("configuration_id") != configuration_id
+            or artifact.get("artifact_schema_version") != "phase6-research-artifact-v2"
             or artifact.get("family") != family
             or artifact.get("status") != "completed"
             or artifact.get("synthetic") is not True
@@ -2897,18 +3070,44 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         bindings = artifact.get("snapshot_bindings")
         rows = artifact.get("feature_rows")
         scores = artifact.get("scores")
+        model_output_sets = artifact.get("model_output_sets")
+        trial_economics = artifact.get("trial_economics")
         attempts = artifact.get("attempts")
         comparisons = artifact.get("baseline_comparisons")
         phase5_link = artifact.get("phase5_evaluation")
+        specification = artifact.get("specification")
         if not all(
-            isinstance(item, list) for item in (bindings, rows, scores, attempts, comparisons)
+            isinstance(item, list)
+            for item in (
+                bindings,
+                rows,
+                scores,
+                model_output_sets,
+                trial_economics,
+                attempts,
+                comparisons,
+            )
         ):
             raise AssertionError(f"Phase 6 {configuration_id} omitted explainable evidence")
         if not isinstance(phase5_link, dict):
             raise AssertionError(f"Phase 6 {configuration_id} omitted Phase 5 lineage")
+        expected_cost_model_id = (
+            PHASE_6_FAMILY_B_TRANSACTION_COST_MODEL_ID
+            if family == "B_TIME_SERIES_MOMENTUM_REGIME"
+            else "phase5-component-cost-model-v1"
+        )
+        if (
+            not isinstance(specification, dict)
+            or specification.get("transaction_cost_model_id") != expected_cost_model_id
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} omitted its versioned transaction-cost contract"
+            )
         assert isinstance(bindings, list)
         assert isinstance(rows, list)
         assert isinstance(scores, list)
+        assert isinstance(model_output_sets, list)
+        assert isinstance(trial_economics, list)
         assert isinstance(attempts, list)
         assert isinstance(comparisons, list)
         if {item.get("snapshot_id") for item in bindings if isinstance(item, dict)} != set(
@@ -2920,11 +3119,78 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         ):
             raise AssertionError(f"Phase 6 {configuration_id} lost snapshot lineage")
         row_ids = {item.get("row_id") for item in rows if isinstance(item, dict)}
+        prepared_sample_ids = {item.get("sample_id") for item in rows if isinstance(item, dict)}
         if (
             not rows
+            or len(prepared_sample_ids) != len(rows)
             or {item.get("feature_row_id") for item in scores if isinstance(item, dict)} != row_ids
+            or len(model_output_sets) != 4
+            or len(trial_economics) != 4
         ):
-            raise AssertionError(f"Phase 6 {configuration_id} score explanations are incomplete")
+            raise AssertionError(
+                f"Phase 6 {configuration_id} score/model-output evidence is incomplete"
+            )
+        reproduction = artifact.get("source_reproduction_audit")
+        regime_evidence = artifact.get("regime_evidence")
+        reproduction_bindings = (
+            reproduction.get("snapshot_bindings") if isinstance(reproduction, dict) else None
+        )
+        canonical_artifact_bindings = tuple(
+            sorted(
+                json.dumps(item, sort_keys=True, separators=(",", ":"))
+                for item in bindings
+                if isinstance(item, dict)
+            )
+        )
+        canonical_reproduction_bindings = (
+            tuple(
+                sorted(
+                    json.dumps(item, sort_keys=True, separators=(",", ":"))
+                    for item in reproduction_bindings
+                    if isinstance(item, dict)
+                )
+            )
+            if isinstance(reproduction_bindings, list)
+            else None
+        )
+        if (
+            not isinstance(reproduction, dict)
+            or reproduction.get("schema_version") != "phase6-prepared-source-reproduction-audit-v1"
+            or reproduction.get("exact_match") is not True
+            or reproduction.get("configuration_id") != configuration_id
+            or not isinstance(reproduction_bindings, list)
+            or canonical_reproduction_bindings is None
+            or len(canonical_reproduction_bindings) != len(reproduction_bindings)
+            or len(set(canonical_reproduction_bindings)) != len(canonical_reproduction_bindings)
+            or canonical_reproduction_bindings != canonical_artifact_bindings
+            or len(canonical_artifact_bindings) != len(bindings)
+            or len(set(canonical_artifact_bindings)) != len(canonical_artifact_bindings)
+            or reproduction.get("supplied_pipeline_input_sha256")
+            != artifact.get("pipeline_input_sha256")
+            or reproduction.get("reproduced_pipeline_input_sha256")
+            != artifact.get("pipeline_input_sha256")
+            or reproduction.get("supplied_payload_sha256")
+            != reproduction.get("reproduced_payload_sha256")
+            or not isinstance(regime_evidence, dict)
+            or regime_evidence.get("schema_version") != "phase6-prepared-regime-evidence-v2"
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} omitted deterministic reproduction/regime evidence"
+            )
+        expected_regime_state = (
+            "available" if family == "A_CROSS_SECTIONAL_EQUITY_RANKING" else "unavailable"
+        )
+        if regime_evidence.get("evidence_state") != expected_regime_state:
+            raise AssertionError(f"Phase 6 {configuration_id} claimed unsupported regime data")
+        if expected_regime_state == "unavailable" and (
+            regime_evidence.get("rate_observations") != []
+            or regime_evidence.get("crisis_windows") != []
+            or regime_evidence.get("unavailable_reason")
+            != "required-regime-sources-not-authorized-for-family-v1"
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} did not explicitly fail closed on regime inputs"
+            )
         for row in rows:
             if not isinstance(row, dict) or not isinstance(row.get("features"), list):
                 raise AssertionError("Phase 6 feature row is malformed")
@@ -2969,6 +3235,9 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         gates = report.get("gates")
         trials = report.get("trials")
         sample_lineage = report.get("sample_lineage")
+        folds = report.get("folds")
+        oos_ledger = report.get("oos_ledger")
+        cost_ledger = report.get("cost_ledger")
         if (
             report.get("artifact_sha256") != phase5_link.get("evaluation_report_sha256")
             or report.get("promotion_state") != expected_states[configuration_id]
@@ -2979,6 +3248,12 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             or [item.get("gate_code") for item in gates if isinstance(item, dict)] != gate_codes
             or not isinstance(sample_lineage, list)
             or not sample_lineage
+            or not isinstance(folds, list)
+            or not folds
+            or not isinstance(oos_ledger, list)
+            or not oos_ledger
+            or not isinstance(cost_ledger, list)
+            or not cost_ledger
             or any(
                 not isinstance(item, dict)
                 or not isinstance(item.get("feature_derivation"), dict)
@@ -3014,6 +3289,518 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             raise AssertionError(
                 f"Phase 6 {configuration_id} attempt set differs from Phase 5 trials"
             )
+
+        completed_trials = {
+            item.get("trial_key"): item
+            for item in trials
+            if isinstance(item, dict) and item.get("status") == "completed"
+        }
+        output_sets_by_key = {
+            item.get("trial_key"): item for item in model_output_sets if isinstance(item, dict)
+        }
+        trial_economics_by_key = {
+            item.get("trial_key"): item for item in trial_economics if isinstance(item, dict)
+        }
+        if (
+            len(completed_trials) != 4
+            or len(output_sets_by_key) != 4
+            or len(trial_economics_by_key) != 4
+            or set(completed_trials) != set(output_sets_by_key)
+            or set(completed_trials) != set(trial_economics_by_key)
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} model-output registry differs from completed trials"
+            )
+
+        outer_sample_ids = [
+            sample_id
+            for fold in folds
+            if isinstance(fold, dict) and fold.get("fold_kind") in {"outer", "cpcv"}
+            for sample_id in fold.get("test_sample_ids", [])
+        ]
+        inner_sample_ids = list(
+            dict.fromkeys(
+                sample_id
+                for fold in folds
+                if isinstance(fold, dict) and fold.get("fold_kind") == "inner"
+                for sample_id in fold.get("test_sample_ids", [])
+            )
+        )
+        report_baseline_entries = {
+            str(item.get("sample_id")): item
+            for item in cost_ledger
+            if isinstance(item, dict) and item.get("scenario") == "baseline"
+        }
+        report_baseline_costs = {
+            sample_id: Decimal(str(item.get("total_cost")))
+            for sample_id, item in report_baseline_entries.items()
+        }
+        if set(outer_sample_ids) != set(report_baseline_costs):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} baseline costs do not cover exact OOS rows"
+            )
+
+        output_cells_by_trial: dict[str, dict[str, dict[str, object]]] = {}
+        inner_net_by_trial: dict[str, dict[str, Decimal]] = {}
+        baseline_entries_by_trial: dict[str, dict[str, dict[str, object]]] = {}
+        for trial_key, output_set in output_sets_by_key.items():
+            if not isinstance(trial_key, str):
+                raise AssertionError("Phase 6 model-output registry has a malformed trial key")
+            outputs = output_set.get("outputs")
+            ledger_cells = output_set.get("ledger_cells")
+            trial = completed_trials[trial_key]
+            configuration = trial.get("configuration")
+            required_configuration_keys = {
+                "model",
+                "variant",
+                "phase6_pipeline_input_sha256",
+                "phase6_model_output_sha256",
+                "phase6_output_set_sha256",
+                "phase6_label_sha256",
+                "phase6_ledger_cell_set_sha256",
+                "phase6_payoff_formula_id",
+                "phase6_allocation_rules_json",
+                "phase6_trial_weights_json",
+                "phase6_trial_cost_ledger_json",
+                "phase6_trial_cost_set_sha256",
+                "inner_validation_gross_returns_json",
+                "inner_validation_return_statuses_json",
+                "outer_gross_returns_json",
+            }
+            if family == "B_TIME_SERIES_MOMENTUM_REGIME":
+                required_configuration_keys.update(
+                    {
+                        "phase6_cost_volatility_projection_id",
+                        "phase6_cost_volatility_quantum",
+                    }
+                )
+            if (
+                not isinstance(outputs, list)
+                or not isinstance(ledger_cells, list)
+                or output_set.get("schema_version") != "phase6-phase5-model-output-set-v2"
+                or len(outputs) != len(rows)
+                or len(ledger_cells) != len(rows)
+                or not isinstance(configuration, dict)
+                or set(configuration) != required_configuration_keys
+                or configuration.get("model") != output_set.get("model_id")
+                or configuration.get("phase6_pipeline_input_sha256")
+                != artifact.get("pipeline_input_sha256")
+                or configuration.get("phase6_model_output_sha256")
+                != output_set.get("model_output_sha256")
+                or configuration.get("phase6_output_set_sha256")
+                != output_set.get("output_set_sha256")
+                or configuration.get("phase6_payoff_formula_id")
+                != "phase6-long-flat-weight-times-label-quantized-v1"
+                or (
+                    family == "B_TIME_SERIES_MOMENTUM_REGIME"
+                    and (
+                        configuration.get("phase6_cost_volatility_projection_id")
+                        != PHASE_6_FAMILY_B_COST_VOLATILITY_PROJECTION_ID
+                        or configuration.get("phase6_cost_volatility_quantum")
+                        != PHASE_6_FAMILY_B_COST_VOLATILITY_QUANTUM
+                    )
+                )
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} lost model-output lineage"
+                )
+            outputs_by_sample = {
+                item.get("sample_id"): Decimal(str(item.get("output_value")))
+                for item in outputs
+                if isinstance(item, dict)
+            }
+            cells_by_sample = {
+                str(item.get("sample_id")): item for item in ledger_cells if isinstance(item, dict)
+            }
+            if (
+                set(outputs_by_sample) != prepared_sample_ids
+                or set(cells_by_sample) != prepared_sample_ids
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} ledger does not cover prepared rows"
+                )
+            weights = json.loads(str(configuration["phase6_trial_weights_json"]))
+            allocation_rules = json.loads(str(configuration["phase6_allocation_rules_json"]))
+            return_statuses = json.loads(
+                str(configuration["inner_validation_return_statuses_json"])
+            )
+            trial_cost_entries = json.loads(str(configuration["phase6_trial_cost_ledger_json"]))
+            if (
+                not isinstance(weights, dict)
+                or not isinstance(allocation_rules, dict)
+                or not isinstance(return_statuses, dict)
+                or not isinstance(trial_cost_entries, list)
+                or set(weights) != prepared_sample_ids
+                or set(allocation_rules) != prepared_sample_ids
+                or len(trial_cost_entries) != len(rows) * 3
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} allocation/cost evidence is incomplete"
+                )
+            trial_costs_by_key = {
+                (str(item.get("sample_id")), str(item.get("scenario"))): item
+                for item in trial_cost_entries
+                if isinstance(item, dict)
+            }
+            if len(trial_costs_by_key) != len(rows) * 3:
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} cost scenarios are not exact"
+                )
+            baseline_entries = {
+                sample_id: trial_costs_by_key[(sample_id, "baseline")]
+                for sample_id in prepared_sample_ids
+            }
+            baseline_entries_by_trial[trial_key] = baseline_entries
+            economics = trial_economics_by_key[trial_key]
+            sample_economics = economics.get("sample_economics")
+            economics_by_sample = (
+                {
+                    str(item.get("sample_id")): item
+                    for item in sample_economics
+                    if isinstance(item, dict)
+                }
+                if isinstance(sample_economics, list)
+                else {}
+            )
+            if (
+                economics.get("model_id") != output_set.get("model_id")
+                or economics.get("schema_version") != "phase6-trial-economics-v1"
+                or economics.get("output_set_sha256") != output_set.get("output_set_sha256")
+                or economics.get("cost_set_sha256")
+                != configuration.get("phase6_trial_cost_set_sha256")
+                or set(economics_by_sample) != prepared_sample_ids
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} artifact economics are incomplete"
+                )
+            for sample_id, cell in cells_by_sample.items():
+                model_output = Decimal(str(cell.get("model_output")))
+                label_value = Decimal(str(cell.get("label_value")))
+                weight = Decimal(str(cell.get("synthetic_research_weight")))
+                gross_return = Decimal(str(cell.get("synthetic_gross_return")))
+                expected_gross_return = (weight * label_value).quantize(Decimal("0.000000000001"))
+                expected_status = "observed" if weight == 1 else "no_trade"
+                sample_costs = tuple(
+                    trial_costs_by_key[(sample_id, scenario)]
+                    for scenario in ("baseline", "all_cost_stress", "liquidity_stress")
+                )
+                persisted_economics = economics_by_sample[sample_id]
+                persisted_cost_entries = persisted_economics.get("cost_entries")
+                if (
+                    model_output != outputs_by_sample[sample_id]
+                    or weight not in {Decimal("0"), Decimal("1")}
+                    or Decimal(str(weights[sample_id])) != weight
+                    or allocation_rules[sample_id] != cell.get("allocation_rule_id")
+                    or cell.get("return_status") != expected_status
+                    or Decimal(str(persisted_economics.get("model_output"))) != model_output
+                    or Decimal(str(persisted_economics.get("synthetic_research_weight"))) != weight
+                    or persisted_economics.get("return_status") != expected_status
+                    or persisted_economics.get("schema_version")
+                    != "phase6-trial-sample-economics-v1"
+                    or not isinstance(persisted_cost_entries, list)
+                    or len(persisted_cost_entries) != len(sample_costs)
+                    or any(
+                        not phase6_cost_entries_match(
+                            persisted_cost,
+                            trial_cost,
+                            require_identity=True,
+                        )
+                        for persisted_cost, trial_cost in zip(
+                            persisted_cost_entries,
+                            sample_costs,
+                            strict=True,
+                        )
+                    )
+                    or gross_return != expected_gross_return
+                    or cell.get("trial_key") != trial_key
+                    or cell.get("model_id") != output_set.get("model_id")
+                    or cell.get("model_output_sha256") != output_set.get("model_output_sha256")
+                    or cell.get("payoff_formula_id")
+                    != "phase6-long-flat-weight-times-label-quantized-v1"
+                    or not isinstance(cell.get("label_source_references"), list)
+                    or not cell["label_source_references"]
+                    or any(
+                        item.get("return_status") != expected_status
+                        or Decimal(str(item.get("gross_return"))) != gross_return
+                        for item in sample_costs
+                    )
+                    or (
+                        expected_status == "no_trade"
+                        and any(
+                            Decimal(str(item.get(field))) != 0
+                            for item in sample_costs
+                            for field in (
+                                "requested_quantity",
+                                "filled_quantity",
+                                "rejected_quantity",
+                                "unfilled_quantity",
+                                "gross_return",
+                                "fee_cost",
+                                "spread_cost",
+                                "impact_cost",
+                                "latency_cost",
+                                "borrow_cost",
+                                "capacity_cost",
+                                "total_cost",
+                                "net_return",
+                                "participation_rate",
+                            )
+                        )
+                    )
+                ):
+                    raise AssertionError(
+                        f"Phase 6 {configuration_id}/{trial_key}/{sample_id} ledger is not exact"
+                    )
+
+            inner_returns = json.loads(
+                str(configuration.get("inner_validation_gross_returns_json"))
+            )
+            outer_returns = json.loads(str(configuration.get("outer_gross_returns_json")))
+            if (
+                not isinstance(inner_returns, dict)
+                or not isinstance(outer_returns, dict)
+                or set(inner_returns) != set(inner_sample_ids)
+                or set(outer_returns) != set(outer_sample_ids)
+                or any(
+                    Decimal(str(value))
+                    != Decimal(str(cells_by_sample[sample_id]["synthetic_gross_return"]))
+                    for sample_id, value in inner_returns.items()
+                )
+                or any(
+                    Decimal(str(value))
+                    != Decimal(str(cells_by_sample[sample_id]["synthetic_gross_return"]))
+                    for sample_id, value in outer_returns.items()
+                )
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} trial maps do not match ledger cells"
+                )
+            if return_statuses != {
+                sample_id: cells_by_sample[sample_id]["return_status"]
+                for sample_id in inner_sample_ids
+            }:
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} return statuses do not reconcile"
+                )
+            inner_net_by_trial[trial_key] = {
+                str(sample_id): Decimal(str(baseline_entries[str(sample_id)]["net_return"]))
+                for sample_id in inner_returns
+            }
+            expected_net_returns = [
+                Decimal(str(baseline_entries[sample_id]["net_return"]))
+                for sample_id in outer_sample_ids
+            ]
+            if [Decimal(str(item)) for item in trial.get("net_returns", [])] != (
+                expected_net_returns
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{trial_key} net returns do not reconcile"
+                )
+            output_cells_by_trial[trial_key] = cells_by_sample
+
+        trials_by_id = {
+            str(item.get("trial_id")): item
+            for item in completed_trials.values()
+            if isinstance(item, dict)
+        }
+        expected_oos_pairs = {
+            (str(fold.get("fold_id")), str(sample_id))
+            for fold in folds
+            if isinstance(fold, dict) and fold.get("fold_kind") in {"outer", "cpcv"}
+            for sample_id in fold.get("test_sample_ids", [])
+        }
+        observed_oos_pairs = {
+            (str(entry.get("fold_id")), str(entry.get("sample_id")))
+            for entry in oos_ledger
+            if isinstance(entry, dict)
+        }
+        if (
+            len(outer_sample_ids) != len(set(outer_sample_ids))
+            or len(oos_ledger) != len(expected_oos_pairs)
+            or observed_oos_pairs != expected_oos_pairs
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} OOS ledger does not exactly cover outer folds"
+            )
+        selected_trial_id_by_fold: dict[str, str] = {}
+        for outer_fold in (
+            item
+            for item in folds
+            if isinstance(item, dict) and item.get("fold_kind") in {"outer", "cpcv"}
+        ):
+            outer_fold_id = str(outer_fold.get("fold_id"))
+            validation_ids = [
+                str(sample_id)
+                for inner_fold in folds
+                if isinstance(inner_fold, dict)
+                and inner_fold.get("fold_kind") == "inner"
+                and str(inner_fold.get("parent_fold_id")) == outer_fold_id
+                for sample_id in inner_fold.get("test_sample_ids", [])
+            ]
+            if not validation_ids:
+                raise AssertionError("Phase 6 outer fold has no inner validation evidence")
+            selection_scores = {
+                trial_key: sum(
+                    (returns[sample_id] for sample_id in validation_ids),
+                    Decimal("0"),
+                )
+                / Decimal(len(validation_ids))
+                for trial_key, returns in inner_net_by_trial.items()
+            }
+            best_score = max(selection_scores.values())
+            winners = [
+                trial_key for trial_key, score in selection_scores.items() if score == best_score
+            ]
+            if len(winners) != 1:
+                raise AssertionError("Phase 6 inner-fold model selection is not unique")
+            selected_trial_id_by_fold[outer_fold_id] = str(
+                completed_trials[winners[0]].get("trial_id")
+            )
+
+        decision_time_by_sample = {
+            str(entry.get("sample_id")): str(entry.get("decision_time_utc"))
+            for entry in oos_ledger
+            if isinstance(entry, dict)
+        }
+        expected_trial_calendar = [decision_time_by_sample[str(item)] for item in outer_sample_ids]
+        if any(
+            [str(item) for item in trial.get("return_timestamps_utc", [])]
+            != expected_trial_calendar
+            for trial in completed_trials.values()
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} completed-trial calendars do not cover exact OOS rows"
+            )
+        for entry in oos_ledger:
+            if not isinstance(entry, dict):
+                raise AssertionError("Phase 6 OOS ledger contains malformed evidence")
+            selected_trial_record = trials_by_id.get(str(entry.get("trial_id")))
+            if selected_trial_record is None:
+                raise AssertionError("Phase 6 OOS row does not identify a completed trial")
+            if str(entry.get("trial_id")) != selected_trial_id_by_fold.get(
+                str(entry.get("fold_id"))
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id} OOS row does not use its inner-fold winner"
+                )
+            trial_key = str(selected_trial_record.get("trial_key"))
+            sample_id = str(entry.get("sample_id"))
+            selected_cell = output_cells_by_trial[trial_key].get(sample_id)
+            selected_baseline = baseline_entries_by_trial[trial_key].get(sample_id)
+            if selected_cell is None or selected_baseline is None:
+                raise AssertionError("Phase 6 OOS row has no selected model-output cell")
+            gross_return = Decimal(str(selected_cell["synthetic_gross_return"]))
+            report_selected_baseline = report_baseline_entries.get(sample_id)
+            if (
+                Decimal(str(entry.get("predicted_value")))
+                != Decimal(str(selected_cell["model_output"]))
+                or Decimal(str(entry.get("gross_return"))) != gross_return
+                or Decimal(str(entry.get("baseline_net_return")))
+                != Decimal(str(selected_baseline["net_return"]))
+                or entry.get("return_status") != selected_cell.get("return_status")
+                or report_selected_baseline is None
+                or not phase6_cost_entries_match(
+                    report_selected_baseline,
+                    selected_baseline,
+                    require_identity=False,
+                )
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id}/{sample_id} selected OOS row does not reconcile"
+                )
+
+        policy = request_json(
+            f"{api_url}/v1/evaluation-policies/{report['evaluation_policy_id']}"
+            f"/versions/{report['evaluation_policy_version']}"
+        )
+        walk_forward = policy.get("walk_forward") if isinstance(policy, dict) else None
+        if not isinstance(walk_forward, dict):
+            raise AssertionError("Phase 6 linked policy omitted walk-forward geometry")
+        confirmation_start = datetime.fromisoformat(
+            str(walk_forward.get("final_confirmation_start_utc")).replace("Z", "+00:00")
+        )
+        confirmation_end = datetime.fromisoformat(
+            str(walk_forward.get("final_confirmation_end_utc")).replace("Z", "+00:00")
+        )
+        confirmation = artifact.get("confirmation_interval")
+        boundary_exclusions = artifact.get("boundary_exclusions")
+        if not isinstance(confirmation, dict) or not isinstance(boundary_exclusions, list):
+            raise AssertionError(f"Phase 6 {configuration_id} omitted confirmation evidence")
+        confirmation_id = str(confirmation.get("sample_id"))
+        boundary_ids = {
+            str(item.get("sample_id")) for item in boundary_exclusions if isinstance(item, dict)
+        }
+        if (
+            not boundary_ids
+            or confirmation_id in prepared_sample_ids
+            or boundary_ids & prepared_sample_ids
+            or confirmation.get("schema_version") != "phase6-label-blind-confirmation-interval-v1"
+            or not isinstance(confirmation.get("source_references"), list)
+            or not confirmation["source_references"]
+            or confirmation.get("label_value") is not None
+            or confirmation.get("label_source_references") != []
+            or confirmation.get("label_opened") is not False
+            or datetime.fromisoformat(
+                str(confirmation.get("interval_start_utc")).replace("Z", "+00:00")
+            )
+            != confirmation_start
+            or datetime.fromisoformat(
+                str(confirmation.get("interval_end_utc")).replace("Z", "+00:00")
+            )
+            != confirmation_end
+            or any(
+                not isinstance(item, dict)
+                or item.get("schema_version") != "phase6-confirmation-boundary-exclusion-v1"
+                or item.get("label_value") is not None
+                or item.get("label_source_references") != []
+                or item.get("label_opened") is not False
+                for item in boundary_exclusions
+            )
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} confirmation is not label-blind and predeclared"
+            )
+        forbidden_ids = {confirmation_id, *boundary_ids}
+        report_sample_ids = {
+            str(item.get("sample_id")) for item in sample_lineage if isinstance(item, dict)
+        }
+        if report_sample_ids != prepared_sample_ids | {confirmation_id}:
+            raise AssertionError(
+                f"Phase 6 {configuration_id} fixture does not exactly apply confirmation purge"
+            )
+        fold_sample_ids = {
+            str(sample_id)
+            for fold in folds
+            if isinstance(fold, dict)
+            for field in (
+                "train_sample_ids",
+                "purged_sample_ids",
+                "test_sample_ids",
+                "embargoed_sample_ids",
+            )
+            for sample_id in fold.get(field, [])
+        }
+        chronology_gate = next(
+            (
+                item
+                for item in gates
+                if isinstance(item, dict) and item.get("gate_code") == "CV_CHRONOLOGY"
+            ),
+            None,
+        )
+        chronology_inputs = (
+            chronology_gate.get("inputs") if isinstance(chronology_gate, dict) else None
+        )
+        if (
+            forbidden_ids & fold_sample_ids
+            or not boundary_ids
+            or not isinstance(chronology_inputs, dict)
+            or chronology_inputs.get("confirmation_sample_count") != 1
+            or chronology_inputs.get("post_confirmation_sample_count") != 0
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} confirmation/boundary evidence is incomplete"
+            )
         reports[configuration_id] = report
         if request_json(f"{api_url}/v1/research-runs/{run_id}") != artifact:
             raise AssertionError(f"Phase 6 {configuration_id} detail is not byte-stable")
@@ -3029,10 +3816,52 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             raise AssertionError(f"Phase 6 {configuration_id} has ambiguous {code} evidence")
         return matches[0]
 
+    if any(gate("phase6-a-pass-v2", code).get("outcome") != "pass" for code in gate_codes):
+        raise AssertionError("Phase 6 A positive fixture did not pass all 12 unchanged gates")
+    a_fail_non_pass = {
+        code: gate("phase6-a-fail-cost-v2", code)
+        for code in gate_codes
+        if gate("phase6-a-fail-cost-v2", code).get("outcome") != "pass"
+    }
+    if (
+        set(a_fail_non_pass) != {"COST_STRESS"}
+        or a_fail_non_pass["COST_STRESS"].get("outcome") != "fail"
+        or a_fail_non_pass["COST_STRESS"].get("reason_codes")
+        != ["stressed_edge_non_positive_or_policy_limit"]
+    ):
+        raise AssertionError("Phase 6 A cost-negative fixture did not reject only on cost")
+
+    for configuration_id in ("phase6-b-pass-v2", "phase6-b-fail-crash-v2"):
+        if (
+            gate(configuration_id, "DSR").get("outcome") != "pass"
+            or gate(configuration_id, "PBO").get("outcome") != "fail"
+            or gate(configuration_id, "PBO").get("reason_codes") != ["pbo_above_frozen_threshold"]
+            or gate(configuration_id, "REGIME").get("outcome") != "research_only"
+            or set(gate(configuration_id, "REGIME").get("reason_codes", []))
+            != {
+                "volatility_regime_coverage_missing",
+                "rate_regime_coverage_missing",
+                "crisis_window_coverage_missing",
+            }
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} did not truthfully reject on PBO/regime"
+            )
+    if (
+        gate("phase6-c-pass-v2", "DSR").get("outcome") != "fail"
+        or gate("phase6-c-pass-v2", "DSR").get("reason_codes") != ["dsr_below_frozen_threshold"]
+        or gate("phase6-c-pass-v2", "PBO").get("outcome") != "fail"
+        or gate("phase6-c-pass-v2", "PBO").get("reason_codes") != ["pbo_above_frozen_threshold"]
+        or gate("phase6-c-pass-v2", "REGIME").get("outcome") != "research_only"
+        or set(gate("phase6-c-pass-v2", "REGIME").get("reason_codes", []))
+        != {"rate_regime_coverage_missing", "crisis_window_coverage_missing"}
+    ):
+        raise AssertionError("Phase 6 C did not truthfully reject on DSR/PBO/regime")
+
     for configuration_id in (
-        "phase6-a-pass-v1",
-        "phase6-b-pass-v1",
-        "phase6-c-pass-v1",
+        "phase6-a-pass-v2",
+        "phase6-b-pass-v2",
+        "phase6-c-pass-v2",
     ):
         cost = gate(configuration_id, "COST_STRESS")
         results = cost.get("results")
@@ -3042,12 +3871,37 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             or Decimal(str(results.get("all_cost_net_return"))) <= 0
         ):
             raise AssertionError(f"Phase 6 {configuration_id} retained non-positive stressed edge")
-    if gate("phase6-a-fail-cost-v1", "COST_STRESS").get("outcome") != "fail":
-        raise AssertionError("Phase 6 A negative fixture did not fail the unchanged cost gate")
-    if gate("phase6-b-fail-crash-v1", "REGIME").get("outcome") != "research_only":
-        raise AssertionError("Phase 6 B negative fixture did not remain regime-dependent")
+    a_regime = artifacts["phase6-a-pass-v2"].get("regime_evidence")
+    a_rate_observations = a_regime.get("rate_observations") if isinstance(a_regime, dict) else None
+    a_crisis_windows = a_regime.get("crisis_windows") if isinstance(a_regime, dict) else None
+    if (
+        not isinstance(a_rate_observations, list)
+        or len(a_rate_observations) != 2
+        or {Decimal(str(item.get("rate_change"))) for item in a_rate_observations}
+        != {Decimal("0.10"), Decimal("-0.20")}
+        or any(
+            not isinstance(item.get("source_reference"), dict)
+            or item["source_reference"].get("capability") != "macro_regime_inputs"
+            or item["source_reference"].get("record_type") != "macro_rate_observation"
+            or item["source_reference"].get("available_at_utc") != item.get("released_at_utc")
+            for item in a_rate_observations
+        )
+        or not isinstance(a_crisis_windows, list)
+        or len(a_crisis_windows) != 1
+        or a_crisis_windows[0].get("crisis_window_id") != "synthetic-predeclared-stress-2020-01"
+        or not isinstance(a_crisis_windows[0].get("source_reference"), dict)
+        or a_crisis_windows[0]["source_reference"].get("capability") != "macro_regime_inputs"
+        or a_crisis_windows[0]["source_reference"].get("record_type") != "crisis_window_definition"
+        or datetime.fromisoformat(
+            str(a_crisis_windows[0].get("declared_at_utc")).replace("Z", "+00:00")
+        )
+        >= datetime.fromisoformat(
+            str(a_crisis_windows[0].get("window_start_utc")).replace("Z", "+00:00")
+        )
+    ):
+        raise AssertionError("Phase 6 A PIT macro-rate/crisis evidence is incomplete")
 
-    a_evidence = artifacts["phase6-a-pass-v1"].get("family_evidence")
+    a_evidence = artifacts["phase6-a-pass-v2"].get("family_evidence")
     if not isinstance(a_evidence, dict):
         raise AssertionError("Phase 6 A family evidence is missing")
     universe = a_evidence.get("universe")
@@ -3078,13 +3932,13 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         raise AssertionError("Phase 6 A universe, transform, or capacity evidence is incomplete")
     if not any(
         item.get("outcome") == "survives"
-        for item in artifacts["phase6-a-pass-v1"]["baseline_comparisons"]
+        for item in artifacts["phase6-a-pass-v2"]["baseline_comparisons"]
         if isinstance(item, dict)
     ):
         raise AssertionError("Phase 6 A did not survive a required baseline comparison")
 
-    b_pass = artifacts["phase6-b-pass-v1"].get("family_evidence")
-    b_fail = artifacts["phase6-b-fail-crash-v1"].get("family_evidence")
+    b_pass = artifacts["phase6-b-pass-v2"].get("family_evidence")
+    b_fail = artifacts["phase6-b-fail-crash-v2"].get("family_evidence")
     if (
         not isinstance(b_pass, dict)
         or not isinstance(b_fail, dict)
@@ -3092,20 +3946,31 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         or b_pass.get("nominal_feature_price_basis") != "raw_unadjusted"
         or b_pass.get("adjusted_return_formula_id") != "phase6-action-and-delisting-aware-return-v1"
         or b_pass.get("no_image_candlestick_or_named_pattern_classifier") is not True
-        or b_pass.get("crash_evidence_complete") is not True
+        or b_pass.get("rate_evidence_available") is not False
+        or b_pass.get("crisis_geometry_available") is not False
+        or b_pass.get("crash_evidence_complete") is not False
+        or b_pass.get("crash_concentration") is not None
         or b_fail.get("crash_evidence_complete") is not False
         or b_fail.get("crash_concentration") is not None
     ):
         raise AssertionError("Phase 6 B adjustment, lag, or crash evidence is incomplete")
-    regimes = b_pass.get("regime_results")
-    if (
-        not isinstance(regimes, list)
-        or len(regimes) < 3
-        or not any(item.get("crash_window") is True for item in regimes if isinstance(item, dict))
-    ):
-        raise AssertionError("Phase 6 B did not report its predeclared crash regime")
+    for evidence in (b_pass, b_fail):
+        regimes = evidence.get("regime_results")
+        if (
+            not isinstance(regimes, list)
+            or not regimes
+            or any(
+                not isinstance(item, dict)
+                or not str(item.get("regime_id", "")).startswith("volatility:")
+                or not isinstance(item.get("observation_count"), int)
+                or item["observation_count"] <= 0
+                or item.get("crash_window") is not False
+                for item in regimes
+            )
+        ):
+            raise AssertionError("Phase 6 B invented unavailable rate or crisis evidence")
 
-    c_evidence = artifacts["phase6-c-pass-v1"].get("family_evidence")
+    c_evidence = artifacts["phase6-c-pass-v2"].get("family_evidence")
     if not isinstance(c_evidence, dict):
         raise AssertionError("Phase 6 C family evidence is missing")
     extractions = c_evidence.get("extractions")
@@ -3255,7 +4120,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
     if not isinstance(listing, list):
         raise AssertionError("Phase 6 research list is not an array")
     listed = {item.get("configuration_id"): item for item in listing if isinstance(item, dict)}
-    if set(artifacts) - set(listed) or "phase6-c-fail-corroboration-v1" in listed:
+    if set(artifacts) - set(listed) or "phase6-c-fail-corroboration-v2" in listed:
         raise AssertionError("Phase 6 list omitted runs or persisted a blocked fixture")
     if any(
         item.get("synthetic") is not True
@@ -3266,8 +4131,10 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         raise AssertionError("Phase 6 list summary lost research-only flags")
 
     print(
-        "Phase 6 deterministic A/B/C pass/fail fixtures, exact PIT lineage, unchanged Phase 5 "
-        "gates, explainability, official corroboration, and concurrent idempotency passed."
+        "Phase 6 v2 A PASS/A cost reject/B PBO-regime reject/C DSR-PBO-regime reject, "
+        "exact PIT macro/source lineage, label-blind confirmation, trial economics, "
+        "reproduction, unchanged Phase 5 gates, official corroboration, and concurrent "
+        "idempotency passed."
     )
     return run_ids
 
@@ -4347,6 +5214,11 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
         "'phase4_record_type_matches_capability(text,text)'::regprocedure)) = 0, "
         "position('social_attention' in pg_get_functiondef("
         "'phase4_record_type_matches_capability(text,text)'::regprocedure)) = 0, "
+        "position('macro_regime_inputs' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_snapshot_capability')) = 0, "
+        "position('macro_rate_observation' in pg_get_functiondef("
+        "'validate_phase4_normalized_observation()'::regprocedure)) = 0, "
         "position('phase6-synthetic-pit-fixtures-v1' in ("
         "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
         "WHERE conname = 'ck_data_snapshot_frozen_versions')) = 0, "
@@ -4365,6 +5237,9 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
         + "', encode(sha256(convert_to((SELECT prosrc FROM pg_proc WHERE oid = "
         "'validate_phase4_snapshot_request()'::regprocedure), 'UTF8')), 'hex') = '"
         + PHASE_4_BASE_FUNCTION_PROSRC_SHA256["validate_phase4_snapshot_request()"]
+        + "', encode(sha256(convert_to((SELECT prosrc FROM pg_proc WHERE oid = "
+        "'validate_phase4_normalized_observation()'::regprocedure), 'UTF8')), 'hex') = '"
+        + PHASE_4_BASE_FUNCTION_PROSRC_SHA256["validate_phase4_normalized_observation()"]
         + "';"
     )
     restored_base = compose_exec(
@@ -4373,7 +5248,7 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
         "postgres",
         ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_base_query],
     ).stdout.strip()
-    if restored_base != "t|t|t|t|t|t|t|t|t|t|t":
+    if restored_base != "t|t|t|t|t|t|t|t|t|t|t|t|t|t":
         raise AssertionError(
             "Phase 6 downgrade did not restore the exact Phase 4/5 function authority: "
             f"{restored_base}"
@@ -4403,6 +5278,11 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
         "'validate_phase5_report_source_lineage_phase5_base(uuid)') IS NOT NULL"
         + ", position('social_attention' in pg_get_functiondef("
         "'phase4_record_type_matches_capability(text,text)'::regprocedure)) > 0"
+        + ", position('macro_regime_inputs' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_snapshot_capability')) > 0"
+        + ", position('macro_rate_observation' in pg_get_functiondef("
+        "'validate_phase4_normalized_observation()'::regprocedure)) > 0"
         + ", position('phase6-synthetic-pit-fixtures-v1' in ("
         "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
         "WHERE conname = 'ck_data_snapshot_frozen_versions')) > 0"
@@ -4419,7 +5299,7 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
         "postgres",
         ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_query],
     ).stdout.strip()
-    expected_restored = "0006_phase6|" + "|".join("t" for _ in range(len(PHASE_6_TABLES) + 6))
+    expected_restored = "0006_phase6|" + "|".join("t" for _ in range(len(PHASE_6_TABLES) + 8))
     if restored != expected_restored:
         raise AssertionError(f"Phase 6 re-upgrade did not restore revision 0006: {restored}")
     after_reupgrade = snapshot_tables(project, environment, earlier_tables)

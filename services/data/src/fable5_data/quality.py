@@ -158,6 +158,21 @@ DATASET_GRAIN_KEY_MATRIX: dict[DataRecordType, DatasetGrain] = {
             "payload.observed_at",
         ),
     ),
+    DataRecordType.MACRO_RATE_OBSERVATION: DatasetGrain(
+        DataRecordType.MACRO_RATE_OBSERVATION,
+        "one immutable rate vintage per series, observation period, and release",
+        (
+            "payload.series_id",
+            "payload.observation_period_end",
+            "payload.released_at",
+            "payload.vintage_id",
+        ),
+    ),
+    DataRecordType.CRISIS_WINDOW_DEFINITION: DatasetGrain(
+        DataRecordType.CRISIS_WINDOW_DEFINITION,
+        "one predeclared stress-window geometry per stable window identity",
+        ("payload.crisis_window_id", "payload.declared_at"),
+    ),
 }
 
 
@@ -575,11 +590,12 @@ def _referential_and_consistency_findings(
             ),
             None,
         )
-        if (
-            record_type is not DataRecordType.CALENDAR_SESSION
-            and record_type is not DataRecordType.INSTRUMENT_IDENTITY
-            and (instrument is None or instrument.available_at > observation.available_at)
-        ):
+        if record_type not in {
+            DataRecordType.CALENDAR_SESSION,
+            DataRecordType.INSTRUMENT_IDENTITY,
+            DataRecordType.MACRO_RATE_OBSERVATION,
+            DataRecordType.CRISIS_WINDOW_DEFINITION,
+        } and (instrument is None or instrument.available_at > observation.available_at):
             findings.append(
                 _finding(
                     rule_id="phase4.instrument-referential-integrity",

@@ -71,6 +71,8 @@ def test_phase6_create_contract_is_strict_and_server_authoritative() -> None:
         "research_configuration_id",
     }
     assert set(request["required"]) == set(request["properties"])
+    assert request["properties"]["snapshot_ids"]["minItems"] == 1
+    assert request["properties"]["snapshot_ids"]["maxItems"] == 10
     assert not set(request["properties"]).intersection(
         {
             "metrics",
@@ -83,12 +85,12 @@ def test_phase6_create_contract_is_strict_and_server_authoritative() -> None:
         }
     )
     assert set(components["ResearchConfigurationId"]["enum"]) == {
-        "phase6-a-pass-v1",
-        "phase6-a-fail-cost-v1",
-        "phase6-b-pass-v1",
-        "phase6-b-fail-crash-v1",
-        "phase6-c-pass-v1",
-        "phase6-c-fail-corroboration-v1",
+        "phase6-a-pass-v2",
+        "phase6-a-fail-cost-v2",
+        "phase6-b-pass-v2",
+        "phase6-b-fail-crash-v2",
+        "phase6-c-pass-v2",
+        "phase6-c-fail-corroboration-v2",
     }
 
     blocked = components["ResearchRunBlockedResponse"]
@@ -117,10 +119,16 @@ def test_phase6_artifact_exposes_complete_explainability_and_research_only_flags
         "snapshot_bindings",
         "feature_rows",
         "scores",
+        "model_output_sets",
+        "trial_economics",
         "attempts",
         "baseline_comparisons",
         "family_evidence",
         "phase5_evaluation",
+        "regime_evidence",
+        "confirmation_interval",
+        "boundary_exclusions",
+        "source_reproduction_audit",
         "feature_lineage_sha256",
         "snapshot_bundle_sha256",
         "pipeline_input_sha256",
@@ -129,6 +137,7 @@ def test_phase6_artifact_exposes_complete_explainability_and_research_only_flags
         "random_seed",
         "reason_codes",
         "warnings",
+        "calendar_source_references",
     } <= set(properties)
     assert properties["synthetic"]["const"] is True
     assert properties["no_real_performance_claimed"]["const"] is True
@@ -141,10 +150,98 @@ def test_phase6_artifact_exposes_complete_explainability_and_research_only_flags
         "snapshot_bindings",
         "feature_rows",
         "scores",
+        "model_output_sets",
+        "trial_economics",
         "attempts",
         "baseline_comparisons",
     ):
         assert properties[field]["minItems"] >= 1
+
+    assert properties["model_output_sets"]["minItems"] == 4
+    assert properties["model_output_sets"]["maxItems"] == 4
+    assert properties["trial_economics"]["minItems"] == 4
+    assert properties["trial_economics"]["maxItems"] == 4
+    assert properties["boundary_exclusions"]["minItems"] == 1
+    assert properties["calendar_source_references"]["type"] == "array"
+
+    output_set = components["ResearchModelOutputSet"]
+    assert output_set["additionalProperties"] is False
+    assert {
+        "output_set_id",
+        "output_set_sha256",
+        "model_output_sha256",
+        "trial_key",
+        "model_id",
+        "outputs",
+        "ledger_cells",
+    } <= set(output_set["properties"])
+    assert output_set["properties"]["outputs"]["minItems"] >= 1
+    assert output_set["properties"]["ledger_cells"]["minItems"] >= 1
+
+    ledger_cell = components["ResearchLedgerCell"]
+    assert ledger_cell["additionalProperties"] is False
+    assert ledger_cell["properties"]["payoff_formula_id"]["const"] == (
+        "phase6-long-flat-weight-times-label-quantized-v1"
+    )
+    assert {
+        "model_output",
+        "model_output_sha256",
+        "synthetic_research_weight",
+        "allocation_rule_id",
+        "return_status",
+        "label_t0_utc",
+        "label_t1_utc",
+        "label_value",
+        "label_source_references",
+        "label_sha256",
+        "synthetic_gross_return",
+    } <= set(ledger_cell["properties"])
+
+    trial_economics = components["ResearchTrialEconomics"]
+    assert trial_economics["additionalProperties"] is False
+    assert {
+        "schema_version",
+        "ordinal",
+        "trial_key",
+        "model_id",
+        "output_set_sha256",
+        "sample_economics",
+        "cost_set_sha256",
+        "economics_sha256",
+    } == set(trial_economics["properties"])
+    assert trial_economics["properties"]["sample_economics"]["minItems"] == 1
+    sample_economics = components["ResearchTrialSampleEconomics"]
+    assert sample_economics["additionalProperties"] is False
+    assert sample_economics["properties"]["cost_entries"]["minItems"] == 3
+    assert sample_economics["properties"]["cost_entries"]["maxItems"] == 3
+
+    confirmation = components["ResearchConfirmationInterval"]
+    assert confirmation["additionalProperties"] is False
+    assert confirmation["properties"]["label_value"]["type"] == "null"
+    assert confirmation["properties"]["label_source_references"]["maxItems"] == 0
+    assert confirmation["properties"]["label_opened"]["const"] is False
+    boundary = components["ResearchBoundaryExclusion"]
+    assert boundary["properties"]["label_value"]["type"] == "null"
+    assert boundary["properties"]["label_source_references"]["maxItems"] == 0
+    assert boundary["properties"]["label_opened"]["const"] is False
+
+    reproduction = components["PreparedPipelineReproductionAudit"]
+    assert reproduction["additionalProperties"] is False
+    assert reproduction["properties"]["exact_match"]["const"] is True
+    assert {
+        "snapshot_set_sha256",
+        "supplied_pipeline_input_sha256",
+        "reproduced_pipeline_input_sha256",
+        "supplied_payload_sha256",
+        "reproduced_payload_sha256",
+    } <= set(reproduction["properties"])
+
+    regime = components["PreparedRegimeEvidence"]
+    assert regime["additionalProperties"] is False
+    assert set(regime["properties"]["evidence_state"]["enum"]) == {
+        "available",
+        "unavailable",
+    }
 
     feature_row = components["ResearchFeatureRow"]["properties"]
     assert {"label_value", "label_source_references"} <= set(feature_row)
@@ -199,10 +296,12 @@ def test_phase6_family_contracts_cover_a_b_c_without_execution_semantics() -> No
         "mean",
         "standard_deviation",
         "train_entity_ids",
+        "train_samples",
         "source_references",
     } <= set(transform_fit)
     assert transform_fit["train_entity_ids"]["minItems"] == 2
     assert transform_fit["source_references"]["minItems"] >= 1
+    assert transform_fit["train_samples"]["minItems"] >= 2
     assert family_a["cross_section_ranks"]["minItems"] >= 1
     cross_section_rank = components["CrossSectionRankEvidence"]["properties"]
     assert {
@@ -228,6 +327,13 @@ def test_phase6_family_contracts_cover_a_b_c_without_execution_semantics() -> No
         "phase6-action-and-delisting-aware-return-v1"
     )
     assert family_b["no_image_candlestick_or_named_pattern_classifier"]["const"] is True
+    assert family_b["rate_evidence_available"]["const"] is False
+    assert family_b["rate_evidence_reason"]["const"] == "rate_regime_source_unavailable"
+    assert family_b["crisis_geometry_available"]["const"] is False
+    assert family_b["crisis_evidence_reason"]["const"] == ("crisis_window_geometry_unavailable")
+    assert family_b["crash_evidence_complete"]["const"] is False
+    assert family_b["crash_concentration"]["type"] == "null"
+    assert family_b["crash_concentration_limit"]["type"] == "null"
 
     family_c = components["FamilyCEvidence"]["properties"]
     assert family_c["prompt_model_drift_visible"]["const"] is True

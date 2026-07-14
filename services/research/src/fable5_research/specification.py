@@ -32,13 +32,20 @@ _AUDIT_FIELDS = (
     "warnings",
 )
 
+FAMILY_B_COST_VOLATILITY_PROJECTION_ID = "phase6-family-b-cost-volatility-1e-8-half-even-v1"
+FAMILY_B_COST_VOLATILITY_QUANTUM_TEXT = "0.00000001"
+FAMILY_B_COST_VOLATILITY_QUANTUM = Decimal(FAMILY_B_COST_VOLATILITY_QUANTUM_TEXT)
+FAMILY_B_TRANSACTION_COST_MODEL_ID = (
+    "phase5-component-cost-model-v1-with-" + FAMILY_B_COST_VOLATILITY_PROJECTION_ID
+)
+
 
 def _specification_content(family: CanonicalFamily) -> dict[str, object]:
     required_capabilities = tuple(sorted(AUTHORIZED_CAPABILITIES[family], key=str))
     common: dict[str, object] = {
-        "schema_version": "phase6-research-specification-v1",
+        "schema_version": "phase6-research-specification-v2",
         "specification_id": f"phase6-{family.value.lower()}-research-pipeline",
-        "specification_version": "v1",
+        "specification_version": "v2",
         "family": family,
         "score_semantics": "research_score_only",
         "required_capabilities": required_capabilities,
@@ -85,6 +92,7 @@ def _specification_content(family: CanonicalFamily) -> dict[str, object]:
     if family is CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME:
         return {
             **common,
+            "transaction_cost_model_id": FAMILY_B_TRANSACTION_COST_MODEL_ID,
             "signal_definition": (
                 "Corporate-action-aware lagged-return and realized-volatility inputs kept "
                 "separate from raw nominal trend-strength and drawdown controls; output is a "
@@ -129,4 +137,10 @@ def build_specification(family: CanonicalFamily) -> ResearchPipelineSpecificatio
     )
 
 
-__all__ = ["build_specification"]
+__all__ = [
+    "FAMILY_B_COST_VOLATILITY_PROJECTION_ID",
+    "FAMILY_B_COST_VOLATILITY_QUANTUM",
+    "FAMILY_B_COST_VOLATILITY_QUANTUM_TEXT",
+    "FAMILY_B_TRANSACTION_COST_MODEL_ID",
+    "build_specification",
+]

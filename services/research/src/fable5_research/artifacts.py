@@ -7,13 +7,15 @@ from decimal import Decimal
 from typing import Final, Literal
 
 from fable5_backtester.contracts import (
+    CostLedgerEntry,
+    CostScenario,
     EvaluationReport,
     GateCode,
     GateOutcome,
     PromotionState,
     TrialStatus,
 )
-from fable5_data.contracts import AuthorizedMappingIdentity
+from fable5_data.contracts import AuthorizedMappingIdentity, SnapshotBundle
 
 from fable5_research.canonical import (
     PHASE6_ARTIFACT_HASH_DOMAIN,
@@ -21,11 +23,15 @@ from fable5_research.canonical import (
     PHASE6_FEATURE_LINEAGE_HASH_DOMAIN,
     PHASE6_REQUEST_HASH_DOMAIN,
     PHASE6_RUN_NAMESPACE,
+    PHASE6_TRIAL_ALLOCATION_HASH_DOMAIN,
+    PHASE6_TRIAL_COST_SET_HASH_DOMAIN,
+    PHASE6_TRIAL_ECONOMICS_HASH_DOMAIN,
     PHASE6_TRIAL_SET_HASH_DOMAIN,
     domain_sha256,
     identity,
 )
 from fable5_research.contracts import (
+    CapacityEvidence,
     FamilyAEvidence,
     FamilyBEvidence,
     FamilyCEvidence,
@@ -40,9 +46,12 @@ from fable5_research.contracts import (
     ResearchConfigurationId,
     ResearchRunArtifact,
     ResearchRunStatus,
+    ResearchTrialEconomics,
+    ResearchTrialSampleEconomics,
 )
 from fable5_research.phase5 import configuration_family, configuration_is_crash_failure
 from fable5_research.preparation import prepare_research_pipeline
+from fable5_research.reproduction import verify_prepared_pipeline_reproduction
 from fable5_research.specification import build_specification
 
 _AFeatureName = Literal[
@@ -102,6 +111,91 @@ def _phase5_trial_set_sha256(report: EvaluationReport) -> str:
     return domain_sha256(PHASE6_TRIAL_SET_HASH_DOMAIN, trial_set)
 
 
+def _trial_economics(
+    prepared: PreparedResearchPipeline,
+    report: EvaluationReport,
+) -> tuple[ResearchTrialEconomics, ...]:
+    completed = {
+        item.trial_key: item for item in report.trials if item.status is TrialStatus.COMPLETED
+    }
+    result: list[ResearchTrialEconomics] = []
+    scenario_ordinal = {scenario: ordinal for ordinal, scenario in enumerate(CostScenario)}
+    for output_set in prepared.model_output_sets:
+        trial = completed.get(output_set.trial_key)
+        if trial is None:
+            raise ValueError("every prepared model output requires one completed Phase 5 trial")
+        serialized = trial.configuration.get("phase6_trial_cost_ledger_json")
+        configured_cost_set_sha256 = trial.configuration.get("phase6_trial_cost_set_sha256")
+        if serialized is None or configured_cost_set_sha256 is None:
+            raise ValueError("completed Phase 6 trials require exact component-cost evidence")
+        decoded = json.loads(serialized)
+        if not isinstance(decoded, list):
+            raise ValueError("trial component-cost evidence must be a JSON array")
+        entries = tuple(CostLedgerEntry.model_validate(item) for item in decoded)
+        expected_cost_set_sha256 = domain_sha256(
+            PHASE6_TRIAL_COST_SET_HASH_DOMAIN,
+            tuple((item.sample_id, item.scenario, item.cost_entry_sha256) for item in entries),
+        )
+        if configured_cost_set_sha256 != expected_cost_set_sha256:
+            raise ValueError("trial component-cost evidence does not match its frozen hash")
+        entries_by_sample: dict[str, list[CostLedgerEntry]] = {}
+        for entry in entries:
+            entries_by_sample.setdefault(entry.sample_id, []).append(entry)
+        cells = {item.sample_id: item for item in output_set.ledger_cells}
+        if set(entries_by_sample) != set(cells):
+            raise ValueError("trial costs must cover every research ledger cell exactly")
+        sample_economics: list[ResearchTrialSampleEconomics] = []
+        for ordinal, sample_id in enumerate(sorted(cells), start=1):
+            cell = cells[sample_id]
+            sample_entries = tuple(
+                sorted(
+                    entries_by_sample[sample_id], key=lambda item: scenario_ordinal[item.scenario]
+                )
+            )
+            content = {
+                "schema_version": "phase6-trial-sample-economics-v1",
+                "ordinal": ordinal,
+                "sample_id": sample_id,
+                "model_output": cell.model_output,
+                "synthetic_research_weight": cell.synthetic_research_weight,
+                "return_status": cell.return_status,
+                "synthetic_gross_return": cell.synthetic_gross_return,
+                "cost_entries": sample_entries,
+            }
+            sample_economics.append(
+                ResearchTrialSampleEconomics.model_validate(
+                    {
+                        **content,
+                        "evidence_sha256": domain_sha256(
+                            PHASE6_TRIAL_ALLOCATION_HASH_DOMAIN,
+                            content,
+                        ),
+                    }
+                )
+            )
+        economics_content = {
+            "schema_version": "phase6-trial-economics-v1",
+            "ordinal": output_set.ordinal,
+            "trial_key": output_set.trial_key,
+            "model_id": output_set.model_id,
+            "output_set_sha256": output_set.output_set_sha256,
+            "sample_economics": tuple(sample_economics),
+            "cost_set_sha256": expected_cost_set_sha256,
+        }
+        result.append(
+            ResearchTrialEconomics.model_validate(
+                {
+                    **economics_content,
+                    "economics_sha256": domain_sha256(
+                        PHASE6_TRIAL_ECONOMICS_HASH_DOMAIN,
+                        economics_content,
+                    ),
+                }
+            )
+        )
+    return tuple(result)
+
+
 def _family_b_evidence(
     inputs: PreparedFamilyBInputs,
     report: EvaluationReport,
@@ -119,7 +213,6 @@ def _family_b_evidence(
     if not isinstance(decoded, list):
         raise ValueError("Family B regime evidence has an invalid shape")
     regime_results: list[RegimeResult] = []
-    crash_sample_ids: set[str] = set()
     for raw in decoded:
         if not isinstance(raw, dict):
             raise ValueError("Family B regime evidence has an invalid row")
@@ -134,33 +227,26 @@ def _family_b_evidence(
             or not isinstance(net_return, str | int | float)
         ):
             raise ValueError("Family B regime evidence is incomplete")
-        crash_window = regime_id.startswith("crisis:")
-        if crash_window:
-            crash_sample_ids.update(sample_ids)
+        if not regime_id.startswith("volatility:"):
+            # The unchanged Phase 5 engine necessarily renders the explicit zero
+            # compatibility projection as `rate:flat`. It is not observed evidence
+            # and must not be promoted into the Phase 6 family artifact.
+            continue
         regime_results.append(
             RegimeResult(
                 regime_id=regime_id,
                 observation_count=len(sample_ids),
                 net_return=Decimal(str(net_return)),
-                crash_window=crash_window,
+                crash_window=False,
             )
         )
-    oos_returns = {
-        item.sample_id: item.baseline_net_return
-        for item in report.oos_ledger
-        if item.baseline_net_return is not None
-    }
-    total_absolute_return = sum((abs(item) for item in oos_returns.values()), Decimal("0"))
-    crash_absolute_return = sum(
-        (abs(oos_returns[item]) for item in crash_sample_ids if item in oos_returns),
-        Decimal("0"),
-    )
-    complete = (
-        regime_gate.outcome is GateOutcome.PASS
-        and bool(crash_sample_ids)
-        and total_absolute_return > 0
-    )
-    concentration = crash_absolute_return / total_absolute_return if complete else None
+    if not regime_results:
+        raise ValueError("Family B lacks source-derived volatility regime evidence")
+    if regime_gate.outcome is not GateOutcome.RESEARCH_ONLY or not {
+        "rate_regime_coverage_missing",
+        "crisis_window_coverage_missing",
+    }.issubset(regime_gate.reason_codes):
+        raise ValueError("Family B missing regime inputs must remain research-only")
     return FamilyBEvidence(
         lag_windows=inputs.lag_windows,
         raw_nominal_bar_count=inputs.raw_nominal_bar_count,
@@ -172,9 +258,13 @@ def _family_b_evidence(
         lifecycle_tests=inputs.lifecycle_tests,
         corporate_action_source_references=inputs.corporate_action_source_references,
         regime_results=tuple(regime_results),
-        crash_evidence_complete=complete,
-        crash_concentration=concentration,
-        crash_concentration_limit=Decimal("0.50"),
+        rate_evidence_available=False,
+        rate_evidence_reason="rate_regime_source_unavailable",
+        crisis_geometry_available=False,
+        crisis_evidence_reason="crisis_window_geometry_unavailable",
+        crash_evidence_complete=False,
+        crash_concentration=None,
+        crash_concentration_limit=None,
     )
 
 
@@ -185,13 +275,39 @@ def _family_evidence(
     inputs = prepared.family_inputs
     comparison_ids = tuple(item.comparison_id for item in prepared.baseline_comparisons)
     if isinstance(inputs, PreparedFamilyAInputs):
+        baseline_costs = tuple(
+            item for item in report.cost_ledger if item.scenario is CostScenario.BASELINE
+        )
+        active_costs = tuple(
+            item for item in baseline_costs if item.return_status.value != "no_trade"
+        )
+        flat_costs = tuple(
+            item for item in baseline_costs if item.return_status.value == "no_trade"
+        )
+        if not active_costs or any(item.participation_rate <= 0 for item in active_costs):
+            raise ValueError("Family A lacks authoritative baseline capacity ledger evidence")
+        if any(
+            item.participation_rate != 0 or item.requested_quantity != 0 or item.total_cost != 0
+            for item in flat_costs
+        ):
+            raise ValueError("Family A no-trade capacity evidence must have a zero footprint")
+        participation = {item.participation_rate for item in active_costs}
+        if participation != {inputs.capacity.adv_participation}:
+            raise ValueError("Family A capacity participation differs from its Phase 5 ledger")
+        authoritative_capacity = CapacityEvidence(
+            turnover=inputs.capacity.turnover,
+            adv_participation=next(iter(participation)),
+            capacity_units=min(item.requested_quantity for item in active_costs),
+            concentration=inputs.capacity.concentration,
+            capacity_limit_breached=any(item.capacity_breached for item in baseline_costs),
+        )
         return FamilyAEvidence(
             universe=inputs.universe,
             train_only_sector_fits=inputs.train_only_sector_fits,
             cross_section_ranks=inputs.cross_section_ranks,
             frozen_feature_names=_A_FEATURE_NAMES,
             baseline_comparison_ids=comparison_ids,
-            capacity=inputs.capacity,
+            capacity=authoritative_capacity,
         )
     if isinstance(inputs, PreparedFamilyBInputs):
         return _family_b_evidence(inputs, report)
@@ -213,6 +329,7 @@ def build_research_artifact(
     mapping: AuthorizedMappingIdentity,
     prepared: PreparedResearchPipeline,
     report: EvaluationReport,
+    snapshots: tuple[SnapshotBundle, ...],
 ) -> ResearchRunArtifact:
     """Reuse exact prepared rows/scores and bind their hash to Phase 5 evidence."""
 
@@ -264,8 +381,13 @@ def build_research_artifact(
         reasons.add("crash_regime_evidence_incomplete")
     if report.promotion_state is PromotionState.PASS_RESEARCH:
         reasons.add("research_gates_passed_not_paper_approval")
+    reproduction_audit = verify_prepared_pipeline_reproduction(
+        configuration_id,
+        snapshots,
+        prepared,
+    )
     payload = {
-        "artifact_schema_version": "phase6-research-artifact-v1",
+        "artifact_schema_version": "phase6-research-artifact-v2",
         "request_fingerprint_sha256": request_fingerprint,
         "pipeline_input_sha256": prepared.pipeline_input_sha256,
         "configuration_id": configuration_id,
@@ -276,10 +398,17 @@ def build_research_artifact(
         "family": family,
         "specification": prepared.specification,
         "snapshot_bindings": prepared.snapshot_bindings,
+        "calendar_source_references": prepared.calendar_source_references,
+        "regime_evidence": prepared.regime_evidence,
+        "confirmation_interval": prepared.confirmation_interval,
+        "boundary_exclusions": prepared.boundary_exclusions,
+        "source_reproduction_audit": reproduction_audit,
         "snapshot_bundle_sha256": report.snapshot_bundle_sha256,
         "feature_rows": rows,
         "feature_lineage_sha256": feature_lineage_sha256,
         "scores": prepared.scores,
+        "model_output_sets": prepared.model_output_sets,
+        "trial_economics": _trial_economics(prepared, report),
         "attempts": _attempts(report),
         "baseline_comparisons": prepared.baseline_comparisons,
         "family_evidence": _family_evidence(prepared, report),

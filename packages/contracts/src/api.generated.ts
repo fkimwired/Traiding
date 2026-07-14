@@ -903,6 +903,36 @@ export interface components {
          * @enum {string}
          */
         CostScenario: "baseline" | "all_cost_stress" | "liquidity_stress";
+        /**
+         * CrisisWindowDefinitionPayload
+         * @description Predeclared synthetic stress-window geometry, not an ex-post result label.
+         */
+        CrisisWindowDefinitionPayload: {
+            /** Crisis Window Id */
+            crisis_window_id: string;
+            /**
+             * Declared At
+             * Format: date-time
+             */
+            declared_at: string;
+            /** Definition Method Id */
+            definition_method_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "crisis_window_definition";
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
+        };
         /** CrossSectionRankEvidence */
         CrossSectionRankEvidence: {
             /**
@@ -967,6 +997,15 @@ export interface components {
             listing_id: string;
             /** Member Sha256 */
             member_sha256: string;
+            membership_source_reference: components["schemas"]["ResearchSourceReference"];
+            /**
+             * Membership Status
+             * @default included
+             * @constant
+             */
+            membership_status: "included";
+            /** Membership Universe Id */
+            membership_universe_id: string;
             /** Nonlinear Score */
             nonlinear_score: string;
             /** Sector Id */
@@ -978,7 +1017,7 @@ export interface components {
          * DataCapability
          * @enum {string}
          */
-        DataCapability: "security_master" | "universe_membership" | "ohlcv" | "corporate_actions" | "delistings" | "as_reported_fundamentals" | "trading_calendar" | "volatility_return_inputs" | "official_document_event_metadata";
+        DataCapability: "security_master" | "universe_membership" | "ohlcv" | "corporate_actions" | "delistings" | "as_reported_fundamentals" | "trading_calendar" | "volatility_return_inputs" | "official_document_event_metadata" | "macro_regime_inputs";
         /**
          * DataQualityCode
          * @enum {string}
@@ -1019,7 +1058,7 @@ export interface components {
              * @default phase4-data-quality-v1
              * @enum {string}
              */
-            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1";
+            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1" | "phase6-data-contract-quality-v2";
             /** Sanitized Detail */
             sanitized_detail: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -1068,7 +1107,7 @@ export interface components {
              * @default phase4-data-quality-v1
              * @enum {string}
              */
-            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1";
+            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1" | "phase6-data-contract-quality-v2";
             /** Sanitized Detail */
             sanitized_detail: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -1084,7 +1123,7 @@ export interface components {
          * DataRecordType
          * @enum {string}
          */
-        DataRecordType: "instrument_identity" | "listing_identity" | "universe_membership" | "ohlcv_bar" | "corporate_action" | "delisting_event" | "as_reported_fundamental" | "calendar_session" | "official_document_event" | "volatility_return_input" | "sector_classification" | "official_document_content" | "social_attention";
+        DataRecordType: "instrument_identity" | "listing_identity" | "universe_membership" | "ohlcv_bar" | "corporate_action" | "delisting_event" | "as_reported_fundamental" | "calendar_session" | "official_document_event" | "volatility_return_input" | "sector_classification" | "official_document_content" | "social_attention" | "macro_rate_observation" | "crisis_window_definition";
         /** DataSnapshot */
         DataSnapshot: {
             /** Active Constituent Count */
@@ -1509,10 +1548,10 @@ export interface components {
             frozen_feature_names: ("liquidity" | "momentum" | "quality" | "turnover" | "value" | "volatility")[];
             /**
              * Nonlinear Model Id
-             * @default frozen-depth-two-tree-v1
+             * @default frozen-depth-two-tree-v2
              * @constant
              */
-            nonlinear_model_id: "frozen-depth-two-tree-v1";
+            nonlinear_model_id: "frozen-depth-two-tree-v2";
             /** Train Only Sector Fits */
             train_only_sector_fits: components["schemas"]["ResearchTransformFit"][];
             /**
@@ -1537,11 +1576,27 @@ export interface components {
             /** Corporate Action Source References */
             corporate_action_source_references: components["schemas"]["ResearchSourceReference"][];
             /** Crash Concentration */
-            crash_concentration?: string | null;
+            crash_concentration?: null;
             /** Crash Concentration Limit */
-            crash_concentration_limit: string;
-            /** Crash Evidence Complete */
-            crash_evidence_complete: boolean;
+            crash_concentration_limit?: null;
+            /**
+             * Crash Evidence Complete
+             * @default false
+             * @constant
+             */
+            crash_evidence_complete: false;
+            /**
+             * Crisis Evidence Reason
+             * @default crisis_window_geometry_unavailable
+             * @constant
+             */
+            crisis_evidence_reason: "crisis_window_geometry_unavailable";
+            /**
+             * Crisis Geometry Available
+             * @default false
+             * @constant
+             */
+            crisis_geometry_available: false;
             /** Drawdown Formula Id */
             drawdown_formula_id: string;
             /**
@@ -1566,6 +1621,18 @@ export interface components {
              * @constant
              */
             nominal_feature_price_basis: "raw_unadjusted";
+            /**
+             * Rate Evidence Available
+             * @default false
+             * @constant
+             */
+            rate_evidence_available: false;
+            /**
+             * Rate Evidence Reason
+             * @default rate_regime_source_unavailable
+             * @constant
+             */
+            rate_evidence_reason: "rate_regime_source_unavailable";
             /** Raw Nominal Bar Count */
             raw_nominal_bar_count: number;
             /** Realized Volatility Formula Id */
@@ -2069,6 +2136,37 @@ export interface components {
          * @enum {string}
          */
         ListingStatus: "active" | "inactive" | "delisted";
+        /**
+         * MacroRateObservationPayload
+         * @description Vintage-aware synthetic policy-rate input, never a signal or model decision.
+         */
+        MacroRateObservationPayload: {
+            /**
+             * Observation Period End
+             * Format: date
+             */
+            observation_period_end: string;
+            /** Previous Rate Value */
+            previous_rate_value: string;
+            /** Rate Change */
+            rate_change: string;
+            /** Rate Value */
+            rate_value: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "macro_rate_observation";
+            /**
+             * Released At
+             * Format: date-time
+             */
+            released_at: string;
+            /** Series Id */
+            series_id: string;
+            /** Vintage Id */
+            vintage_id: string;
+        };
         /** MappingEvidenceReference */
         MappingEvidenceReference: {
             /**
@@ -2183,7 +2281,7 @@ export interface components {
              * @default phase4-synthetic-pit-fixtures-v1
              * @enum {string}
              */
-            fixture_set_version: "phase4-synthetic-pit-fixtures-v1" | "phase6-synthetic-pit-fixtures-v1";
+            fixture_set_version: "phase4-synthetic-pit-fixtures-v1" | "phase6-synthetic-pit-fixtures-v1" | "phase6-synthetic-pit-fixtures-v2";
         };
         /**
          * NoTradeReturnPolicy
@@ -2254,7 +2352,7 @@ export interface components {
              */
             observation_revision_id: string;
             /** Payload */
-            payload: components["schemas"]["InstrumentIdentityPayload"] | components["schemas"]["ListingIdentityPayload"] | components["schemas"]["UniverseMembershipPayload"] | components["schemas"]["OhlcvBarPayload"] | components["schemas"]["CorporateActionPayload"] | components["schemas"]["DelistingEventPayload"] | components["schemas"]["AsReportedFundamentalPayload"] | components["schemas"]["CalendarSessionPayload"] | components["schemas"]["OfficialDocumentEventPayload"] | components["schemas"]["VolatilityReturnInputPayload"] | components["schemas"]["SectorClassificationPayload"] | components["schemas"]["OfficialDocumentContentPayload"] | components["schemas"]["SocialAttentionPayload"];
+            payload: components["schemas"]["InstrumentIdentityPayload"] | components["schemas"]["ListingIdentityPayload"] | components["schemas"]["UniverseMembershipPayload"] | components["schemas"]["OhlcvBarPayload"] | components["schemas"]["CorporateActionPayload"] | components["schemas"]["DelistingEventPayload"] | components["schemas"]["AsReportedFundamentalPayload"] | components["schemas"]["CalendarSessionPayload"] | components["schemas"]["OfficialDocumentEventPayload"] | components["schemas"]["VolatilityReturnInputPayload"] | components["schemas"]["SectorClassificationPayload"] | components["schemas"]["OfficialDocumentContentPayload"] | components["schemas"]["SocialAttentionPayload"] | components["schemas"]["MacroRateObservationPayload"] | components["schemas"]["CrisisWindowDefinitionPayload"];
             /** Product Id */
             product_id: string;
             /** Provider Id */
@@ -2656,6 +2754,118 @@ export interface components {
             /** Value */
             value: string;
         };
+        /** PreparedCrisisWindow */
+        PreparedCrisisWindow: {
+            /** Crisis Window Id */
+            crisis_window_id: string;
+            /**
+             * Declared At Utc
+             * Format: date-time
+             */
+            declared_at_utc: string;
+            /** Definition Method Id */
+            definition_method_id: string;
+            source_reference: components["schemas"]["ResearchSourceReference"];
+            /**
+             * Window End Utc
+             * Format: date-time
+             */
+            window_end_utc: string;
+            /**
+             * Window Start Utc
+             * Format: date-time
+             */
+            window_start_utc: string;
+        };
+        /**
+         * PreparedPipelineReproductionAudit
+         * @description Hash-bound proof that immutable snapshots reproduce the prepared payload.
+         */
+        PreparedPipelineReproductionAudit: {
+            /**
+             * Audit Id
+             * Format: uuid
+             */
+            audit_id: string;
+            /** Audit Sha256 */
+            audit_sha256: string;
+            configuration_id: components["schemas"]["ResearchConfigurationId"];
+            /**
+             * Exact Match
+             * @default true
+             * @constant
+             */
+            exact_match: true;
+            /** Reproduced Payload Sha256 */
+            reproduced_payload_sha256: string;
+            /** Reproduced Pipeline Input Sha256 */
+            reproduced_pipeline_input_sha256: string;
+            /**
+             * Schema Version
+             * @default phase6-prepared-source-reproduction-audit-v1
+             * @constant
+             */
+            schema_version: "phase6-prepared-source-reproduction-audit-v1";
+            /** Snapshot Bindings */
+            snapshot_bindings: components["schemas"]["ResearchSnapshotBinding"][];
+            /** Snapshot Set Sha256 */
+            snapshot_set_sha256: string;
+            /** Supplied Payload Sha256 */
+            supplied_payload_sha256: string;
+            /** Supplied Pipeline Input Sha256 */
+            supplied_pipeline_input_sha256: string;
+        };
+        /** PreparedRateRegimeObservation */
+        PreparedRateRegimeObservation: {
+            /** Previous Rate Value */
+            previous_rate_value: string;
+            /** Rate Change */
+            rate_change: string;
+            /** Rate Value */
+            rate_value: string;
+            /**
+             * Released At Utc
+             * Format: date-time
+             */
+            released_at_utc: string;
+            /** Series Id */
+            series_id: string;
+            source_reference: components["schemas"]["ResearchSourceReference"];
+            /** Vintage Id */
+            vintage_id: string;
+        };
+        /** PreparedRegimeEvidence */
+        PreparedRegimeEvidence: {
+            /** Crisis Definition Id */
+            crisis_definition_id: string;
+            /**
+             * Crisis Windows
+             * @default []
+             */
+            crisis_windows: components["schemas"]["PreparedCrisisWindow"][];
+            /** Evidence Sha256 */
+            evidence_sha256: string;
+            /**
+             * Evidence State
+             * @enum {string}
+             */
+            evidence_state: "available" | "unavailable";
+            /** Rate Definition Id */
+            rate_definition_id: string;
+            /**
+             * Rate Observations
+             * @default []
+             */
+            rate_observations: components["schemas"]["PreparedRateRegimeObservation"][];
+            /**
+             * Schema Version
+             * @default phase6-prepared-regime-evidence-v2
+             * @constant
+             */
+            schema_version: "phase6-prepared-regime-evidence-v2";
+            /** Unavailable Reason */
+            unavailable_reason?: string | null;
+        };
         /** PreprocessingFitRecord */
         PreprocessingFitRecord: {
             /**
@@ -2916,12 +3126,16 @@ export interface components {
             baseline_model_id: string;
             /** Baseline Output Sha256 */
             baseline_output_sha256: string;
+            /** Baseline Outputs */
+            baseline_outputs: components["schemas"]["ResearchModelOutput"][];
             /** Candidate Metric */
             candidate_metric: string;
             /** Candidate Model Id */
             candidate_model_id: string;
             /** Candidate Output Sha256 */
             candidate_output_sha256: string;
+            /** Candidate Outputs */
+            candidate_outputs: components["schemas"]["ResearchModelOutput"][];
             /**
              * Comparison Id
              * Format: uuid
@@ -2951,11 +3165,112 @@ export interface components {
              */
             used_for_selection: false;
         };
+        /** ResearchBoundaryExclusion */
+        ResearchBoundaryExclusion: {
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * Exclusion Id
+             * Format: uuid
+             */
+            exclusion_id: string;
+            /**
+             * Exclusion Rule
+             * @default label-interval-intersects-confirmation-v1
+             * @constant
+             */
+            exclusion_rule: "label-interval-intersects-confirmation-v1";
+            /** Exclusion Sha256 */
+            exclusion_sha256: string;
+            /**
+             * Label Opened
+             * @default false
+             * @constant
+             */
+            label_opened: false;
+            /**
+             * Label Source References
+             * @default []
+             */
+            label_source_references: unknown[];
+            /**
+             * Label T0 Utc
+             * Format: date-time
+             */
+            label_t0_utc: string;
+            /**
+             * Label T1 Utc
+             * Format: date-time
+             */
+            label_t1_utc: string;
+            /** Label Value */
+            label_value?: null;
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-confirmation-boundary-exclusion-v1
+             * @constant
+             */
+            schema_version: "phase6-confirmation-boundary-exclusion-v1";
+        };
         /**
          * ResearchConfigurationId
          * @enum {string}
          */
-        ResearchConfigurationId: "phase6-a-pass-v1" | "phase6-a-fail-cost-v1" | "phase6-b-pass-v1" | "phase6-b-fail-crash-v1" | "phase6-c-pass-v1" | "phase6-c-fail-corroboration-v1";
+        ResearchConfigurationId: "phase6-a-pass-v2" | "phase6-a-fail-cost-v2" | "phase6-b-pass-v2" | "phase6-b-fail-crash-v2" | "phase6-c-pass-v2" | "phase6-c-fail-corroboration-v2";
+        /** ResearchConfirmationInterval */
+        ResearchConfirmationInterval: {
+            /**
+             * Confirmation Id
+             * Format: uuid
+             */
+            confirmation_id: string;
+            /** Confirmation Sha256 */
+            confirmation_sha256: string;
+            /**
+             * Interval End Utc
+             * Format: date-time
+             */
+            interval_end_utc: string;
+            /**
+             * Interval Start Utc
+             * Format: date-time
+             */
+            interval_start_utc: string;
+            /**
+             * Label Opened
+             * @default false
+             * @constant
+             */
+            label_opened: false;
+            /**
+             * Label Source References
+             * @default []
+             */
+            label_source_references: unknown[];
+            /** Label Value */
+            label_value?: null;
+            /**
+             * Opening Rule
+             * @default reserved-before-design-label-remains-unopened-v1
+             * @constant
+             */
+            opening_rule: "reserved-before-design-label-remains-unopened-v1";
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-label-blind-confirmation-interval-v1
+             * @constant
+             */
+            schema_version: "phase6-label-blind-confirmation-interval-v1";
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+        };
         /** ResearchFeatureRow */
         ResearchFeatureRow: {
             /** Composite Score */
@@ -3027,6 +3342,66 @@ export interface components {
             train_fit_id: string | null;
             /** Transformed Value */
             transformed_value: string;
+        };
+        /** ResearchLedgerCell */
+        ResearchLedgerCell: {
+            /**
+             * Allocation Rule Id
+             * @enum {string}
+             */
+            allocation_rule_id: "phase6-a-score-positive-long-flat-v1" | "phase6-a-tree-score-positive-long-flat-v1" | "phase6-a-hash-parity-baseline-control-v14" | "phase6-a-hash-parity-negative-control-v35" | "phase6-b-score-ge-0.002119768628-long-flat-v1" | "phase6-b-score-ge-0.132423292369-long-flat-v1" | "phase6-b-hash-parity-zero-control-v1424" | "phase6-b-hash-parity-negative-control-v20" | "phase6-c-score-ge-0.2-long-flat-v1" | "phase6-c-score-ge-minus-0.06-long-flat-v1" | "phase6-c-hash-parity-event-control-v6" | "phase6-c-hash-parity-negative-control-v2";
+            /**
+             * Cell Id
+             * Format: uuid
+             */
+            cell_id: string;
+            /** Cell Sha256 */
+            cell_sha256: string;
+            /** Label Sha256 */
+            label_sha256: string;
+            /** Label Source References */
+            label_source_references: components["schemas"]["ResearchSourceReference"][];
+            /**
+             * Label T0 Utc
+             * Format: date-time
+             */
+            label_t0_utc: string;
+            /**
+             * Label T1 Utc
+             * Format: date-time
+             */
+            label_t1_utc: string;
+            /** Label Value */
+            label_value: string;
+            /** Model Id */
+            model_id: string;
+            /** Model Output */
+            model_output: string;
+            /** Model Output Sha256 */
+            model_output_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Payoff Formula Id
+             * @default phase6-long-flat-weight-times-label-quantized-v1
+             * @constant
+             */
+            payoff_formula_id: "phase6-long-flat-weight-times-label-quantized-v1";
+            return_status: components["schemas"]["ResearchReturnStatus"];
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-research-ledger-cell-v2
+             * @constant
+             */
+            schema_version: "phase6-research-ledger-cell-v2";
+            /** Synthetic Gross Return */
+            synthetic_gross_return: string;
+            /** Synthetic Research Weight */
+            synthetic_research_weight: string;
+            /** Trial Key */
+            trial_key: string;
         };
         /** ResearchMapping */
         ResearchMapping: {
@@ -3137,6 +3512,49 @@ export interface components {
              */
             template_version: "phase2-memo-v1";
         };
+        /** ResearchModelOutput */
+        ResearchModelOutput: {
+            /** Ordinal */
+            ordinal: number;
+            /** Output Value */
+            output_value: string;
+            /** Sample Id */
+            sample_id: string;
+        };
+        /** ResearchModelOutputSet */
+        ResearchModelOutputSet: {
+            /** Ledger Cells */
+            ledger_cells: components["schemas"]["ResearchLedgerCell"][];
+            /** Model Id */
+            model_id: string;
+            /** Model Output Sha256 */
+            model_output_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Output Semantics
+             * @default synthetic_research_model_output
+             * @constant
+             */
+            output_semantics: "synthetic_research_model_output";
+            /**
+             * Output Set Id
+             * Format: uuid
+             */
+            output_set_id: string;
+            /** Output Set Sha256 */
+            output_set_sha256: string;
+            /** Outputs */
+            outputs: components["schemas"]["ResearchModelOutput"][];
+            /**
+             * Schema Version
+             * @default phase6-phase5-model-output-set-v2
+             * @constant
+             */
+            schema_version: "phase6-phase5-model-output-set-v2";
+            /** Trial Key */
+            trial_key: string;
+        };
         /** ResearchPipelineSpecification */
         ResearchPipelineSpecification: {
             family: components["schemas"]["CanonicalFamily"];
@@ -3175,10 +3593,10 @@ export interface components {
             risk_limits: components["schemas"]["PolicyDeclaration"][];
             /**
              * Schema Version
-             * @default phase6-research-specification-v1
+             * @default phase6-research-specification-v2
              * @constant
              */
-            schema_version: "phase6-research-specification-v1";
+            schema_version: "phase6-research-specification-v2";
             /**
              * Score Semantics
              * @default research_score_only
@@ -3210,21 +3628,29 @@ export interface components {
         ResearchRunArtifact: {
             /**
              * Artifact Schema Version
-             * @default phase6-research-artifact-v1
+             * @default phase6-research-artifact-v2
              * @constant
              */
-            artifact_schema_version: "phase6-research-artifact-v1";
+            artifact_schema_version: "phase6-research-artifact-v2";
             /** Artifact Sha256 */
             artifact_sha256: string;
             /** Attempts */
             attempts: components["schemas"]["ResearchAttempt"][];
             /** Baseline Comparisons */
             baseline_comparisons: components["schemas"]["ResearchBaselineComparison"][];
+            /** Boundary Exclusions */
+            boundary_exclusions: components["schemas"]["ResearchBoundaryExclusion"][];
+            /**
+             * Calendar Source References
+             * @default []
+             */
+            calendar_source_references: components["schemas"]["ResearchSourceReference"][];
             /** Code Version Git Sha */
             code_version_git_sha: string;
             configuration_id: components["schemas"]["ResearchConfigurationId"];
             /** Configuration Sha256 */
             configuration_sha256: string;
+            confirmation_interval: components["schemas"]["ResearchConfirmationInterval"];
             /**
              * Created At Utc
              * Format: date-time
@@ -3252,6 +3678,8 @@ export interface components {
             mapping_input_sha256: string;
             /** Mapping Version */
             mapping_version: number;
+            /** Model Output Sets */
+            model_output_sets: components["schemas"]["ResearchModelOutputSet"][];
             /**
              * No Real Performance Claimed
              * @default true
@@ -3277,6 +3705,7 @@ export interface components {
             random_seed: number;
             /** Reason Codes */
             reason_codes: string[];
+            regime_evidence: components["schemas"]["PreparedRegimeEvidence"];
             /** Request Fingerprint Sha256 */
             request_fingerprint_sha256: string;
             /**
@@ -3290,6 +3719,7 @@ export interface components {
             snapshot_bindings: components["schemas"]["ResearchSnapshotBinding"][];
             /** Snapshot Bundle Sha256 */
             snapshot_bundle_sha256: string;
+            source_reproduction_audit: components["schemas"]["PreparedPipelineReproductionAudit"];
             specification: components["schemas"]["ResearchPipelineSpecification"];
             status: components["schemas"]["ResearchRunStatus"];
             /**
@@ -3298,6 +3728,8 @@ export interface components {
              * @constant
              */
             synthetic: true;
+            /** Trial Economics */
+            trial_economics: components["schemas"]["ResearchTrialEconomics"][];
             /** Warnings */
             warnings: string[];
         };
@@ -3517,8 +3949,78 @@ export interface components {
             train_entity_ids: string[];
             /** Train Sample Ids */
             train_sample_ids: string[];
+            /** Train Samples */
+            train_samples: components["schemas"]["ResearchTransformTrainingSample"][];
             /** Transform Id */
             transform_id: string;
+        };
+        /** ResearchTransformTrainingSample */
+        ResearchTransformTrainingSample: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Information Time Utc
+             * Format: date-time
+             */
+            information_time_utc: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Raw Value */
+            raw_value: string;
+            /** Sample Id */
+            sample_id: string;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+        };
+        /** ResearchTrialEconomics */
+        ResearchTrialEconomics: {
+            /** Cost Set Sha256 */
+            cost_set_sha256: string;
+            /** Economics Sha256 */
+            economics_sha256: string;
+            /** Model Id */
+            model_id: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Output Set Sha256 */
+            output_set_sha256: string;
+            /** Sample Economics */
+            sample_economics: components["schemas"]["ResearchTrialSampleEconomics"][];
+            /**
+             * Schema Version
+             * @default phase6-trial-economics-v1
+             * @constant
+             */
+            schema_version: "phase6-trial-economics-v1";
+            /** Trial Key */
+            trial_key: string;
+        };
+        /** ResearchTrialSampleEconomics */
+        ResearchTrialSampleEconomics: {
+            /** Cost Entries */
+            cost_entries: components["schemas"]["CostLedgerEntry"][];
+            /** Evidence Sha256 */
+            evidence_sha256: string;
+            /** Model Output */
+            model_output: string;
+            /** Ordinal */
+            ordinal: number;
+            return_status: components["schemas"]["ResearchReturnStatus"];
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-trial-sample-economics-v1
+             * @constant
+             */
+            schema_version: "phase6-trial-sample-economics-v1";
+            /** Synthetic Gross Return */
+            synthetic_gross_return: string;
+            /** Synthetic Research Weight */
+            synthetic_research_weight: string;
         };
         /** ResearchValidationErrorResponse */
         ResearchValidationErrorResponse: {

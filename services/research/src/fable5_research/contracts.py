@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from fable5_backtester.contracts import GateCode, PromotionState, TrialStatus
+from fable5_backtester.contracts import (
+    CostLedgerEntry,
+    CostScenario,
+    GateCode,
+    PromotionState,
+    ResearchReturnStatus,
+    TrialStatus,
+)
 from fable5_data.contracts import DataCapability
 from fable5_mapping.models import CanonicalFamily
 from pydantic import (
@@ -24,7 +32,11 @@ from fable5_research.canonical import (
     PHASE6_ARTIFACT_HASH_DOMAIN,
     PHASE6_ATTEMPT_HASH_DOMAIN,
     PHASE6_BASELINE_HASH_DOMAIN,
+    PHASE6_BOUNDARY_EXCLUSION_HASH_DOMAIN,
+    PHASE6_BOUNDARY_EXCLUSION_NAMESPACE,
     PHASE6_COMPARISON_NAMESPACE,
+    PHASE6_CONFIRMATION_INTERVAL_HASH_DOMAIN,
+    PHASE6_CONFIRMATION_NAMESPACE,
     PHASE6_CORROBORATION_HASH_DOMAIN,
     PHASE6_CORROBORATION_NAMESPACE,
     PHASE6_CROSS_SECTION_MEMBER_HASH_DOMAIN,
@@ -39,6 +51,10 @@ from fable5_research.canonical import (
     PHASE6_LIFECYCLE_TEST_HASH_DOMAIN,
     PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
     PHASE6_PIPELINE_INPUT_HASH_DOMAIN,
+    PHASE6_REGIME_EVIDENCE_HASH_DOMAIN,
+    PHASE6_REPRODUCTION_AUDIT_HASH_DOMAIN,
+    PHASE6_REPRODUCTION_AUDIT_NAMESPACE,
+    PHASE6_REPRODUCTION_SNAPSHOT_SET_HASH_DOMAIN,
     PHASE6_REQUEST_HASH_DOMAIN,
     PHASE6_RUN_NAMESPACE,
     PHASE6_SCORE_HASH_DOMAIN,
@@ -47,6 +63,9 @@ from fable5_research.canonical import (
     PHASE6_SPECIFICATION_HASH_DOMAIN,
     PHASE6_TEXT_EXTRACTION_HASH_DOMAIN,
     PHASE6_TRANSFORM_FIT_HASH_DOMAIN,
+    PHASE6_TRIAL_ALLOCATION_HASH_DOMAIN,
+    PHASE6_TRIAL_COST_SET_HASH_DOMAIN,
+    PHASE6_TRIAL_ECONOMICS_HASH_DOMAIN,
     PHASE6_TRIAL_SET_HASH_DOMAIN,
     domain_sha256,
     identity,
@@ -56,12 +75,15 @@ SHA256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 Identifier = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")]
 GitSHA = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
 
-PHASE6_ARTIFACT_SCHEMA_VERSION = "phase6-research-artifact-v1"
-PHASE6_SPECIFICATION_SCHEMA_VERSION = "phase6-research-specification-v1"
+PHASE6_ARTIFACT_SCHEMA_VERSION = "phase6-research-artifact-v2"
+PHASE6_SPECIFICATION_SCHEMA_VERSION = "phase6-research-specification-v2"
 PHASE6_FEATURE_ROW_SCHEMA_VERSION = "phase6-research-feature-row-v1"
 PHASE6_SCORE_SCHEMA_VERSION = "phase6-research-score-output-v1"
 PHASE6_TEXT_EXTRACTION_SCHEMA_VERSION = "phase6-text-feature-extraction-v1"
-PHASE6_RESEARCH_FIXTURE_VERSION = "phase6-deterministic-research-fixtures-v1"
+PHASE6_RESEARCH_FIXTURE_VERSION = "phase6-deterministic-research-fixtures-v2"
+PHASE6_MODEL_OUTPUT_SET_NAMESPACE = UUID("5d4d79be-eaa1-5d41-912c-407d5837bcc1")
+PHASE6_LEDGER_CELL_NAMESPACE = UUID("7f6f32a5-7a42-5b3b-b61b-8deded858289")
+_PHASE6_NUMERIC_QUANTUM = Decimal("0.000000000001")
 
 
 def _utc(value: datetime, field_name: str) -> datetime:
@@ -78,17 +100,41 @@ def _ordered_unique(values: tuple[object, ...], field_name: str) -> None:
         raise ValueError(f"{field_name} must be unique")
 
 
+def _quantize(value: Decimal) -> Decimal:
+    return value.quantize(_PHASE6_NUMERIC_QUANTUM)
+
+
+def _fit_statistics(values: tuple[Decimal, ...]) -> tuple[Decimal, Decimal]:
+    if not values:
+        raise ValueError("transform fit requires raw training values")
+    exact_mean = sum(values, Decimal("0")) / Decimal(len(values))
+    variance = sum(
+        ((item - exact_mean) ** 2 for item in values),
+        Decimal("0"),
+    ) / Decimal(len(values))
+    standard_deviation = variance.sqrt()
+    return (
+        _quantize(exact_mean),
+        (_quantize(standard_deviation) if standard_deviation > 0 else Decimal("1.000000000000")),
+    )
+
+
+def _standardized_value(raw_value: Decimal, mean: Decimal, standard_deviation: Decimal) -> Decimal:
+    standardized = _quantize((raw_value - mean) / standard_deviation)
+    return min(Decimal("3"), max(Decimal("-3"), standardized))
+
+
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class ResearchConfigurationId(StrEnum):
-    A_PASS = "phase6-a-pass-v1"
-    A_FAIL = "phase6-a-fail-cost-v1"
-    B_PASS = "phase6-b-pass-v1"
-    B_FAIL = "phase6-b-fail-crash-v1"
-    C_PASS = "phase6-c-pass-v1"
-    C_FAIL = "phase6-c-fail-corroboration-v1"
+    A_PASS = "phase6-a-pass-v2"
+    A_FAIL = "phase6-a-fail-cost-v2"
+    B_PASS = "phase6-b-pass-v2"
+    B_FAIL = "phase6-b-fail-crash-v2"
+    C_PASS = "phase6-c-pass-v2"
+    C_FAIL = "phase6-c-fail-corroboration-v2"
 
 
 class ResearchRunStatus(StrEnum):
@@ -111,7 +157,7 @@ class BaselineOutcome(StrEnum):
 
 class ResearchRunCreateRequest(StrictModel):
     mapping_id: UUID
-    snapshot_ids: tuple[UUID, ...] = Field(min_length=1)
+    snapshot_ids: tuple[UUID, ...] = Field(min_length=1, max_length=len(DataCapability))
     research_configuration_id: ResearchConfigurationId
 
     @model_validator(mode="after")
@@ -138,7 +184,7 @@ class WalkForwardDeclaration(StrictModel):
 
 
 class ResearchPipelineSpecification(StrictModel):
-    schema_version: Literal["phase6-research-specification-v1"] = "phase6-research-specification-v1"
+    schema_version: Literal["phase6-research-specification-v2"] = "phase6-research-specification-v2"
     specification_id: Identifier
     specification_version: Identifier
     specification_sha256: SHA256
@@ -207,6 +253,186 @@ class ResearchSourceReference(StrictModel):
         if value is None:
             return None
         return _utc(value, getattr(info, "field_name", "source time"))
+
+
+class PreparedRateRegimeObservation(StrictModel):
+    series_id: Identifier
+    vintage_id: Identifier
+    released_at_utc: datetime
+    rate_value: Decimal
+    previous_rate_value: Decimal
+    rate_change: Decimal
+    source_reference: ResearchSourceReference
+
+    @field_validator("released_at_utc")
+    @classmethod
+    def normalize_released_at(cls, value: datetime) -> datetime:
+        return _utc(value, "released_at_utc")
+
+    @model_validator(mode="after")
+    def validate_rate_observation(self) -> Self:
+        if self.source_reference.record_type != "macro_rate_observation":
+            raise ValueError("rate regime observations require an exact macro source")
+        if self.source_reference.available_at_utc != self.released_at_utc:
+            raise ValueError("rate release time must match immutable source availability")
+        if self.rate_change != self.rate_value - self.previous_rate_value:
+            raise ValueError("rate change must equal current minus previous value")
+        return self
+
+
+class PreparedCrisisWindow(StrictModel):
+    crisis_window_id: Identifier
+    definition_method_id: Identifier
+    declared_at_utc: datetime
+    window_start_utc: datetime
+    window_end_utc: datetime
+    source_reference: ResearchSourceReference
+
+    @field_validator("declared_at_utc", "window_start_utc", "window_end_utc")
+    @classmethod
+    def normalize_window_time(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "crisis window time"))
+
+    @model_validator(mode="after")
+    def validate_window(self) -> Self:
+        if self.source_reference.record_type != "crisis_window_definition":
+            raise ValueError("crisis windows require an exact definition source")
+        if self.window_end_utc <= self.window_start_utc:
+            raise ValueError("crisis window must be positive")
+        if self.declared_at_utc >= self.window_start_utc:
+            raise ValueError("crisis geometry must be declared before the window begins")
+        if self.source_reference.available_at_utc != self.declared_at_utc:
+            raise ValueError("crisis declaration time must match immutable source availability")
+        return self
+
+
+class PreparedRegimeEvidence(StrictModel):
+    schema_version: Literal["phase6-prepared-regime-evidence-v2"] = (
+        "phase6-prepared-regime-evidence-v2"
+    )
+    evidence_state: Literal["available", "unavailable"]
+    rate_definition_id: Identifier
+    rate_observations: tuple[PreparedRateRegimeObservation, ...] = ()
+    crisis_definition_id: Identifier
+    crisis_windows: tuple[PreparedCrisisWindow, ...] = ()
+    unavailable_reason: Identifier | None = None
+    evidence_sha256: SHA256
+
+    @model_validator(mode="after")
+    def validate_regime_evidence(self) -> Self:
+        rate_keys = tuple(
+            (item.released_at_utc, item.series_id, item.vintage_id)
+            for item in self.rate_observations
+        )
+        crisis_keys = tuple(item.crisis_window_id for item in self.crisis_windows)
+        if rate_keys != tuple(sorted(rate_keys)) or len(rate_keys) != len(set(rate_keys)):
+            raise ValueError("rate observations must be unique and chronological")
+        if crisis_keys != tuple(sorted(crisis_keys)) or len(crisis_keys) != len(set(crisis_keys)):
+            raise ValueError("crisis windows must be unique and sorted")
+        if self.evidence_state == "available":
+            if (
+                len(self.rate_observations) < 2
+                or not self.crisis_windows
+                or self.unavailable_reason is not None
+                or not any(item.rate_change > 0 for item in self.rate_observations)
+                or not any(item.rate_change < 0 for item in self.rate_observations)
+            ):
+                raise ValueError(
+                    "available regime evidence requires both rate directions and crisis geometry"
+                )
+        elif self.rate_observations or self.crisis_windows or self.unavailable_reason is None:
+            raise ValueError("unavailable regime evidence cannot contain invented observations")
+        content = self.model_dump(mode="python", exclude={"evidence_sha256"})
+        if self.evidence_sha256 != domain_sha256(PHASE6_REGIME_EVIDENCE_HASH_DOMAIN, content):
+            raise ValueError("prepared regime evidence hash must bind its complete preimage")
+        return self
+
+
+class ResearchConfirmationInterval(StrictModel):
+    schema_version: Literal["phase6-label-blind-confirmation-interval-v1"] = (
+        "phase6-label-blind-confirmation-interval-v1"
+    )
+    confirmation_id: UUID
+    confirmation_sha256: SHA256
+    sample_id: Identifier
+    interval_start_utc: datetime
+    interval_end_utc: datetime
+    opening_rule: Literal["reserved-before-design-label-remains-unopened-v1"] = (
+        "reserved-before-design-label-remains-unopened-v1"
+    )
+    source_references: tuple[ResearchSourceReference, ...] = Field(min_length=1)
+    label_value: None = None
+    label_source_references: tuple[()] = ()
+    label_opened: Literal[False] = False
+
+    @field_validator("interval_start_utc", "interval_end_utc")
+    @classmethod
+    def normalize_interval_time(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "confirmation time"))
+
+    @model_validator(mode="after")
+    def validate_confirmation(self) -> Self:
+        if self.interval_end_utc <= self.interval_start_utc:
+            raise ValueError("confirmation interval must be positive")
+        keys = tuple(
+            (
+                str(item.capability),
+                str(item.snapshot_id),
+                str(item.normalized_observation_id),
+            )
+            for item in self.source_references
+        )
+        if keys != tuple(sorted(keys)) or len(keys) != len(set(keys)):
+            raise ValueError("confirmation sources must be exact, unique, and sorted")
+        if any(item.available_at_utc > self.interval_start_utc for item in self.source_references):
+            raise ValueError("confirmation geometry sources must be available before opening")
+        content = self.model_dump(
+            mode="python",
+            exclude={"confirmation_id", "confirmation_sha256"},
+        )
+        expected = domain_sha256(PHASE6_CONFIRMATION_INTERVAL_HASH_DOMAIN, content)
+        if self.confirmation_sha256 != expected or self.confirmation_id != identity(
+            PHASE6_CONFIRMATION_NAMESPACE,
+            expected,
+        ):
+            raise ValueError("confirmation identity must bind its label-blind preimage")
+        return self
+
+
+class ResearchBoundaryExclusion(StrictModel):
+    schema_version: Literal["phase6-confirmation-boundary-exclusion-v1"] = (
+        "phase6-confirmation-boundary-exclusion-v1"
+    )
+    exclusion_id: UUID
+    exclusion_sha256: SHA256
+    sample_id: Identifier
+    decision_time_utc: datetime
+    label_t0_utc: datetime
+    label_t1_utc: datetime
+    exclusion_rule: Literal["label-interval-intersects-confirmation-v1"] = (
+        "label-interval-intersects-confirmation-v1"
+    )
+    label_value: None = None
+    label_source_references: tuple[()] = ()
+    label_opened: Literal[False] = False
+
+    @field_validator("decision_time_utc", "label_t0_utc", "label_t1_utc")
+    @classmethod
+    def normalize_exclusion_time(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "boundary exclusion time"))
+
+    @model_validator(mode="after")
+    def validate_exclusion(self) -> Self:
+        if self.label_t0_utc < self.decision_time_utc or self.label_t1_utc < self.label_t0_utc:
+            raise ValueError("boundary exclusion interval must be ordered")
+        content = self.model_dump(mode="python", exclude={"exclusion_id", "exclusion_sha256"})
+        expected = domain_sha256(PHASE6_BOUNDARY_EXCLUSION_HASH_DOMAIN, content)
+        if self.exclusion_sha256 != expected or self.exclusion_id != identity(
+            PHASE6_BOUNDARY_EXCLUSION_NAMESPACE,
+            expected,
+        ):
+            raise ValueError("boundary exclusion identity must bind its label-blind preimage")
+        return self
 
 
 class ResearchSnapshotBinding(StrictModel):
@@ -363,6 +589,44 @@ class ResearchScoreOutput(StrictModel):
         return self
 
 
+class ResearchTransformTrainingSample(StrictModel):
+    ordinal: int = Field(ge=1)
+    sample_id: Identifier
+    entity_id: UUID
+    information_time_utc: datetime
+    raw_value: Decimal
+    source_references: tuple[ResearchSourceReference, ...] = Field(min_length=1)
+
+    @field_validator("information_time_utc")
+    @classmethod
+    def normalize_information_time(cls, value: datetime) -> datetime:
+        return _utc(value, "transform training sample information time")
+
+    @model_validator(mode="after")
+    def validate_training_sample(self) -> Self:
+        reference_keys = tuple(
+            (
+                str(item.capability),
+                str(item.snapshot_id),
+                str(item.normalized_observation_id),
+            )
+            for item in self.source_references
+        )
+        if reference_keys != tuple(sorted(reference_keys)) or len(reference_keys) != len(
+            set(reference_keys)
+        ):
+            raise ValueError("transform training sample sources must be unique and sorted")
+        if not any(item.listing_id == self.entity_id for item in self.source_references):
+            raise ValueError("transform training sample sources must bind its exact entity")
+        if any(
+            item.available_at_utc > self.information_time_utc for item in self.source_references
+        ):
+            raise ValueError(
+                "transform training sample sources must be available by its information time"
+            )
+        return self
+
+
 class ResearchTransformFit(StrictModel):
     fit_id: UUID
     fold_id: UUID
@@ -371,6 +635,7 @@ class ResearchTransformFit(StrictModel):
     sector_id: Identifier | None
     train_sample_ids: tuple[Identifier, ...] = Field(min_length=2)
     train_entity_ids: tuple[UUID, ...] = Field(min_length=2)
+    train_samples: tuple[ResearchTransformTrainingSample, ...] = Field(min_length=2)
     prohibited_sample_ids: tuple[Identifier, ...] = ()
     mean: Decimal
     standard_deviation: Decimal = Field(gt=0)
@@ -382,8 +647,38 @@ class ResearchTransformFit(StrictModel):
         if len(self.train_sample_ids) != len(set(self.train_sample_ids)):
             raise ValueError("transform fit train ids must be unique")
         _ordered_unique(self.train_entity_ids, "transform fit train entity ids")
+        if tuple(item.ordinal for item in self.train_samples) != tuple(
+            range(1, len(self.train_samples) + 1)
+        ):
+            raise ValueError("transform fit training sample ordinals must be contiguous")
+        if tuple(item.sample_id for item in self.train_samples) != self.train_sample_ids:
+            raise ValueError("transform fit train ids must match ordered raw sample evidence")
+        if {item.entity_id for item in self.train_samples} != set(self.train_entity_ids):
+            raise ValueError("transform fit entities must match ordered raw sample evidence")
         if set(self.train_sample_ids) & set(self.prohibited_sample_ids):
             raise ValueError("transform fit cannot contain test, purged, or confirmation ids")
+        expected_mean, expected_standard_deviation = _fit_statistics(
+            tuple(item.raw_value for item in self.train_samples)
+        )
+        if self.mean != expected_mean or self.standard_deviation != expected_standard_deviation:
+            raise ValueError("transform fit statistics must derive from ordered raw train values")
+        sample_references = {
+            item.normalized_observation_id: item
+            for sample in self.train_samples
+            for item in sample.source_references
+        }
+        expected_references = tuple(
+            sorted(
+                sample_references.values(),
+                key=lambda item: (
+                    str(item.capability),
+                    str(item.snapshot_id),
+                    str(item.normalized_observation_id),
+                ),
+            )
+        )
+        if self.source_references != expected_references:
+            raise ValueError("transform fit sources must equal its ordered raw sample evidence")
         referenced_listing_ids = {
             item.listing_id for item in self.source_references if item.listing_id is not None
         }
@@ -421,8 +716,94 @@ def frozen_depth_two_tree_score(features: tuple[ResearchFeatureValue, ...]) -> D
     if not required.issubset(values):
         raise ValueError("frozen nonlinear comparison requires momentum, quality, and volatility")
     if values["momentum"] >= 0:
-        return Decimal("-0.35") if values["quality"] >= 0 else Decimal("-0.15")
+        return (
+            Decimal("0.35") if values["momentum"] >= Decimal("1.545611434791") else Decimal("-0.35")
+        )
     return Decimal("0.35") if values["volatility"] >= 0 else Decimal("0.15")
+
+
+def _hash_control_weight(*, salt: str, sample_id: str) -> Decimal:
+    digest = hashlib.sha256(f"{salt}:{sample_id}".encode()).hexdigest()
+    return Decimal(int(digest, 16) % 2)
+
+
+def frozen_trial_allocation(
+    *,
+    trial_key: str,
+    model_id: str,
+    sample_id: str,
+    model_output: Decimal,
+) -> tuple[Decimal, str]:
+    """Return one frozen, label-independent synthetic long/flat allocation rule."""
+
+    threshold_rules: dict[str, tuple[Decimal, str]] = {
+        "sector-relative-rank-linear-v1": (
+            Decimal("0"),
+            "phase6-a-score-positive-long-flat-v1",
+        ),
+        "frozen-depth-two-tree-v2": (
+            Decimal("0"),
+            "phase6-a-tree-score-positive-long-flat-v1",
+        ),
+        "lagged-trend-linear-v1": (
+            Decimal("0.002119768628"),
+            "phase6-b-score-ge-0.002119768628-long-flat-v1",
+        ),
+        "lagged-return-only-v1": (
+            Decimal("0.132423292369"),
+            "phase6-b-score-ge-0.132423292369-long-flat-v1",
+        ),
+        "conventional-linear-text-overlay-v1": (
+            Decimal("0.2"),
+            "phase6-c-score-ge-0.2-long-flat-v1",
+        ),
+        "non-text-event-baseline-v1": (
+            Decimal("-0.06"),
+            "phase6-c-score-ge-minus-0.06-long-flat-v1",
+        ),
+    }
+    threshold_rule = threshold_rules.get(model_id)
+    if threshold_rule is not None:
+        threshold, rule_id = threshold_rule
+        comparator_passes = (
+            model_output > threshold if threshold == 0 else model_output >= threshold
+        )
+        return Decimal("1") if comparator_passes else Decimal("0"), rule_id
+    control_rules: dict[str, tuple[str, str]] = {
+        "zero-information-rank-v1": (
+            "baseline-14",
+            "phase6-a-hash-parity-baseline-control-v14",
+        ),
+        "zero-information-time-series-v1": (
+            "control-1424",
+            "phase6-b-hash-parity-zero-control-v1424",
+        ),
+        "event-tag-only-baseline-v1": (
+            "zero-6",
+            "phase6-c-hash-parity-event-control-v6",
+        ),
+    }
+    control_rule = control_rules.get(model_id)
+    if control_rule is None and model_id == "negative-control-v1":
+        if sample_id.startswith("phase6-a-"):
+            control_rule = (
+                "negative-35",
+                "phase6-a-hash-parity-negative-control-v35",
+            )
+        elif sample_id.startswith("phase6-b-"):
+            control_rule = (
+                "control-20",
+                "phase6-b-hash-parity-negative-control-v20",
+            )
+        elif sample_id.startswith("phase6-c-"):
+            control_rule = (
+                "negative-2",
+                "phase6-c-hash-parity-negative-control-v2",
+            )
+    if control_rule is None:
+        raise ValueError("model has no frozen synthetic long-or-flat allocation rule")
+    salt, rule_id = control_rule
+    return _hash_control_weight(salt=salt, sample_id=sample_id), rule_id
 
 
 class CrossSectionRankMember(StrictModel):
@@ -430,6 +811,9 @@ class CrossSectionRankMember(StrictModel):
     instrument_id: UUID
     listing_id: UUID
     sector_id: Identifier
+    membership_universe_id: Identifier
+    membership_status: Literal["included"] = "included"
+    membership_source_reference: ResearchSourceReference
     features: tuple[ResearchFeatureValue, ...] = Field(min_length=6, max_length=6)
     linear_score: Decimal
     linear_rank: int = Field(ge=1)
@@ -451,6 +835,22 @@ class CrossSectionRankMember(StrictModel):
     def validate_member(self) -> Self:
         if self.label_t1_utc < self.label_t0_utc:
             raise ValueError("cross-section member label interval must be ordered")
+        membership = self.membership_source_reference
+        if (
+            membership.capability is not DataCapability.UNIVERSE_MEMBERSHIP
+            or membership.record_type != "universe_membership"
+            or membership.instrument_id != self.instrument_id
+            or membership.listing_id != self.listing_id
+        ):
+            raise ValueError("cross-section membership must bind the exact member identity")
+        if (
+            membership.available_at_utc > self.label_t0_utc
+            or membership.valid_from_utc > self.label_t0_utc
+            or (
+                membership.valid_to_utc is not None and self.label_t0_utc >= membership.valid_to_utc
+            )
+        ):
+            raise ValueError("cross-section member requires an exact PIT included interval")
         names = tuple(item.feature_name for item in self.features)
         if names != (
             "liquidity",
@@ -534,9 +934,292 @@ class CrossSectionRankEvidence(StrictModel):
             or selected.nonlinear_score != self.selected_nonlinear_score
         ):
             raise ValueError("selected cross-section rank must match its exact member")
+        if self.selected_linear_rank != 1:
+            raise ValueError("selected cross-section member must have linear rank one")
         content = self.model_dump(mode="python", exclude={"evidence_sha256"})
         if self.evidence_sha256 != domain_sha256(PHASE6_CROSS_SECTION_RANK_HASH_DOMAIN, content):
             raise ValueError("cross-section rank hash must bind its complete preimage")
+        return self
+
+
+class ResearchModelOutput(StrictModel):
+    ordinal: int = Field(ge=1)
+    sample_id: Identifier
+    output_value: Decimal
+
+
+class ResearchLedgerCell(StrictModel):
+    schema_version: Literal["phase6-research-ledger-cell-v2"] = "phase6-research-ledger-cell-v2"
+    ordinal: int = Field(ge=1)
+    cell_id: UUID
+    cell_sha256: SHA256
+    trial_key: Identifier
+    model_id: Identifier
+    sample_id: Identifier
+    model_output: Decimal
+    model_output_sha256: SHA256
+    synthetic_research_weight: Decimal = Field(ge=Decimal("0"), le=Decimal("1"))
+    allocation_rule_id: Literal[
+        "phase6-a-score-positive-long-flat-v1",
+        "phase6-a-tree-score-positive-long-flat-v1",
+        "phase6-a-hash-parity-baseline-control-v14",
+        "phase6-a-hash-parity-negative-control-v35",
+        "phase6-b-score-ge-0.002119768628-long-flat-v1",
+        "phase6-b-score-ge-0.132423292369-long-flat-v1",
+        "phase6-b-hash-parity-zero-control-v1424",
+        "phase6-b-hash-parity-negative-control-v20",
+        "phase6-c-score-ge-0.2-long-flat-v1",
+        "phase6-c-score-ge-minus-0.06-long-flat-v1",
+        "phase6-c-hash-parity-event-control-v6",
+        "phase6-c-hash-parity-negative-control-v2",
+    ]
+    return_status: ResearchReturnStatus
+    label_t0_utc: datetime
+    label_t1_utc: datetime
+    label_value: Decimal
+    label_source_references: tuple[ResearchSourceReference, ...] = Field(min_length=1)
+    label_sha256: SHA256
+    payoff_formula_id: Literal["phase6-long-flat-weight-times-label-quantized-v1"] = (
+        "phase6-long-flat-weight-times-label-quantized-v1"
+    )
+    synthetic_gross_return: Decimal
+
+    @field_validator("label_t0_utc", "label_t1_utc")
+    @classmethod
+    def normalize_ledger_times(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "research ledger time"))
+
+    @model_validator(mode="after")
+    def validate_ledger_cell(self) -> Self:
+        if self.label_t1_utc < self.label_t0_utc:
+            raise ValueError("research ledger label interval must be ordered")
+        label_content = (
+            self.sample_id,
+            self.label_value,
+            self.label_t0_utc,
+            self.label_t1_utc,
+            self.label_source_references,
+        )
+        if self.label_sha256 != domain_sha256(
+            "phase6-research-ledger-label-v1",
+            label_content,
+        ):
+            raise ValueError("research ledger label hash must bind exact persisted evidence")
+        expected_weight, expected_rule = frozen_trial_allocation(
+            trial_key=self.trial_key,
+            model_id=self.model_id,
+            sample_id=self.sample_id,
+            model_output=self.model_output,
+        )
+        if self.allocation_rule_id != expected_rule:
+            raise ValueError("research allocation rule must match its frozen trial role")
+        if self.synthetic_research_weight != expected_weight:
+            raise ValueError("research weight must derive from the frozen long-or-flat rule")
+        expected_status = (
+            ResearchReturnStatus.OBSERVED
+            if self.synthetic_research_weight == 1
+            else ResearchReturnStatus.NO_TRADE
+        )
+        if self.return_status is not expected_status:
+            raise ValueError("research return status must match its long-or-flat weight")
+        if self.synthetic_gross_return != _quantize(
+            self.synthetic_research_weight * self.label_value
+        ):
+            raise ValueError("research ledger gross return must use the frozen payoff formula")
+        content = self.model_dump(mode="python", exclude={"cell_id", "cell_sha256"})
+        expected = domain_sha256("phase6-research-ledger-cell-v2", content)
+        if self.cell_sha256 != expected or self.cell_id != identity(
+            PHASE6_LEDGER_CELL_NAMESPACE,
+            expected,
+        ):
+            raise ValueError("research ledger cell identity must bind its complete preimage")
+        return self
+
+
+class ResearchModelOutputSet(StrictModel):
+    schema_version: Literal["phase6-phase5-model-output-set-v2"] = (
+        "phase6-phase5-model-output-set-v2"
+    )
+    ordinal: int = Field(ge=1)
+    output_set_id: UUID
+    output_set_sha256: SHA256
+    model_output_sha256: SHA256
+    trial_key: Identifier
+    model_id: Identifier
+    output_semantics: Literal["synthetic_research_model_output"] = "synthetic_research_model_output"
+    outputs: tuple[ResearchModelOutput, ...] = Field(min_length=1)
+    ledger_cells: tuple[ResearchLedgerCell, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_output_set(self) -> Self:
+        if tuple(item.ordinal for item in self.outputs) != tuple(range(1, len(self.outputs) + 1)):
+            raise ValueError("model output set ordinals must be contiguous")
+        sample_ids = tuple(item.sample_id for item in self.outputs)
+        if len(sample_ids) != len(set(sample_ids)):
+            raise ValueError("model output set sample ids must be unique")
+        values = tuple(
+            (item.sample_id, item.output_value)
+            for item in sorted(self.outputs, key=lambda item: item.sample_id)
+        )
+        if self.model_output_sha256 != domain_sha256(
+            PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
+            values,
+        ):
+            raise ValueError("model output hash must bind exact persisted label-independent cells")
+        if tuple(item.ordinal for item in self.ledger_cells) != tuple(
+            range(1, len(self.ledger_cells) + 1)
+        ) or tuple((item.sample_id, item.model_output) for item in self.ledger_cells) != tuple(
+            (item.sample_id, item.output_value) for item in self.outputs
+        ):
+            raise ValueError("research ledger cells must cover exact model outputs in order")
+        if any(
+            item.trial_key != self.trial_key
+            or item.model_id != self.model_id
+            or item.model_output_sha256 != self.model_output_sha256
+            for item in self.ledger_cells
+        ):
+            raise ValueError("research ledger cells must bind their exact model output set")
+        content = self.model_dump(
+            mode="python",
+            exclude={"output_set_id", "output_set_sha256"},
+        )
+        expected = domain_sha256("phase6-phase5-model-output-registry-entry-v2", content)
+        if self.output_set_sha256 != expected or self.output_set_id != identity(
+            PHASE6_MODEL_OUTPUT_SET_NAMESPACE,
+            expected,
+        ):
+            raise ValueError("model output set identity must bind its complete preimage")
+        return self
+
+
+class ResearchTrialSampleEconomics(StrictModel):
+    schema_version: Literal["phase6-trial-sample-economics-v1"] = "phase6-trial-sample-economics-v1"
+    ordinal: int = Field(ge=1)
+    sample_id: Identifier
+    model_output: Decimal
+    synthetic_research_weight: Decimal = Field(ge=Decimal("0"), le=Decimal("1"))
+    return_status: ResearchReturnStatus
+    synthetic_gross_return: Decimal
+    cost_entries: tuple[CostLedgerEntry, ...] = Field(min_length=3, max_length=3)
+    evidence_sha256: SHA256
+
+    @model_validator(mode="after")
+    def validate_sample_economics(self) -> Self:
+        if self.synthetic_research_weight not in {Decimal("0"), Decimal("1")}:
+            raise ValueError("synthetic research weight must be exactly zero or one")
+        if tuple(item.scenario for item in self.cost_entries) != tuple(CostScenario):
+            raise ValueError("trial sample economics requires every cost scenario in order")
+        if any(
+            item.sample_id != self.sample_id or item.gross_return != self.synthetic_gross_return
+            for item in self.cost_entries
+        ):
+            raise ValueError("trial costs must bind the exact sample and gross return")
+        expected_status = (
+            ResearchReturnStatus.OBSERVED
+            if self.synthetic_research_weight == 1
+            else ResearchReturnStatus.NO_TRADE
+        )
+        if self.return_status is not expected_status:
+            raise ValueError("trial sample status must match its synthetic research weight")
+        if self.return_status is ResearchReturnStatus.NO_TRADE and any(
+            item.total_cost != 0
+            or item.net_return != 0
+            or item.requested_quantity != 0
+            or item.filled_quantity != 0
+            or item.participation_rate != 0
+            for item in self.cost_entries
+        ):
+            raise ValueError("no-trade sample economics must have an exact zero footprint")
+        content = self.model_dump(mode="python", exclude={"evidence_sha256"})
+        if self.evidence_sha256 != domain_sha256(PHASE6_TRIAL_ALLOCATION_HASH_DOMAIN, content):
+            raise ValueError("trial sample economics hash must bind every cost component")
+        return self
+
+
+class ResearchTrialEconomics(StrictModel):
+    schema_version: Literal["phase6-trial-economics-v1"] = "phase6-trial-economics-v1"
+    ordinal: int = Field(ge=1)
+    trial_key: Identifier
+    model_id: Identifier
+    output_set_sha256: SHA256
+    sample_economics: tuple[ResearchTrialSampleEconomics, ...] = Field(min_length=1)
+    cost_set_sha256: SHA256
+    economics_sha256: SHA256
+
+    @model_validator(mode="after")
+    def validate_trial_economics(self) -> Self:
+        if tuple(item.ordinal for item in self.sample_economics) != tuple(
+            range(1, len(self.sample_economics) + 1)
+        ):
+            raise ValueError("trial sample economics ordinals must be contiguous")
+        sample_ids = tuple(item.sample_id for item in self.sample_economics)
+        if sample_ids != tuple(sorted(sample_ids)) or len(sample_ids) != len(set(sample_ids)):
+            raise ValueError("trial sample economics must be unique and canonically sorted")
+        cost_entries = tuple(
+            sorted(
+                (entry for item in self.sample_economics for entry in item.cost_entries),
+                key=lambda entry: entry.ordinal,
+            )
+        )
+        if tuple(item.ordinal for item in cost_entries) != tuple(range(len(cost_entries))):
+            raise ValueError("trial cost entries must retain the complete canonical ledger order")
+        expected = domain_sha256(
+            PHASE6_TRIAL_COST_SET_HASH_DOMAIN,
+            tuple(
+                (entry.sample_id, entry.scenario, entry.cost_entry_sha256) for entry in cost_entries
+            ),
+        )
+        if self.cost_set_sha256 != expected:
+            raise ValueError("trial cost-set hash must bind every sample allocation and cost")
+        content = self.model_dump(mode="python", exclude={"economics_sha256"})
+        if self.economics_sha256 != domain_sha256(PHASE6_TRIAL_ECONOMICS_HASH_DOMAIN, content):
+            raise ValueError("trial economics hash must bind its complete preimage")
+        return self
+
+
+class PreparedPipelineReproductionAudit(StrictModel):
+    """Hash-bound proof that immutable snapshots reproduce the prepared payload."""
+
+    schema_version: Literal["phase6-prepared-source-reproduction-audit-v1"] = (
+        "phase6-prepared-source-reproduction-audit-v1"
+    )
+    audit_id: UUID
+    audit_sha256: SHA256
+    configuration_id: ResearchConfigurationId
+    snapshot_bindings: tuple[ResearchSnapshotBinding, ...] = Field(min_length=1)
+    snapshot_set_sha256: SHA256
+    supplied_pipeline_input_sha256: SHA256
+    reproduced_pipeline_input_sha256: SHA256
+    supplied_payload_sha256: SHA256
+    reproduced_payload_sha256: SHA256
+    exact_match: Literal[True] = True
+
+    @model_validator(mode="after")
+    def validate_reproduction_audit(self) -> Self:
+        binding_keys = tuple(
+            (str(item.snapshot_id), item.snapshot_sha256) for item in self.snapshot_bindings
+        )
+        if binding_keys != tuple(sorted(binding_keys)) or len(binding_keys) != len(
+            set(binding_keys)
+        ):
+            raise ValueError("reproduction snapshot bindings must be unique and sorted")
+        if self.snapshot_set_sha256 != domain_sha256(
+            PHASE6_REPRODUCTION_SNAPSHOT_SET_HASH_DOMAIN,
+            self.snapshot_bindings,
+        ):
+            raise ValueError("reproduction snapshot-set hash must bind every immutable snapshot")
+        if (
+            self.supplied_pipeline_input_sha256 != self.reproduced_pipeline_input_sha256
+            or self.supplied_payload_sha256 != self.reproduced_payload_sha256
+        ):
+            raise ValueError("successful reproduction audit requires exact prepared-payload hashes")
+        content = self.model_dump(mode="python", exclude={"audit_id", "audit_sha256"})
+        expected = domain_sha256(PHASE6_REPRODUCTION_AUDIT_HASH_DOMAIN, content)
+        if self.audit_sha256 != expected or self.audit_id != identity(
+            PHASE6_REPRODUCTION_AUDIT_NAMESPACE,
+            expected,
+        ):
+            raise ValueError("reproduction audit identity must bind its complete preimage")
         return self
 
 
@@ -553,6 +1236,8 @@ class ResearchBaselineComparison(StrictModel):
     metric_id: Identifier
     candidate_metric: Decimal
     baseline_metric: Decimal
+    candidate_outputs: tuple[ResearchModelOutput, ...] = Field(min_length=1)
+    baseline_outputs: tuple[ResearchModelOutput, ...] = Field(min_length=1)
     candidate_output_sha256: SHA256
     baseline_output_sha256: SHA256
     label_sha256: SHA256
@@ -561,6 +1246,33 @@ class ResearchBaselineComparison(StrictModel):
 
     @model_validator(mode="after")
     def validate_comparison(self) -> Self:
+        for outputs, field_name in (
+            (self.candidate_outputs, "candidate"),
+            (self.baseline_outputs, "baseline"),
+        ):
+            if tuple(item.ordinal for item in outputs) != tuple(range(1, len(outputs) + 1)):
+                raise ValueError(f"{field_name} model output ordinals must be contiguous")
+            sample_ids = tuple(item.sample_id for item in outputs)
+            if len(sample_ids) != len(set(sample_ids)):
+                raise ValueError(f"{field_name} model output sample ids must be unique")
+        if tuple(item.sample_id for item in self.candidate_outputs) != tuple(
+            item.sample_id for item in self.baseline_outputs
+        ):
+            raise ValueError("candidate and baseline outputs must cover the exact same samples")
+        candidate_values = tuple(
+            (item.sample_id, item.output_value) for item in self.candidate_outputs
+        )
+        baseline_values = tuple(
+            (item.sample_id, item.output_value) for item in self.baseline_outputs
+        )
+        if self.candidate_output_sha256 != domain_sha256(
+            PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
+            candidate_values,
+        ) or self.baseline_output_sha256 != domain_sha256(
+            PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
+            baseline_values,
+        ):
+            raise ValueError("baseline comparison output hashes must bind exact persisted values")
         expected_outcome = (
             BaselineOutcome.SURVIVES
             if self.candidate_metric > self.baseline_metric
@@ -653,7 +1365,7 @@ class FamilyAEvidence(StrictModel):
     transparent_model_id: Literal["sector-relative-rank-linear-v1"] = (
         "sector-relative-rank-linear-v1"
     )
-    nonlinear_model_id: Literal["frozen-depth-two-tree-v1"] = "frozen-depth-two-tree-v1"
+    nonlinear_model_id: Literal["frozen-depth-two-tree-v2"] = "frozen-depth-two-tree-v2"
     baseline_comparison_ids: tuple[UUID, ...] = Field(min_length=2)
     capacity: CapacityEvidence
 
@@ -770,22 +1482,32 @@ class FamilyBEvidence(StrictModel):
     lifecycle: LifecycleEvidence
     lifecycle_tests: tuple[LifecycleTestEvidence, ...] = Field(min_length=3)
     corporate_action_source_references: tuple[ResearchSourceReference, ...] = Field(min_length=1)
-    regime_results: tuple[RegimeResult, ...] = Field(min_length=3)
-    crash_evidence_complete: bool
-    crash_concentration: Decimal | None = Field(default=None, ge=0, le=1)
-    crash_concentration_limit: Decimal = Field(gt=0, le=1)
+    regime_results: tuple[RegimeResult, ...] = Field(min_length=1)
+    rate_evidence_available: Literal[False] = False
+    rate_evidence_reason: Literal["rate_regime_source_unavailable"] = (
+        "rate_regime_source_unavailable"
+    )
+    crisis_geometry_available: Literal[False] = False
+    crisis_evidence_reason: Literal["crisis_window_geometry_unavailable"] = (
+        "crisis_window_geometry_unavailable"
+    )
+    crash_evidence_complete: Literal[False] = False
+    crash_concentration: None = None
+    crash_concentration_limit: None = None
     no_image_candlestick_or_named_pattern_classifier: Literal[True] = True
 
     @model_validator(mode="after")
     def validate_b(self) -> Self:
         if self.lag_windows != (1, 5, 20, 63, 126, 252):
             raise ValueError("Family B lag windows are frozen")
-        if self.crash_evidence_complete and not any(
-            item.crash_window for item in self.regime_results
+        if any(
+            not item.regime_id.startswith("volatility:") or item.crash_window
+            for item in self.regime_results
         ):
-            raise ValueError("Family B must report a predeclared crash window")
-        if self.crash_evidence_complete != (self.crash_concentration is not None):
-            raise ValueError("Family B crash concentration requires complete crash evidence")
+            raise ValueError(
+                "Family B may report only source-derived volatility regimes while rates and "
+                "crisis geometry are unavailable"
+            )
         if {item.listing_status for item in self.lifecycle_tests} != {
             "active",
             "inactive",
@@ -1050,16 +1772,150 @@ PreparedFamilyInputs = Annotated[
 ]
 
 
+def _phase5_trial_model_ids(family: CanonicalFamily) -> tuple[Identifier, ...]:
+    if family is CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING:
+        return (
+            "sector-relative-rank-linear-v1",
+            "zero-information-rank-v1",
+            "frozen-depth-two-tree-v2",
+            "negative-control-v1",
+        )
+    if family is CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME:
+        return (
+            "lagged-trend-linear-v1",
+            "lagged-return-only-v1",
+            "zero-information-time-series-v1",
+            "negative-control-v1",
+        )
+    return (
+        "conventional-linear-text-overlay-v1",
+        "non-text-event-baseline-v1",
+        "event-tag-only-baseline-v1",
+        "negative-control-v1",
+    )
+
+
+def _expected_research_model_outputs(
+    *,
+    family: CanonicalFamily,
+    feature_rows: tuple[ResearchFeatureRow, ...],
+    scores: tuple[ResearchScoreOutput, ...],
+    family_context: object,
+) -> tuple[tuple[tuple[Identifier, Decimal], ...], ...]:
+    candidate = tuple(
+        (item.sample_id, item.research_score)
+        for item in sorted(scores, key=lambda item: item.ordinal)
+    )
+    if tuple(item.sample_id for item in feature_rows) != tuple(
+        sample_id for sample_id, _value in candidate
+    ):
+        raise ValueError("research model outputs require one ordered score per feature row")
+    zero = tuple((sample_id, Decimal("0")) for sample_id, _value in candidate)
+    negative = tuple((sample_id, -value) for sample_id, value in candidate)
+    if family is CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING:
+        if not isinstance(family_context, (PreparedFamilyAInputs, FamilyAEvidence)):
+            raise ValueError("Family A model outputs require cross-section evidence")
+        nonlinear = tuple(
+            (
+                row.sample_id,
+                next(
+                    member.nonlinear_score
+                    for member in section.eligible_members
+                    if member.entity_id == section.selected_entity_id
+                ),
+            )
+            for row, section in zip(
+                feature_rows,
+                family_context.cross_section_ranks,
+                strict=True,
+            )
+        )
+        return candidate, zero, nonlinear, negative
+    if family is CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME:
+        baseline = tuple(
+            (
+                row.sample_id,
+                next(
+                    item.raw_value for item in row.features if item.feature_name == "lagged_return"
+                ),
+            )
+            for row in feature_rows
+        )
+        return candidate, baseline, zero, negative
+    if not isinstance(family_context, (PreparedFamilyCInputs, FamilyCEvidence)):
+        raise ValueError("Family C model outputs require non-text baseline evidence")
+    non_text_by_sample = {
+        item.sample_id: item.baseline_output for item in family_context.non_text_baseline
+    }
+    non_text = tuple((row.sample_id, non_text_by_sample[row.sample_id]) for row in feature_rows)
+    event_tag = tuple(
+        (
+            row.sample_id,
+            next(item.raw_value for item in row.features if item.feature_name == "event_tag"),
+        )
+        for row in feature_rows
+    )
+    return candidate, non_text, event_tag, negative
+
+
+def _validate_research_model_output_sets(
+    *,
+    family: CanonicalFamily,
+    feature_rows: tuple[ResearchFeatureRow, ...],
+    scores: tuple[ResearchScoreOutput, ...],
+    model_output_sets: tuple[ResearchModelOutputSet, ...],
+    family_context: object,
+) -> None:
+    if tuple(item.ordinal for item in model_output_sets) != (1, 2, 3, 4):
+        raise ValueError("research model output registry requires exactly four ordered sets")
+    expected_trial_keys = (
+        "prepared-primary",
+        "prepared-baseline",
+        "prepared-nonlinear",
+        "negative-reference",
+    )
+    if tuple(item.trial_key for item in model_output_sets) != expected_trial_keys or tuple(
+        item.model_id for item in model_output_sets
+    ) != _phase5_trial_model_ids(family):
+        raise ValueError("research model output registry must use the frozen trial models")
+    expected_variants = _expected_research_model_outputs(
+        family=family,
+        feature_rows=feature_rows,
+        scores=scores,
+        family_context=family_context,
+    )
+    for output_set, expected in zip(model_output_sets, expected_variants, strict=True):
+        actual = tuple((item.sample_id, item.output_value) for item in output_set.outputs)
+        if actual != expected:
+            raise ValueError(
+                "research model output registry must persist every exact label-independent cell"
+            )
+        for row, cell in zip(feature_rows, output_set.ledger_cells, strict=True):
+            if (
+                cell.sample_id != row.sample_id
+                or cell.label_t0_utc != row.label_t0_utc
+                or cell.label_t1_utc != row.label_t1_utc
+                or cell.label_value != row.label_value
+                or cell.label_source_references != row.label_source_references
+            ):
+                raise ValueError("research ledger cells must bind the exact prepared labels")
+
+
 class PreparedResearchPipeline(StrictModel):
-    schema_version: Literal["phase6-prepared-research-pipeline-v1"] = (
-        "phase6-prepared-research-pipeline-v1"
+    schema_version: Literal["phase6-prepared-research-pipeline-v2"] = (
+        "phase6-prepared-research-pipeline-v2"
     )
     configuration_id: ResearchConfigurationId
     family: CanonicalFamily
     specification: ResearchPipelineSpecification
     snapshot_bindings: tuple[ResearchSnapshotBinding, ...] = Field(min_length=1)
+    calendar_source_references: tuple[ResearchSourceReference, ...] = ()
+    regime_evidence: PreparedRegimeEvidence
+    confirmation_interval: ResearchConfirmationInterval
+    boundary_exclusions: tuple[ResearchBoundaryExclusion, ...] = Field(min_length=1)
     feature_rows: tuple[ResearchFeatureRow, ...] = Field(min_length=1)
     scores: tuple[ResearchScoreOutput, ...] = Field(min_length=1)
+    model_output_sets: tuple[ResearchModelOutputSet, ...] = Field(min_length=4, max_length=4)
     baseline_comparisons: tuple[ResearchBaselineComparison, ...] = Field(min_length=1)
     family_inputs: PreparedFamilyInputs
     pipeline_input_sha256: SHA256
@@ -1088,6 +1944,49 @@ class PreparedResearchPipeline(StrictModel):
             self.specification.required_capabilities
         ):
             raise ValueError("prepared snapshots must exactly match required capabilities")
+        calendar_keys = tuple(
+            (
+                str(item.snapshot_id),
+                str(item.normalized_observation_id),
+            )
+            for item in self.calendar_source_references
+        )
+        if (
+            calendar_keys != tuple(sorted(calendar_keys))
+            or len(calendar_keys) != len(set(calendar_keys))
+            or any(
+                item.capability is not DataCapability.TRADING_CALENDAR
+                or item.record_type != "calendar_session"
+                for item in self.calendar_source_references
+            )
+        ):
+            raise ValueError("prepared calendar evidence must be exact, unique, and sorted")
+        if (DataCapability.TRADING_CALENDAR in self.specification.required_capabilities) != bool(
+            self.calendar_source_references
+        ):
+            raise ValueError("prepared calendar evidence must match the required capability set")
+        macro_required = DataCapability.MACRO_REGIME_INPUTS in (
+            self.specification.required_capabilities
+        )
+        if macro_required != (self.regime_evidence.evidence_state == "available"):
+            raise ValueError("prepared regime evidence must match the required capability set")
+        confirmation = self.confirmation_interval
+        exclusion_ids = tuple(item.sample_id for item in self.boundary_exclusions)
+        if exclusion_ids != tuple(sorted(exclusion_ids)) or len(exclusion_ids) != len(
+            set(exclusion_ids)
+        ):
+            raise ValueError("confirmation boundary exclusions must be unique and sorted")
+        if any(
+            item.label_t0_utc > confirmation.interval_end_utc
+            or item.label_t1_utc < confirmation.interval_start_utc
+            for item in self.boundary_exclusions
+        ):
+            raise ValueError("every boundary exclusion must intersect the confirmation interval")
+        if any(row.label_t1_utc >= confirmation.interval_start_utc for row in self.feature_rows):
+            raise ValueError("prepared research labels cannot overlap the confirmation interval")
+        forbidden_ids = {confirmation.sample_id, *exclusion_ids}
+        if any(row.sample_id in forbidden_ids for row in self.feature_rows):
+            raise ValueError("confirmation or boundary rows cannot enter prepared research rows")
         if tuple(item.ordinal for item in self.feature_rows) != tuple(
             range(1, len(self.feature_rows) + 1)
         ):
@@ -1098,8 +1997,21 @@ class PreparedResearchPipeline(StrictModel):
             or {item.feature_row_id for item in self.scores} != row_ids
         ):
             raise ValueError("prepared scores must cover every feature row exactly once")
+        _validate_research_model_output_sets(
+            family=self.family,
+            feature_rows=self.feature_rows,
+            scores=self.scores,
+            model_output_sets=self.model_output_sets,
+            family_context=self.family_inputs,
+        )
         if isinstance(self.family_inputs, PreparedFamilyAInputs):
             fit_ids = {item.fit_id for item in self.family_inputs.train_only_sector_fits}
+            fits_by_key = {
+                (item.sector_id, item.feature_name): item
+                for item in self.family_inputs.train_only_sector_fits
+            }
+            if len(fits_by_key) != len(self.family_inputs.train_only_sector_fits):
+                raise ValueError("Family A train fits must be unique by sector and feature")
             sectors = {item.sector_id for item in self.family_inputs.universe}
             expected_features = {
                 "liquidity",
@@ -1161,6 +2073,76 @@ class PreparedResearchPipeline(StrictModel):
                     raise ValueError(
                         "Family A selected row must match exact cross-section evidence"
                     )
+                membership_universes = {
+                    item.membership_universe_id for item in section.eligible_members
+                }
+                if len(membership_universes) != 1:
+                    raise ValueError("Family A cross-section members must share one PIT universe")
+                for member in section.eligible_members:
+                    for value in member.features:
+                        fit = fits_by_key.get((member.sector_id, value.feature_name))
+                        if fit is None or value.train_fit_id != fit.fit_id:
+                            raise ValueError(
+                                "every Family A feature must bind its exact sector-feature fit"
+                            )
+                        if value.transformed_value != _standardized_value(
+                            value.raw_value,
+                            fit.mean,
+                            fit.standard_deviation,
+                        ):
+                            raise ValueError(
+                                "every Family A transformed value must derive from its train fit"
+                            )
+            linear = tuple(
+                (
+                    f"cross-section-{section.ordinal:02d}:{member.entity_id}",
+                    member.linear_score,
+                )
+                for section in self.family_inputs.cross_section_ranks
+                for member in section.eligible_members
+            )
+            nonlinear = tuple(
+                (
+                    f"cross-section-{section.ordinal:02d}:{member.entity_id}",
+                    member.nonlinear_score,
+                )
+                for section in self.family_inputs.cross_section_ranks
+                for member in section.eligible_members
+            )
+            control = tuple((sample_id, Decimal("0")) for sample_id, _value in linear)
+            comparison_by_models = {
+                (item.candidate_model_id, item.baseline_model_id): item
+                for item in self.baseline_comparisons
+            }
+            expected_comparisons = (
+                (
+                    ("sector-relative-rank-linear-v1", "zero-information-rank-v1"),
+                    linear,
+                    control,
+                ),
+                (
+                    ("frozen-depth-two-tree-v2", "sector-relative-rank-linear-v1"),
+                    nonlinear,
+                    linear,
+                ),
+            )
+            for model_key, expected_candidate, expected_baseline in expected_comparisons:
+                comparison = comparison_by_models.get(model_key)
+                if (
+                    comparison is None
+                    or tuple(
+                        (item.sample_id, item.output_value) for item in comparison.candidate_outputs
+                    )
+                    != expected_candidate
+                    or tuple(
+                        (item.sample_id, item.output_value) for item in comparison.baseline_outputs
+                    )
+                    != expected_baseline
+                ):
+                    raise ValueError(
+                        "Family A comparisons must persist exact linear, nonlinear, "
+                        "and control outputs"
+                    )
         elif isinstance(self.family_inputs, PreparedFamilyBInputs):
             if any(
                 value.train_fit_id is not None
@@ -1168,6 +2150,33 @@ class PreparedResearchPipeline(StrictModel):
                 for value in row.features
             ):
                 raise ValueError("Family B cannot disguise nominal/adjusted formulas as fits")
+            candidate = tuple(
+                (item.sample_id, item.research_score)
+                for item in sorted(self.scores, key=lambda item: item.ordinal)
+            )
+            baseline = tuple(
+                (
+                    row.sample_id,
+                    next(
+                        item.raw_value
+                        for item in row.features
+                        if item.feature_name == "lagged_return"
+                    ),
+                )
+                for row in self.feature_rows
+            )
+            comparison = self.baseline_comparisons[0]
+            if (
+                tuple((item.sample_id, item.output_value) for item in comparison.candidate_outputs)
+                != candidate
+                or tuple(
+                    (item.sample_id, item.output_value) for item in comparison.baseline_outputs
+                )
+                != baseline
+            ):
+                raise ValueError(
+                    "Family B comparison must persist exact candidate and baseline outputs"
+                )
         elif isinstance(self.family_inputs, PreparedFamilyCInputs):
             if any(
                 value.train_fit_id is not None
@@ -1206,6 +2215,22 @@ class PreparedResearchPipeline(StrictModel):
                 baseline_comparison is None
                 or baseline_comparison.used_for_selection is not False
                 or baseline_comparison.baseline_output_sha256 != expected_output_sha256
+                or tuple(
+                    (item.sample_id, item.output_value)
+                    for item in baseline_comparison.candidate_outputs
+                )
+                != tuple(
+                    (item.sample_id, item.research_score)
+                    for item in sorted(self.scores, key=lambda item: item.ordinal)
+                )
+                or tuple(
+                    (item.sample_id, item.output_value)
+                    for item in baseline_comparison.baseline_outputs
+                )
+                != tuple(
+                    (item.sample_id, item.baseline_output)
+                    for item in self.family_inputs.non_text_baseline
+                )
             ):
                 raise ValueError("Family C comparison must bind the descriptive non-text baseline")
         content = self.model_dump(mode="python", exclude={"pipeline_input_sha256"})
@@ -1261,7 +2286,7 @@ class Phase5EvaluationLink(StrictModel):
 
 class ResearchRunArtifact(StrictModel):
     run_id: UUID
-    artifact_schema_version: Literal["phase6-research-artifact-v1"] = "phase6-research-artifact-v1"
+    artifact_schema_version: Literal["phase6-research-artifact-v2"] = "phase6-research-artifact-v2"
     artifact_sha256: SHA256
     request_fingerprint_sha256: SHA256
     pipeline_input_sha256: SHA256
@@ -1273,10 +2298,17 @@ class ResearchRunArtifact(StrictModel):
     family: CanonicalFamily
     specification: ResearchPipelineSpecification
     snapshot_bindings: tuple[ResearchSnapshotBinding, ...] = Field(min_length=1)
+    calendar_source_references: tuple[ResearchSourceReference, ...] = ()
+    regime_evidence: PreparedRegimeEvidence
+    confirmation_interval: ResearchConfirmationInterval
+    boundary_exclusions: tuple[ResearchBoundaryExclusion, ...] = Field(min_length=1)
+    source_reproduction_audit: PreparedPipelineReproductionAudit
     snapshot_bundle_sha256: SHA256
     feature_rows: tuple[ResearchFeatureRow, ...] = Field(min_length=1)
     feature_lineage_sha256: SHA256
     scores: tuple[ResearchScoreOutput, ...] = Field(min_length=1)
+    model_output_sets: tuple[ResearchModelOutputSet, ...] = Field(min_length=4, max_length=4)
+    trial_economics: tuple[ResearchTrialEconomics, ...] = Field(min_length=4, max_length=4)
     attempts: tuple[ResearchAttempt, ...] = Field(min_length=1)
     baseline_comparisons: tuple[ResearchBaselineComparison, ...] = Field(min_length=1)
     family_evidence: FamilyEvidence
@@ -1313,6 +2345,54 @@ class ResearchRunArtifact(StrictModel):
             self.specification.required_capabilities
         ):
             raise ValueError("snapshot capabilities must exactly match the frozen specification")
+        audit_bindings = {
+            (item.snapshot_id, item.snapshot_sha256, item.binding_sha256)
+            for item in self.source_reproduction_audit.snapshot_bindings
+        }
+        artifact_bindings = {
+            (item.snapshot_id, item.snapshot_sha256, item.binding_sha256)
+            for item in self.snapshot_bindings
+        }
+        if (
+            self.source_reproduction_audit.configuration_id is not self.configuration_id
+            or audit_bindings != artifact_bindings
+            or self.source_reproduction_audit.supplied_pipeline_input_sha256
+            != self.pipeline_input_sha256
+        ):
+            raise ValueError("source reproduction audit must bind this exact artifact input")
+        calendar_keys = tuple(
+            (str(item.snapshot_id), str(item.normalized_observation_id))
+            for item in self.calendar_source_references
+        )
+        if (
+            calendar_keys != tuple(sorted(calendar_keys))
+            or len(calendar_keys) != len(set(calendar_keys))
+            or any(
+                item.capability is not DataCapability.TRADING_CALENDAR
+                or item.record_type != "calendar_session"
+                for item in self.calendar_source_references
+            )
+        ):
+            raise ValueError("artifact calendar evidence must be exact, unique, and sorted")
+        if (DataCapability.TRADING_CALENDAR in self.specification.required_capabilities) != bool(
+            self.calendar_source_references
+        ):
+            raise ValueError("artifact calendar evidence must match the required capability set")
+        if (DataCapability.MACRO_REGIME_INPUTS in self.specification.required_capabilities) != (
+            self.regime_evidence.evidence_state == "available"
+        ):
+            raise ValueError("artifact regime evidence must match required capabilities")
+        if any(
+            row.label_t1_utc >= self.confirmation_interval.interval_start_utc
+            for row in self.feature_rows
+        ):
+            raise ValueError("artifact research labels cannot overlap final confirmation")
+        forbidden_ids = {
+            self.confirmation_interval.sample_id,
+            *(item.sample_id for item in self.boundary_exclusions),
+        }
+        if any(row.sample_id in forbidden_ids for row in self.feature_rows):
+            raise ValueError("artifact cannot persist confirmation rows as research evidence")
         if self.snapshot_bundle_sha256 != self.phase5_evaluation.snapshot_bundle_sha256:
             raise ValueError("snapshot bundle must be the exact Phase 5 engine input hash")
         if tuple(item.ordinal for item in self.feature_rows) != tuple(
@@ -1334,6 +2414,38 @@ class ResearchRunArtifact(StrictModel):
             or {item.feature_row_id for item in self.scores} != feature_ids
         ):
             raise ValueError("every feature row must have exactly one explainable score")
+        if tuple(item.ordinal for item in self.trial_economics) != (1, 2, 3, 4):
+            raise ValueError("artifact trial economics requires four ordered completed trials")
+        economics_by_key = {item.trial_key: item for item in self.trial_economics}
+        if len(economics_by_key) != 4:
+            raise ValueError("artifact trial economics keys must be unique")
+        for output_set in self.model_output_sets:
+            economics = economics_by_key.get(output_set.trial_key)
+            cells = {item.sample_id: item for item in output_set.ledger_cells}
+            if (
+                economics is None
+                or economics.model_id != output_set.model_id
+                or economics.output_set_sha256 != output_set.output_set_sha256
+                or tuple(item.sample_id for item in economics.sample_economics)
+                != tuple(sorted(cells))
+            ):
+                raise ValueError("trial economics must bind its exact model-output set")
+            for item in economics.sample_economics:
+                cell = cells[item.sample_id]
+                if (
+                    item.model_output != cell.model_output
+                    or item.synthetic_research_weight != cell.synthetic_research_weight
+                    or item.return_status is not cell.return_status
+                    or item.synthetic_gross_return != cell.synthetic_gross_return
+                ):
+                    raise ValueError("trial economics must reconcile every research ledger cell")
+        _validate_research_model_output_sets(
+            family=self.family,
+            feature_rows=self.feature_rows,
+            scores=self.scores,
+            model_output_sets=self.model_output_sets,
+            family_context=self.family_evidence,
+        )
         for values, field_name in (
             (self.scores, "scores"),
             (self.attempts, "attempts"),
@@ -1401,6 +2513,12 @@ class ResearchRunArtifact(StrictModel):
         if isinstance(self.family_evidence, FamilyAEvidence):
             if len(self.family_evidence.cross_section_ranks) != len(self.feature_rows):
                 raise ValueError("Family A artifact must persist every fixed-time cross-section")
+            fits_by_key = {
+                (item.sector_id, item.feature_name): item
+                for item in self.family_evidence.train_only_sector_fits
+            }
+            if len(fits_by_key) != len(self.family_evidence.train_only_sector_fits):
+                raise ValueError("Family A artifact train fits must be unique")
             for row, section in zip(
                 self.feature_rows,
                 self.family_evidence.cross_section_ranks,
@@ -1412,6 +2530,94 @@ class ResearchRunArtifact(StrictModel):
                     or section.selected_entity_id != row.entity_id
                 ):
                     raise ValueError("Family A artifact cross-section lineage is incomplete")
+                for member in section.eligible_members:
+                    for value in member.features:
+                        fit = fits_by_key.get((member.sector_id, value.feature_name))
+                        if (
+                            fit is None
+                            or value.train_fit_id != fit.fit_id
+                            or value.transformed_value
+                            != _standardized_value(
+                                value.raw_value,
+                                fit.mean,
+                                fit.standard_deviation,
+                            )
+                        ):
+                            raise ValueError(
+                                "Family A artifact features must derive from exact train fits"
+                            )
+            linear = tuple(
+                (
+                    f"cross-section-{section.ordinal:02d}:{member.entity_id}",
+                    member.linear_score,
+                )
+                for section in self.family_evidence.cross_section_ranks
+                for member in section.eligible_members
+            )
+            nonlinear = tuple(
+                (
+                    f"cross-section-{section.ordinal:02d}:{member.entity_id}",
+                    member.nonlinear_score,
+                )
+                for section in self.family_evidence.cross_section_ranks
+                for member in section.eligible_members
+            )
+            control = tuple((sample_id, Decimal("0")) for sample_id, _value in linear)
+            comparisons = {
+                (item.candidate_model_id, item.baseline_model_id): item
+                for item in self.baseline_comparisons
+            }
+            for model_key, expected_candidate, expected_baseline in (
+                (
+                    ("sector-relative-rank-linear-v1", "zero-information-rank-v1"),
+                    linear,
+                    control,
+                ),
+                (
+                    ("frozen-depth-two-tree-v2", "sector-relative-rank-linear-v1"),
+                    nonlinear,
+                    linear,
+                ),
+            ):
+                comparison = comparisons.get(model_key)
+                if (
+                    comparison is None
+                    or tuple(
+                        (item.sample_id, item.output_value) for item in comparison.candidate_outputs
+                    )
+                    != expected_candidate
+                    or tuple(
+                        (item.sample_id, item.output_value) for item in comparison.baseline_outputs
+                    )
+                    != expected_baseline
+                ):
+                    raise ValueError("Family A artifact model outputs are incomplete")
+        elif isinstance(self.family_evidence, FamilyBEvidence):
+            candidate = tuple(
+                (item.sample_id, item.research_score)
+                for item in sorted(self.scores, key=lambda item: item.ordinal)
+            )
+            baseline = tuple(
+                (
+                    row.sample_id,
+                    next(
+                        item.raw_value
+                        for item in row.features
+                        if item.feature_name == "lagged_return"
+                    ),
+                )
+                for row in self.feature_rows
+            )
+            comparison = self.baseline_comparisons[0]
+            if (
+                tuple((item.sample_id, item.output_value) for item in comparison.candidate_outputs)
+                != candidate
+                or tuple(
+                    (item.sample_id, item.output_value) for item in comparison.baseline_outputs
+                )
+                != baseline
+            ):
+                raise ValueError("Family B artifact model outputs are incomplete")
         elif isinstance(self.family_evidence, FamilyCEvidence):
             baseline_comparison = next(
                 (
@@ -1432,6 +2638,22 @@ class ResearchRunArtifact(StrictModel):
                 baseline_comparison is None
                 or baseline_comparison.used_for_selection is not False
                 or baseline_comparison.baseline_output_sha256 != expected_output_sha256
+                or tuple(
+                    (item.sample_id, item.output_value)
+                    for item in baseline_comparison.candidate_outputs
+                )
+                != tuple(
+                    (item.sample_id, item.research_score)
+                    for item in sorted(self.scores, key=lambda item: item.ordinal)
+                )
+                or tuple(
+                    (item.sample_id, item.output_value)
+                    for item in baseline_comparison.baseline_outputs
+                )
+                != tuple(
+                    (item.sample_id, item.baseline_output)
+                    for item in self.family_evidence.non_text_baseline
+                )
             ):
                 raise ValueError("Family C artifact must preserve its descriptive OHLCV baseline")
         request_payload = {

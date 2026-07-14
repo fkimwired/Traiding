@@ -75,6 +75,52 @@ def _reference_tuple(ref: ResolvedSourceObservationRef) -> tuple[str, str, str]:
     return str(ref.capability), str(ref.snapshot_id), str(ref.normalized_observation_id)
 
 
+def _partition_fixture_source_keys(
+    fixture: SyntheticEvaluationFixture,
+) -> tuple[
+    dict[tuple[str, str], SyntheticSourceObservationExpectation],
+    frozenset[tuple[str, str]],
+]:
+    expectation_keys = tuple(
+        _key_tuple(expectation.key) for expectation in fixture.source_observation_expectations
+    )
+    if len(expectation_keys) != len(set(expectation_keys)):
+        raise SourceLineageInputError("fixture_source_expectation_ambiguous")
+    expectations = dict(
+        zip(
+            expectation_keys,
+            fixture.source_observation_expectations,
+            strict=True,
+        )
+    )
+
+    sample_keys = {
+        _key_tuple(key) for sample in fixture.samples for key in sample.source_observation_keys
+    }
+    scope_roles = tuple(evidence.role for evidence in fixture.report_scope_source_evidence)
+    if len(scope_roles) != len(set(scope_roles)):
+        raise SourceLineageInputError("report_scope_source_role_ambiguous")
+    scope_key_items = tuple(
+        _key_tuple(key)
+        for evidence in fixture.report_scope_source_evidence
+        for key in evidence.source_observation_keys
+    )
+    if len(scope_key_items) != len(set(scope_key_items)):
+        raise SourceLineageInputError("report_scope_source_role_ambiguous")
+    scope_keys = frozenset(scope_key_items)
+
+    pipeline_hashes = {
+        evidence.prepared_pipeline_input_sha256 for evidence in fixture.report_scope_source_evidence
+    }
+    if fixture.report_scope_source_evidence and len(pipeline_hashes) != 1:
+        raise SourceLineageInputError("report_scope_prepared_pipeline_hash_ambiguous")
+    if sample_keys & scope_keys:
+        raise SourceLineageInputError("report_scope_sample_source_overlap")
+    if set(expectations) != sample_keys | scope_keys:
+        raise SourceLineageInputError("fixture_source_expectation_orphaned_or_missing")
+    return expectations, scope_keys
+
+
 def _resolve_expectation(
     expectation: SyntheticSourceObservationExpectation,
     snapshots_by_capability: dict[DataCapability, SnapshotBundle],
@@ -200,10 +246,7 @@ def resolve_source_lineage(
             raise SourceLineageInputError("snapshot_observation_capability_ambiguous")
         snapshots_by_capability[capability] = bundle
 
-    expectations = {
-        _key_tuple(expectation.key): expectation
-        for expectation in fixture.source_observation_expectations
-    }
+    expectations, report_scope_keys = _partition_fixture_source_keys(fixture)
     expectation_capabilities = tuple(
         sorted({expectation.key.capability for expectation in expectations.values()}, key=str)
     )
@@ -214,6 +257,16 @@ def resolve_source_lineage(
         for key, expectation in expectations.items()
     }
     source_observations = tuple(resolved_by_key[key] for key in sorted(resolved_by_key))
+    if report_scope_keys:
+        for sample in fixture.samples:
+            if (
+                policy.walk_forward.final_confirmation_start_utc
+                <= sample.decision_time_utc
+                <= policy.walk_forward.final_confirmation_end_utc
+            ):
+                break
+        else:
+            raise SourceLineageInputError("report_scope_confirmation_sample_missing")
     membership_expected = (
         DataCapability.UNIVERSE_MEMBERSHIP in policy.required_snapshot_capabilities
     )

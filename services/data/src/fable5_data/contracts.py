@@ -66,15 +66,19 @@ VOLATILITY_RETURN_INPUT_SCHEMA_VERSION = "phase4-volatility-return-input-v1"
 # Phase 6 extends the normalized Phase 4 source boundary without changing any frozen
 # Phase 4 envelope, identity, or hash domain.  These payload schemas remain source
 # evidence only; they contain no feature, label, signal, model, or promotion output.
-PHASE6_DATA_CONTRACT_VERSION: Final = "phase6-data-contract-prerequisites-v1"
-PHASE6_DATA_QUALITY_RULE_SET_VERSION: Final = "phase6-data-contract-quality-v1"
+PHASE6_DATA_CONTRACT_VERSION: Final = "phase6-data-contract-prerequisites-v2"
+PHASE6_DATA_QUALITY_RULE_SET_VERSION: Final = "phase6-data-contract-quality-v2"
 SECTOR_CLASSIFICATION_SCHEMA_VERSION: Final = "phase6-sector-classification-v1"
 OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION: Final = "phase6-official-document-content-v1"
 SOCIAL_ATTENTION_SCHEMA_VERSION: Final = "phase6-social-attention-v1"
-PHASE6_SYNTHETIC_ADAPTER_VERSION: Final = "phase6-synthetic-pit-adapter-v1"
-PHASE6_SYNTHETIC_FIXTURE_SET_VERSION: Final = "phase6-synthetic-pit-fixtures-v1"
+MACRO_RATE_OBSERVATION_SCHEMA_VERSION: Final = "phase6-macro-rate-observation-v1"
+CRISIS_WINDOW_DEFINITION_SCHEMA_VERSION: Final = "phase6-crisis-window-definition-v1"
+PHASE6_SYNTHETIC_ADAPTER_VERSION: Final = "phase6-synthetic-pit-adapter-v2"
+PHASE6_SYNTHETIC_FIXTURE_SET_VERSION: Final = "phase6-synthetic-pit-fixtures-v2"
 SyntheticFixtureSetVersion = Literal[
-    "phase4-synthetic-pit-fixtures-v1", "phase6-synthetic-pit-fixtures-v1"
+    "phase4-synthetic-pit-fixtures-v1",
+    "phase6-synthetic-pit-fixtures-v1",
+    "phase6-synthetic-pit-fixtures-v2",
 ]
 
 
@@ -161,6 +165,12 @@ class DataCapability(StrEnum):
     TRADING_CALENDAR = "trading_calendar"
     VOLATILITY_RETURN_INPUTS = "volatility_return_inputs"
     OFFICIAL_DOCUMENT_EVENT_METADATA = "official_document_event_metadata"
+    MACRO_REGIME_INPUTS = "macro_regime_inputs"
+
+
+PHASE4_DATA_CAPABILITIES: Final = tuple(
+    item for item in DataCapability if item is not DataCapability.MACRO_REGIME_INPUTS
+)
 
 
 PHASE4_AUTHORIZED_CAPABILITIES = MappingProxyType(
@@ -193,9 +203,12 @@ PHASE4_AUTHORIZED_CAPABILITIES = MappingProxyType(
 
 AUTHORIZED_CAPABILITIES = MappingProxyType(
     {
-        CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING: PHASE4_AUTHORIZED_CAPABILITIES[
-            CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING
-        ],
+        CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING: frozenset(
+            {
+                *PHASE4_AUTHORIZED_CAPABILITIES[CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING],
+                DataCapability.MACRO_REGIME_INPUTS,
+            }
+        ),
         CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME: frozenset(
             {
                 DataCapability.SECURITY_MASTER,
@@ -233,6 +246,8 @@ class DataRecordType(StrEnum):
     SECTOR_CLASSIFICATION = "sector_classification"
     OFFICIAL_DOCUMENT_CONTENT = "official_document_content"
     SOCIAL_ATTENTION = "social_attention"
+    MACRO_RATE_OBSERVATION = "macro_rate_observation"
+    CRISIS_WINDOW_DEFINITION = "crisis_window_definition"
 
 
 PHASE4_CAPABILITY_RECORD_TYPES = MappingProxyType(
@@ -283,6 +298,12 @@ CAPABILITY_RECORD_TYPES = MappingProxyType(
                 DataRecordType.OFFICIAL_DOCUMENT_EVENT,
                 DataRecordType.OFFICIAL_DOCUMENT_CONTENT,
                 DataRecordType.SOCIAL_ATTENTION,
+            }
+        ),
+        DataCapability.MACRO_REGIME_INPUTS: frozenset(
+            {
+                DataRecordType.MACRO_RATE_OBSERVATION,
+                DataRecordType.CRISIS_WINDOW_DEFINITION,
             }
         ),
     }
@@ -372,7 +393,7 @@ PHASE4_SCHEMA_CONSTANTS = MappingProxyType(
         "quality_rule_set_version": QUALITY_RULE_SET_VERSION,
         "request_fingerprint_version": REQUEST_FINGERPRINT_VERSION,
         "date_only_availability_convention": DATE_ONLY_AVAILABILITY_CONVENTION,
-        "capabilities": tuple(item.value for item in DataCapability),
+        "capabilities": tuple(item.value for item in PHASE4_DATA_CAPABILITIES),
         "record_types": tuple(
             item.value
             for item in (
@@ -404,6 +425,8 @@ PHASE6_DATA_CONTRACT_CONSTANTS = MappingProxyType(
             DataRecordType.SECTOR_CLASSIFICATION.value,
             DataRecordType.OFFICIAL_DOCUMENT_CONTENT.value,
             DataRecordType.SOCIAL_ATTENTION.value,
+            DataRecordType.MACRO_RATE_OBSERVATION.value,
+            DataRecordType.CRISIS_WINDOW_DEFINITION.value,
         ),
         "additive_schema_versions": (
             (
@@ -417,6 +440,14 @@ PHASE6_DATA_CONTRACT_CONSTANTS = MappingProxyType(
             (
                 DataRecordType.SOCIAL_ATTENTION.value,
                 SOCIAL_ATTENTION_SCHEMA_VERSION,
+            ),
+            (
+                DataRecordType.MACRO_RATE_OBSERVATION.value,
+                MACRO_RATE_OBSERVATION_SCHEMA_VERSION,
+            ),
+            (
+                DataRecordType.CRISIS_WINDOW_DEFINITION.value,
+                CRISIS_WINDOW_DEFINITION_SCHEMA_VERSION,
             ),
         ),
         "capability_record_type_additions": (
@@ -432,7 +463,16 @@ PHASE6_DATA_CONTRACT_CONSTANTS = MappingProxyType(
                 DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA.value,
                 DataRecordType.SOCIAL_ATTENTION.value,
             ),
+            (
+                DataCapability.MACRO_REGIME_INPUTS.value,
+                DataRecordType.MACRO_RATE_OBSERVATION.value,
+            ),
+            (
+                DataCapability.MACRO_REGIME_INPUTS.value,
+                DataRecordType.CRISIS_WINDOW_DEFINITION.value,
+            ),
         ),
+        "family_a_capability_additions": (DataCapability.MACRO_REGIME_INPUTS.value,),
         "family_b_capability_additions": (
             DataCapability.SECURITY_MASTER.value,
             DataCapability.UNIVERSE_MEMBERSHIP.value,
@@ -941,6 +981,57 @@ class CalendarSessionPayload(StrictModel):
         return self
 
 
+class MacroRateObservationPayload(StrictModel):
+    """Vintage-aware synthetic policy-rate input, never a signal or model decision."""
+
+    record_type: Literal["macro_rate_observation"] = "macro_rate_observation"
+    series_id: Identifier
+    observation_period_end: date
+    released_at: datetime
+    vintage_id: Identifier
+    rate_value: Decimal
+    previous_rate_value: Decimal
+    rate_change: Decimal
+
+    @field_validator("released_at")
+    @classmethod
+    def normalize_released_at(cls, value: datetime) -> datetime:
+        return _utc(value)
+
+    @model_validator(mode="after")
+    def validate_rate_vintage(self) -> Self:
+        values = (self.rate_value, self.previous_rate_value, self.rate_change)
+        if any(not value.is_finite() for value in values):
+            raise ValueError("macro rate values must be finite")
+        if self.rate_change != self.rate_value - self.previous_rate_value:
+            raise ValueError("macro rate change must equal current minus previous vintage value")
+        return self
+
+
+class CrisisWindowDefinitionPayload(StrictModel):
+    """Predeclared synthetic stress-window geometry, not an ex-post result label."""
+
+    record_type: Literal["crisis_window_definition"] = "crisis_window_definition"
+    crisis_window_id: Identifier
+    definition_method_id: Identifier
+    declared_at: datetime
+    window_start: datetime
+    window_end: datetime
+
+    @field_validator("declared_at", "window_start", "window_end")
+    @classmethod
+    def normalize_window_times(cls, value: datetime) -> datetime:
+        return _utc(value)
+
+    @model_validator(mode="after")
+    def validate_predeclared_window(self) -> Self:
+        if self.window_end <= self.window_start:
+            raise ValueError("crisis window must be positive")
+        if self.declared_at >= self.window_start:
+            raise ValueError("crisis window geometry must be declared before it begins")
+        return self
+
+
 class OfficialDocumentType(StrEnum):
     REGULATORY_FILING = "regulatory_filing"
     ISSUER_RELEASE = "issuer_release"
@@ -1093,7 +1184,9 @@ NormalizedPayload = Annotated[
     | VolatilityReturnInputPayload
     | SectorClassificationPayload
     | OfficialDocumentContentPayload
-    | SocialAttentionPayload,
+    | SocialAttentionPayload
+    | MacroRateObservationPayload
+    | CrisisWindowDefinitionPayload,
     Field(discriminator="record_type"),
 ]
 
@@ -1179,7 +1272,11 @@ class NormalizedObservationDraft(ObservationEnvelopeDraft):
                 raise ValueError("delisting-return missingness conflicts with inclusion semantics")
 
         record_type = DataRecordType(self.payload.record_type)
-        instrument_required = record_type is not DataRecordType.CALENDAR_SESSION
+        instrument_required = record_type not in {
+            DataRecordType.CALENDAR_SESSION,
+            DataRecordType.MACRO_RATE_OBSERVATION,
+            DataRecordType.CRISIS_WINDOW_DEFINITION,
+        }
         listing_required = record_type in {
             DataRecordType.LISTING_IDENTITY,
             DataRecordType.UNIVERSE_MEMBERSHIP,
@@ -1198,6 +1295,8 @@ class NormalizedObservationDraft(ObservationEnvelopeDraft):
                 DataRecordType.INSTRUMENT_IDENTITY,
                 DataRecordType.CALENDAR_SESSION,
                 DataRecordType.SECTOR_CLASSIFICATION,
+                DataRecordType.MACRO_RATE_OBSERVATION,
+                DataRecordType.CRISIS_WINDOW_DEFINITION,
             }
             and self.listing_id is not None
         ):
@@ -1295,9 +1394,11 @@ class SnapshotConstituentDraft(ObservationEnvelopeDraft):
 class DataQualityFindingDraft(StrictModel):
     finding_id: UUID
     finding_sha256: SHA256
-    rule_set_version: Literal["phase4-data-quality-v1", "phase6-data-contract-quality-v1"] = (
-        QUALITY_RULE_SET_VERSION
-    )
+    rule_set_version: Literal[
+        "phase4-data-quality-v1",
+        "phase6-data-contract-quality-v1",
+        "phase6-data-contract-quality-v2",
+    ] = QUALITY_RULE_SET_VERSION
     rule_id: Identifier
     severity: DataQualitySeverity
     code: DataQualityCode
@@ -1879,16 +1980,19 @@ __all__ = [
     "CANONICAL_JSON_VERSION",
     "CAPABILITY_RECORD_TYPES",
     "CORPORATE_ACTION_SCHEMA_VERSION",
+    "CRISIS_WINDOW_DEFINITION_SCHEMA_VERSION",
     "DATE_ONLY_AVAILABILITY_CONVENTION",
     "DELISTING_EVENT_SCHEMA_VERSION",
     "INSTRUMENT_IDENTITY_SCHEMA_VERSION",
     "LISTING_IDENTITY_SCHEMA_VERSION",
+    "MACRO_RATE_OBSERVATION_SCHEMA_VERSION",
     "NORMALIZED_OBSERVATION_SCHEMA_VERSION",
     "OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION",
     "OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION",
     "OHLCV_BAR_SCHEMA_VERSION",
     "PHASE4_AUTHORIZED_CAPABILITIES",
     "PHASE4_CAPABILITY_RECORD_TYPES",
+    "PHASE4_DATA_CAPABILITIES",
     "PHASE4_SCHEMA_CONSTANTS",
     "PHASE6_DATA_CONTRACT_CONSTANTS",
     "PHASE6_DATA_CONTRACT_VERSION",
@@ -1923,6 +2027,7 @@ __all__ = [
     "ConstituentDisposition",
     "CorporateActionPayload",
     "CorporateActionType",
+    "CrisisWindowDefinitionPayload",
     "DataCapability",
     "DataQualityCode",
     "DataQualityFinding",
@@ -1941,6 +2046,7 @@ __all__ = [
     "InstrumentType",
     "ListingIdentityPayload",
     "ListingStatus",
+    "MacroRateObservationPayload",
     "MembershipStatus",
     "MissingnessReason",
     "MockConfigurationIdentity",

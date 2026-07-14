@@ -60,7 +60,8 @@ def _phase4_snapshot_frozen_versions_constraint(*, extended: bool) -> str:
     fixture_constraint = (
         "fixture_set_version IN ("
         "'phase4-synthetic-pit-fixtures-v1',"
-        "'phase6-synthetic-pit-fixtures-v1')"
+        "'phase6-synthetic-pit-fixtures-v1',"
+        "'phase6-synthetic-pit-fixtures-v2')"
         if extended
         else "fixture_set_version = 'phase4-synthetic-pit-fixtures-v1'"
     )
@@ -74,9 +75,23 @@ def _phase4_snapshot_frozen_versions_constraint(*, extended: bool) -> str:
     )
 
 
+def _phase4_snapshot_capability_constraint(*, extended: bool) -> str:
+    capabilities = (
+        "'security_master','universe_membership','ohlcv','corporate_actions',"
+        "'delistings','as_reported_fundamentals','trading_calendar',"
+        "'volatility_return_inputs','official_document_event_metadata'"
+    )
+    if extended:
+        capabilities += ",'macro_regime_inputs'"
+    return f"capability IN ({capabilities})"
+
+
 def _phase4_quality_finding_identity_constraint(*, extended: bool) -> str:
     rule_set_constraint = (
-        "rule_set_version IN ('phase4-data-quality-v1','phase6-data-contract-quality-v1')"
+        "rule_set_version IN ("
+        "'phase4-data-quality-v1',"
+        "'phase6-data-contract-quality-v1',"
+        "'phase6-data-contract-quality-v2')"
         if extended
         else "rule_set_version = 'phase4-data-quality-v1'"
     )
@@ -123,6 +138,12 @@ def _phase4_record_type_function(*, extended: bool) -> str:
         if extended
         else "checked_record_type = 'official_document_event'"
     )
+    macro_branch = (
+        "\n                WHEN 'macro_regime_inputs' THEN checked_record_type IN ("
+        "'macro_rate_observation', 'crisis_window_definition')"
+        if extended
+        else ""
+    )
     return f"""
         CREATE OR REPLACE FUNCTION phase4_record_type_matches_capability(
             checked_record_type text,
@@ -143,7 +164,7 @@ def _phase4_record_type_function(*, extended: bool) -> str:
                 WHEN 'volatility_return_inputs' THEN
                     checked_record_type = 'volatility_return_input'
                 WHEN 'official_document_event_metadata' THEN
-                    {official_condition}
+                    {official_condition}{macro_branch}
                 ELSE false
             END
         $$ LANGUAGE sql IMMUTABLE
@@ -151,6 +172,7 @@ def _phase4_record_type_function(*, extended: bool) -> str:
 
 
 def _phase4_snapshot_request_function(*, extended: bool) -> str:
+    family_a_extra = "                    'macro_regime_inputs',\n" if extended else ""
     family_b_extra = (
         "'security_master','universe_membership',\n                    " if extended else ""
     )
@@ -161,6 +183,7 @@ def _phase4_snapshot_request_function(*, extended: bool) -> str:
         if extended
         else "NEW.capability <> 'official_document_event_metadata'"
     )
+    vocabulary_extra = ",\n                    'macro_regime_inputs'" if extended else ""
     return f"""
         CREATE OR REPLACE FUNCTION validate_phase4_snapshot_request()
         RETURNS trigger AS $$
@@ -215,7 +238,7 @@ def _phase4_snapshot_request_function(*, extended: bool) -> str:
 
             IF mapping.canonical_family = 'A_CROSS_SECTIONAL_EQUITY_RANKING' THEN
                 IF NEW.capability NOT IN (
-                    'security_master',
+{family_a_extra}                    'security_master',
                     'universe_membership',
                     'ohlcv',
                     'corporate_actions',
@@ -264,7 +287,7 @@ def _phase4_snapshot_request_function(*, extended: bool) -> str:
                 WHERE value NOT IN (
                     'security_master','universe_membership','ohlcv','corporate_actions',
                     'delistings','as_reported_fundamentals','trading_calendar',
-                    'volatility_return_inputs','official_document_event_metadata'
+                    'volatility_return_inputs','official_document_event_metadata'{vocabulary_extra}
                 )
             ) THEN
                 RAISE EXCEPTION 'Phase 4 adapter capability vocabulary is closed';
@@ -383,12 +406,121 @@ def _phase4_record_type_constraint(*, extended: bool) -> str:
         "'official_document_event','volatility_return_input'"
     )
     if extended:
-        values += ",'sector_classification','official_document_content','social_attention'"
+        values += (
+            ",'sector_classification','official_document_content','social_attention'"
+            ",'macro_rate_observation','crisis_window_definition'"
+        )
     return values
+
+
+def _phase4_normalized_identity_scope_bridge_sql(*, extended: bool) -> str:
+    base_scope = r"""            IF normalized_record_type <> 'calendar_session'
+                    AND NEW.instrument_id IS NULL
+                OR normalized_record_type IN (
+                    'listing_identity','universe_membership','ohlcv_bar',
+                    'delisting_event','volatility_return_input'
+                ) AND NEW.listing_id IS NULL
+                OR normalized_record_type IN ('instrument_identity','calendar_session')
+                    AND NEW.listing_id IS NOT NULL
+                OR normalized_record_type = 'calendar_session'
+                    AND NEW.instrument_id IS NOT NULL THEN"""
+    extended_scope = r"""            IF normalized_record_type NOT IN (
+                    'calendar_session','macro_rate_observation',
+                    'crisis_window_definition'
+                ) AND NEW.instrument_id IS NULL
+                OR normalized_record_type IN (
+                    'listing_identity','universe_membership','ohlcv_bar',
+                    'delisting_event','volatility_return_input'
+                ) AND NEW.listing_id IS NULL
+                OR normalized_record_type IN (
+                    'instrument_identity','calendar_session','macro_rate_observation',
+                    'crisis_window_definition'
+                ) AND NEW.listing_id IS NOT NULL
+                OR normalized_record_type IN (
+                    'calendar_session','macro_rate_observation','crisis_window_definition'
+                ) AND NEW.instrument_id IS NOT NULL THEN"""
+    source_scope, target_scope = (
+        (base_scope, extended_scope) if extended else (extended_scope, base_scope)
+    )
+    return f"""
+        DO $phase6_normalized_scope$
+        DECLARE
+            function_sql text;
+            replaced_sql text;
+        BEGIN
+            SELECT pg_get_functiondef(
+                'validate_phase4_normalized_observation()'::regprocedure
+            ) INTO function_sql;
+            replaced_sql := replace(
+                function_sql,
+                $phase6_scope_source${source_scope}$phase6_scope_source$,
+                $phase6_scope_target${target_scope}$phase6_scope_target$
+            );
+            IF replaced_sql IS NOT DISTINCT FROM function_sql THEN
+                RAISE EXCEPTION
+                    'Phase 6 could not bridge normalized global identity scope';
+            END IF;
+            EXECUTE replaced_sql;
+        END;
+        $phase6_normalized_scope$;
+    """
 
 
 def _phase5_source_lineage_bridge_sql() -> str:
     return r"""
+        CREATE FUNCTION phase6_source_payload_equivalent(
+            checked_capability text,
+            left_value jsonb,
+            right_value jsonb
+        ) RETURNS boolean AS $$
+        DECLARE
+            rate_field text;
+            numeric_pattern constant text := '^[+-]?[0-9]+([.][0-9]+)?$';
+        BEGIN
+            IF checked_capability IS DISTINCT FROM 'macro_regime_inputs'
+               OR left_value->>'record_type'
+                    IS DISTINCT FROM 'macro_rate_observation'
+               OR right_value->>'record_type'
+                    IS DISTINCT FROM 'macro_rate_observation' THEN
+                RETURN phase5_json_payload_equivalent(left_value, right_value);
+            END IF;
+
+            IF jsonb_typeof(left_value) IS DISTINCT FROM 'object'
+               OR jsonb_typeof(right_value) IS DISTINCT FROM 'object'
+               OR NOT left_value ?& ARRAY[
+                    'rate_value','previous_rate_value','rate_change'
+               ]
+               OR NOT right_value ?& ARRAY[
+                    'rate_value','previous_rate_value','rate_change'
+               ]
+               OR NOT phase5_json_payload_equivalent(
+                    left_value - ARRAY[
+                        'rate_value','previous_rate_value','rate_change'
+                    ]::text[],
+                    right_value - ARRAY[
+                        'rate_value','previous_rate_value','rate_change'
+                    ]::text[]
+               ) THEN
+                RETURN FALSE;
+            END IF;
+
+            FOREACH rate_field IN ARRAY ARRAY[
+                'rate_value','previous_rate_value','rate_change'
+            ]
+            LOOP
+                IF jsonb_typeof(left_value->rate_field) IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(right_value->rate_field) IS DISTINCT FROM 'string'
+                   OR left_value->>rate_field !~ numeric_pattern
+                   OR right_value->>rate_field !~ numeric_pattern
+                   OR (left_value->>rate_field)::numeric
+                        IS DISTINCT FROM (right_value->>rate_field)::numeric THEN
+                    RETURN FALSE;
+                END IF;
+            END LOOP;
+            RETURN TRUE;
+        END;
+        $$ LANGUAGE plpgsql IMMUTABLE;
+
         CREATE FUNCTION phase6_sha256_prefix64_fraction(checked_value text)
         RETURNS numeric AS $$
         DECLARE
@@ -427,6 +559,24 @@ def _phase5_source_lineage_bridge_sql() -> str:
 
             EXECUTE 'ALTER FUNCTION validate_phase5_report_source_lineage(uuid) '
                     'RENAME TO validate_phase5_report_source_lineage_phase5_base';
+
+            replaced_sql := replace(
+                function_sql,
+$o$               OR NOT phase5_json_payload_equivalent(
+                    source_item#>'{normalized_observation,payload}',
+                    observation.payload
+               )$o$,
+$n$               OR NOT phase6_source_payload_equivalent(
+                    source_item#>>'{key,capability}',
+                    source_item#>'{normalized_observation,payload}',
+                    observation.payload
+               )$n$
+            );
+            IF replaced_sql IS NOT DISTINCT FROM function_sql THEN
+                RAISE EXCEPTION
+                    'Phase 6 could not extend macro source-payload equivalence';
+            END IF;
+            function_sql := replaced_sql;
 
             replaced_sql := replace(
                 function_sql,
@@ -769,6 +919,16 @@ $n$            SELECT count(*) INTO invalid_membership_count
 def upgrade() -> None:
     # Additive prerequisites for the authorized Phase 6 research families.
     op.drop_constraint(
+        "ck_data_snapshot_capability",
+        "data_snapshots",
+        type_="check",
+    )
+    op.create_check_constraint(
+        "ck_data_snapshot_capability",
+        "data_snapshots",
+        _phase4_snapshot_capability_constraint(extended=True),
+    )
+    op.drop_constraint(
         "ck_data_snapshot_frozen_versions",
         "data_snapshots",
         type_="check",
@@ -821,6 +981,7 @@ def upgrade() -> None:
     )
     op.execute(_phase4_record_type_function(extended=True))
     op.execute(_phase4_snapshot_request_function(extended=True))
+    op.execute(_phase4_normalized_identity_scope_bridge_sql(extended=True))
 
     # Preserve the byte-identical Phase 5 validator under a private name, then
     # install only the two additive Phase 6 lineage shapes. Downgrade restores
@@ -877,11 +1038,11 @@ def upgrade() -> None:
             name="ck_research_pipeline_run_hashes",
         ),
         sa.CheckConstraint(
-            "schema_version = 'phase6-research-artifact-v1' "
+            "schema_version = 'phase6-research-artifact-v2' "
             "AND configuration_id IN ("
-            "'phase6-a-pass-v1','phase6-a-fail-cost-v1',"
-            "'phase6-b-pass-v1','phase6-b-fail-crash-v1',"
-            "'phase6-c-pass-v1','phase6-c-fail-corroboration-v1') "
+            "'phase6-a-pass-v2','phase6-a-fail-cost-v2',"
+            "'phase6-b-pass-v2','phase6-b-fail-crash-v2',"
+            "'phase6-c-pass-v2','phase6-c-fail-corroboration-v2') "
             "AND phase5_policy_version >= 1 "
             "AND btrim(phase5_fixture_id) <> ''",
             name="ck_research_pipeline_run_identity",
@@ -986,7 +1147,8 @@ def upgrade() -> None:
             "ordinal >= 1 AND capability IN ("
             "'security_master','universe_membership','ohlcv','corporate_actions',"
             "'delistings','as_reported_fundamentals','trading_calendar',"
-            "'volatility_return_inputs','official_document_event_metadata') "
+            "'volatility_return_inputs','official_document_event_metadata',"
+            "'macro_regime_inputs') "
             "AND jsonb_typeof(payload) = 'object'",
             name="ck_research_pipeline_snapshot_binding_identity",
         ),
@@ -1395,12 +1557,360 @@ def upgrade() -> None:
             """
         )
 
+    # Keep the database authority boundary on the same canonical bytes used by
+    # the Phase 6 Pydantic contracts. jsonb's built-in text form contains
+    # insignificant whitespace, so render recursively before hashing.
+    op.execute(
+        """
+        CREATE FUNCTION phase6_canonical_json(checked_value jsonb)
+        RETURNS text AS $$
+        DECLARE
+            rendered text;
+        BEGIN
+            CASE jsonb_typeof(checked_value)
+                WHEN 'object' THEN
+                    SELECT '{' || COALESCE(
+                        string_agg(
+                            to_jsonb(key)::text || ':' || phase6_canonical_json(value),
+                            ',' ORDER BY key COLLATE "C"
+                        ),
+                        ''
+                    ) || '}'
+                    INTO rendered
+                    FROM jsonb_each(checked_value);
+                    RETURN rendered;
+                WHEN 'array' THEN
+                    SELECT '[' || COALESCE(
+                        string_agg(
+                            phase6_canonical_json(value),
+                            ',' ORDER BY ordinal
+                        ),
+                        ''
+                    ) || ']'
+                    INTO rendered
+                    FROM jsonb_array_elements(checked_value)
+                         WITH ORDINALITY AS item(value, ordinal);
+                    RETURN rendered;
+                WHEN 'string' THEN
+                    RETURN to_jsonb(checked_value #>> ARRAY[]::text[])::text;
+                ELSE
+                    RETURN checked_value::text;
+            END CASE;
+        END;
+        $$ LANGUAGE plpgsql IMMUTABLE STRICT
+        """
+    )
+    op.execute(
+        """
+        CREATE FUNCTION phase6_domain_sha256(hash_domain text, checked_value jsonb)
+        RETURNS text AS $$
+            SELECT encode(
+                sha256(
+                    convert_to(hash_domain, 'UTF8')
+                    || decode('00', 'hex')
+                    || convert_to(phase6_canonical_json(checked_value), 'UTF8')
+                ),
+                'hex'
+            )
+        $$ LANGUAGE sql IMMUTABLE STRICT
+        """
+    )
+    op.execute(
+        """
+        CREATE FUNCTION phase6_sha1(checked_value bytea)
+        RETURNS bytea AS $$
+        DECLARE
+            message bytea;
+            original_bit_length bigint;
+            block_offset integer;
+            word_index integer;
+            round_index integer;
+            words bigint[];
+            h0 bigint := 1732584193;
+            h1 bigint := 4023233417;
+            h2 bigint := 2562383102;
+            h3 bigint := 271733878;
+            h4 bigint := 3285377520;
+            a bigint;
+            b bigint;
+            c bigint;
+            d bigint;
+            e bigint;
+            f bigint;
+            k bigint;
+            temporary bigint;
+            mask constant bigint := 4294967295;
+        BEGIN
+            original_bit_length := octet_length(checked_value)::bigint * 8;
+            message := checked_value || decode('80', 'hex');
+            WHILE octet_length(message) % 64 <> 56 LOOP
+                message := message || decode('00', 'hex');
+            END LOOP;
+            message := message || decode(
+                lpad(to_hex(original_bit_length), 16, '0'),
+                'hex'
+            );
+
+            block_offset := 0;
+            WHILE block_offset < octet_length(message) LOOP
+                words := ARRAY[]::bigint[];
+                FOR word_index IN 0..15 LOOP
+                    words[word_index] := (
+                        (get_byte(message, block_offset + word_index * 4)::bigint << 24)
+                        | (get_byte(message, block_offset + word_index * 4 + 1)::bigint << 16)
+                        | (get_byte(message, block_offset + word_index * 4 + 2)::bigint << 8)
+                        | get_byte(message, block_offset + word_index * 4 + 3)::bigint
+                    ) & mask;
+                END LOOP;
+                FOR word_index IN 16..79 LOOP
+                    temporary := words[word_index - 3]
+                        # words[word_index - 8]
+                        # words[word_index - 14]
+                        # words[word_index - 16];
+                    words[word_index] := (
+                        (temporary << 1) | (temporary >> 31)
+                    ) & mask;
+                END LOOP;
+
+                a := h0;
+                b := h1;
+                c := h2;
+                d := h3;
+                e := h4;
+                FOR round_index IN 0..79 LOOP
+                    IF round_index <= 19 THEN
+                        f := ((b & c) | ((~b) & d)) & mask;
+                        k := 1518500249;
+                    ELSIF round_index <= 39 THEN
+                        f := (b # c # d) & mask;
+                        k := 1859775393;
+                    ELSIF round_index <= 59 THEN
+                        f := ((b & c) | (b & d) | (c & d)) & mask;
+                        k := 2400959708;
+                    ELSE
+                        f := (b # c # d) & mask;
+                        k := 3395469782;
+                    END IF;
+                    temporary := (
+                        ((a << 5) | (a >> 27)) + f + e + k + words[round_index]
+                    ) & mask;
+                    e := d;
+                    d := c;
+                    c := ((b << 30) | (b >> 2)) & mask;
+                    b := a;
+                    a := temporary;
+                END LOOP;
+                h0 := (h0 + a) & mask;
+                h1 := (h1 + b) & mask;
+                h2 := (h2 + c) & mask;
+                h3 := (h3 + d) & mask;
+                h4 := (h4 + e) & mask;
+                block_offset := block_offset + 64;
+            END LOOP;
+
+            RETURN decode(
+                lpad(to_hex(h0), 8, '0')
+                || lpad(to_hex(h1), 8, '0')
+                || lpad(to_hex(h2), 8, '0')
+                || lpad(to_hex(h3), 8, '0')
+                || lpad(to_hex(h4), 8, '0'),
+                'hex'
+            );
+        END;
+        $$ LANGUAGE plpgsql IMMUTABLE STRICT
+        """
+    )
+    op.execute(
+        """
+        CREATE FUNCTION phase6_uuid5(namespace_value uuid, identity_name text)
+        RETURNS uuid AS $$
+        DECLARE
+            hashed bytea;
+            rendered text;
+        BEGIN
+            hashed := phase6_sha1(
+                decode(replace(namespace_value::text, '-', ''), 'hex')
+                || convert_to(identity_name, 'UTF8')
+            );
+            hashed := set_byte(hashed, 6, (get_byte(hashed, 6) & 15) | 80);
+            hashed := set_byte(hashed, 8, (get_byte(hashed, 8) & 63) | 128);
+            rendered := encode(substring(hashed FROM 1 FOR 16), 'hex');
+            RETURN (
+                substring(rendered FROM 1 FOR 8) || '-'
+                || substring(rendered FROM 9 FOR 4) || '-'
+                || substring(rendered FROM 13 FOR 4) || '-'
+                || substring(rendered FROM 17 FOR 4) || '-'
+                || substring(rendered FROM 21 FOR 12)
+            )::uuid;
+        END;
+        $$ LANGUAGE plpgsql IMMUTABLE STRICT
+        """
+    )
+
     op.execute(
         """
         CREATE FUNCTION validate_phase6_payload_columns()
         RETURNS trigger AS $$
+        DECLARE
+            artifact_preimage jsonb;
+            request_preimage jsonb;
+            expected_hash text;
+            evidence_item jsonb;
+            nested_item jsonb;
+            canonical_values jsonb;
         BEGIN
             IF TG_TABLE_NAME = 'research_pipeline_runs' THEN
+                IF (
+                    SELECT count(*)
+                    FROM jsonb_object_keys(NEW.artifact_payload)
+                   ) <> 36
+                   OR NOT NEW.artifact_payload ?& ARRAY[
+                        'artifact_schema_version',
+                        'request_fingerprint_sha256','pipeline_input_sha256',
+                        'configuration_id','configuration_sha256','mapping_id',
+                        'mapping_version','mapping_input_sha256','family','specification',
+                        'snapshot_bindings','calendar_source_references','regime_evidence',
+                        'confirmation_interval','boundary_exclusions',
+                        'source_reproduction_audit','snapshot_bundle_sha256','feature_rows',
+                        'feature_lineage_sha256','scores','model_output_sets',
+                        'trial_economics','attempts','baseline_comparisons','family_evidence',
+                        'phase5_evaluation','code_version_git_sha','random_seed',
+                        'status','reason_codes','warnings','synthetic',
+                        'no_real_performance_claimed',
+                        'pass_research_is_not_paper_approval','paper_approval_granted',
+                        'disclaimer'
+                   ]
+                   OR jsonb_typeof(NEW.artifact_payload->'specification') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'regime_evidence') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'confirmation_interval') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'source_reproduction_audit') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'family_evidence') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'phase5_evaluation') <> 'object'
+                   OR jsonb_typeof(NEW.artifact_payload->'snapshot_bindings') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'snapshot_bindings') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'calendar_source_references') <> 'array'
+                   OR jsonb_typeof(NEW.artifact_payload->'boundary_exclusions') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'boundary_exclusions') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'feature_rows') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'feature_rows') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'scores') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'scores') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'model_output_sets') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'model_output_sets') <> 4
+                   OR jsonb_typeof(NEW.artifact_payload->'trial_economics') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'trial_economics') <> 4
+                   OR jsonb_typeof(NEW.artifact_payload->'attempts') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'attempts') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'baseline_comparisons') <> 'array'
+                   OR jsonb_array_length(NEW.artifact_payload->'baseline_comparisons') < 1
+                   OR jsonb_typeof(NEW.artifact_payload->'reason_codes') <> 'array'
+                   OR jsonb_typeof(NEW.artifact_payload->'warnings') <> 'array'
+                   OR jsonb_typeof(NEW.artifact_payload->'mapping_version') <> 'number'
+                   OR jsonb_typeof(NEW.artifact_payload->'random_seed') <> 'number'
+                   OR jsonb_typeof(NEW.artifact_payload->'synthetic') <> 'boolean'
+                   OR jsonb_typeof(
+                        NEW.artifact_payload->'no_real_performance_claimed'
+                   ) <> 'boolean'
+                   OR jsonb_typeof(
+                        NEW.artifact_payload->'pass_research_is_not_paper_approval'
+                   ) <> 'boolean'
+                   OR jsonb_typeof(NEW.artifact_payload->'paper_approval_granted') <> 'boolean'
+                   OR NEW.artifact_payload#>>'{specification,schema_version}'
+                        <> 'phase6-research-specification-v2'
+                   OR NEW.artifact_payload#>>'{regime_evidence,schema_version}'
+                        <> 'phase6-prepared-regime-evidence-v2'
+                   OR NOT (NEW.artifact_payload->'regime_evidence') ?& ARRAY[
+                        'schema_version','evidence_state','rate_definition_id',
+                        'rate_observations','crisis_definition_id','crisis_windows',
+                        'unavailable_reason','evidence_sha256'
+                   ]
+                   OR NOT (NEW.artifact_payload->'confirmation_interval') ?& ARRAY[
+                        'schema_version','confirmation_id','confirmation_sha256','sample_id',
+                        'interval_start_utc','interval_end_utc','opening_rule',
+                        'source_references','label_value','label_source_references',
+                        'label_opened'
+                   ]
+                   OR NOT (NEW.artifact_payload->'source_reproduction_audit') ?& ARRAY[
+                        'schema_version','audit_id','audit_sha256','configuration_id',
+                        'snapshot_bindings','snapshot_set_sha256',
+                        'supplied_pipeline_input_sha256',
+                        'reproduced_pipeline_input_sha256','supplied_payload_sha256',
+                        'reproduced_payload_sha256','exact_match'
+                   ]
+                   OR NOT (NEW.artifact_payload->'phase5_evaluation') ?& ARRAY[
+                        'policy_id','policy_version','policy_sha256','fixture_id',
+                        'fixture_sha256','config_hash','snapshot_bundle_sha256',
+                        'evaluation_report_id','evaluation_report_sha256',
+                        'evaluation_outcome_id','promotion_state','gate_codes',
+                        'raw_trial_count','effective_trial_count',
+                        'phase5_trial_set_sha256'
+                   ] THEN
+                    RAISE EXCEPTION
+                        'Phase 6 run artifact is missing complete typed audit evidence';
+                END IF;
+
+                IF EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'calendar_source_references'
+                    ) AS item(value)
+                    WHERE jsonb_typeof(value) <> 'object'
+                       OR NOT value ?& ARRAY[
+                            'capability','snapshot_id','snapshot_sha256',
+                            'raw_observation_id','observation_revision_id',
+                            'normalized_observation_id','raw_payload_sha256',
+                            'normalized_content_sha256','record_type','source_record_id',
+                            'instrument_id','listing_id','available_at_utc','valid_from_utc',
+                            'valid_to_utc'
+                       ]
+                ) OR EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'boundary_exclusions'
+                    ) AS item(value)
+                    WHERE jsonb_typeof(value) <> 'object'
+                       OR NOT value ?& ARRAY[
+                            'schema_version','exclusion_id','exclusion_sha256','sample_id',
+                            'decision_time_utc','label_t0_utc','label_t1_utc',
+                            'exclusion_rule','label_value','label_source_references',
+                            'label_opened'
+                       ]
+                ) OR EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'model_output_sets'
+                    ) AS item(value)
+                    WHERE jsonb_typeof(value) <> 'object'
+                       OR NOT value ?& ARRAY[
+                            'schema_version','ordinal','output_set_id','output_set_sha256',
+                            'model_output_sha256','trial_key','model_id','output_semantics',
+                            'outputs','ledger_cells'
+                       ]
+                       OR value->>'schema_version'
+                            <> 'phase6-phase5-model-output-set-v2'
+                       OR jsonb_typeof(value->'outputs') <> 'array'
+                       OR jsonb_array_length(value->'outputs') < 1
+                       OR jsonb_typeof(value->'ledger_cells') <> 'array'
+                       OR jsonb_array_length(value->'ledger_cells') < 1
+                ) OR EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'trial_economics'
+                    ) AS item(value)
+                    WHERE jsonb_typeof(value) <> 'object'
+                       OR NOT value ?& ARRAY[
+                            'schema_version','ordinal','trial_key','model_id',
+                            'output_set_sha256','sample_economics','cost_set_sha256',
+                            'economics_sha256'
+                       ]
+                       OR value->>'schema_version' <> 'phase6-trial-economics-v1'
+                       OR jsonb_typeof(value->'sample_economics') <> 'array'
+                       OR jsonb_array_length(value->'sample_economics') < 1
+                ) THEN
+                    RAISE EXCEPTION
+                        'Phase 6 run artifact contains incomplete nested audit evidence';
+                END IF;
+
                 IF NEW.artifact_payload->>'artifact_schema_version'
                         IS DISTINCT FROM NEW.schema_version
                    OR NEW.artifact_payload->>'request_fingerprint_sha256'
@@ -1443,6 +1953,276 @@ def upgrade() -> None:
                         IS DISTINCT FROM NEW.paper_approval_granted THEN
                     RAISE EXCEPTION 'Phase 6 run payload differs from bound columns';
                 END IF;
+
+                artifact_preimage := NEW.artifact_payload;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-artifact-v2',
+                    artifact_preimage
+                );
+                IF expected_hash IS DISTINCT FROM NEW.artifact_sha256 THEN
+                    RAISE EXCEPTION 'Phase 6 research artifact canonical hash mismatch';
+                END IF;
+
+                request_preimage := jsonb_build_object(
+                    'mapping_id', NEW.artifact_payload->'mapping_id',
+                    'mapping_version', NEW.artifact_payload->'mapping_version',
+                    'mapping_input_sha256', NEW.artifact_payload->'mapping_input_sha256',
+                    'snapshot_bundle_sha256', NEW.artifact_payload->'snapshot_bundle_sha256',
+                    'configuration_id', NEW.artifact_payload->'configuration_id',
+                    'configuration_sha256', NEW.artifact_payload->'configuration_sha256',
+                    'specification_sha256',
+                        NEW.artifact_payload#>'{specification,specification_sha256}',
+                    'code_version_git_sha', NEW.artifact_payload->'code_version_git_sha',
+                    'random_seed', NEW.artifact_payload->'random_seed',
+                    'pipeline_input_sha256', NEW.artifact_payload->'pipeline_input_sha256'
+                );
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-request-v2',
+                    request_preimage
+                );
+                IF expected_hash IS DISTINCT FROM NEW.request_fingerprint_sha256
+                   OR phase6_uuid5(
+                        '09972cb7-9a87-543c-a70a-3835ee8e593c'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.id THEN
+                    RAISE EXCEPTION 'Phase 6 research request canonical identity mismatch';
+                END IF;
+
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-specification-v2',
+                    (NEW.artifact_payload->'specification') - 'specification_sha256'::text
+                );
+                IF expected_hash IS DISTINCT FROM NEW.specification_sha256 THEN
+                    RAISE EXCEPTION 'Phase 6 research specification canonical hash mismatch';
+                END IF;
+
+                expected_hash := phase6_domain_sha256(
+                    'phase6-prepared-regime-evidence-v2',
+                    (NEW.artifact_payload->'regime_evidence') - 'evidence_sha256'::text
+                );
+                IF expected_hash IS DISTINCT FROM
+                        NEW.artifact_payload#>>'{regime_evidence,evidence_sha256}' THEN
+                    RAISE EXCEPTION 'Phase 6 regime evidence canonical hash mismatch';
+                END IF;
+
+                expected_hash := phase6_domain_sha256(
+                    'phase6-label-blind-confirmation-interval-v1',
+                    (NEW.artifact_payload->'confirmation_interval')
+                        - ARRAY['confirmation_id','confirmation_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM
+                        NEW.artifact_payload#>>'{confirmation_interval,confirmation_sha256}'
+                   OR phase6_uuid5(
+                        'e1f51308-3ab0-56d3-9ad8-26258a3b97bd'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM (
+                        NEW.artifact_payload#>>'{confirmation_interval,confirmation_id}'
+                   )::uuid THEN
+                    RAISE EXCEPTION 'Phase 6 confirmation canonical identity mismatch';
+                END IF;
+
+                FOR evidence_item IN
+                    SELECT value
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'boundary_exclusions'
+                    ) AS item(value)
+                LOOP
+                    expected_hash := phase6_domain_sha256(
+                        'phase6-confirmation-boundary-exclusion-v1',
+                        evidence_item - ARRAY['exclusion_id','exclusion_sha256']::text[]
+                    );
+                    IF expected_hash IS DISTINCT FROM evidence_item->>'exclusion_sha256'
+                       OR phase6_uuid5(
+                            '622404af-e922-599f-98dd-2d7ccb32176c'::uuid,
+                            expected_hash
+                       ) IS DISTINCT FROM (evidence_item->>'exclusion_id')::uuid THEN
+                        RAISE EXCEPTION
+                            'Phase 6 boundary exclusion canonical identity mismatch';
+                    END IF;
+                END LOOP;
+
+                canonical_values :=
+                    NEW.artifact_payload#>'{source_reproduction_audit,snapshot_bindings}';
+                IF jsonb_typeof(canonical_values) <> 'array'
+                   OR jsonb_array_length(canonical_values) < 1
+                   OR NOT (
+                        canonical_values @> (NEW.artifact_payload->'snapshot_bindings')
+                   )
+                   OR NOT (
+                        (NEW.artifact_payload->'snapshot_bindings') @> canonical_values
+                   )
+                   OR jsonb_array_length(canonical_values) <>
+                        jsonb_array_length(NEW.artifact_payload->'snapshot_bindings')
+                   OR phase6_domain_sha256(
+                        'phase6-prepared-source-reproduction-snapshot-set-v1',
+                        canonical_values
+                   ) IS DISTINCT FROM NEW.artifact_payload#>>
+                        '{source_reproduction_audit,snapshot_set_sha256}'
+                   OR NEW.artifact_payload#>>
+                        '{source_reproduction_audit,configuration_id}'
+                        IS DISTINCT FROM NEW.configuration_id
+                   OR NEW.artifact_payload#>>
+                        '{source_reproduction_audit,supplied_pipeline_input_sha256}'
+                        IS DISTINCT FROM NEW.artifact_payload->>'pipeline_input_sha256'
+                   OR NEW.artifact_payload#>>
+                        '{source_reproduction_audit,reproduced_pipeline_input_sha256}'
+                        IS DISTINCT FROM NEW.artifact_payload->>'pipeline_input_sha256'
+                   OR (NEW.artifact_payload#>>
+                        '{source_reproduction_audit,exact_match}')::boolean
+                        IS DISTINCT FROM TRUE THEN
+                    RAISE EXCEPTION 'Phase 6 source reproduction evidence mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-prepared-source-reproduction-audit-v1',
+                    (NEW.artifact_payload->'source_reproduction_audit')
+                        - ARRAY['audit_id','audit_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM
+                        NEW.artifact_payload#>>'{source_reproduction_audit,audit_sha256}'
+                   OR phase6_uuid5(
+                        '2c2b48ec-b10c-5de8-8e77-f32455baa214'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM (
+                        NEW.artifact_payload#>>'{source_reproduction_audit,audit_id}'
+                   )::uuid THEN
+                    RAISE EXCEPTION
+                        'Phase 6 source reproduction canonical identity mismatch';
+                END IF;
+
+                FOR evidence_item IN
+                    SELECT value
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'model_output_sets'
+                    ) AS item(value)
+                LOOP
+                    SELECT COALESCE(
+                        jsonb_agg(
+                            jsonb_build_array(
+                                output_item->'sample_id',
+                                output_item->'output_value'
+                            ) ORDER BY output_item->>'sample_id'
+                        ),
+                        '[]'::jsonb
+                    ) INTO canonical_values
+                    FROM jsonb_array_elements(evidence_item->'outputs') AS output(value)
+                    CROSS JOIN LATERAL (SELECT output.value AS output_item) AS normalized;
+                    IF phase6_domain_sha256(
+                            'phase6-model-output-set-v2',
+                            canonical_values
+                       ) IS DISTINCT FROM evidence_item->>'model_output_sha256' THEN
+                        RAISE EXCEPTION 'Phase 6 model output values canonical hash mismatch';
+                    END IF;
+
+                    FOR nested_item IN
+                        SELECT value
+                        FROM jsonb_array_elements(evidence_item->'ledger_cells') AS item(value)
+                    LOOP
+                        IF nested_item->>'schema_version'
+                                <> 'phase6-research-ledger-cell-v2' THEN
+                            RAISE EXCEPTION 'Phase 6 research ledger schema mismatch';
+                        END IF;
+                        canonical_values := jsonb_build_array(
+                            nested_item->'sample_id',
+                            nested_item->'label_value',
+                            nested_item->'label_t0_utc',
+                            nested_item->'label_t1_utc',
+                            nested_item->'label_source_references'
+                        );
+                        IF phase6_domain_sha256(
+                                'phase6-research-ledger-label-v1',
+                                canonical_values
+                           ) IS DISTINCT FROM nested_item->>'label_sha256' THEN
+                            RAISE EXCEPTION 'Phase 6 research ledger label hash mismatch';
+                        END IF;
+                        expected_hash := phase6_domain_sha256(
+                            'phase6-research-ledger-cell-v2',
+                            nested_item - ARRAY['cell_id','cell_sha256']::text[]
+                        );
+                        IF expected_hash IS DISTINCT FROM nested_item->>'cell_sha256'
+                           OR phase6_uuid5(
+                                '7f6f32a5-7a42-5b3b-b61b-8deded858289'::uuid,
+                                expected_hash
+                           ) IS DISTINCT FROM (nested_item->>'cell_id')::uuid THEN
+                            RAISE EXCEPTION
+                                'Phase 6 research ledger cell canonical identity mismatch';
+                        END IF;
+                    END LOOP;
+
+                    expected_hash := phase6_domain_sha256(
+                        'phase6-phase5-model-output-registry-entry-v2',
+                        evidence_item - ARRAY['output_set_id','output_set_sha256']::text[]
+                    );
+                    IF expected_hash IS DISTINCT FROM evidence_item->>'output_set_sha256'
+                       OR phase6_uuid5(
+                            '5d4d79be-eaa1-5d41-912c-407d5837bcc1'::uuid,
+                            expected_hash
+                       ) IS DISTINCT FROM (evidence_item->>'output_set_id')::uuid THEN
+                        RAISE EXCEPTION
+                            'Phase 6 model output set canonical identity mismatch';
+                    END IF;
+                END LOOP;
+
+                FOR evidence_item IN
+                    SELECT value
+                    FROM jsonb_array_elements(
+                        NEW.artifact_payload->'trial_economics'
+                    ) AS item(value)
+                LOOP
+                    FOR nested_item IN
+                        SELECT value
+                        FROM jsonb_array_elements(
+                            evidence_item->'sample_economics'
+                        ) AS item(value)
+                    LOOP
+                        IF jsonb_typeof(nested_item) <> 'object'
+                           OR NOT nested_item ?& ARRAY[
+                                'schema_version','ordinal','sample_id','model_output',
+                                'synthetic_research_weight','return_status',
+                                'synthetic_gross_return','cost_entries','evidence_sha256'
+                           ]
+                           OR nested_item->>'schema_version'
+                                <> 'phase6-trial-sample-economics-v1'
+                           OR jsonb_typeof(nested_item->'cost_entries') <> 'array'
+                           OR jsonb_array_length(nested_item->'cost_entries') <> 3
+                           OR phase6_domain_sha256(
+                                'phase6-trial-allocation-evidence-v1',
+                                nested_item - 'evidence_sha256'::text
+                           ) IS DISTINCT FROM nested_item->>'evidence_sha256' THEN
+                            RAISE EXCEPTION
+                                'Phase 6 trial sample economics canonical hash mismatch';
+                        END IF;
+                    END LOOP;
+                    SELECT COALESCE(
+                        jsonb_agg(
+                            jsonb_build_array(
+                                sample_item->'sample_id',
+                                cost_item->'scenario',
+                                cost_item->'cost_entry_sha256'
+                            ) ORDER BY (cost_item->>'ordinal')::integer
+                        ),
+                        '[]'::jsonb
+                    ) INTO canonical_values
+                    FROM jsonb_array_elements(
+                        evidence_item->'sample_economics'
+                    ) AS sample(value)
+                    CROSS JOIN LATERAL (SELECT sample.value AS sample_item) AS sample_normalized
+                    CROSS JOIN LATERAL jsonb_array_elements(
+                        sample_item->'cost_entries'
+                    ) AS cost(value)
+                    CROSS JOIN LATERAL (SELECT cost.value AS cost_item) AS cost_normalized;
+                    IF phase6_domain_sha256(
+                            'phase6-trial-cost-ledger-set-v1',
+                            canonical_values
+                       ) IS DISTINCT FROM evidence_item->>'cost_set_sha256' THEN
+                        RAISE EXCEPTION 'Phase 6 trial cost-set canonical hash mismatch';
+                    END IF;
+                    IF phase6_domain_sha256(
+                            'phase6-trial-economics-v1',
+                            evidence_item - 'economics_sha256'::text
+                       ) IS DISTINCT FROM evidence_item->>'economics_sha256' THEN
+                        RAISE EXCEPTION 'Phase 6 trial economics canonical hash mismatch';
+                    END IF;
+                END LOOP;
             ELSIF TG_TABLE_NAME = 'research_pipeline_snapshot_bindings' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
                    OR (NEW.payload->>'snapshot_id')::uuid IS DISTINCT FROM NEW.snapshot_id
@@ -1450,6 +2230,13 @@ def upgrade() -> None:
                    OR NEW.payload->>'capability' IS DISTINCT FROM NEW.capability
                    OR NEW.payload->>'binding_sha256' IS DISTINCT FROM NEW.binding_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 snapshot-binding payload mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-snapshot-binding-v1',
+                    NEW.payload - 'binding_sha256'::text
+                );
+                IF expected_hash IS DISTINCT FROM NEW.binding_sha256 THEN
+                    RAISE EXCEPTION 'Phase 6 snapshot-binding canonical hash mismatch';
                 END IF;
             ELSIF TG_TABLE_NAME = 'research_pipeline_attempts' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
@@ -1464,6 +2251,13 @@ def upgrade() -> None:
                    OR NEW.payload->>'attempt_sha256' IS DISTINCT FROM NEW.attempt_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 attempt payload mismatch';
                 END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-attempt-v1',
+                    NEW.payload - 'attempt_sha256'::text
+                );
+                IF expected_hash IS DISTINCT FROM NEW.attempt_sha256 THEN
+                    RAISE EXCEPTION 'Phase 6 attempt canonical hash mismatch';
+                END IF;
             ELSIF TG_TABLE_NAME = 'research_feature_rows' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
                    OR (NEW.payload->>'row_id')::uuid IS DISTINCT FROM NEW.row_id
@@ -1473,6 +2267,17 @@ def upgrade() -> None:
                         IS DISTINCT FROM NEW.decision_time_utc
                    OR NEW.payload->>'row_sha256' IS DISTINCT FROM NEW.row_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 feature-row payload mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-feature-row-v1',
+                    NEW.payload - ARRAY['row_id','row_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM NEW.row_sha256
+                   OR phase6_uuid5(
+                        '5b7df50c-9da2-5f51-9b71-39187e491ce7'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.row_id THEN
+                    RAISE EXCEPTION 'Phase 6 feature-row canonical identity mismatch';
                 END IF;
             ELSIF TG_TABLE_NAME = 'research_score_outputs' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
@@ -1486,6 +2291,23 @@ def upgrade() -> None:
                    OR NEW.payload->>'output_sha256' IS DISTINCT FROM NEW.output_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 score-output payload mismatch';
                 END IF;
+                IF phase6_domain_sha256(
+                        'phase6-research-explanation-v1',
+                        NEW.payload->'explanation'
+                   ) IS DISTINCT FROM NEW.explanation_sha256 THEN
+                    RAISE EXCEPTION 'Phase 6 score explanation canonical hash mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-score-output-v1',
+                    NEW.payload - ARRAY['score_id','output_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM NEW.output_sha256
+                   OR phase6_uuid5(
+                        'e52726b7-d313-57d4-85f9-49c96816cf4e'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.score_id THEN
+                    RAISE EXCEPTION 'Phase 6 score-output canonical identity mismatch';
+                END IF;
             ELSIF TG_TABLE_NAME = 'research_baseline_comparisons' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
                    OR (NEW.payload->>'comparison_id')::uuid
@@ -1498,6 +2320,18 @@ def upgrade() -> None:
                    OR NEW.payload->>'comparison_sha256'
                         IS DISTINCT FROM NEW.comparison_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 baseline-comparison payload mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-research-baseline-comparison-v1',
+                    NEW.payload - ARRAY['comparison_id','comparison_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM NEW.comparison_sha256
+                   OR phase6_uuid5(
+                        '4b2f565f-b0bc-53dd-9097-da44e2cf6d88'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.comparison_id THEN
+                    RAISE EXCEPTION
+                        'Phase 6 baseline-comparison canonical identity mismatch';
                 END IF;
             ELSIF TG_TABLE_NAME = 'research_text_extractions' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
@@ -1517,6 +2351,17 @@ def upgrade() -> None:
                         IS DISTINCT FROM NEW.extraction_sha256 THEN
                     RAISE EXCEPTION 'Phase 6 text-extraction payload mismatch';
                 END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-text-feature-extraction-v1',
+                    NEW.payload - ARRAY['extraction_id','extraction_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM NEW.extraction_sha256
+                   OR phase6_uuid5(
+                        'aa25921e-a1a6-59e2-ae53-424560158b4c'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.extraction_id THEN
+                    RAISE EXCEPTION 'Phase 6 text-extraction canonical identity mismatch';
+                END IF;
             ELSIF TG_TABLE_NAME = 'research_text_corroborations' THEN
                 IF (NEW.payload->>'ordinal')::integer IS DISTINCT FROM NEW.ordinal
                    OR (NEW.payload->>'corroboration_id')::uuid
@@ -1533,6 +2378,17 @@ def upgrade() -> None:
                    OR (NEW.payload->>'contributes_standalone')::boolean
                         IS DISTINCT FROM FALSE THEN
                     RAISE EXCEPTION 'Phase 6 text-corroboration payload mismatch';
+                END IF;
+                expected_hash := phase6_domain_sha256(
+                    'phase6-social-official-corroboration-v1',
+                    NEW.payload - ARRAY['corroboration_id','corroboration_sha256']::text[]
+                );
+                IF expected_hash IS DISTINCT FROM NEW.corroboration_sha256
+                   OR phase6_uuid5(
+                        '573eeb0a-15fe-531a-9e60-e9972c535ba0'::uuid,
+                        expected_hash
+                   ) IS DISTINCT FROM NEW.corroboration_id THEN
+                    RAISE EXCEPTION 'Phase 6 text-corroboration canonical identity mismatch';
                 END IF;
             ELSE
                 RAISE EXCEPTION 'Phase 6 payload validator is not bound to this table';
@@ -1567,7 +2423,12 @@ def upgrade() -> None:
             FOR KEY SHARE;
             IF NOT FOUND
                OR mapping_row.research_verdict <> 'BUILD_RESEARCH'
-               OR mapping_row.canonical_family IS DISTINCT FROM NEW.canonical_family THEN
+               OR mapping_row.canonical_family IS DISTINCT FROM NEW.canonical_family
+               OR mapping_row.version_number IS DISTINCT FROM (
+                    NEW.artifact_payload->>'mapping_version'
+               )::integer
+               OR mapping_row.mapping_input_sha256 IS DISTINCT FROM
+                    NEW.artifact_payload->>'mapping_input_sha256' THEN
                 RAISE EXCEPTION 'Phase 6 run requires its exact BUILD_RESEARCH mapping';
             END IF;
 
@@ -1589,6 +2450,11 @@ def upgrade() -> None:
                 FOR KEY SHARE;
                 IF NOT FOUND
                    OR report_row.mapping_id IS DISTINCT FROM NEW.mapping_id
+                   OR report_row.mapping_version IS DISTINCT FROM (
+                        NEW.artifact_payload->>'mapping_version'
+                   )::integer
+                   OR report_row.mapping_input_sha256 IS DISTINCT FROM
+                        NEW.artifact_payload->>'mapping_input_sha256'
                    OR report_row.policy_id IS DISTINCT FROM NEW.phase5_policy_id
                    OR report_row.policy_version IS DISTINCT FROM NEW.phase5_policy_version
                    OR report_row.policy_sha256 IS DISTINCT FROM NEW.phase5_policy_sha256
@@ -1597,7 +2463,12 @@ def upgrade() -> None:
                    OR report_row.fixture_id IS DISTINCT FROM NEW.phase5_fixture_id
                    OR report_row.fixture_sha256 IS DISTINCT FROM NEW.phase5_fixture_sha256
                    OR report_row.snapshot_bundle_sha256
-                        IS DISTINCT FROM NEW.snapshot_bundle_sha256
+                         IS DISTINCT FROM NEW.snapshot_bundle_sha256
+                   OR report_row.git_sha IS DISTINCT FROM
+                        NEW.artifact_payload->>'code_version_git_sha'
+                   OR report_row.random_seed IS DISTINCT FROM (
+                        NEW.artifact_payload->>'random_seed'
+                   )::bigint
                    OR NEW.artifact_payload#>>'{phase5_evaluation,evaluation_report_sha256}'
                         IS DISTINCT FROM report_row.report_sha256
                    OR (
@@ -1624,7 +2495,18 @@ def upgrade() -> None:
                         IS DISTINCT FROM NEW.phase5_policy_sha256
                    OR outcome_row.fixture_id IS DISTINCT FROM NEW.phase5_fixture_id
                    OR outcome_row.resolved_fixture_sha256
-                        IS DISTINCT FROM NEW.phase5_fixture_sha256
+                         IS DISTINCT FROM NEW.phase5_fixture_sha256
+                   OR (
+                        outcome_row.git_sha IS NOT NULL
+                        AND outcome_row.git_sha IS DISTINCT FROM
+                            NEW.artifact_payload->>'code_version_git_sha'
+                   )
+                   OR (
+                        outcome_row.resolved_fixture_random_seed IS NOT NULL
+                        AND outcome_row.resolved_fixture_random_seed IS DISTINCT FROM (
+                            NEW.artifact_payload->>'random_seed'
+                        )::bigint
+                   )
                    OR NEW.artifact_payload#>>'{phase5_evaluation,evaluation_report_sha256}'
                         IS NOT NULL
                    OR (
@@ -1781,8 +2663,19 @@ def upgrade() -> None:
                   AND observation.payload->>'record_type' = 'official_document_content'
                   AND observation.payload->>'official_source_version_id'
                         = NEW.source_version_id::text
+                  AND observation.payload->>'official_document_id'
+                        = NEW.payload->>'official_document_id'
                   AND observation.payload->>'document_content_sha256'
                         = NEW.document_sha256
+                  AND observation.available_at = (
+                        NEW.payload->>'available_at_utc'
+                      )::timestamptz
+                  AND (observation.payload->>'corrected_at')::timestamptz
+                        IS NOT DISTINCT FROM (
+                            NEW.payload->>'corrected_at_utc'
+                        )::timestamptz
+                  AND (observation.payload->>'correction_sequence')::integer
+                        = (NEW.payload->>'correction_sequence')::integer
                   AND observation.available_at <= run_row.created_at_utc
             ) THEN
                 RAISE EXCEPTION 'Phase 6 text extraction lacks exact immutable document lineage';
@@ -1846,6 +2739,10 @@ def upgrade() -> None:
                             = NEW.official_source_version_id::text
                       AND (social.payload->>'manipulation_prone')::boolean IS TRUE
                       AND (social.payload->>'contributes_standalone')::boolean IS FALSE
+                      AND NEW.payload#>>'{social_source_reference,capability}'
+                            = 'official_document_event_metadata'
+                      AND NEW.payload#>>'{social_source_reference,record_type}'
+                            = 'social_attention'
                       AND social.snapshot_id::text
                             = NEW.payload#>>'{social_source_reference,snapshot_id}'
                       AND social.snapshot_sha256
@@ -1882,6 +2779,10 @@ def upgrade() -> None:
                             = NEW.official_source_version_id::text
                       AND official.payload->>'document_content_sha256'
                             = NEW.official_document_sha256
+                      AND NEW.payload#>>'{official_source_reference,capability}'
+                            = 'official_document_event_metadata'
+                      AND NEW.payload#>>'{official_source_reference,record_type}'
+                            = 'official_document_content'
                       AND official.snapshot_id::text
                             = NEW.payload#>>'{official_source_reference,snapshot_id}'
                       AND official.snapshot_sha256
@@ -1984,12 +2885,31 @@ def upgrade() -> None:
             expected_extractions jsonb;
             expected_corroborations jsonb;
             actual_attempt_count bigint;
+            actual_gate_codes jsonb;
+            actual_trial_set_sha256 text;
         BEGIN
             IF TG_TABLE_NAME = 'research_pipeline_runs' THEN
                 checked_run_id := NEW.id;
             ELSE
                 checked_run_id := NEW.run_id;
             END IF;
+
+            -- A newly inserted root already has its own deferred completeness
+            -- event.  Every child row is inserted in the same transaction, so
+            -- that root event observes the final transaction state and can
+            -- validate the complete artifact exactly once.  Child-only writes
+            -- against an existing root do not match xmin and still run the
+            -- full validator, which keeps append-only completeness fail closed.
+            IF TG_TABLE_NAME <> 'research_pipeline_runs'
+               AND EXISTS (
+                    SELECT 1
+                    FROM research_pipeline_runs AS current_run
+                    WHERE current_run.id = checked_run_id
+                      AND current_run.xmin = pg_current_xact_id()::xid
+               ) THEN
+                RETURN NEW;
+            END IF;
+
             SELECT * INTO run_row
             FROM research_pipeline_runs
             WHERE id = checked_run_id;
@@ -2021,9 +2941,36 @@ def upgrade() -> None:
                 SELECT count(*) INTO actual_attempt_count
                 FROM research_pipeline_attempts
                 WHERE run_id = checked_run_id;
+                SELECT phase6_domain_sha256(
+                    'phase6-phase5-trial-set-v1',
+                    COALESCE(
+                        jsonb_agg(
+                            jsonb_build_array(
+                                trial_id::text,
+                                trial_key,
+                                status,
+                                config_sha256
+                            ) ORDER BY trial_id::text, trial_key
+                        ),
+                        '[]'::jsonb
+                    )
+                ) INTO actual_trial_set_sha256
+                FROM evaluation_trials
+                WHERE report_id = run_row.evaluation_report_id;
+                SELECT COALESCE(
+                    jsonb_agg(to_jsonb(gate_code) ORDER BY ordinal),
+                    '[]'::jsonb
+                ) INTO actual_gate_codes
+                FROM evaluation_gate_results
+                WHERE report_id = run_row.evaluation_report_id;
                 IF actual_attempt_count IS DISTINCT FROM (
                        run_row.artifact_payload#>>'{phase5_evaluation,raw_trial_count}'
                    )::bigint
+                   OR actual_trial_set_sha256 IS DISTINCT FROM
+                        run_row.artifact_payload#>>
+                            '{phase5_evaluation,phase5_trial_set_sha256}'
+                   OR actual_gate_codes IS DISTINCT FROM
+                        run_row.artifact_payload#>'{phase5_evaluation,gate_codes}'
                    OR EXISTS (
                         (SELECT trial_id, trial_key, status, config_sha256
                          FROM evaluation_trials
@@ -2041,9 +2988,88 @@ def upgrade() -> None:
                         (SELECT trial_id, trial_key, status, config_sha256
                          FROM evaluation_trials
                          WHERE report_id = run_row.evaluation_report_id)
+                   )
+                   OR EXISTS (
+                        SELECT 1
+                        FROM evaluation_trials AS trial
+                        WHERE trial.report_id = run_row.evaluation_report_id
+                          AND trial.configuration->>'phase6_pipeline_input_sha256'
+                                IS DISTINCT FROM
+                                    run_row.artifact_payload->>'pipeline_input_sha256'
+                   )
+                   OR EXISTS (
+                        SELECT 1
+                        FROM evaluation_trials AS trial
+                        LEFT JOIN LATERAL (
+                            SELECT value
+                            FROM jsonb_array_elements(
+                                run_row.artifact_payload->'model_output_sets'
+                            ) AS output(value)
+                            WHERE value->>'trial_key' = trial.trial_key
+                        ) AS output_set ON TRUE
+                        LEFT JOIN LATERAL (
+                            SELECT value
+                            FROM jsonb_array_elements(
+                                run_row.artifact_payload->'trial_economics'
+                            ) AS economics(value)
+                            WHERE value->>'trial_key' = trial.trial_key
+                        ) AS economics ON TRUE
+                        WHERE trial.report_id = run_row.evaluation_report_id
+                          AND trial.status = 'completed'
+                          AND (
+                            output_set.value IS NULL
+                            OR economics.value IS NULL
+                            OR trial.configuration->>'model'
+                                IS DISTINCT FROM output_set.value->>'model_id'
+                            OR trial.configuration->>'phase6_model_output_sha256'
+                                IS DISTINCT FROM
+                                    output_set.value->>'model_output_sha256'
+                            OR trial.configuration->>'phase6_output_set_sha256'
+                                IS DISTINCT FROM output_set.value->>'output_set_sha256'
+                            OR trial.configuration->>'phase6_output_set_sha256'
+                                IS DISTINCT FROM economics.value->>'output_set_sha256'
+                            OR trial.configuration->>'phase6_trial_cost_set_sha256'
+                                IS DISTINCT FROM economics.value->>'cost_set_sha256'
+                            OR trial.configuration->>'phase6_payoff_formula_id'
+                                IS DISTINCT FROM
+                                    'phase6-long-flat-weight-times-label-quantized-v1'
+                            OR trial.configuration->>'phase6_ledger_cell_set_sha256'
+                                IS DISTINCT FROM (
+                                    SELECT phase6_domain_sha256(
+                                        'phase6-phase5-ledger-cell-set-v2',
+                                        COALESCE(
+                                            jsonb_agg(
+                                                jsonb_build_array(
+                                                    cell.value->'cell_id',
+                                                    cell.value->'cell_sha256'
+                                                ) ORDER BY (
+                                                    cell.value->>'ordinal'
+                                                )::integer
+                                            ),
+                                            '[]'::jsonb
+                                        )
+                                    )
+                                    FROM jsonb_array_elements(
+                                        output_set.value->'ledger_cells'
+                                    ) AS cell(value)
+                                )
+                          )
+                   )
+                   OR EXISTS (
+                        SELECT 1
+                        FROM jsonb_array_elements(
+                            run_row.artifact_payload->'model_output_sets'
+                        ) AS output(value)
+                        WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM evaluation_trials AS trial
+                            WHERE trial.report_id = run_row.evaluation_report_id
+                              AND trial.status = 'completed'
+                              AND trial.trial_key = output.value->>'trial_key'
+                        )
                    ) THEN
                     RAISE EXCEPTION
-                        'Phase 6 attempt registry does not exactly match Phase 5 trials';
+                        'Phase 6 Phase 5 trial, gate, and research-ledger lineage mismatch';
                 END IF;
             END IF;
 
@@ -2083,6 +3109,93 @@ def upgrade() -> None:
                     expected_corroborations
                ) THEN
                 RAISE EXCEPTION 'Phase 6 research run has incomplete child registries';
+            END IF;
+
+            IF EXISTS (
+                WITH RECURSIVE artifact_nodes(value) AS (
+                    SELECT run_row.artifact_payload
+                    UNION ALL
+                    SELECT child.value
+                    FROM artifact_nodes AS parent
+                    CROSS JOIN LATERAL (
+                        SELECT object_item.value
+                        FROM jsonb_each(
+                            CASE
+                                WHEN jsonb_typeof(parent.value) = 'object'
+                                    THEN parent.value
+                                ELSE '{}'::jsonb
+                            END
+                        ) AS object_item(key, value)
+                        UNION ALL
+                        SELECT array_item.value
+                        FROM jsonb_array_elements(
+                            CASE
+                                WHEN jsonb_typeof(parent.value) = 'array'
+                                    THEN parent.value
+                                ELSE '[]'::jsonb
+                            END
+                        ) AS array_item(value)
+                    ) AS child(value)
+                )
+                SELECT 1
+                FROM artifact_nodes AS reference
+                WHERE jsonb_typeof(reference.value) = 'object'
+                  AND reference.value ?& ARRAY[
+                    'capability','snapshot_id','snapshot_sha256',
+                    'raw_observation_id','observation_revision_id',
+                    'normalized_observation_id','raw_payload_sha256',
+                    'normalized_content_sha256','record_type','source_record_id',
+                    'instrument_id','listing_id','available_at_utc','valid_from_utc',
+                    'valid_to_utc'
+                  ]
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM research_pipeline_snapshot_bindings AS binding
+                    JOIN data_normalized_observations AS observation
+                      ON observation.snapshot_id = binding.snapshot_id
+                    WHERE binding.run_id = checked_run_id
+                      AND binding.capability = reference.value->>'capability'
+                      AND binding.snapshot_id = (
+                            reference.value->>'snapshot_id'
+                          )::uuid
+                      AND binding.snapshot_sha256 =
+                            reference.value->>'snapshot_sha256'
+                      AND observation.raw_observation_id = (
+                            reference.value->>'raw_observation_id'
+                          )::uuid
+                      AND observation.observation_revision_id = (
+                            reference.value->>'observation_revision_id'
+                          )::uuid
+                      AND observation.normalized_observation_id = (
+                            reference.value->>'normalized_observation_id'
+                          )::uuid
+                      AND observation.raw_payload_sha256 =
+                            reference.value->>'raw_payload_sha256'
+                      AND observation.normalized_content_sha256 =
+                            reference.value->>'normalized_content_sha256'
+                      AND observation.payload->>'record_type' =
+                            reference.value->>'record_type'
+                      AND observation.source_record_id =
+                            reference.value->>'source_record_id'
+                      AND observation.instrument_id IS NOT DISTINCT FROM (
+                            reference.value->>'instrument_id'
+                          )::uuid
+                      AND observation.listing_id IS NOT DISTINCT FROM (
+                            reference.value->>'listing_id'
+                          )::uuid
+                      AND observation.available_at = (
+                            reference.value->>'available_at_utc'
+                          )::timestamptz
+                      AND observation.valid_from = (
+                            reference.value->>'valid_from_utc'
+                          )::timestamptz
+                      AND observation.valid_to IS NOT DISTINCT FROM (
+                            reference.value->>'valid_to_utc'
+                          )::timestamptz
+                  )
+            ) THEN
+                RAISE EXCEPTION
+                    'Phase 6 artifact source reference lineage mismatch';
             END IF;
             RETURN NEW;
         END;
@@ -2170,6 +3283,10 @@ def downgrade() -> None:
     op.execute("DROP FUNCTION IF EXISTS validate_phase6_research_pipeline_run()")
     op.execute("DROP FUNCTION IF EXISTS validate_phase6_payload_columns()")
     op.execute("DROP FUNCTION IF EXISTS own_phase6_created_at_utc()")
+    op.execute("DROP FUNCTION IF EXISTS phase6_uuid5(uuid, text)")
+    op.execute("DROP FUNCTION IF EXISTS phase6_sha1(bytea)")
+    op.execute("DROP FUNCTION IF EXISTS phase6_domain_sha256(text, jsonb)")
+    op.execute("DROP FUNCTION IF EXISTS phase6_canonical_json(jsonb)")
 
     op.execute("DROP FUNCTION validate_phase5_report_source_lineage(uuid)")
     op.execute(
@@ -2177,6 +3294,7 @@ def downgrade() -> None:
         "RENAME TO validate_phase5_report_source_lineage"
     )
     op.execute("DROP FUNCTION phase6_sha256_prefix64_fraction(text)")
+    op.execute("DROP FUNCTION phase6_source_payload_equivalent(text, jsonb, jsonb)")
 
     op.drop_table("research_text_corroborations")
     op.drop_table("research_text_extractions")
@@ -2200,10 +3318,16 @@ def downgrade() -> None:
         BEGIN
             IF EXISTS (
                 SELECT 1 FROM data_snapshots
-                WHERE fixture_set_version = 'phase6-synthetic-pit-fixtures-v1'
+                WHERE fixture_set_version IN (
+                    'phase6-synthetic-pit-fixtures-v1',
+                    'phase6-synthetic-pit-fixtures-v2'
+                )
             ) OR EXISTS (
                 SELECT 1 FROM data_quality_findings
-                WHERE rule_set_version = 'phase6-data-contract-quality-v1'
+                WHERE rule_set_version IN (
+                    'phase6-data-contract-quality-v1',
+                    'phase6-data-contract-quality-v2'
+                )
                    OR code IN (
                         'pit_classification_invalid',
                         'document_content_hash_mismatch',
@@ -2213,17 +3337,20 @@ def downgrade() -> None:
             ) OR EXISTS (
                 SELECT 1 FROM data_normalized_observations
                 WHERE payload->>'record_type' IN (
-                    'sector_classification','official_document_content','social_attention'
+                    'sector_classification','official_document_content','social_attention',
+                    'macro_rate_observation','crisis_window_definition'
                 )
             ) OR EXISTS (
                 SELECT 1 FROM data_snapshot_constituents
                 WHERE record_type IN (
-                    'sector_classification','official_document_content','social_attention'
+                    'sector_classification','official_document_content','social_attention',
+                    'macro_rate_observation','crisis_window_definition'
                 )
             ) OR EXISTS (
                 SELECT 1 FROM data_quality_findings
                 WHERE affected_record_type IN (
-                    'sector_classification','official_document_content','social_attention'
+                    'sector_classification','official_document_content','social_attention',
+                    'macro_rate_observation','crisis_window_definition'
                 )
             ) THEN
                 RAISE EXCEPTION
@@ -2234,6 +3361,16 @@ def downgrade() -> None:
         """
     )
 
+    op.drop_constraint(
+        "ck_data_snapshot_capability",
+        "data_snapshots",
+        type_="check",
+    )
+    op.create_check_constraint(
+        "ck_data_snapshot_capability",
+        "data_snapshots",
+        _phase4_snapshot_capability_constraint(extended=False),
+    )
     op.drop_constraint(
         "ck_data_snapshot_frozen_versions",
         "data_snapshots",
@@ -2287,3 +3424,4 @@ def downgrade() -> None:
     )
     op.execute(_phase4_record_type_function(extended=False))
     op.execute(_phase4_snapshot_request_function(extended=False))
+    op.execute(_phase4_normalized_identity_scope_bridge_sql(extended=False))

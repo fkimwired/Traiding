@@ -13,12 +13,15 @@ from fable5_data.contracts import (
     AUTHORIZED_CAPABILITIES,
     AdjustmentBasis,
     AsReportedFundamentalPayload,
+    CalendarSessionPayload,
     CorporateActionPayload,
     CorporateActionType,
+    CrisisWindowDefinitionPayload,
     DataCapability,
     DelistingEventPayload,
     DelistingReturnInclusion,
     ListingIdentityPayload,
+    MacroRateObservationPayload,
     NormalizedObservation,
     OfficialDocumentContentPayload,
     OhlcvBarPayload,
@@ -32,7 +35,11 @@ from fable5_mapping.models import CanonicalFamily
 
 from fable5_research.canonical import (
     PHASE6_BASELINE_HASH_DOMAIN,
+    PHASE6_BOUNDARY_EXCLUSION_HASH_DOMAIN,
+    PHASE6_BOUNDARY_EXCLUSION_NAMESPACE,
     PHASE6_COMPARISON_NAMESPACE,
+    PHASE6_CONFIRMATION_INTERVAL_HASH_DOMAIN,
+    PHASE6_CONFIRMATION_NAMESPACE,
     PHASE6_CORROBORATION_HASH_DOMAIN,
     PHASE6_CORROBORATION_NAMESPACE,
     PHASE6_CROSS_SECTION_MEMBER_HASH_DOMAIN,
@@ -48,6 +55,7 @@ from fable5_research.canonical import (
     PHASE6_LIFECYCLE_TEST_HASH_DOMAIN,
     PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
     PHASE6_PIPELINE_INPUT_HASH_DOMAIN,
+    PHASE6_REGIME_EVIDENCE_HASH_DOMAIN,
     PHASE6_SCORE_HASH_DOMAIN,
     PHASE6_SCORE_NAMESPACE,
     PHASE6_SNAPSHOT_BINDING_HASH_DOMAIN,
@@ -57,6 +65,8 @@ from fable5_research.canonical import (
     identity,
 )
 from fable5_research.contracts import (
+    PHASE6_LEDGER_CELL_NAMESPACE,
+    PHASE6_MODEL_OUTPUT_SET_NAMESPACE,
     BaselineOutcome,
     CapacityEvidence,
     CrossSectionRankEvidence,
@@ -64,23 +74,33 @@ from fable5_research.contracts import (
     LaggedOhlcvBaselineEvidence,
     LifecycleEvidence,
     LifecycleTestEvidence,
+    PreparedCrisisWindow,
     PreparedFamilyAInputs,
     PreparedFamilyBInputs,
     PreparedFamilyCInputs,
+    PreparedRateRegimeObservation,
+    PreparedRegimeEvidence,
     PreparedResearchPipeline,
     ResearchBaselineComparison,
+    ResearchBoundaryExclusion,
     ResearchConfigurationId,
+    ResearchConfirmationInterval,
     ResearchFeatureRow,
     ResearchFeatureValue,
+    ResearchLedgerCell,
+    ResearchModelOutput,
+    ResearchModelOutputSet,
     ResearchScoreOutput,
     ResearchSnapshotBinding,
     ResearchSourceReference,
     ResearchTransformFit,
+    ResearchTransformTrainingSample,
     SocialOfficialCorroboration,
     StructuredTextFeatures,
     TextFeatureExtraction,
     UniverseSecurityEvidence,
     frozen_depth_two_tree_score,
+    frozen_trial_allocation,
 )
 from fable5_research.specification import build_specification
 
@@ -215,6 +235,233 @@ def _validated_inputs(
     return family, _bindings(snapshots), _observations(snapshots), capability_by_snapshot
 
 
+def _prepared_regime_evidence(
+    *,
+    family: CanonicalFamily,
+    observations: tuple[NormalizedObservation, ...],
+    capability_by_snapshot: dict[UUID, DataCapability],
+) -> PreparedRegimeEvidence:
+    rate_observations = tuple(
+        sorted(
+            (
+                item
+                for item in observations
+                if isinstance(item.payload, MacroRateObservationPayload)
+            ),
+            key=lambda item: (
+                item.payload.released_at
+                if isinstance(item.payload, MacroRateObservationPayload)
+                else item.available_at,
+                item.source_record_id,
+            ),
+        )
+    )
+    crisis_observations = tuple(
+        sorted(
+            (
+                item
+                for item in observations
+                if isinstance(item.payload, CrisisWindowDefinitionPayload)
+            ),
+            key=lambda item: (
+                item.payload.crisis_window_id
+                if isinstance(item.payload, CrisisWindowDefinitionPayload)
+                else item.source_record_id
+            ),
+        )
+    )
+    if family is CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING:
+        rates = tuple(
+            PreparedRateRegimeObservation(
+                series_id=payload.series_id,
+                vintage_id=payload.vintage_id,
+                released_at_utc=payload.released_at,
+                rate_value=payload.rate_value,
+                previous_rate_value=payload.previous_rate_value,
+                rate_change=payload.rate_change,
+                source_reference=_reference(item, capability_by_snapshot),
+            )
+            for item in rate_observations
+            if isinstance((payload := item.payload), MacroRateObservationPayload)
+        )
+        windows = tuple(
+            PreparedCrisisWindow(
+                crisis_window_id=payload.crisis_window_id,
+                definition_method_id=payload.definition_method_id,
+                declared_at_utc=payload.declared_at,
+                window_start_utc=payload.window_start,
+                window_end_utc=payload.window_end,
+                source_reference=_reference(item, capability_by_snapshot),
+            )
+            for item in crisis_observations
+            if isinstance((payload := item.payload), CrisisWindowDefinitionPayload)
+        )
+        content: dict[str, object] = {
+            "schema_version": "phase6-prepared-regime-evidence-v2",
+            "evidence_state": "available",
+            "rate_definition_id": "pit-vintage-rate-change-at-release-v1",
+            "rate_observations": rates,
+            "crisis_definition_id": "predeclared-pit-crisis-window-membership-v1",
+            "crisis_windows": windows,
+            "unavailable_reason": None,
+        }
+    else:
+        if rate_observations or crisis_observations:
+            raise ValueError("non-macro research families cannot consume macro regime evidence")
+        content = {
+            "schema_version": "phase6-prepared-regime-evidence-v2",
+            "evidence_state": "unavailable",
+            "rate_definition_id": "unavailable-no-authorized-pit-rate-source-v1",
+            "rate_observations": (),
+            "crisis_definition_id": "unavailable-no-frozen-crisis-window-geometry-v1",
+            "crisis_windows": (),
+            "unavailable_reason": "required-regime-sources-not-authorized-for-family-v1",
+        }
+    return PreparedRegimeEvidence.model_validate(
+        {
+            **content,
+            "evidence_sha256": domain_sha256(PHASE6_REGIME_EVIDENCE_HASH_DOMAIN, content),
+        }
+    )
+
+
+def _reserve_label_blind_confirmation(
+    *,
+    rows: tuple[ResearchFeatureRow, ...],
+    family_inputs: PreparedFamilyAInputs | PreparedFamilyBInputs | PreparedFamilyCInputs,
+) -> tuple[
+    tuple[ResearchFeatureRow, ...],
+    PreparedFamilyAInputs | PreparedFamilyBInputs | PreparedFamilyCInputs,
+    ResearchConfirmationInterval,
+    tuple[ResearchBoundaryExclusion, ...],
+]:
+    """Remove confirmation and crossing rows before scores, models, or comparisons exist."""
+
+    if len(rows) < 4:
+        raise ValueError("research preparation requires a nonempty future confirmation interval")
+    ordered = tuple(sorted(rows, key=lambda item: (item.decision_time_utc, item.sample_id)))
+    if ordered != rows:
+        raise ValueError("research rows must be chronological before confirmation reservation")
+    raw_confirmation = ordered[-1]
+    confirmation_start = raw_confirmation.decision_time_utc
+    confirmation_end = raw_confirmation.label_t1_utc
+    boundary_rows = tuple(
+        item
+        for item in ordered[:-1]
+        if item.label_t0_utc <= confirmation_end and item.label_t1_utc >= confirmation_start
+    )
+    boundary_ids = {item.sample_id for item in boundary_rows}
+    research_rows = tuple(item for item in ordered[:-1] if item.sample_id not in boundary_ids)
+    if not research_rows or tuple(item.ordinal for item in research_rows) != tuple(
+        range(1, len(research_rows) + 1)
+    ):
+        raise ValueError("confirmation boundary must leave contiguous predeclared research rows")
+    if any(item.label_t1_utc >= confirmation_start for item in research_rows):
+        raise ValueError("research labels overlap the reserved confirmation interval")
+    confirmation_baseline_references: tuple[ResearchSourceReference, ...] = ()
+    if isinstance(family_inputs, PreparedFamilyCInputs):
+        matching_baseline = next(
+            (
+                item
+                for item in family_inputs.non_text_baseline
+                if item.sample_id == raw_confirmation.sample_id
+            ),
+            None,
+        )
+        if matching_baseline is None:
+            raise ValueError("Family C confirmation lacks its predeclared non-text source geometry")
+        confirmation_baseline_references = matching_baseline.source_references
+    feature_references = tuple(
+        sorted(
+            {
+                reference.normalized_observation_id: reference
+                for reference in (
+                    *(
+                        reference
+                        for feature in raw_confirmation.features
+                        for reference in feature.source_references
+                    ),
+                    *confirmation_baseline_references,
+                )
+                if reference.available_at_utc <= confirmation_start
+            }.values(),
+            key=_reference_key,
+        )
+    )
+    confirmation_content = {
+        "schema_version": "phase6-label-blind-confirmation-interval-v1",
+        "sample_id": raw_confirmation.sample_id,
+        "interval_start_utc": confirmation_start,
+        "interval_end_utc": confirmation_end,
+        "opening_rule": "reserved-before-design-label-remains-unopened-v1",
+        "source_references": feature_references,
+        "label_value": None,
+        "label_source_references": (),
+        "label_opened": False,
+    }
+    confirmation_digest = domain_sha256(
+        PHASE6_CONFIRMATION_INTERVAL_HASH_DOMAIN,
+        confirmation_content,
+    )
+    confirmation = ResearchConfirmationInterval.model_validate(
+        {
+            **confirmation_content,
+            "confirmation_id": identity(PHASE6_CONFIRMATION_NAMESPACE, confirmation_digest),
+            "confirmation_sha256": confirmation_digest,
+        }
+    )
+    exclusions: list[ResearchBoundaryExclusion] = []
+    for item in boundary_rows:
+        exclusion_content = {
+            "schema_version": "phase6-confirmation-boundary-exclusion-v1",
+            "sample_id": item.sample_id,
+            "decision_time_utc": item.decision_time_utc,
+            "label_t0_utc": item.label_t0_utc,
+            "label_t1_utc": item.label_t1_utc,
+            "exclusion_rule": "label-interval-intersects-confirmation-v1",
+            "label_value": None,
+            "label_source_references": (),
+            "label_opened": False,
+        }
+        exclusion_digest = domain_sha256(
+            PHASE6_BOUNDARY_EXCLUSION_HASH_DOMAIN,
+            exclusion_content,
+        )
+        exclusions.append(
+            ResearchBoundaryExclusion.model_validate(
+                {
+                    **exclusion_content,
+                    "exclusion_id": identity(
+                        PHASE6_BOUNDARY_EXCLUSION_NAMESPACE,
+                        exclusion_digest,
+                    ),
+                    "exclusion_sha256": exclusion_digest,
+                }
+            )
+        )
+    if isinstance(family_inputs, PreparedFamilyAInputs):
+        score_values = tuple(abs(item.composite_score) for item in research_rows)
+        total_score = sum(score_values, Decimal("0"))
+        concentration = (
+            max(score_values) / total_score
+            if total_score > 0
+            else Decimal("1") / Decimal(len(score_values))
+        )
+        family_inputs = family_inputs.model_copy(
+            update={
+                "cross_section_ranks": family_inputs.cross_section_ranks[: len(research_rows)],
+                "capacity": family_inputs.capacity.model_copy(
+                    update={"concentration": _q(concentration)}
+                ),
+            }
+        )
+    elif isinstance(family_inputs, PreparedFamilyCInputs):
+        family_inputs = family_inputs.model_copy(
+            update={"non_text_baseline": family_inputs.non_text_baseline[: len(research_rows)]}
+        )
+    return research_rows, family_inputs, confirmation, tuple(exclusions)
+
+
 def _bars(
     observations: tuple[NormalizedObservation, ...],
     instrument_id: UUID,
@@ -311,6 +558,70 @@ def _period_action_observations(
         if isinstance(item.payload, CorporateActionPayload)
         and start_time < item.payload.effective_at <= end_time
     )
+
+
+def _open_calendar_sessions(
+    observations: tuple[NormalizedObservation, ...],
+) -> tuple[NormalizedObservation, ...]:
+    sessions = tuple(
+        item
+        for item in observations
+        if isinstance(item.payload, CalendarSessionPayload) and item.payload.status.value == "open"
+    )
+    if not sessions:
+        raise ValueError("Family B requires persisted OPEN trading-calendar sessions")
+    ordered = tuple(
+        sorted(
+            sessions,
+            key=lambda item: (
+                (
+                    item.payload.session_date
+                    if isinstance(item.payload, CalendarSessionPayload)
+                    else 0
+                ),
+                str(item.normalized_observation_id),
+            ),
+        )
+    )
+    session_dates = tuple(
+        item.payload.session_date
+        for item in ordered
+        if isinstance(item.payload, CalendarSessionPayload)
+    )
+    if len(session_dates) != len(ordered) or len(session_dates) != len(set(session_dates)):
+        raise ValueError("Family B OPEN trading-calendar sessions must be unique by date")
+    return ordered
+
+
+def _bars_by_open_session(
+    *,
+    bars: tuple[NormalizedObservation, ...],
+    sessions: tuple[NormalizedObservation, ...],
+) -> dict[datetime, NormalizedObservation]:
+    sessions_by_close: dict[datetime, CalendarSessionPayload] = {}
+    for observation in sessions:
+        payload = observation.payload
+        if not isinstance(payload, CalendarSessionPayload) or payload.close_at is None:
+            raise ValueError("Family B OPEN trading-calendar session hours are incomplete")
+        sessions_by_close[payload.close_at] = payload
+    if len(sessions_by_close) != len(sessions):
+        raise ValueError("Family B OPEN trading-calendar close timestamps must be unique")
+
+    result: dict[datetime, NormalizedObservation] = {}
+    for observation in bars:
+        payload = _bar_payload(observation)
+        session = sessions_by_close.get(payload.bar_end)
+        if (
+            session is None
+            or session.open_at is None
+            or payload.bar_start != session.open_at
+            or payload.bar_end != session.close_at
+        ):
+            raise ValueError("Family B OHLCV bar must match one exact persisted OPEN session")
+        if payload.bar_end in result:
+            raise ValueError("Family B requires exactly one OHLCV bar per OPEN session")
+        result[payload.bar_end] = observation
+    return result
 
 
 def _mean(values: tuple[Decimal, ...]) -> Decimal:
@@ -420,6 +731,194 @@ def _output_hash(values: tuple[tuple[str, Decimal], ...]) -> str:
     return domain_sha256(PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN, values)
 
 
+def _persisted_model_outputs(
+    values: tuple[tuple[str, Decimal], ...],
+) -> tuple[ResearchModelOutput, ...]:
+    return tuple(
+        ResearchModelOutput(
+            ordinal=ordinal,
+            sample_id=sample_id,
+            output_value=output_value,
+        )
+        for ordinal, (sample_id, output_value) in enumerate(values, start=1)
+    )
+
+
+def _trial_research_weight(
+    *,
+    trial_key: str,
+    model_id: str,
+    sample_id: str,
+    model_output: Decimal,
+) -> tuple[Decimal, str]:
+    return frozen_trial_allocation(
+        trial_key=trial_key,
+        model_id=model_id,
+        sample_id=sample_id,
+        model_output=model_output,
+    )
+
+
+def _phase5_trial_model_ids(family: CanonicalFamily) -> tuple[str, str, str, str]:
+    if family is CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING:
+        return (
+            "sector-relative-rank-linear-v1",
+            "zero-information-rank-v1",
+            "frozen-depth-two-tree-v2",
+            "negative-control-v1",
+        )
+    if family is CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME:
+        return (
+            "lagged-trend-linear-v1",
+            "lagged-return-only-v1",
+            "zero-information-time-series-v1",
+            "negative-control-v1",
+        )
+    return (
+        "conventional-linear-text-overlay-v1",
+        "non-text-event-baseline-v1",
+        "event-tag-only-baseline-v1",
+        "negative-control-v1",
+    )
+
+
+def _research_model_output_sets(
+    family: CanonicalFamily,
+    rows: tuple[ResearchFeatureRow, ...],
+    scores: tuple[ResearchScoreOutput, ...],
+    family_inputs: PreparedFamilyAInputs | PreparedFamilyBInputs | PreparedFamilyCInputs,
+) -> tuple[ResearchModelOutputSet, ...]:
+    candidate = tuple(
+        (item.sample_id, item.research_score)
+        for item in sorted(scores, key=lambda item: item.ordinal)
+    )
+    zero = tuple((sample_id, Decimal("0")) for sample_id, _value in candidate)
+    negative = tuple((sample_id, -value) for sample_id, value in candidate)
+    if isinstance(family_inputs, PreparedFamilyAInputs):
+        nonlinear = tuple(
+            (
+                row.sample_id,
+                next(
+                    member.nonlinear_score
+                    for member in section.eligible_members
+                    if member.entity_id == section.selected_entity_id
+                ),
+            )
+            for row, section in zip(rows, family_inputs.cross_section_ranks, strict=True)
+        )
+        variants = (candidate, zero, nonlinear, negative)
+    elif isinstance(family_inputs, PreparedFamilyBInputs):
+        lagged = tuple(
+            (
+                row.sample_id,
+                next(
+                    item.raw_value for item in row.features if item.feature_name == "lagged_return"
+                ),
+            )
+            for row in rows
+        )
+        variants = (candidate, lagged, zero, negative)
+    else:
+        non_text_by_sample = {
+            item.sample_id: item.baseline_output for item in family_inputs.non_text_baseline
+        }
+        non_text = tuple((row.sample_id, non_text_by_sample[row.sample_id]) for row in rows)
+        event_tag = tuple(
+            (
+                row.sample_id,
+                next(item.raw_value for item in row.features if item.feature_name == "event_tag"),
+            )
+            for row in rows
+        )
+        variants = (candidate, non_text, event_tag, negative)
+    trial_keys = (
+        "prepared-primary",
+        "prepared-baseline",
+        "prepared-nonlinear",
+        "negative-reference",
+    )
+    result: list[ResearchModelOutputSet] = []
+    for ordinal, (trial_key, model_id, values) in enumerate(
+        zip(trial_keys, _phase5_trial_model_ids(family), variants, strict=True),
+        start=1,
+    ):
+        outputs = _persisted_model_outputs(values)
+        model_output_sha256 = domain_sha256(
+            PHASE6_MODEL_OUTPUT_SET_HASH_DOMAIN,
+            tuple(sorted(values)),
+        )
+        output_by_sample = dict(values)
+        ledger_cells: list[ResearchLedgerCell] = []
+        for row in rows:
+            model_output = output_by_sample[row.sample_id]
+            synthetic_weight, allocation_rule_id = _trial_research_weight(
+                trial_key=trial_key,
+                model_id=model_id,
+                sample_id=row.sample_id,
+                model_output=model_output,
+            )
+            label_content = (
+                row.sample_id,
+                row.label_value,
+                row.label_t0_utc,
+                row.label_t1_utc,
+                row.label_source_references,
+            )
+            cell_content = {
+                "schema_version": "phase6-research-ledger-cell-v2",
+                "ordinal": row.ordinal,
+                "trial_key": trial_key,
+                "model_id": model_id,
+                "sample_id": row.sample_id,
+                "model_output": model_output,
+                "model_output_sha256": model_output_sha256,
+                "synthetic_research_weight": synthetic_weight,
+                "allocation_rule_id": allocation_rule_id,
+                "return_status": ("observed" if synthetic_weight == 1 else "no_trade"),
+                "label_t0_utc": row.label_t0_utc,
+                "label_t1_utc": row.label_t1_utc,
+                "label_value": row.label_value,
+                "label_source_references": row.label_source_references,
+                "label_sha256": domain_sha256(
+                    "phase6-research-ledger-label-v1",
+                    label_content,
+                ),
+                "payoff_formula_id": "phase6-long-flat-weight-times-label-quantized-v1",
+                "synthetic_gross_return": _q(synthetic_weight * row.label_value),
+            }
+            cell_digest = domain_sha256("phase6-research-ledger-cell-v2", cell_content)
+            ledger_cells.append(
+                ResearchLedgerCell.model_validate(
+                    {
+                        **cell_content,
+                        "cell_id": identity(PHASE6_LEDGER_CELL_NAMESPACE, cell_digest),
+                        "cell_sha256": cell_digest,
+                    }
+                )
+            )
+        content = {
+            "schema_version": "phase6-phase5-model-output-set-v2",
+            "ordinal": ordinal,
+            "model_output_sha256": model_output_sha256,
+            "trial_key": trial_key,
+            "model_id": model_id,
+            "output_semantics": "synthetic_research_model_output",
+            "outputs": outputs,
+            "ledger_cells": tuple(ledger_cells),
+        }
+        digest = domain_sha256("phase6-phase5-model-output-registry-entry-v2", content)
+        result.append(
+            ResearchModelOutputSet.model_validate(
+                {
+                    **content,
+                    "output_set_id": identity(PHASE6_MODEL_OUTPUT_SET_NAMESPACE, digest),
+                    "output_set_sha256": digest,
+                }
+            )
+        )
+    return tuple(result)
+
+
 def _label_hash(rows: tuple[ResearchFeatureRow, ...]) -> str:
     return domain_sha256(
         PHASE6_LABEL_SET_HASH_DOMAIN,
@@ -453,6 +952,8 @@ def _comparison(
         "metric_id": metric_id,
         "candidate_metric": _q(candidate_metric),
         "baseline_metric": _q(baseline_metric),
+        "candidate_outputs": _persisted_model_outputs(candidate_outputs),
+        "baseline_outputs": _persisted_model_outputs(baseline_outputs),
         "candidate_output_sha256": _output_hash(candidate_outputs),
         "baseline_output_sha256": _output_hash(baseline_outputs),
         "label_sha256": label_sha256 or _label_hash(rows),
@@ -621,6 +1122,82 @@ def _latest_listing(
     return max(candidates, key=lambda item: (item.valid_from, item.available_at))
 
 
+def _pit_membership_at_decision(
+    *,
+    observations: tuple[NormalizedObservation, ...],
+    context: _AFamilyContext,
+    decision_time: datetime,
+) -> NormalizedObservation | None:
+    matches = tuple(
+        item
+        for item in observations
+        if item.instrument_id == context.instrument_id
+        and item.listing_id == context.listing_id
+        and isinstance(item.payload, UniverseMembershipPayload)
+        and item.event_time <= decision_time
+        and item.available_at <= decision_time
+        and item.valid_from <= decision_time
+        and (item.valid_to is None or decision_time < item.valid_to)
+    )
+    if len(matches) != 1:
+        raise ValueError("Family A requires exactly one PIT universe membership interval")
+    membership = matches[0]
+    payload = membership.payload
+    if not isinstance(payload, UniverseMembershipPayload):
+        raise ValueError("Family A membership payload is invalid")
+    return membership if payload.status.value == "included" else None
+
+
+def _pit_fundamentals_at(
+    *,
+    observations: tuple[NormalizedObservation, ...],
+    instrument_id: UUID,
+    information_time: datetime,
+) -> dict[str, NormalizedObservation]:
+    candidates: dict[str, list[NormalizedObservation]] = {}
+    for observation in observations:
+        if (
+            observation.instrument_id == instrument_id
+            and isinstance(observation.payload, AsReportedFundamentalPayload)
+            and observation.available_at <= information_time
+        ):
+            candidates.setdefault(observation.payload.concept_id, []).append(observation)
+    return {
+        concept_id: max(
+            values,
+            key=lambda item: (
+                item.available_at,
+                item.valid_from,
+                str(item.observation_revision_id),
+            ),
+        )
+        for concept_id, values in candidates.items()
+    }
+
+
+def _pit_sector_at(
+    *,
+    observations: tuple[NormalizedObservation, ...],
+    instrument_id: UUID,
+    information_time: datetime,
+) -> NormalizedObservation:
+    candidates = tuple(
+        item
+        for item in observations
+        if item.instrument_id == instrument_id
+        and isinstance(item.payload, SectorClassificationPayload)
+        and item.available_at <= information_time
+        and item.valid_from <= information_time
+        and (item.valid_to is None or information_time < item.valid_to)
+    )
+    if not candidates:
+        raise ValueError("Family A sector history is missing at the training information time")
+    return max(
+        candidates,
+        key=lambda item: (item.available_at, item.valid_from, str(item.observation_revision_id)),
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class _AFamilyContext:
     ordinal: int
@@ -634,19 +1211,22 @@ class _AFamilyContext:
 
 
 @dataclass(frozen=True, slots=True)
+class _AFamilyTrainingPoint:
+    information_time_utc: datetime
+    sector_observation: NormalizedObservation
+    feature_values: dict[str, tuple[Decimal, tuple[ResearchSourceReference, ...]]]
+
+
+@dataclass(frozen=True, slots=True)
 class _AFamilyTrainingContext:
     ordinal: int
     instrument_id: UUID
     listing_id: UUID
     sector_id: str
-    sector_observation: NormalizedObservation
     bars: tuple[NormalizedObservation, ...]
     actions: tuple[NormalizedObservation, ...]
     fundamentals: dict[str, NormalizedObservation]
-    training: tuple[
-        dict[str, tuple[Decimal, tuple[ResearchSourceReference, ...]]],
-        ...,
-    ]
+    training: tuple[_AFamilyTrainingPoint, ...]
 
 
 def _a_label(
@@ -666,10 +1246,11 @@ def _a_label(
         and item.available_at > current.available_at
     )
     if len(later) >= 2:
+        label_actions = _period_action_observations(current, later[1], context.actions)
         return (
             _adjusted_return(current, later[1], context.actions),
             later[1].available_at,
-            _refs([current, *later], capability_by_snapshot),
+            _refs([current, *later, *label_actions], capability_by_snapshot),
         )
     if len(later) != 1 or not delistings:
         raise ValueError("Family A two-session or terminal label is incomplete")
@@ -677,6 +1258,7 @@ def _a_label(
     if not isinstance(payload, DelistingEventPayload):
         raise ValueError("Family A terminal label payload is invalid")
     result = _adjusted_return(current, later[0], context.actions)
+    label_actions = _period_action_observations(current, later[0], context.actions)
     if payload.return_inclusion is DelistingReturnInclusion.SEPARATE_RETURN_REQUIRED:
         if payload.delisting_return is None:
             raise ValueError("Family A terminal return is not computable")
@@ -684,7 +1266,10 @@ def _a_label(
     return (
         _q(result),
         delistings[0].available_at,
-        _refs([current, later[0], delistings[0]], capability_by_snapshot),
+        _refs(
+            [current, later[0], delistings[0], *label_actions],
+            capability_by_snapshot,
+        ),
     )
 
 
@@ -767,47 +1352,61 @@ def _prepare_a(
         if earliest_index is None or earliest_index < 64:
             raise ValueError("Family A pre-decision train history is incomplete")
         actions = _actions(observations, instrument_id)
-        fundamentals = {
-            item.payload.concept_id: item
-            for item in observations
-            if item.instrument_id == instrument_id
-            and isinstance(item.payload, AsReportedFundamentalPayload)
-            and item.available_at <= bars[earliest_index].available_at
-        }
-        sector_observation = next(
-            (
-                item
-                for item in observations
-                if item.instrument_id == instrument_id
-                and isinstance(item.payload, SectorClassificationPayload)
-                and item.available_at <= bars[earliest_index].available_at
-            ),
-            None,
+        earliest_information_time = bars[earliest_index].available_at + timedelta(minutes=1)
+        fundamentals = _pit_fundamentals_at(
+            observations=observations,
+            instrument_id=instrument_id,
+            information_time=earliest_information_time,
         )
-        if sector_observation is None or not isinstance(
-            sector_observation.payload,
-            SectorClassificationPayload,
-        ):
-            raise ValueError("Family A sector history is missing")
+        sector_observation = _pit_sector_at(
+            observations=observations,
+            instrument_id=instrument_id,
+            information_time=earliest_information_time,
+        )
+        if not isinstance(sector_observation.payload, SectorClassificationPayload):
+            raise ValueError("Family A sector history is invalid")
         sector_id = sector_observation.payload.sector_id
         training_indices = (earliest_index - 63, earliest_index - 42, earliest_index - 21)
-        training = tuple(
-            _raw_a_feature_values(
-                bars=bars,
-                index=index,
-                actions=actions,
-                fundamentals=fundamentals,
-                capability_by_snapshot=capability_by_snapshot,
+        training_points: list[_AFamilyTrainingPoint] = []
+        for index in training_indices:
+            information_time = bars[index].available_at + timedelta(minutes=1)
+            training_sector = _pit_sector_at(
+                observations=observations,
+                instrument_id=instrument_id,
+                information_time=information_time,
             )
-            for index in training_indices
-        )
+            training_sector_payload = training_sector.payload
+            if (
+                not isinstance(training_sector_payload, SectorClassificationPayload)
+                or training_sector_payload.sector_id != sector_id
+            ):
+                raise ValueError("Family A training samples must retain one exact PIT sector")
+            training_points.append(
+                _AFamilyTrainingPoint(
+                    information_time_utc=information_time,
+                    sector_observation=training_sector,
+                    feature_values=_raw_a_feature_values(
+                        bars=bars,
+                        index=index,
+                        actions=tuple(
+                            item for item in actions if item.available_at <= information_time
+                        ),
+                        fundamentals=_pit_fundamentals_at(
+                            observations=observations,
+                            instrument_id=instrument_id,
+                            information_time=information_time,
+                        ),
+                        capability_by_snapshot=capability_by_snapshot,
+                    ),
+                )
+            )
+        training = tuple(training_points)
         training_contexts.append(
             _AFamilyTrainingContext(
                 ordinal=security_ordinal,
                 instrument_id=instrument_id,
                 listing_id=listing_id,
                 sector_id=sector_id,
-                sector_observation=sector_observation,
                 bars=bars,
                 actions=actions,
                 fundamentals=fundamentals,
@@ -864,22 +1463,39 @@ def _prepare_a(
         )
         fit_by_feature: dict[str, ResearchTransformFit] = {}
         for feature_name in _A_FEATURES:
-            train_values = tuple(
-                training_point[feature_name][0]
-                for item in sector_contexts
-                for training_point in item.training
-            )
-            combined_references = (
-                *(
-                    reference
-                    for item in sector_contexts
-                    for training_point in item.training
-                    for reference in training_point[feature_name][1]
-                ),
-                *(
-                    _reference(item.sector_observation, capability_by_snapshot)
-                    for item in sector_contexts
-                ),
+            train_samples: list[ResearchTransformTrainingSample] = []
+            for item in sector_contexts:
+                for position, training_point in enumerate(item.training, start=1):
+                    sector_reference = _reference(
+                        training_point.sector_observation,
+                        capability_by_snapshot,
+                    )
+                    sample_references = tuple(
+                        sorted(
+                            {
+                                reference.normalized_observation_id: reference
+                                for reference in (
+                                    *training_point.feature_values[feature_name][1],
+                                    sector_reference,
+                                )
+                            }.values(),
+                            key=_reference_key,
+                        )
+                    )
+                    train_samples.append(
+                        ResearchTransformTrainingSample(
+                            ordinal=len(train_samples) + 1,
+                            sample_id=f"phase6-a-train-{item.ordinal:02d}-{position:02d}",
+                            entity_id=item.listing_id,
+                            information_time_utc=training_point.information_time_utc,
+                            raw_value=training_point.feature_values[feature_name][0],
+                            source_references=sample_references,
+                        )
+                    )
+            train_sample_evidence = tuple(train_samples)
+            train_values = tuple(item.raw_value for item in train_sample_evidence)
+            combined_references = tuple(
+                reference for item in train_sample_evidence for reference in item.source_references
             )
             source_references = tuple(
                 sorted(
@@ -900,6 +1516,7 @@ def _prepare_a(
                 "sector_id": sector_id,
                 "train_sample_ids": train_ids,
                 "train_entity_ids": train_entity_ids,
+                "train_samples": train_sample_evidence,
                 "prohibited_sample_ids": prohibited,
                 "mean": _mean(train_values),
                 "standard_deviation": _standard_deviation(train_values),
@@ -947,20 +1564,27 @@ def _prepare_a(
         "value": "as-reported-book-to-raw-market-value-v1",
         "volatility": "split-aware-20-session-realized-volatility-v1",
     }
-    terminal_end = _bar_payload(terminal_bars[-1]).bar_end
     for ordinal, decision_end in enumerate(decision_ends, start=1):
-        eligible_contexts = tuple(
+        bar_contexts = tuple(
             context
             for context in contexts
             if any(_bar_payload(item).bar_end == decision_end for item in context.bars)
         )
-        if decision_end > terminal_end:
-            eligible_contexts = tuple(
-                context
-                for context in eligible_contexts
-                if context.instrument_id != delisted_listing.instrument_id
+        eligible: list[tuple[_AFamilyContext, NormalizedObservation]] = []
+        for candidate in bar_contexts:
+            candidate_bar = next(
+                item for item in candidate.bars if _bar_payload(item).bar_end == decision_end
             )
-        if not eligible_contexts:
+            membership = _pit_membership_at_decision(
+                observations=observations,
+                context=candidate,
+                decision_time=candidate_bar.available_at + timedelta(minutes=1),
+            )
+            if membership is not None:
+                eligible.append((candidate, membership))
+        eligible_contexts = tuple(item[0] for item in eligible)
+        membership_by_entity = {str(item[0].listing_id): item[1] for item in eligible}
+        if len(eligible_contexts) < 2:
             raise ValueError("Family A decision has no PIT-eligible listed security")
         values_by_entity: dict[str, tuple[ResearchFeatureValue, ...]] = {}
         index_by_entity: dict[str, int] = {}
@@ -1014,8 +1638,8 @@ def _prepare_a(
         rank_by_entity = {
             entity_id: rank for rank, entity_id in enumerate(ranked_entities, start=1)
         }
-        context = eligible_contexts[(ordinal - 1) % len(eligible_contexts)]
-        selected_entity_id = str(context.listing_id)
+        selected_entity_id = ranked_entities[0]
+        context = context_by_entity[selected_entity_id]
         current_index = index_by_entity[selected_entity_id]
         values = values_by_entity[selected_entity_id]
         current = context.bars[current_index]
@@ -1030,6 +1654,10 @@ def _prepare_a(
             member_decision = member_current.available_at + timedelta(minutes=1)
             if member_decision != decision:
                 raise ValueError("Family A cross-section members must share one decision time")
+            membership = membership_by_entity[entity_id]
+            membership_payload = membership.payload
+            if not isinstance(membership_payload, UniverseMembershipPayload):
+                raise ValueError("Family A cross-section membership payload is invalid")
             member_label, member_label_t1, member_label_references = _a_label(
                 observations=observations,
                 context=member_context,
@@ -1041,6 +1669,12 @@ def _prepare_a(
                 "instrument_id": member_context.instrument_id,
                 "listing_id": member_context.listing_id,
                 "sector_id": member_context.sector_id,
+                "membership_universe_id": membership_payload.universe_id,
+                "membership_status": "included",
+                "membership_source_reference": _reference(
+                    membership,
+                    capability_by_snapshot,
+                ),
                 "features": member_values,
                 "linear_score": sum(
                     (item.contribution for item in member_values),
@@ -1243,6 +1877,11 @@ def _prepare_b(
     security_bars = _bars(observations, instrument_id)
     if len(security_bars) < 255:
         raise ValueError("Family B requires at least 253 raw bars plus later labels")
+    open_sessions = _open_calendar_sessions(observations)
+    bars_by_session_close = _bars_by_open_session(
+        bars=security_bars,
+        sessions=open_sessions,
+    )
     security_actions = _actions(observations, instrument_id)
     volatility_input = next(
         (
@@ -1259,36 +1898,51 @@ def _prepare_b(
     if not isinstance(volatility_payload, VolatilityReturnInputPayload):
         raise ValueError("Family B volatility input payload is invalid")
     input_end = volatility_payload.window_end
-    decision_candidates = tuple(
-        index
-        for index, item in enumerate(security_bars)
-        if index >= 252
-        and _bar_payload(item).bar_end > input_end
-        and index + 2 < len(security_bars)
-    )
+    decision_candidates: list[int] = []
+    for index, session_observation in enumerate(open_sessions):
+        session = session_observation.payload
+        if not isinstance(session, CalendarSessionPayload) or session.close_at is None:
+            raise ValueError("Family B OPEN trading-calendar session hours are incomplete")
+        if index >= 252 and session.close_at > input_end and index + 2 < len(open_sessions):
+            decision_candidates.append(index)
     if len(decision_candidates) < 20:
         raise ValueError("Family B requires 20 post-input-window decisions and labels")
     rows: list[ResearchFeatureRow] = []
-    for ordinal, current_index in enumerate(decision_candidates[:20], start=1):
-        current = security_bars[current_index]
-        window = security_bars[current_index - 252 : current_index + 1]
-        if len(window) != 253:
-            raise ValueError("Family B exact 252-session history is incomplete")
+    for ordinal, current_session_index in enumerate(decision_candidates[:20], start=1):
+        required_sessions = open_sessions[current_session_index - 252 : current_session_index + 3]
+        if len(required_sessions) != 255:
+            raise ValueError("Family B exact calendar-indexed history and label are incomplete")
+        required_bars: list[NormalizedObservation] = []
+        for session_observation in required_sessions:
+            session = session_observation.payload
+            if not isinstance(session, CalendarSessionPayload) or session.close_at is None:
+                raise ValueError("Family B OPEN trading-calendar session hours are incomplete")
+            bar = bars_by_session_close.get(session.close_at)
+            if bar is None:
+                raise ValueError(
+                    "Family B requires one OHLCV bar for every exact lag and label session"
+                )
+            required_bars.append(bar)
+        window = tuple(required_bars[:253])
+        label_path = tuple(required_bars[252:])
+        calendar_window = required_sessions[:253]
+        calendar_label_path = required_sessions[252:]
+        current = window[-1]
         one_day_returns = tuple(
             _adjusted_return(window[index - 1], window[index], security_actions)
             for index in range(1, len(window))
         )
         lag_returns = tuple(
-            _adjusted_return(security_bars[current_index - lag], current, security_actions)
-            for lag in _B_WINDOWS
+            _adjusted_return(window[-(lag + 1)], current, security_actions) for lag in _B_WINDOWS
         )
         adjusted_refs = _refs(
             list(window)
+            + list(calendar_window)
             + list(_period_action_observations(window[0], current, security_actions))
             + [volatility_input],
             capability_by_snapshot,
         )
-        raw_refs = _refs(list(window), capability_by_snapshot)
+        raw_refs = _refs(list(window) + list(calendar_window), capability_by_snapshot)
         closes = tuple(_bar_payload(item).close for item in window)
         x_mean = Decimal(len(closes) - 1) / Decimal("2")
         y_mean = sum(closes, Decimal("0")) / Decimal(len(closes))
@@ -1340,10 +1994,11 @@ def _prepare_b(
             )
             for name, values in sorted(feature_data.items())
         )
-        label_end = security_bars[current_index + 2]
+        label_end = label_path[-1]
         label_value = _adjusted_return(current, label_end, security_actions)
         label_sources = _refs(
-            list(security_bars[current_index : current_index + 3])
+            list(label_path)
+            + list(calendar_label_path)
             + list(_period_action_observations(current, label_end, security_actions)),
             capability_by_snapshot,
         )
@@ -1760,7 +2415,7 @@ def _comparisons(
             ),
             _comparison(
                 ordinal=2,
-                candidate_model_id="frozen-depth-two-tree-v1",
+                candidate_model_id="frozen-depth-two-tree-v2",
                 baseline_model_id="sector-relative-rank-linear-v1",
                 metric_id="pairwise-label-concordance-v1",
                 candidate_outputs=nonlinear,
@@ -1851,7 +2506,28 @@ def prepare_research_pipeline(
             corroborations=corroborations,
             non_text_baseline=non_text_baseline,
         )
+    rows, family_inputs, confirmation_interval, boundary_exclusions = (
+        _reserve_label_blind_confirmation(
+            rows=rows,
+            family_inputs=family_inputs,
+        )
+    )
+    regime_evidence = _prepared_regime_evidence(
+        family=family,
+        observations=observations,
+        capability_by_snapshot=capability_by_snapshot,
+    )
+    calendar_source_references = _refs(
+        [item for item in observations if isinstance(item.payload, CalendarSessionPayload)],
+        capability_by_snapshot,
+    )
+    if (
+        DataCapability.TRADING_CALENDAR in specification.required_capabilities
+        and not calendar_source_references
+    ):
+        raise ValueError("prepared walk-forward geometry requires immutable calendar sessions")
     scores = _scores(family, rows)
+    model_output_sets = _research_model_output_sets(family, rows, scores, family_inputs)
     comparison_cross_sections = (
         family_inputs.cross_section_ranks
         if isinstance(family_inputs, PreparedFamilyAInputs)
@@ -1869,13 +2545,18 @@ def prepare_research_pipeline(
         ),
     )
     content = {
-        "schema_version": "phase6-prepared-research-pipeline-v1",
+        "schema_version": "phase6-prepared-research-pipeline-v2",
         "configuration_id": configuration_id,
         "family": family,
         "specification": specification,
         "snapshot_bindings": bindings,
+        "calendar_source_references": calendar_source_references,
+        "regime_evidence": regime_evidence,
+        "confirmation_interval": confirmation_interval,
+        "boundary_exclusions": boundary_exclusions,
         "feature_rows": rows,
         "scores": scores,
+        "model_output_sets": model_output_sets,
         "baseline_comparisons": comparisons,
         "family_inputs": family_inputs,
     }

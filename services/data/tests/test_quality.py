@@ -7,6 +7,7 @@ from uuid import UUID
 
 import pytest
 from fable5_data.contracts import (
+    PHASE4_DATA_CAPABILITIES,
     AdapterAvailableResult,
     AdapterBatchDraft,
     AuthorizedMappingIdentity,
@@ -112,8 +113,8 @@ def _codes(result: SnapshotBuildBlockedResult) -> set[DataQualityCode]:
     return {item.code for item in result.quality_findings}
 
 
-@pytest.mark.parametrize("capability", tuple(DataCapability))
-def test_all_nine_capabilities_pass_mandatory_quality_on_point_in_time_fixtures(
+@pytest.mark.parametrize("capability", PHASE4_DATA_CAPABILITIES)
+def test_all_nine_phase4_capabilities_pass_mandatory_quality_on_point_in_time_fixtures(
     capability: DataCapability,
 ) -> None:
     adapter = SyntheticPointInTimeAdapter()
@@ -131,7 +132,7 @@ def test_all_nine_capabilities_pass_mandatory_quality_on_point_in_time_fixtures(
     )
 
 
-@pytest.mark.parametrize("capability", tuple(DataCapability))
+@pytest.mark.parametrize("capability", PHASE4_DATA_CAPABILITIES)
 def test_quality_and_snapshot_materialization_preserve_identical_constituent_dispositions(
     capability: DataCapability,
 ) -> None:

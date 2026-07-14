@@ -358,6 +358,7 @@ def test_capability_vocabulary_and_family_authorization_are_frozen() -> None:
         "trading_calendar",
         "volatility_return_inputs",
         "official_document_event_metadata",
+        "macro_regime_inputs",
     }
     assert set(AUTHORIZED_CAPABILITIES) == {
         CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING,
@@ -385,6 +386,8 @@ def test_capability_vocabulary_and_family_authorization_are_frozen() -> None:
         "sector_classification",
         "official_document_content",
         "social_attention",
+        "macro_rate_observation",
+        "crisis_window_definition",
     )
 
 
@@ -537,6 +540,24 @@ def test_all_field_specific_payloads_use_a_discriminator() -> None:
             "claimed_official_source_version_id": UUID("40000000-0000-0000-0000-000000000020"),
             "manipulation_prone": True,
             "contributes_standalone": False,
+        },
+        {
+            "record_type": "macro_rate_observation",
+            "series_id": "synthetic-policy-rate",
+            "observation_period_end": date(2026, 6, 30),
+            "released_at": AVAILABLE_AT,
+            "vintage_id": "synthetic-rate-vintage-1",
+            "rate_value": "1.5",
+            "previous_rate_value": "1.4",
+            "rate_change": "0.1",
+        },
+        {
+            "record_type": "crisis_window_definition",
+            "crisis_window_id": "synthetic-stress-window",
+            "definition_method_id": "predeclared-calendar-window-v1",
+            "declared_at": EVENT_TIME - timedelta(days=10),
+            "window_start": EVENT_TIME - timedelta(days=5),
+            "window_end": AVAILABLE_AT,
         },
     ]
     adapter = TypeAdapter(NormalizedPayload)

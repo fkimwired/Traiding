@@ -55,7 +55,7 @@ def test_phase4_openapi_is_create_read_list_with_server_resolved_create_input() 
 def test_phase4_generated_component_boundaries_are_closed_and_typed() -> None:
     components = app.openapi()["components"]["schemas"]
 
-    assert components["DataCapability"]["enum"] == [
+    phase4_capabilities = [
         "security_master",
         "universe_membership",
         "ohlcv",
@@ -66,6 +66,9 @@ def test_phase4_generated_component_boundaries_are_closed_and_typed() -> None:
         "volatility_return_inputs",
         "official_document_event_metadata",
     ]
+    generated_capabilities = components["DataCapability"]["enum"]
+    assert generated_capabilities[: len(phase4_capabilities)] == phase4_capabilities
+    assert generated_capabilities[len(phase4_capabilities) :] == ["macro_regime_inputs"]
     for component_name in (
         "AdapterProfile",
         "SnapshotCreateRequest",

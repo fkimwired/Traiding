@@ -10,9 +10,17 @@ claim or personalized investment advice.
 
 The server-owned deterministic configurations are:
 
-- `phase6-a-pass-v1` and `phase6-a-fail-cost-v1`
-- `phase6-b-pass-v1` and `phase6-b-fail-crash-v1`
-- `phase6-c-pass-v1` and `phase6-c-fail-corroboration-v1`
+- `phase6-a-pass-v2` and `phase6-a-fail-cost-v2`
+- `phase6-b-pass-v2` and `phase6-b-fail-crash-v2`
+- `phase6-c-pass-v2` and `phase6-c-fail-corroboration-v2`
+
+These configuration ids are immutable fixture identities, not expected or promised verdicts.
+The accepted deterministic outcomes are exact: `phase6-a-pass-v2` is the one synthetic
+`PASS_RESEARCH` artifact; `phase6-a-fail-cost-v2`, both Family B configurations, and
+`phase6-c-pass-v2` are `FAIL_REJECT`; and `phase6-c-fail-corroboration-v2` blocks before
+persistence with `official_corroboration_required`. The `-pass-` token in the B and C ids is
+therefore not a verdict. None of these synthetic outcomes is a real-performance claim, paper
+approval, or execution authorization.
 
 Clients supply only a persisted `BUILD_RESEARCH` mapping id, a canonically sorted set of
 immutable Phase 4 snapshot ids, and one configuration id. The server resolves all policy,
@@ -33,18 +41,25 @@ prerequisites authorized for this phase:
 - `security_master` and `universe_membership` authorization for Family B lifecycle and PIT
   eligibility evidence; and
 - `security_master`, `universe_membership`, and `ohlcv` authorization for Family C entity,
-  eligibility, price-basis, label, and unchanged leakage-gate evidence.
+  eligibility, price-basis, label, and unchanged leakage-gate evidence; and
+- `macro_regime_inputs` authorization for Family A only, with immutable PIT
+  `macro_rate_observation` vintages and a `crisis_window_definition` declared before the
+  window begins.
 
 The Phase 4 default fixture/profile/configuration remain frozen. A separately versioned
-Phase 6 synthetic adapter supplies 1,195 deterministic records for a one-source mapping:
+Phase 6 synthetic adapter supplies 1,198 deterministic records for a one-source mapping:
 11 identity, listing, sector, and lifecycle records; five PIT membership records; 852 raw
 nominal OHLCV bars; one corporate action; one delisting event; 12 as-reported fundamentals;
 305 calendar sessions; three action-aware return bundles; and five official-event records
 (two metadata records, two versioned document-content records, and one immutable social-
-attention record). The 305-session history makes the frozen 252-session Family B lag
-computable. Family C documents and social corroboration are rebound to exact persisted
-official source-version ids. A mapping with two official sources adds five records for the
-second source without changing any pre-existing observation.
+attention record); plus two PIT macro-rate vintages and one predeclared crisis-window
+definition. The frozen fixture-set version is `phase6-synthetic-pit-fixtures-v2`, and its exact
+one-source fixture-set SHA-256 is
+`010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d`. The 305-session
+history makes the frozen 252-session Family B lag computable. Family C documents and social
+corroboration are rebound to exact persisted official source-version ids. A mapping with two
+official sources adds five records for the second source without changing any pre-existing
+observation.
 
 ## Phase 5 bridge
 
@@ -55,16 +70,18 @@ gate vocabulary:
 `COST_STRESS`, `LEAKAGE`, `SAMPLE_ADEQUACY`, `REGIME`, `RISK_LIMITS`, and
 `REPRODUCIBILITY`.
 
-The additive lineage bridge permits report-wide required-capability witnesses that need not be
-misrepresented as an individual sample input, while every sample carries its exact same-entity PIT
-feature subset. It does not special-case a gate. Every A/B/C sample carries real synthetic OHLCV
-price-basis evidence and point-in-time universe-membership reconstruction, so the unchanged
-L01 and L05 implementations run normally alongside L02, L03, L04, and L06. Pipeline feature
-rows and labels are prepared first, then used as the exact Phase 5 samples and trial inputs;
-the resulting fixture identity binds the complete prepared-pipeline input hash. Missing
-policy, source, PIT, delisting, leakage, or computable gate evidence still blocks. The legacy
-Phase 5 artifact, thresholds, gate calculations, and every Phase 5 gate implementation file
-remain frozen byte-for-byte.
+The additive lineage bridge partitions the complete prepared source graph into exact
+sample-scoped inputs and hash-bound report-scoped roles. Report-scoped evidence is permitted for
+prepared labels, train-only transforms, lifecycle tests, official corroboration, and prepared
+features that cannot truthfully be attributed to one evaluation sample. The two partitions are
+disjoint and their union must equal the complete prepared source graph. Every A/B/C sample carries
+its exact same-entity synthetic OHLCV price-basis evidence and point-in-time universe-membership
+reconstruction, so the unchanged L01 and L05 implementations run normally alongside L02, L03,
+L04, and L06. Pipeline feature rows, labels, label-independent model outputs, and output-times-
+label ledger cells are prepared first; the resulting fixture identity binds the complete prepared
+pipeline input hash. Missing policy, source, PIT, delisting, leakage, or computable gate evidence
+still blocks. The legacy Phase 5 artifact, thresholds, gate calculations, and every Phase 5 gate
+implementation file remain frozen byte-for-byte.
 
 Phase 6 numeric source anchors use the additive
 `source-decimal-times-frozen-multiplier-quantized-1e-12-v1` derivation contract. Its frozen
@@ -73,11 +90,26 @@ multiplier is stored at 1e-24 and its reproduced value is quantized at the prepa
 Phase 5 derivation formula and reports remain unchanged.
 
 Every valid fixture retains six raw attempts: four completed, one failed, and one abandoned.
-Their predictions and gross returns derive from the persisted prepared feature rows and
-labels. Nested Phase 5 selection uses inner folds only; the reserved final confirmation interval is
-nonempty and excluded from selection. Baseline comparisons are explicitly typed
-`used_for_selection=false`: their all-prepared-row metrics are descriptive audit evidence and are
-never consumed by the Phase 5 selection path.
+Each completed attempt binds one immutable model-output set. Model outputs are recomputable from
+the prepared feature graph without reading labels. A frozen label-independent allocation rule maps
+each output to a synthetic long/flat research weight of exactly zero or one; each gross-return cell
+is then exactly `quantize(weight * label_value, 1e-12)` and binds the exact label interval and
+source references. A zero weight is `NO_TRADE`: requested, filled, rejected, and unfilled quantity,
+all six cost components, participation, gross return, and net return are all exactly zero. Each
+completed trial persists its own baseline, all-cost-stress, and liquidity-stress ledger for every
+prepared sample. Typed trial-economics artifacts, trial inner-validation and outer-return maps,
+selected OOS predictions, selected trial-specific cost rows, and OOS returns all reconcile to the
+same cells. Nested Phase 5 selection uses inner folds only.
+
+Final confirmation is an explicit label-blind contract outside the feature-row, score,
+model-output, trial, fit, and fold registries. It carries only pre-opening PIT geometry sources;
+`label_value` is null, `label_source_references` is empty, and `label_opened` is false. Every
+earlier feature row whose label interval intersects that reserved interval is represented by a
+separate label-blind boundary-exclusion contract and is removed before fixture construction. A
+hash-bound reproduction audit rebuilds the prepared payload from the exact immutable snapshot set
+and requires byte-identical canonical payload and pipeline-input hashes. Baseline comparisons are
+explicitly typed `used_for_selection=false`: their all-prepared-row metrics are descriptive audit
+evidence and are never consumed by the Phase 5 selection path.
 
 ## Family A: cross-sectional ranking
 
@@ -87,15 +119,23 @@ references. Every unique Phase 5 timestamp also persists the complete PIT-eligib
 all member features, linear scores and ranks, forward labels, and exact label references. The
 transparent candidate is `sector-relative-rank-linear-v1`; its concordance is computed only among
 members sharing that fixed timestamp. The sole nonlinear comparison is a real frozen depth-two
-momentum/quality/volatility tree with persisted nonzero member outputs, not a constant placeholder.
+momentum/quality/volatility tree, `frozen-depth-two-tree-v2`, with persisted nonzero member
+outputs, not a constant placeholder.
 The versioned clipped within-sector transforms pool nine pre-evaluation observations across three
-distinct PIT-eligible securities, bind those exact train entity/sample ids and source records, and
-prohibit every Phase 5 evaluation id. The deterministic fixture intentionally uses one synthetic
+distinct PIT-eligible securities, persist the ordered raw train values and exact sources, and
+recompute their frozen mean and standard deviation from that evidence. They bind the exact train
+entity/sample ids and prohibit every Phase 5 evaluation id. The deterministic fixture intentionally uses one synthetic
 `synthetic-diversified` sector so it can prove multi-security pooled-fit mechanics; it does not
 claim sector breadth or real-market evidence. Universe evidence includes active, inactive, and delisted securities with
 explicit delisting-return handling. Turnover, ADV participation, capacity, and concentration are
-persisted. The pass fixture survives the transparent baseline and rejects the nonlinear comparison;
-the negative fixture is rejected by the unchanged Phase 5 cost-stress gate.
+persisted; Family A uses the declared one-percent ADV participation limit consistently in the
+prepared inputs and Phase 5 cost ledger. Family A also carries actual PIT rate evidence in both
+directions (`+0.10` and `-0.20`) and the predeclared
+`synthetic-predeclared-stress-2020-01` window, so its REGIME gate uses observations rather than a
+compatibility projection. Baseline comparisons remain descriptive only. `phase6-a-pass-v2`
+passes all 12 unchanged gates. `phase6-a-fail-cost-v2` uses the same research evidence but a
+server-owned synthetic QA stress-policy variant and is rejected only by `COST_STRESS`; that
+variant is not a production threshold.
 
 ## Family B: momentum and regime control
 
@@ -103,13 +143,29 @@ The frozen lag windows are 1, 5, 20, 63, 126, and 252 sessions, backed by the 30
 calendar and at least 253 raw nominal bars for the evaluated active series. Raw unadjusted
 nominal-price features remain separate from action-and-delisting-aware return construction.
 The transparent features are lagged return, trend strength, realized volatility, and
-drawdown. Corporate action, volatility/rate regime, and declared crash-window evidence is
-persisted. A separate non-feature lifecycle test registry covers active, inactive, and delisted
+drawdown. Corporate-action evidence and source-derived volatility-regime results are persisted.
+The prepared `realized_volatility` feature retains its exact source-derived 1e-12 value. Only
+the copy supplied to the unchanged Phase 5 component-cost engine is projected, half-even, to
+1e-8 under `phase6-family-b-cost-volatility-1e-8-half-even-v1`. The fixture hash and every
+completed trial configuration bind that projection id and quantum; the Family B specification's
+transaction-cost-model id composes the unchanged Phase 5 model id with the same projection id.
+This is a deterministic persistence-precision contract, not a policy threshold or performance
+adjustment: it keeps every baseline, all-cost-stress, and liquidity-stress component, total, net
+return, and OOS return exactly representable by the existing `NUMERIC(38,30)` columns while
+preserving exact component totals and gross-minus-cost reconciliation. The Phase 5 engine and
+migration remain unchanged.
+Family B is not authorized to consume the Family A macro capability, so rate and crisis evidence
+are explicitly recorded as unavailable; the numeric compatibility projection used to call the
+unchanged Phase 5 engine is also hash-bound and is not represented as an observation. A separate
+non-feature lifecycle test registry covers active, inactive, and delisted
 series, requires explicit inception/termination timestamps, and binds delisting-return inputs.
 Images, candlesticks, and named-chart-pattern classifiers
-are prohibited. The pass fixture covers every declared regime. The negative fixture omits
-complete crash evidence and therefore remains `RESEARCH_ONLY_REGIME_DEPENDENT`; it cannot
-become `PASS_RESEARCH`.
+are prohibited. Family B reports only source-derived `volatility:*` regimes, never fabricated
+rate or crisis results. Both Family B configurations finish `FAIL_REJECT`: PBO is `2/3`, above the
+frozen `0.25` maximum, and REGIME remains `research_only` because volatility coverage plus the
+unavailable rate/crisis inputs are incomplete. Their deterministic DSR probability is
+approximately `0.6235247397449625` (numeric-reference tolerance `1e-12`), above the frozen
+`0.50` minimum; DSR is not the blocker.
 
 ## Family C: official-event text overlay
 
@@ -133,6 +189,10 @@ official source/document hash, marked manipulation-prone, and fixed at
 `official_corroboration_required` before a run is persisted. That block is derived by checking
 the frozen negative requirement against exact official/social source-version, entity, listing,
 and availability evidence; it is not an unconditional verdict keyed only by configuration id.
+`phase6-c-pass-v2` truthfully finishes `FAIL_REJECT`: its DSR probability is approximately
+`0.44167434869901306`, below the frozen `0.50` minimum; PBO is `2/3`, above the frozen `0.25`
+maximum; and its unavailable rate/crisis inputs leave REGIME `research_only`. Family C's
+successful cost stress and corroboration checks do not override those blockers.
 
 ## Persistence and API
 
@@ -160,6 +220,10 @@ advice.
 ## Known limitations
 
 - All data and results are deterministic mocks; no approved provider credentials are present.
+- The sole synthetic `PASS_RESEARCH` artifact is `phase6-a-pass-v2`; it is research evidence only,
+  not paper approval, execution readiness, or a claim of economic value.
 - No claim is made that any family has real predictive or economic value.
-- Capacity and regime evidence are contract/QA demonstrations, not market estimates.
+- Capacity and available volatility-regime evidence are contract/QA demonstrations, not market
+  estimates. Family A's rate/crisis evidence is synthetic PIT QA data; Family B and C record those
+  inputs as unavailable and fail closed where required.
 - No Phase 7 approval or execution capability exists.

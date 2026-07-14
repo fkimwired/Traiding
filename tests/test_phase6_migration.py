@@ -435,8 +435,15 @@ def test_phase6_defers_exact_run_child_completeness_until_commit() -> None:
     assert "SELECT trial_id, trial_key, status, config_sha256" in source
     assert "SELECT phase5_trial_id, phase5_trial_key, status, config_sha256" in source
     assert source.count("EXCEPT") >= 2
-    assert "Phase 6 attempt registry does not exactly match Phase 5 trials" in source
+    assert "Phase 6 Phase 5 trial, gate, and research-ledger lineage mismatch" in source
     assert "CREATE FUNCTION validate_phase6_run_completeness()" in source
+    own_transaction_root_guard = "TG_TABLE_NAME <> 'research_pipeline_runs'"
+    assert own_transaction_root_guard in source
+    assert "current_run.xmin = pg_current_xact_id()::xid" in source
+    assert source.index(own_transaction_root_guard) < source.index(
+        "SELECT * INTO run_row",
+        source.index("CREATE FUNCTION validate_phase6_run_completeness()"),
+    )
     for expected_registry in (
         "run_row.artifact_payload->'snapshot_bindings'",
         "run_row.artifact_payload->'attempts'",
@@ -487,12 +494,12 @@ def test_phase6_child_identities_are_run_scoped_for_valid_cross_run_reuse() -> N
 
 def test_phase6_closed_vocabularies_are_exact() -> None:
     assert in_vocabulary("ck_research_pipeline_run_identity", "configuration_id") == {
-        "phase6-a-pass-v1",
-        "phase6-a-fail-cost-v1",
-        "phase6-b-pass-v1",
-        "phase6-b-fail-crash-v1",
-        "phase6-c-pass-v1",
-        "phase6-c-fail-corroboration-v1",
+        "phase6-a-pass-v2",
+        "phase6-a-fail-cost-v2",
+        "phase6-b-pass-v2",
+        "phase6-b-fail-crash-v2",
+        "phase6-c-pass-v2",
+        "phase6-c-fail-corroboration-v2",
     }
     assert in_vocabulary("ck_research_pipeline_run_family", "canonical_family") == {
         "A_CROSS_SECTIONAL_EQUITY_RANKING",
@@ -527,6 +534,7 @@ def test_phase6_closed_vocabularies_are_exact() -> None:
         "trading_calendar",
         "volatility_return_inputs",
         "official_document_event_metadata",
+        "macro_regime_inputs",
     }
 
 
@@ -599,6 +607,7 @@ def test_phase6_additive_phase4_support_is_scoped_and_exactly_reversible() -> No
     source = migration_source()
     upgrade = function_source("upgrade")
     downgrade = function_source("downgrade")
+    snapshot_capabilities = function_source("_phase4_snapshot_capability_constraint")
     snapshot_versions = function_source("_phase4_snapshot_frozen_versions_constraint")
     quality_identities = function_source("_phase4_quality_finding_identity_constraint")
     quality_codes = function_source("_phase4_quality_finding_code_constraint")
@@ -609,14 +618,23 @@ def test_phase6_additive_phase4_support_is_scoped_and_exactly_reversible() -> No
     assert "CREATE OR REPLACE FUNCTION validate_phase4_snapshot_request" in source
     record_type_function = function_source("_phase4_record_type_function")
     snapshot_request_function = function_source("_phase4_snapshot_request_function")
+    normalized_scope_bridge = function_source("_phase4_normalized_identity_scope_bridge_sql")
     assert "else \"checked_record_type = 'official_document_event'\"" in record_type_function
     assert "{family_b_extra}'ohlcv'," in snapshot_request_function
+    assert "'macro_rate_observation'" in normalized_scope_bridge
+    assert "'crisis_window_definition'" in normalized_scope_bridge
+    assert "normalized_record_type NOT IN" in normalized_scope_bridge
+    assert "(base_scope, extended_scope) if extended else" in normalized_scope_bridge
+    assert "_phase4_normalized_identity_scope_bridge_sql(extended=True)" in upgrade
+    assert "_phase4_normalized_identity_scope_bridge_sql(extended=False)" in downgrade
     assert "extended=True" in upgrade
     assert "extended=True" in upgrade
     assert "extended=False" in downgrade
     assert "extended=False" in downgrade
     assert upgrade.count('"ck_data_snapshot_constituent_record_type"') == 2
     assert downgrade.count('"ck_data_snapshot_constituent_record_type"') == 2
+    assert upgrade.count('"ck_data_snapshot_capability"') == 2
+    assert downgrade.count('"ck_data_snapshot_capability"') == 2
     assert upgrade.count('"ck_data_quality_finding_record_type"') == 2
     assert downgrade.count('"ck_data_quality_finding_record_type"') == 2
     assert upgrade.count('"ck_data_snapshot_frozen_versions"') == 2
@@ -627,6 +645,8 @@ def test_phase6_additive_phase4_support_is_scoped_and_exactly_reversible() -> No
     assert downgrade.count('"ck_data_quality_finding_code"') == 2
     assert "'phase4-synthetic-pit-fixtures-v1'" in snapshot_versions
     assert "'phase6-synthetic-pit-fixtures-v1'" in snapshot_versions
+    assert "'official_document_event_metadata'" in snapshot_capabilities
+    assert "capabilities += \",'macro_regime_inputs'\"" in snapshot_capabilities
     assert "'phase4-data-quality-v1'" in quality_identities
     assert "'phase6-data-contract-quality-v1'" in quality_identities
     for phase6_code in (
@@ -636,8 +656,10 @@ def test_phase6_additive_phase4_support_is_scoped_and_exactly_reversible() -> No
         "official_corroboration_mismatch",
     ):
         assert phase6_code in quality_codes
-    assert "fixture_set_version = 'phase6-synthetic-pit-fixtures-v1'" in downgrade
-    assert "rule_set_version = 'phase6-data-contract-quality-v1'" in downgrade
+    assert "fixture_set_version IN (" in downgrade
+    assert "'phase6-synthetic-pit-fixtures-v2'" in downgrade
+    assert "rule_set_version IN (" in downgrade
+    assert "'phase6-data-contract-quality-v2'" in downgrade
     assert "Phase 6 downgrade blocked by additive Phase 4 record types" in downgrade
 
 
@@ -664,6 +686,15 @@ def test_phase6_phase5_lineage_bridge_is_additive_and_restores_exact_base() -> N
     assert "ALTER FUNCTION validate_phase5_report_source_lineage_phase5_base(uuid) " in downgrade
     assert "RENAME TO validate_phase5_report_source_lineage" in downgrade
     assert "DROP FUNCTION phase6_sha256_prefix64_fraction(text)" in downgrade
+    assert "CREATE FUNCTION phase6_source_payload_equivalent(" in source
+    assert "checked_capability IS DISTINCT FROM 'macro_regime_inputs'" in source
+    assert "IS DISTINCT FROM 'macro_rate_observation'" in source
+    assert "'rate_value','previous_rate_value','rate_change'" in source
+    assert "phase5_json_payload_equivalent(\n                    left_value - ARRAY[" in source
+    assert "(left_value->>rate_field)::numeric" in source
+    assert "Phase 6 could not extend macro source-payload equivalence" in source
+    assert "source_item#>>'{key,capability}'" in source
+    assert "DROP FUNCTION phase6_source_payload_equivalent(text, jsonb, jsonb)" in downgrade
     assert "NOT IN ('object','null')" in source
     assert "IS DISTINCT FROM 'null'" in source
     assert "Phase 6 could not generalize sample-scoped capability lineage" in source

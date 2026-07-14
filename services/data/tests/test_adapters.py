@@ -7,6 +7,7 @@ import pytest
 from fable5_data.adapters import CredentialGatedAdapter, Phase4DataAdapter
 from fable5_data.contracts import (
     PHASE4_CAPABILITY_RECORD_TYPES,
+    PHASE4_DATA_CAPABILITIES,
     SYNTHETIC_ADAPTER_VERSION,
     SYNTHETIC_FIXTURE_SET_VERSION,
     AdapterProfile,
@@ -27,7 +28,7 @@ def test_synthetic_adapter_declares_and_serves_all_nine_capabilities() -> None:
 
     assert isinstance(adapter, Phase4DataAdapter)
     assert len(adapter.profile.capabilities) == 9
-    assert set(adapter.profile.capabilities) == set(DataCapability)
+    assert set(adapter.profile.capabilities) == set(PHASE4_DATA_CAPABILITIES)
     assert adapter.profile.adapter_version == SYNTHETIC_ADAPTER_VERSION
     assert adapter.profile.synthetic is True
     assert len(adapter.profile.schema_bindings) == len(
@@ -35,7 +36,7 @@ def test_synthetic_adapter_declares_and_serves_all_nine_capabilities() -> None:
     )
 
     observed_types: set[DataRecordType] = set()
-    for capability in DataCapability:
+    for capability in PHASE4_DATA_CAPABILITIES:
         result = adapter.fetch(capability)
         assert result.status == "available"
         assert result.capability is capability

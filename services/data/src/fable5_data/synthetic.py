@@ -29,12 +29,15 @@ from fable5_data.contracts import (
     AS_REPORTED_FUNDAMENTAL_SCHEMA_VERSION,
     CALENDAR_SESSION_SCHEMA_VERSION,
     CORPORATE_ACTION_SCHEMA_VERSION,
+    CRISIS_WINDOW_DEFINITION_SCHEMA_VERSION,
     DELISTING_EVENT_SCHEMA_VERSION,
     INSTRUMENT_IDENTITY_SCHEMA_VERSION,
     LISTING_IDENTITY_SCHEMA_VERSION,
+    MACRO_RATE_OBSERVATION_SCHEMA_VERSION,
     OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
     OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION,
     OHLCV_BAR_SCHEMA_VERSION,
+    PHASE4_DATA_CAPABILITIES,
     PHASE6_SYNTHETIC_ADAPTER_VERSION,
     PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
     REVISION_SCHEMA_VERSION,
@@ -96,6 +99,8 @@ PHASE6_SCHEMA_VERSION_BY_RECORD_TYPE: dict[DataRecordType, str] = {
     DataRecordType.SECTOR_CLASSIFICATION: SECTOR_CLASSIFICATION_SCHEMA_VERSION,
     DataRecordType.OFFICIAL_DOCUMENT_CONTENT: OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
     DataRecordType.SOCIAL_ATTENTION: SOCIAL_ATTENTION_SCHEMA_VERSION,
+    DataRecordType.MACRO_RATE_OBSERVATION: MACRO_RATE_OBSERVATION_SCHEMA_VERSION,
+    DataRecordType.CRISIS_WINDOW_DEFINITION: CRISIS_WINDOW_DEFINITION_SCHEMA_VERSION,
 }
 
 SCHEMA_ID_BY_RECORD_TYPE: dict[DataRecordType, str] = {
@@ -109,7 +114,7 @@ SYNTHETIC_ADAPTER_PROFILE = AdapterProfile(
     dataset_id=_DATASET_ID,
     product_id=_PRODUCT_ID,
     synthetic=True,
-    capabilities=tuple(sorted(DataCapability, key=str)),
+    capabilities=tuple(sorted(PHASE4_DATA_CAPABILITIES, key=str)),
     schema_bindings=tuple(
         sorted(
             (
@@ -169,10 +174,10 @@ PHASE6_SYNTHETIC_ADAPTER_PROFILE = AdapterProfile(
 )
 
 PHASE6_SYNTHETIC_MOCK_CONFIGURATION = MockConfigurationIdentity(
-    configuration_id="phase6-synthetic-default-v1",
+    configuration_id="phase6-synthetic-default-v2",
     configuration_sha256=mock_configuration_sha256(
         {
-            "configuration_id": "phase6-synthetic-default-v1",
+            "configuration_id": "phase6-synthetic-default-v2",
             "fixture_set_version": PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
             "adapter_version": PHASE6_SYNTHETIC_ADAPTER_VERSION,
         }
@@ -526,6 +531,7 @@ def build_synthetic_results(
             ),
         )
         for capability in DataCapability
+        if capability in profile.capabilities
     }
 
 
@@ -616,7 +622,11 @@ class SyntheticPointInTimeAdapter:
         return self._results[capability]
 
     def all_results(self) -> tuple[AdapterAvailableResult, ...]:
-        return tuple(self._results[capability] for capability in DataCapability)
+        return tuple(
+            self._results[capability]
+            for capability in DataCapability
+            if capability in self._results
+        )
 
 
 __all__ = [
