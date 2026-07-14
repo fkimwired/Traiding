@@ -239,15 +239,17 @@ live-trading code exists.**
 
 ### Phase 7 — Risk & governance
 
-Max position size; gross exposure limit; net exposure limit; sector-neutrality
-option; volatility targeting; max daily loss stop; kill switch; a **manual
-approval gate** before any strategy moves from research to paper trading;
-immutable decision logs; model versioning; paper/live separation flags.
+Fail-closed, immutable approval assessment and pre-order risk evidence only. A
+`PASS_RESEARCH` result is merely a prerequisite: a positive synthetic paper approval
+also requires independently versioned policy and scope, human-controlled authorization,
+current expiry/review evidence, no revocation, complete Phase 6 lineage, clear control
+switches, and every required server-computed risk rule. Missing, stale, conflicting,
+revoked, or uncomputable evidence rejects.
 
-**Definition of done:** risk checks run *before* any paper-trade order is created;
-every signal and paper trade has an audit trail; the kill switch blocks paper
-orders; the manual-approval state is enforced (a strategy cannot page-trade without
-an explicit, logged approval).
+**Definition of done:** every fully resolved assessment and risk check is append-only,
+two-writer idempotent, and source-linked; only create/read/list APIs exist; no broker,
+submission, fill, position, paper-execution, or live path exists. Positive synthetic
+evidence grants no execution authority and is not investment advice.
 
 ### Phase 8 — Product UI *(design spec — treat as a real design brief)*
 

@@ -16,7 +16,7 @@ Phase 1 control plane
   -> Phase 4 point-in-time provider interfaces and mocks
   -> Phase 5 evaluation engine and fail-closed gates
   -> Phase 6 A/B/C research strategies on mock/approved data
-  -> Phase 7 risk, approval, audit, and paper-only adapter
+  -> Phase 7 fail-closed approval and pre-order risk assessment
   -> Phase 8 complete product workflows and visual QA
 ```
 
@@ -33,7 +33,7 @@ do not receive executable scaffolds.
 | 4 | typed adapters, snapshots, PIT semantics, deterministic mocks, graceful credentials | provider conformance suite and mock end-to-end data run |
 | 5 | nested walk-forward, trial registry, DSR, PBO, leakage, costs/stress, reports | all 12 checks in `docs/EVALS.md` section 14 |
 | 6 | research-only A/B/C pipelines and explainable outputs | mock runs pass/failed reports; no paper approval or live path |
-| 7 | limits, approvals, kill switch, immutable decisions, paper-only adapter | pre-order risk tests, endpoint allowlist, approval/kill-switch integration tests |
+| 7 | versioned policy, human authorization, revocation, immutable approval and pre-order risk decisions | fail-closed eligibility, currentness, revocation, lineage, and risk-rule tests; no adapter or execution path |
 | 8 | full four-mode workflows and traceability | source-to-audit route in ≤2 clicks; visible gate precedence; accessibility/visual tests |
 
 ## Required handoff template
@@ -52,5 +52,4 @@ Every implementer task must include:
 9. **Handoff report.** Files changed, commands/results, known limitations, and the next phase prompt.
 10. **Stop condition.** Stop immediately after the named phase; do not anticipate later behavior.
 
-The ready-to-run Phase 2 handoff is in `docs/handoffs/PHASE_02.md`.
-
+The ready-to-run next-phase handoff is in `docs/handoffs/PHASE_08.md`.

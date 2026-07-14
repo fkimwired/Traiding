@@ -5,7 +5,7 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 4 implementation status
+## Phase 7 implementation status
 
 Implemented and verified by the full isolated Compose acceptance gate:
 
@@ -39,10 +39,23 @@ Implemented and verified by the full isolated Compose acceptance gate:
 - create/read/list-only Phase 4 snapshot APIs and regenerated TypeScript contracts;
 - reversible `0004_phase4` persistence with concurrent idempotence, deterministic hashes, and
   database rejection of update, delete, and truncate across all seven Phase 4 tables.
+- immutable Phase 5 evaluation policies and reports with purged/embargoed walk-forward geometry,
+  cost/slippage stress, leakage blocking, risk limits, deterministic trial accounting, and complete
+  audit lineage;
+- deterministic Phase 6 Family A/B/C research pipelines whose artifacts preserve point-in-time
+  source, preparation, trial, cost, gate, code, seed, and snapshot lineage without granting paper
+  approval;
+- a fail-closed Phase 7 approval and pre-order-risk assessment layer that considers only immutable
+  Phase 6 `PASS_RESEARCH` evidence and separately versioned policy, scope, human authorization,
+  currentness, revocation, and risk inputs;
+- create/read/list-only approval-assessment and authorization-revocation APIs, with client requests
+  limited to references to pre-existing immutable evidence; and
+- reversible `0005_phase5`, `0006_phase6`, and `0007_phase7` persistence whose new records reject
+  update, delete, and truncate while preserving every earlier row byte-for-byte.
 
-Intentionally absent: real-provider implementations, features or labels, backtesting, alpha models,
-signals or strategies, performance metrics, portfolio/risk logic, approvals, brokers, positions,
-paper orders, and every live-order capability.
+Intentionally absent: real-provider implementations, brokers, order submission, fills, positions,
+paper execution, and every live-order capability. `APPROVED_PAPER` is synthetic governance evidence;
+it never authorizes an order and never implies execution readiness.
 
 ## Prerequisites
 
@@ -50,9 +63,9 @@ paper orders, and every live-order capability.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 4. Local and CI extraction
-and point-in-time data use deterministic synthetic implementations; mapping is pure deterministic
-code; source URLs are stored as provenance and are not fetched.
+No data-provider, LLM, broker, or commercial credential is needed for Phase 7. Local and CI evidence
+is deterministic and synthetic. LLM use remains limited to structured extraction from text; no LLM
+may emit an approval, label, signal, allocation, risk override, or execution instruction.
 
 ## Start the full stack
 
@@ -112,17 +125,17 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 4 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 7 policy checks:
 
 ```powershell
 .\scripts\check.ps1
 ```
 
-Run the isolated full-stack Phase 4 acceptance verifier (it creates and removes its own Compose
+Run the isolated full-stack Phase 7 acceptance verifier (it creates and removes its own Compose
 project and volumes):
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 4
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 7
 ```
 
 ### macOS/Linux/CI
@@ -174,24 +187,25 @@ corroboration, extraction-request/event, card, and memo records without editing 
 corroboration-set equality, post-finalization append guards, and deterministic rationale artifacts.
 `0004_phase4` adds immutable point-in-time snapshot headers, raw observations, revisions, normalized
 observations, constituents, quality findings, and manifests with exact canonical-hash validation.
-The Phase 4 acceptance cycle runs real concurrency, lineage, and append-only tests, snapshots every
-Phase 1-3 row, downgrades specifically to `0003_phase3`, proves those rows are byte-identical, and
-re-upgrades to head.
+`0005_phase5` adds versioned evaluation policy, reports, trial/fold/fit/ledger/gate evidence, and
+blocked outcomes. `0006_phase6` adds immutable research runs and their complete source, feature,
+attempt, score, comparison, extraction, and corroboration lineage. `0007_phase7` adds independently
+versioned policy, scope, human authorization, revocation, risk-input, assessment, and check evidence.
+The acceptance cycles exercise each reversible boundary and prove all prior rows remain byte-identical.
 
 ## Architecture
 
 | Component | Current responsibility | Boundary |
 |---|---|---|
-| `frontend` | Navigation, simulation disclosure, and source-linked deterministic rationale | no actionable paper-order controls |
-| `api` | Health/readiness plus typed source/card/mapping/snapshot create/read/list authority | no signal, performance, or execution endpoint |
+| `frontend` | Navigation, simulation disclosure, and read-only research/risk context | no actionable paper-order controls |
+| `api` | Typed create/read/list authority through immutable Phase 7 assessment and revocation evidence | no broker, order, fill, position, or execution endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
-| `worker` | deterministic extraction on the `research` queue | no strategy/backtest/trading queue |
-| `postgres` | Immutable audit, provenance, mapping, and point-in-time snapshot lineage | no evaluation, risk, or order records |
+| `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
+| `postgres` | Immutable Phase 1-7 research, evaluation, approval, and risk evidence | no broker, order, fill, position, or execution records |
 | `redis` | queue/cache connectivity | no trading queue exists |
 | `packages/contracts` | generated OpenAPI TypeScript | never a second schema authority |
 
-Model tracking will use an MLflow-compatible interface when Phase 5 defines experiment artifacts; no
-MLflow service or dependency is added prematurely.
+No execution adapter, broker dependency, or order-state abstraction is present.
 
 ## Repository guide
 
@@ -204,11 +218,17 @@ MLflow service or dependency is added prematurely.
 - `docs/PHASE_03_MAPPING_DECISIONS.md`: frozen family, rule, reason, precedence, and rationale semantics.
 - `docs/PHASE_04_DATA_DECISIONS.md`: frozen point-in-time schemas, authorization, canonicalization,
   availability, revision, entitlement, quality, and snapshot semantics.
-- `docs/handoffs/PHASE_04.md`: authoritative Phase 4 acceptance boundary and inputs.
+- `docs/PHASE_06_RESEARCH_DECISIONS.md`: frozen Phase 6 research-only evidence and gate semantics.
+- `docs/PHASE_07_APPROVAL_DECISIONS.md`: frozen Phase 7 eligibility, human-authorization,
+  currentness, revocation, scope, risk-check, and non-execution semantics.
+- `docs/handoffs/PHASE_08.md`: next-phase boundary; it does not authorize execution work.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts, synthetic adapters, quality gate, immutable
   snapshot materializer/repository/workflow, fixtures, and tests.
+- `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
+- `services/research`: deterministic Phase 6 research workflows and immutable lineage.
+- `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -221,7 +241,7 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-After the full Phase 4 acceptance gate passes, Phase 5 may define feature/label contracts and the
-evaluation harness only after freezing signal definitions, horizons, required data, realistic costs
-and slippage, purged/embargoed walk-forward reports, risk limits, and audit output. Do not add paper
-execution, brokers, positions, orders, or any live capability.
+After the full Phase 7 acceptance gate passes, use `docs/handoffs/PHASE_08.md` as the authoritative
+boundary. Phase 8 remains UI/workflow-only unless a later explicitly approved handoff defines a
+separate execution phase. Do not add brokers, orders, fills, positions, paper execution, or any live
+capability.

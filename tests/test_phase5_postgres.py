@@ -482,9 +482,10 @@ def test_phase5_online_migration_reaches_expected_phase_head_and_creates_exact_t
             revision = connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            expected_revision = (
-                "0006_phase6" if os.environ.get("FABLE5_VERIFY_PHASE") == "6" else "0005_phase5"
-            )
+            expected_revision = {
+                "6": "0006_phase6",
+                "7": "0007_phase7",
+            }.get(os.environ.get("FABLE5_VERIFY_PHASE"), "0005_phase5")
             assert revision == expected_revision
         tables = set(inspect(engine).get_table_names())
         assert set(PHASE5_TABLES) <= tables

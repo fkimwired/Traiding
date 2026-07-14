@@ -203,6 +203,502 @@
         "title": "AmbiguityFlag",
         "type": "string"
       },
+      "ApprovalAssessmentArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_policy_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Approval Policy Sha256",
+            "type": "string"
+          },
+          "approval_policy_version_id": {
+            "format": "uuid",
+            "title": "Approval Policy Version Id",
+            "type": "string"
+          },
+          "approval_scope_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Approval Scope Sha256",
+            "type": "string"
+          },
+          "approval_scope_version_id": {
+            "format": "uuid",
+            "title": "Approval Scope Version Id",
+            "type": "string"
+          },
+          "artifact_schema_version": {
+            "const": "phase7-approval-assessment-v1",
+            "default": "phase7-approval-assessment-v1",
+            "title": "Artifact Schema Version",
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "authorization_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Authorization Sha256",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovalCheckResult"
+            },
+            "minItems": 25,
+            "title": "Checks",
+            "type": "array"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "currentness_state_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Currentness State Sha256",
+            "type": "string"
+          },
+          "disclaimer": {
+            "const": "Synthetic simulated-paper governance evidence only; no order, execution readiness, real performance claim, or investment advice.",
+            "default": "Synthetic simulated-paper governance evidence only; no order, execution readiness, real performance claim, or investment advice.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "execution_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Execution Authorized",
+            "type": "boolean"
+          },
+          "execution_ready": {
+            "const": false,
+            "default": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "no_personalized_investment_advice": {
+            "const": true,
+            "default": true,
+            "title": "No Personalized Investment Advice",
+            "type": "boolean"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ApprovalAssessmentOutcome"
+          },
+          "phase6_lineage": {
+            "$ref": "#/components/schemas/Phase6ApprovalLineage"
+          },
+          "phase7_code_version_git_sha": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Phase7 Code Version Git Sha",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "research_run_id": {
+            "format": "uuid",
+            "title": "Research Run Id",
+            "type": "string"
+          },
+          "revocation_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Revocation Ids",
+            "type": "array"
+          },
+          "revocation_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Revocation Set Sha256",
+            "type": "string"
+          },
+          "risk_input_id": {
+            "format": "uuid",
+            "title": "Risk Input Id",
+            "type": "string"
+          },
+          "risk_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Risk Input Sha256",
+            "type": "string"
+          },
+          "simulated_paper_only": {
+            "const": true,
+            "default": true,
+            "title": "Simulated Paper Only",
+            "type": "boolean"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "artifact_sha256",
+          "request_fingerprint_sha256",
+          "currentness_state_sha256",
+          "revocation_set_sha256",
+          "research_run_id",
+          "approval_policy_version_id",
+          "approval_scope_version_id",
+          "human_authorization_evidence_id",
+          "risk_input_id",
+          "phase6_lineage",
+          "approval_policy_sha256",
+          "approval_scope_sha256",
+          "authorization_sha256",
+          "risk_input_sha256",
+          "revocation_ids",
+          "checks",
+          "outcome",
+          "reason_codes",
+          "phase7_code_version_git_sha",
+          "created_at_utc"
+        ],
+        "title": "ApprovalAssessmentArtifact",
+        "type": "object"
+      },
+      "ApprovalAssessmentCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_policy_version_id": {
+            "format": "uuid",
+            "title": "Approval Policy Version Id",
+            "type": "string"
+          },
+          "approval_scope_version_id": {
+            "format": "uuid",
+            "title": "Approval Scope Version Id",
+            "type": "string"
+          },
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "research_run_id": {
+            "format": "uuid",
+            "title": "Research Run Id",
+            "type": "string"
+          },
+          "risk_input_id": {
+            "format": "uuid",
+            "title": "Risk Input Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "research_run_id",
+          "approval_policy_version_id",
+          "approval_scope_version_id",
+          "human_authorization_evidence_id",
+          "risk_input_id"
+        ],
+        "title": "ApprovalAssessmentCreateRequest",
+        "type": "object"
+      },
+      "ApprovalAssessmentOutcome": {
+        "enum": [
+          "APPROVED_PAPER",
+          "FAIL_REJECT"
+        ],
+        "title": "ApprovalAssessmentOutcome",
+        "type": "string"
+      },
+      "ApprovalAssessmentSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "execution_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Execution Authorized",
+            "type": "boolean"
+          },
+          "execution_ready": {
+            "const": false,
+            "default": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "no_personalized_investment_advice": {
+            "const": true,
+            "default": true,
+            "title": "No Personalized Investment Advice",
+            "type": "boolean"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ApprovalAssessmentOutcome"
+          },
+          "reason_codes": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "research_configuration_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Research Configuration Id",
+            "type": "string"
+          },
+          "research_run_id": {
+            "format": "uuid",
+            "title": "Research Run Id",
+            "type": "string"
+          },
+          "simulated_paper_only": {
+            "const": true,
+            "default": true,
+            "title": "Simulated Paper Only",
+            "type": "boolean"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "artifact_sha256",
+          "research_run_id",
+          "research_configuration_id",
+          "outcome",
+          "reason_codes",
+          "created_at_utc"
+        ],
+        "title": "ApprovalAssessmentSummary",
+        "type": "object"
+      },
+      "ApprovalCheckCode": {
+        "enum": [
+          "RESEARCH_PASS",
+          "PHASE6_LINEAGE_COMPLETE",
+          "POLICY_CURRENT",
+          "POLICY_MATCH",
+          "SCOPE_CURRENT",
+          "SCOPE_MATCH",
+          "AUTHORIZATION_CURRENT",
+          "AUTHORIZATION_MATCH",
+          "REVOCATION_CLEAR",
+          "RISK_INPUT_FRESH",
+          "GLOBAL_CONTROL_CLEAR",
+          "STRATEGY_CONTROL_CLEAR",
+          "DATA_QUALITY_CONTROL_CLEAR",
+          "MARKET_CALENDAR_OPEN",
+          "DUPLICATE_CONTEXT_CLEAR",
+          "NOTIONAL_LIMIT",
+          "GROSS_EXPOSURE_LIMIT",
+          "NET_EXPOSURE_LIMIT",
+          "SECTOR_EXPOSURE_LIMIT",
+          "CONCENTRATION_LIMIT",
+          "LIQUIDITY_MINIMUM",
+          "TURNOVER_LIMIT",
+          "VOLATILITY_LIMIT",
+          "DAILY_LOSS_LIMIT",
+          "DRAWDOWN_LIMIT"
+        ],
+        "title": "ApprovalCheckCode",
+        "type": "string"
+      },
+      "ApprovalCheckResult": {
+        "additionalProperties": false,
+        "properties": {
+          "check_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Check Sha256",
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/ApprovalCheckCode"
+          },
+          "evidence_sha256s": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Evidence Sha256S",
+            "type": "array"
+          },
+          "observed_value": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Value"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "reason_code": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CheckStatus"
+          },
+          "threshold_value": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold Value"
+          }
+        },
+        "required": [
+          "ordinal",
+          "code",
+          "status",
+          "reason_code",
+          "evidence_sha256s",
+          "check_sha256"
+        ],
+        "title": "ApprovalCheckResult",
+        "type": "object"
+      },
+      "ApprovalRevocationCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "revocation_evidence_id": {
+            "format": "uuid",
+            "title": "Revocation Evidence Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "human_authorization_evidence_id",
+          "revocation_evidence_id"
+        ],
+        "title": "ApprovalRevocationCreateRequest",
+        "type": "object"
+      },
+      "ApprovalValidationErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovalValidationIssue"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ApprovalValidationErrorResponse",
+        "type": "object"
+      },
+      "ApprovalValidationIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ApprovalValidationIssue",
+        "type": "object"
+      },
       "AsReportedFundamentalPayload": {
         "additionalProperties": false,
         "properties": {
@@ -379,6 +875,199 @@
         ],
         "title": "AuthorityVerificationMethod",
         "type": "string"
+      },
+      "AuthorizationRevocationArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_schema_version": {
+            "const": "phase7-authorization-revocation-v1",
+            "default": "phase7-authorization-revocation-v1",
+            "title": "Artifact Schema Version",
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "authorization_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Authorization Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "effective_at_utc": {
+            "format": "date-time",
+            "title": "Effective At Utc",
+            "type": "string"
+          },
+          "execution_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Execution Authorized",
+            "type": "boolean"
+          },
+          "execution_ready": {
+            "const": false,
+            "default": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "no_personalized_investment_advice": {
+            "const": true,
+            "default": true,
+            "title": "No Personalized Investment Advice",
+            "type": "boolean"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "phase7_code_version_git_sha": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Phase7 Code Version Git Sha",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "revocation_evidence_id": {
+            "format": "uuid",
+            "title": "Revocation Evidence Id",
+            "type": "string"
+          },
+          "revocation_evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Revocation Evidence Sha256",
+            "type": "string"
+          },
+          "revocation_id": {
+            "format": "uuid",
+            "title": "Revocation Id",
+            "type": "string"
+          },
+          "revoked_by": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Revoked By",
+            "type": "string"
+          },
+          "simulated_paper_only": {
+            "const": true,
+            "default": true,
+            "title": "Simulated Paper Only",
+            "type": "boolean"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "revocation_id",
+          "artifact_sha256",
+          "request_fingerprint_sha256",
+          "human_authorization_evidence_id",
+          "authorization_sha256",
+          "revocation_evidence_id",
+          "revocation_evidence_sha256",
+          "revoked_by",
+          "reason",
+          "effective_at_utc",
+          "phase7_code_version_git_sha",
+          "created_at_utc"
+        ],
+        "title": "AuthorizationRevocationArtifact",
+        "type": "object"
+      },
+      "AuthorizationRevocationSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "effective_at_utc": {
+            "format": "date-time",
+            "title": "Effective At Utc",
+            "type": "string"
+          },
+          "execution_authorized": {
+            "const": false,
+            "default": false,
+            "title": "Execution Authorized",
+            "type": "boolean"
+          },
+          "execution_ready": {
+            "const": false,
+            "default": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "revocation_evidence_id": {
+            "format": "uuid",
+            "title": "Revocation Evidence Id",
+            "type": "string"
+          },
+          "revocation_id": {
+            "format": "uuid",
+            "title": "Revocation Id",
+            "type": "string"
+          },
+          "simulated_paper_only": {
+            "const": true,
+            "default": true,
+            "title": "Simulated Paper Only",
+            "type": "boolean"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "revocation_id",
+          "artifact_sha256",
+          "human_authorization_evidence_id",
+          "revocation_evidence_id",
+          "effective_at_utc",
+          "created_at_utc"
+        ],
+        "title": "AuthorizationRevocationSummary",
+        "type": "object"
       },
       "AuthorizedMappingIdentity": {
         "additionalProperties": false,
@@ -810,6 +1499,16 @@
         ],
         "title": "CardWithMemo",
         "type": "object"
+      },
+      "CheckStatus": {
+        "enum": [
+          "PASS",
+          "FAIL",
+          "UNCOMPUTABLE",
+          "BLOCKED"
+        ],
+        "title": "CheckStatus",
+        "type": "string"
       },
       "ConstituentDisposition": {
         "enum": [
@@ -5908,6 +6607,293 @@
           "phase5_trial_set_sha256"
         ],
         "title": "Phase5EvaluationLink",
+        "type": "object"
+      },
+      "Phase6ApprovalLineage": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_family": {
+            "$ref": "#/components/schemas/CanonicalFamily"
+          },
+          "code_version_git_sha": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Code Version Git Sha",
+            "type": "string"
+          },
+          "effective_trial_count": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Effective Trial Count",
+            "type": "string"
+          },
+          "evaluation_report_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Report Id"
+          },
+          "evaluation_report_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Report Sha256"
+          },
+          "feature_lineage_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Feature Lineage Sha256",
+            "type": "string"
+          },
+          "gate_codes": {
+            "items": {
+              "$ref": "#/components/schemas/GateCode"
+            },
+            "title": "Gate Codes",
+            "type": "array"
+          },
+          "lineage_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Lineage Sha256",
+            "type": "string"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "mapping_version": {
+            "minimum": 1.0,
+            "title": "Mapping Version",
+            "type": "integer"
+          },
+          "phase5_fixture_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Phase5 Fixture Id",
+            "type": "string"
+          },
+          "phase5_fixture_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Phase5 Fixture Sha256",
+            "type": "string"
+          },
+          "phase5_policy_id": {
+            "format": "uuid",
+            "title": "Phase5 Policy Id",
+            "type": "string"
+          },
+          "phase5_policy_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Phase5 Policy Sha256",
+            "type": "string"
+          },
+          "phase5_policy_version": {
+            "minimum": 1.0,
+            "title": "Phase5 Policy Version",
+            "type": "integer"
+          },
+          "phase5_trial_set_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase5 Trial Set Sha256"
+          },
+          "promotion_state": {
+            "$ref": "#/components/schemas/PromotionState"
+          },
+          "random_seed": {
+            "minimum": 0.0,
+            "title": "Random Seed",
+            "type": "integer"
+          },
+          "raw_trial_count": {
+            "minimum": 0.0,
+            "title": "Raw Trial Count",
+            "type": "integer"
+          },
+          "research_artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Research Artifact Sha256",
+            "type": "string"
+          },
+          "research_configuration_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Research Configuration Id",
+            "type": "string"
+          },
+          "research_configuration_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Research Configuration Sha256",
+            "type": "string"
+          },
+          "research_pipeline_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Research Pipeline Input Sha256",
+            "type": "string"
+          },
+          "research_request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Research Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "research_run_id": {
+            "format": "uuid",
+            "title": "Research Run Id",
+            "type": "string"
+          },
+          "research_status": {
+            "enum": [
+              "completed",
+              "blocked"
+            ],
+            "title": "Research Status",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase7-phase6-approval-lineage-v1",
+            "default": "phase7-phase6-approval-lineage-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot_bindings": {
+            "items": {
+              "$ref": "#/components/schemas/Phase6SnapshotBindingLineage"
+            },
+            "minItems": 1,
+            "title": "Snapshot Bindings",
+            "type": "array"
+          },
+          "snapshot_bundle_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Bundle Sha256",
+            "type": "string"
+          },
+          "source_reproduction_audit_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Reproduction Audit Sha256",
+            "type": "string"
+          },
+          "specification_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Specification Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lineage_sha256",
+          "research_run_id",
+          "research_artifact_sha256",
+          "research_request_fingerprint_sha256",
+          "research_configuration_id",
+          "research_configuration_sha256",
+          "research_status",
+          "promotion_state",
+          "mapping_id",
+          "mapping_version",
+          "mapping_input_sha256",
+          "canonical_family",
+          "specification_sha256",
+          "research_pipeline_input_sha256",
+          "feature_lineage_sha256",
+          "snapshot_bundle_sha256",
+          "source_reproduction_audit_sha256",
+          "snapshot_bindings",
+          "phase5_policy_id",
+          "phase5_policy_version",
+          "phase5_policy_sha256",
+          "phase5_fixture_id",
+          "phase5_fixture_sha256",
+          "evaluation_report_id",
+          "evaluation_report_sha256",
+          "phase5_trial_set_sha256",
+          "gate_codes",
+          "code_version_git_sha",
+          "random_seed",
+          "raw_trial_count",
+          "effective_trial_count"
+        ],
+        "title": "Phase6ApprovalLineage",
+        "type": "object"
+      },
+      "Phase6SnapshotBindingLineage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of_utc": {
+            "format": "date-time",
+            "title": "As Of Utc",
+            "type": "string"
+          },
+          "binding_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Binding Sha256",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "quality_status": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "snapshot_id",
+          "snapshot_sha256",
+          "capability",
+          "binding_sha256",
+          "mapping_id",
+          "mapping_input_sha256",
+          "as_of_utc",
+          "quality_status"
+        ],
+        "title": "Phase6SnapshotBindingLineage",
         "type": "object"
       },
       "PolicyDeclaration": {
@@ -12729,6 +13715,285 @@
         "summary": "Ready",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/v1/approval-assessments": {
+      "get": {
+        "operationId": "list_approval_assessments_v1_approval_assessments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalAssessmentSummary"
+                  },
+                  "title": "Response List Approval Assessments V1 Approval Assessments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Approval Assessments",
+        "tags": [
+          "approval-governance"
+        ]
+      },
+      "post": {
+        "operationId": "create_approval_assessment_v1_approval_assessments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalAssessmentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalAssessmentArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Create Approval Assessment",
+        "tags": [
+          "approval-governance"
+        ]
+      }
+    },
+    "/v1/approval-assessments/{assessment_id}": {
+      "get": {
+        "operationId": "get_approval_assessment_v1_approval_assessments__assessment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalAssessmentArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Approval Assessment",
+        "tags": [
+          "approval-governance"
+        ]
+      }
+    },
+    "/v1/approval-revocations": {
+      "get": {
+        "operationId": "list_approval_revocations_v1_approval_revocations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "human_authorization_evidence_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Human Authorization Evidence Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuthorizationRevocationSummary"
+                  },
+                  "title": "Response List Approval Revocations V1 Approval Revocations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Approval Revocations",
+        "tags": [
+          "approval-governance"
+        ]
+      },
+      "post": {
+        "operationId": "create_approval_revocation_v1_approval_revocations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRevocationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationRevocationArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Create Approval Revocation",
+        "tags": [
+          "approval-governance"
+        ]
+      }
+    },
+    "/v1/approval-revocations/{revocation_id}": {
+      "get": {
+        "operationId": "get_approval_revocation_v1_approval_revocations__revocation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revocation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Revocation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationRevocationArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Approval Revocation",
+        "tags": [
+          "approval-governance"
         ]
       }
     },

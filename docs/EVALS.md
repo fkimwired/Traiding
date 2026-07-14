@@ -335,9 +335,10 @@ full domain artifacts without mutating past records.
 | `BLOCKED_UNCOMPUTABLE` | Required DSR/PBO/cost/data result cannot be computed reliably | No |
 | `RESEARCH_ONLY_REGIME_DEPENDENT` | Valid evidence is too narrow for promotion but useful for monitoring | No |
 
-“Flagged” always means blocked. A warning cannot be used to bypass a hard gate. Only Phase 7 may move
-`PASS_RESEARCH` to a separately logged `APPROVED_PAPER` state, and the kill switch or a gate regression
-can revoke it.
+“Flagged” always means blocked. A warning cannot be used to bypass a hard gate. Phase 7 never mutates
+this Phase 5 state machine: it may append a separate historical `APPROVED_PAPER` assessment only when
+all independent evidence passes. A later revocation is another immutable event and blocks reuse of
+the authorization without changing either historical artifact.
 
 ## 14. Machine-checkable Phase 5 definition of done
 
@@ -358,4 +359,3 @@ The Phase 5 handoff must provide commands/tests that prove:
     reason codes and is visible through the API/UI;
 11. identical config/data/code/seed reproduces the artifact hash and metrics within tolerance;
 12. no real performance is claimed and no live execution code exists.
-

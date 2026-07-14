@@ -131,21 +131,22 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase6_entrypoints_and_images_select_the_active_phase() -> None:
+def test_phase7_entrypoints_and_images_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, or 6" in source
+        assert "1, 2, 3, 4, 5, 6, or 7" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-6-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "6"' in workflow
-    assert workflow.count("--phase 6") >= 2
+    assert workflow.startswith("name: phase-7-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "7"' in workflow
+    assert workflow.count("--phase 7") >= 2
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
         assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)
         assert "COPY services/backtester ./services/backtester" in normalized(ROOT / dockerfile)
         assert "COPY services/research ./services/research" in normalized(ROOT / dockerfile)
+        assert "COPY services/risk ./services/risk" in normalized(ROOT / dockerfile)
     assert "COPY services/mapping ./services/mapping" in normalized(
         ROOT / "services/api/Dockerfile"
     )
@@ -159,7 +160,7 @@ def test_phase2_full_verifier_proves_enabled_triggers_before_cascade_mutations()
     assert "Phase 2 append-only trigger proof passed" in verifier
 
 
-def test_phase2_openapi_has_no_later_phase_or_execution_surface() -> None:
+def test_current_openapi_has_no_execution_surface() -> None:
     schema = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
     paths = {path: methods for path, methods in schema["paths"].items() if path.startswith("/v1/")}
     assert paths
@@ -171,7 +172,7 @@ def test_phase2_openapi_has_no_later_phase_or_execution_surface() -> None:
     dependencies = normalized(ROOT / "pyproject.toml").lower()
     for forbidden_dependency in ("alpaca-py", "ib_insync", "ibapi", "ccxt"):
         assert forbidden_dependency not in dependencies
-    assert list((ROOT / "services/risk").iterdir()) == [ROOT / "services/risk/README.md"]
+    assert (ROOT / "services/risk/src/fable5_risk").is_dir()
     assert list((ROOT / "strategy_specs").iterdir()) == [ROOT / "strategy_specs/README.md"]
 
 

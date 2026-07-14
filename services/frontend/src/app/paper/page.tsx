@@ -7,11 +7,10 @@ export default function PaperTradingPage() {
         <span>SIMULATION</span>
         <h2>No broker adapter or order path exists.</h2>
         <p>
-          A later phase may add a paper-only adapter after validation and manual approval gates are
-          enforced. This surface cannot place real-money orders.
+          This surface may display historical synthetic approval status only. It cannot submit,
+          execute, or fill anything, cannot place real-money orders, and is not investment advice.
         </p>
       </div>
     </div>
   );
 }
-

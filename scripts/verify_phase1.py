@@ -262,6 +262,62 @@ PHASE_6_TABLES = (
     "research_text_corroborations",
 )
 PHASE_6_APPEND_ONLY_ERROR = "Phase 6 research artifacts are append-only"
+PHASE_7_REQUIRED_PATHS = (
+    "docs/PHASE_07_APPROVAL_DECISIONS.md",
+    "docs/handoffs/PHASE_08.md",
+    "services/api/migrations/versions/0007_phase7_approval_risk.py",
+    "services/api/src/fable5_api/approvals.py",
+    "services/api/tests/test_phase7_openapi_contract.py",
+    "services/api/tests/test_phase7_routes.py",
+    "services/risk/src/fable5_risk/__init__.py",
+    "services/risk/src/fable5_risk/canonical.py",
+    "services/risk/src/fable5_risk/contracts.py",
+    "services/risk/src/fable5_risk/fixtures.py",
+    "services/risk/src/fable5_risk/repository.py",
+    "services/risk/src/fable5_risk/workflow.py",
+    "services/risk/tests/test_phase7_postgres.py",
+    "services/risk/tests/test_phase7_workflow.py",
+    "packages/contracts/src/phase7-contract.type-test.ts",
+    "tests/test_phase7_migration.py",
+    "tests/test_phase7_static.py",
+)
+PHASE_7_TABLES = (
+    "approval_policies",
+    "approval_scopes",
+    "approval_authorizations",
+    "approval_revocations",
+    "approval_risk_inputs",
+    "approval_assessments",
+    "approval_checks",
+)
+PHASE_7_APPEND_ONLY_ERROR = "Phase 7 approval and risk artifacts are append-only"
+PHASE_7_CHECK_CODES = (
+    "RESEARCH_PASS",
+    "PHASE6_LINEAGE_COMPLETE",
+    "POLICY_CURRENT",
+    "POLICY_MATCH",
+    "SCOPE_CURRENT",
+    "SCOPE_MATCH",
+    "AUTHORIZATION_CURRENT",
+    "AUTHORIZATION_MATCH",
+    "REVOCATION_CLEAR",
+    "RISK_INPUT_FRESH",
+    "GLOBAL_CONTROL_CLEAR",
+    "STRATEGY_CONTROL_CLEAR",
+    "DATA_QUALITY_CONTROL_CLEAR",
+    "MARKET_CALENDAR_OPEN",
+    "DUPLICATE_CONTEXT_CLEAR",
+    "NOTIONAL_LIMIT",
+    "GROSS_EXPOSURE_LIMIT",
+    "NET_EXPOSURE_LIMIT",
+    "SECTOR_EXPOSURE_LIMIT",
+    "CONCENTRATION_LIMIT",
+    "LIQUIDITY_MINIMUM",
+    "TURNOVER_LIMIT",
+    "VOLATILITY_LIMIT",
+    "DAILY_LOSS_LIMIT",
+    "DRAWDOWN_LIMIT",
+)
 PHASE_4_CAPABILITIES = {
     "security_master",
     "universe_membership",
@@ -358,6 +414,12 @@ PHASE_1_5_MIGRATION_SHA256 = {
     **PHASE_1_4_MIGRATION_SHA256,
     "services/api/migrations/versions/0005_phase5_evaluation.py": (
         "b368edf97c35c5b7d7ac651073a02c204816b638855d3bcae4d7cabf265a1404"
+    ),
+}
+PHASE_1_6_MIGRATION_SHA256 = {
+    **PHASE_1_5_MIGRATION_SHA256,
+    "services/api/migrations/versions/0006_phase6_research.py": (
+        "7f4ab516a31208b7c5f5400b1b593d7675c75570fa839f524bfddea3152d7070"
     ),
 }
 PHASE_5_GATE_IMPLEMENTATION_SHA256 = {
@@ -465,9 +527,9 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, or 6") from exc
-    if phase not in {1, 2, 3, 4, 5, 6}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, or 6")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, or 7") from exc
+    if phase not in {1, 2, 3, 4, 5, 6, 7}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, or 7")
     return phase
 
 
@@ -604,6 +666,10 @@ def verify_static(phase: int = 1) -> None:
         missing_phase6 = [path for path in PHASE_6_REQUIRED_PATHS if not (ROOT / path).exists()]
         if missing_phase6:
             raise AssertionError(f"Missing Phase 6 paths: {', '.join(missing_phase6)}")
+    if phase >= 7:
+        missing_phase7 = [path for path in PHASE_7_REQUIRED_PATHS if not (ROOT / path).exists()]
+        if missing_phase7:
+            raise AssertionError(f"Missing Phase 7 paths: {', '.join(missing_phase7)}")
 
     gates = canonical_gates()
     for filename in ("AGENTS.md", "CLAUDE.md"):
@@ -785,7 +851,7 @@ def verify_static(phase: int = 1) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-6])", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-7])", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -838,7 +904,9 @@ def verify_static(phase: int = 1) -> None:
         for path in domain_paths:
             if any(term in path.lower() for term in forbidden_path_terms):
                 raise AssertionError(f"Forbidden Phase 3 API path: {path}")
-        dormant_directories = ["services/risk", "strategy_specs"]
+        dormant_directories = ["strategy_specs"]
+        if phase < 7:
+            dormant_directories.append("services/risk")
         if phase < 5:
             dormant_directories.append("services/backtester")
         for dormant_directory in dormant_directories:
@@ -927,7 +995,11 @@ def verify_static(phase: int = 1) -> None:
 
     if phase >= 4:
         migration_authority = (
-            PHASE_1_5_MIGRATION_SHA256 if phase >= 6 else PHASE_1_4_MIGRATION_SHA256
+            PHASE_1_6_MIGRATION_SHA256
+            if phase >= 7
+            else PHASE_1_5_MIGRATION_SHA256
+            if phase >= 6
+            else PHASE_1_4_MIGRATION_SHA256
         )
         immutable_migrations = {
             path: digest
@@ -1155,7 +1227,7 @@ def verify_static(phase: int = 1) -> None:
             }
             if methods - {"get", "post"}:
                 raise AssertionError(f"Phase 4 API exposes a mutation method: {path} {methods}")
-            if any(term in path.casefold() for term in PHASE_4_FORBIDDEN_API_TERMS):
+            if phase < 7 and any(term in path.casefold() for term in PHASE_4_FORBIDDEN_API_TERMS):
                 raise AssertionError(f"Forbidden Phase 5+ or execution API path: {path}")
 
         generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
@@ -1257,17 +1329,23 @@ def verify_static(phase: int = 1) -> None:
             "paper",
             "live",
         )
-        for path in openapi["paths"]:
-            if any(term in path.casefold() for term in forbidden_later_phase_paths):
-                raise AssertionError(f"Phase 6/7 capability leaked into the Phase 5 API: {path}")
+        if phase < 7:
+            for path in openapi["paths"]:
+                if any(term in path.casefold() for term in forbidden_later_phase_paths):
+                    raise AssertionError(
+                        f"Phase 6/7 capability leaked into the Phase 5 API: {path}"
+                    )
 
         phase5_surfaces: tuple[Path, ...] = (
             ROOT / "services/api/src/fable5_api/evaluations.py",
             ROOT / "services/api/migrations/versions/0005_phase5_evaluation.py",
-            ROOT / "packages/contracts/openapi.json",
-            ROOT / "packages/contracts/src/api.generated.ts",
         )
         phase5_surfaces += tuple(backtester_root.rglob("*.py"))
+        if phase < 7:
+            phase5_surfaces += (
+                ROOT / "packages/contracts/openapi.json",
+                ROOT / "packages/contracts/src/api.generated.ts",
+            )
         for path in phase5_surfaces:
             if "APPROVED_PAPER" in path.read_text(encoding="utf-8"):
                 raise AssertionError(
@@ -1564,6 +1642,7 @@ def verify_static(phase: int = 1) -> None:
             "buy_sell_call",
             "allocation",
             "position_size",
+            "risk_override",
             "promotion_outcome",
             "execution_instruction",
         }
@@ -1603,9 +1682,12 @@ def verify_static(phase: int = 1) -> None:
             "paper-trad",
             "live",
         )
-        for path in domain_paths:
-            if any(term in path.casefold() for term in forbidden_phase7_paths):
-                raise AssertionError(f"Phase 7 or execution capability leaked into Phase 6: {path}")
+        if phase < 7:
+            for path in domain_paths:
+                if any(term in path.casefold() for term in forbidden_phase7_paths):
+                    raise AssertionError(
+                        f"Phase 7 or execution capability leaked into Phase 6: {path}"
+                    )
         for surface in (
             contracts_path,
             research_root / "phase5.py",
@@ -1640,6 +1722,202 @@ def verify_static(phase: int = 1) -> None:
             if generated_contract not in generated:
                 raise AssertionError(
                     f"Generated TypeScript Phase 6 contract is missing {generated_contract}"
+                )
+
+    if phase >= 7:
+        migration = normalized(
+            ROOT / "services/api/migrations/versions/0007_phase7_approval_risk.py"
+        )
+        if (
+            'revision: str = "0007_phase7"' not in migration
+            or 'down_revision: str | None = "0006_phase6"' not in migration
+            or PHASE_7_APPEND_ONLY_ERROR not in migration
+            or "DEFERRABLE INITIALLY DEFERRED" not in migration
+        ):
+            raise AssertionError("Phase 7 migration authority or deferred completeness is missing")
+        for table in PHASE_7_TABLES:
+            evidence = f'op.create_table(\n        "{table}"'
+            if evidence not in migration:
+                raise AssertionError(f"Phase 7 migration is missing {table} evidence: {evidence}")
+        for trigger_template in (
+            "CREATE TRIGGER {table}_immutable",
+            "CREATE TRIGGER {table}_no_truncate",
+        ):
+            if trigger_template not in migration:
+                raise AssertionError(
+                    f"Phase 7 migration is missing append-only trigger: {trigger_template}"
+                )
+
+        risk_root = ROOT / "services/risk/src/fable5_risk"
+        forbidden_import_roots = {
+            "aiohttp",
+            "alpaca",
+            "alpaca_py",
+            "alpaca_trade_api",
+            "ccxt",
+            "httpx",
+            "ib_insync",
+            "ibapi",
+            "requests",
+            "socket",
+            "urllib3",
+        }
+        for path in risk_root.rglob("*.py"):
+            forbidden = imported_module_roots(path) & forbidden_import_roots
+            if forbidden:
+                raise AssertionError(
+                    f"Phase 7 risk domain imports a vendor/network module: {path} {forbidden}"
+                )
+        workflow = normalized(risk_root / "workflow.py")
+        if (
+            "PromotionState.PASS_RESEARCH" not in workflow
+            or "ApprovalCheckCode.RESEARCH_PASS" not in workflow
+            or "phase6-a-pass-v2" in workflow
+            or "-pass-" in workflow
+        ):
+            raise AssertionError(
+                "Phase 7 eligibility must derive only from immutable Phase 6 promotion state"
+            )
+        approvals_api = normalized(ROOT / "services/api/src/fable5_api/approvals.py")
+        if (
+            "phase7_code_version_git_sha=settings.code_version_git_sha" not in approvals_api
+            or "SYNTHETIC_PHASE7_CODE_VERSION_GIT_SHA" in approvals_api
+            or "phase7_code_version_git_sha_missing" not in workflow
+        ):
+            raise AssertionError("Phase 7 must fail closed instead of fabricating a git SHA")
+        for boundary in (
+            "execution_authorized: Literal[False]",
+            "execution_ready: Literal[False]",
+            "simulated_paper_only: Literal[True]",
+            "no_personalized_investment_advice: Literal[True]",
+            "no_real_performance_claimed: Literal[True]",
+        ):
+            if boundary not in normalized(risk_root / "contracts.py"):
+                raise AssertionError(f"Phase 7 contract safety boundary is missing: {boundary}")
+
+        openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+        components = openapi["components"]["schemas"]
+        phase7_methods = {"get", "post", "put", "patch", "delete"}
+        phase7_path_terms = (
+            "approval",
+            "authorization",
+            "revocation",
+            "risk",
+            "governance",
+            "pre-order",
+            "pre_order",
+        )
+        expected_phase7_paths = {
+            "/v1/approval-assessments": {"get", "post"},
+            "/v1/approval-assessments/{assessment_id}": {"get"},
+            "/v1/approval-revocations": {"get", "post"},
+            "/v1/approval-revocations/{revocation_id}": {"get"},
+        }
+        phase7_paths: dict[str, set[str]] = {}
+        for path, operations in openapi["paths"].items():
+            methods = set(operations) & phase7_methods
+            tags = {
+                tag
+                for method, operation in operations.items()
+                if method in phase7_methods and isinstance(operation, dict)
+                for tag in operation.get("tags", [])
+            }
+            if (
+                path in expected_phase7_paths
+                or "approval-governance" in tags
+                or any(term in path.casefold() for term in phase7_path_terms)
+            ):
+                phase7_paths[path] = methods
+        if phase7_paths != expected_phase7_paths:
+            raise AssertionError(
+                f"Phase 7 approval/governance/risk paths and methods are not exact: {phase7_paths}"
+            )
+        expected_components = {
+            "ApprovalAssessmentArtifact",
+            "ApprovalAssessmentCreateRequest",
+            "ApprovalAssessmentSummary",
+            "ApprovalRevocationCreateRequest",
+            "ApprovalValidationErrorResponse",
+            "AuthorizationRevocationArtifact",
+            "AuthorizationRevocationSummary",
+        }
+        missing_components = expected_components - set(components)
+        if missing_components:
+            raise AssertionError(
+                f"Phase 7 OpenAPI is missing schemas: {sorted(missing_components)}"
+            )
+        exact_request_fields = {
+            "ApprovalAssessmentCreateRequest": {
+                "research_run_id",
+                "approval_policy_version_id",
+                "approval_scope_version_id",
+                "human_authorization_evidence_id",
+                "risk_input_id",
+            },
+            "ApprovalRevocationCreateRequest": {
+                "human_authorization_evidence_id",
+                "revocation_evidence_id",
+            },
+        }
+        for schema_name, expected_fields in exact_request_fields.items():
+            request_schema = components[schema_name]
+            if (
+                set(request_schema.get("properties", {})) != expected_fields
+                or set(request_schema.get("required", [])) != expected_fields
+                or request_schema.get("additionalProperties") is not False
+            ):
+                raise AssertionError(
+                    f"{schema_name} accepts client-authoritative Phase 7 evidence or outcomes"
+                )
+        artifact_properties = components["ApprovalAssessmentArtifact"].get("properties", {})
+        expected_constants = {
+            "synthetic": True,
+            "simulated_paper_only": True,
+            "execution_authorized": False,
+            "execution_ready": False,
+            "no_personalized_investment_advice": True,
+            "no_real_performance_claimed": True,
+        }
+        for field, expected in expected_constants.items():
+            if artifact_properties.get(field, {}).get("const") is not expected:
+                raise AssertionError(f"Phase 7 artifact safety flag is not constant: {field}")
+        for path, operations in openapi["paths"].items():
+            methods = {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            if methods - {"get", "post"}:
+                raise AssertionError(f"Phase 7 API exposes a mutation method: {path} {methods}")
+            if path.startswith("/v1/") and any(
+                token in path.casefold()
+                for token in (
+                    "broker",
+                    "fill",
+                    "position",
+                    "orders",
+                    "submission",
+                    "paper-execution",
+                    "paper_execution",
+                    "live",
+                )
+            ):
+                raise AssertionError(f"Execution capability leaked into Phase 7 API: {path}")
+
+        generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+        for generated_contract in (
+            "ApprovalAssessmentArtifact:",
+            "ApprovalAssessmentCreateRequest:",
+            "ApprovalAssessmentSummary:",
+            "ApprovalRevocationCreateRequest:",
+            "AuthorizationRevocationArtifact:",
+            "AuthorizationRevocationSummary:",
+            '"/v1/approval-assessments"',
+            '"/v1/approval-revocations"',
+        ):
+            if generated_contract not in generated:
+                raise AssertionError(
+                    f"Generated TypeScript Phase 7 contract is missing {generated_contract}"
                 )
 
     print(f"Static repository policy checks passed for Phase {phase}.")
@@ -4166,6 +4444,493 @@ def compose_exec(
     )
 
 
+def provision_phase7_evidence(
+    project: str,
+    environment: dict[str, str],
+    phase6_run_ids: dict[str, str],
+) -> dict[str, object]:
+    serialized_run_ids = json.dumps(phase6_run_ids, sort_keys=True)
+    script = f"""
+import json
+import os
+from datetime import UTC, datetime, timedelta
+from uuid import UUID
+
+from fable5_research.repository import ResearchRepository
+from fable5_risk.contracts import ApprovalAssessmentCreateRequest
+from fable5_risk.fixtures import (
+    ApprovalEvidenceBundle,
+    build_approval_risk_input,
+    build_breach_evidence_bundle,
+    build_expired_evidence_bundle,
+    build_nominal_evidence_bundle,
+    build_revocation_evidence_profile,
+    build_stale_evidence_bundle,
+    build_uncomputable_evidence_bundle,
+    phase6_lineage_from_research_artifact,
+)
+from fable5_risk.repository import RiskRepository
+
+run_ids = json.loads({serialized_run_ids!r})
+assessment_time_utc = datetime.now(UTC)
+research_repository = ResearchRepository(os.environ["FABLE5_DATABASE_URL"])
+risk_repository = RiskRepository(os.environ["FABLE5_DATABASE_URL"])
+
+def request_payload(lineage, bundle):
+    request = ApprovalAssessmentCreateRequest(
+        research_run_id=lineage.research_run_id,
+        approval_policy_version_id=bundle.policy.approval_policy_version_id,
+        approval_scope_version_id=bundle.scope.approval_scope_version_id,
+        human_authorization_evidence_id=bundle.authorization.human_authorization_evidence_id,
+        risk_input_id=bundle.risk_input.risk_input_id,
+    )
+    return request.model_dump(mode="json")
+
+def provision(lineage, bundle):
+    risk_repository.provision_evidence(
+        bundle.policy,
+        bundle.scope,
+        bundle.authorization,
+        bundle.risk_input,
+    )
+    return request_payload(lineage, bundle)
+
+try:
+    lineages = {{
+        configuration_id: phase6_lineage_from_research_artifact(
+            research_repository.get_run(UUID(run_id))
+        )
+        for configuration_id, run_id in run_ids.items()
+    }}
+    research_requests = {{
+        configuration_id: provision(
+            lineage,
+            build_nominal_evidence_bundle(
+                lineage,
+                assessment_time_utc=assessment_time_utc,
+            ),
+        )
+        for configuration_id, lineage in lineages.items()
+    }}
+
+    eligible = lineages["phase6-a-pass-v2"]
+    scenario_builders = {{
+        "expired": build_expired_evidence_bundle,
+        "stale": build_stale_evidence_bundle,
+        "uncomputable": build_uncomputable_evidence_bundle,
+        "breach": build_breach_evidence_bundle,
+    }}
+    scenario_requests = {{
+        name: provision(
+            eligible,
+            builder(eligible, assessment_time_utc=assessment_time_utc),
+        )
+        for name, builder in scenario_builders.items()
+    }}
+
+    base = build_nominal_evidence_bundle(
+        eligible,
+        assessment_time_utc=assessment_time_utc,
+    )
+    conflicting_lineage = lineages["phase6-a-fail-cost-v2"]
+    conflicting_risk = build_approval_risk_input(
+        conflicting_lineage,
+        base.policy,
+        base.scope,
+        observed_at_utc=assessment_time_utc - timedelta(minutes=5),
+    )
+    conflicting = ApprovalEvidenceBundle(
+        policy=base.policy,
+        scope=base.scope,
+        authorization=base.authorization,
+        risk_input=conflicting_risk,
+    )
+    scenario_requests["conflicting"] = provision(eligible, conflicting)
+
+    revocation_evidence = build_revocation_evidence_profile()
+    print(json.dumps({{
+        "research": research_requests,
+        "scenarios": scenario_requests,
+        "revocation_evidence_id": str(revocation_evidence.revocation_evidence_id),
+    }}, sort_keys=True))
+finally:
+    risk_repository.dispose()
+    research_repository.dispose()
+"""
+    try:
+        result = compose_exec(
+            project,
+            environment,
+            "api",
+            ["python", "-c", script],
+        )
+    except subprocess.CalledProcessError as exc:
+        raise AssertionError(
+            f"Phase 7 evidence provisioning failed. stdout={exc.stdout!r} stderr={exc.stderr!r}"
+        ) from exc
+    try:
+        provisioned = json.loads(result.stdout.strip())
+    except json.JSONDecodeError as exc:
+        raise AssertionError(
+            f"Phase 7 evidence provisioning did not return JSON: {result.stdout!r}"
+        ) from exc
+    if not isinstance(provisioned, dict):
+        raise AssertionError("Phase 7 evidence provisioning did not return an object")
+    return provisioned
+
+
+def verify_phase7_api(
+    project: str,
+    environment: dict[str, str],
+    api_url: str,
+    phase6_run_ids: dict[str, str],
+) -> None:
+    expected_run_ids = {
+        "phase6-a-pass-v2",
+        "phase6-a-fail-cost-v2",
+        "phase6-b-pass-v2",
+        "phase6-b-fail-crash-v2",
+        "phase6-c-pass-v2",
+    }
+    if set(phase6_run_ids) != expected_run_ids:
+        raise AssertionError(
+            "Phase 7 requires exactly the five persisted Phase 6 corpus artifacts; "
+            f"received {sorted(phase6_run_ids)}"
+        )
+    if "phase6-c-fail-corroboration-v2" in phase6_run_ids:
+        raise AssertionError("Phase 7 received the blocked corroboration-negative Phase 6 request")
+
+    provisioned = provision_phase7_evidence(project, environment, phase6_run_ids)
+    research_requests = provisioned.get("research")
+    scenario_requests = provisioned.get("scenarios")
+    revocation_evidence_id = provisioned.get("revocation_evidence_id")
+    if (
+        not isinstance(research_requests, dict)
+        or set(research_requests) != expected_run_ids
+        or not isinstance(scenario_requests, dict)
+        or set(scenario_requests) != {"expired", "stale", "conflicting", "uncomputable", "breach"}
+        or not isinstance(revocation_evidence_id, str)
+    ):
+        raise AssertionError("Phase 7 independent evidence provisioning is incomplete")
+
+    eligible_request = research_requests["phase6-a-pass-v2"]
+    if not isinstance(eligible_request, dict):
+        raise AssertionError("Phase 7 eligible request references are malformed")
+    expected_request_fields = {
+        "research_run_id",
+        "approval_policy_version_id",
+        "approval_scope_version_id",
+        "human_authorization_evidence_id",
+        "risk_input_id",
+    }
+    if set(eligible_request) != expected_request_fields:
+        raise AssertionError("Phase 7 assessment request is not reference-only")
+
+    missing_evidence = request_error_json(
+        f"{api_url}/v1/approval-assessments",
+        expected_status=422,
+        payload={"research_run_id": phase6_run_ids["phase6-a-pass-v2"]},
+    )
+    if not isinstance(missing_evidence.get("detail"), list):
+        raise AssertionError("Phase 6 PASS_RESEARCH alone did not fail typed validation")
+    client_authority = request_error_json(
+        f"{api_url}/v1/approval-assessments",
+        expected_status=422,
+        payload={**eligible_request, "outcome": "APPROVED_PAPER"},
+    )
+    if not isinstance(client_authority.get("detail"), list):
+        raise AssertionError("Phase 7 accepted a client-supplied approval outcome")
+    unknown_request = {
+        **eligible_request,
+        "approval_policy_version_id": "00000000-0000-5000-8000-000000000707",
+    }
+    missing = request_error_json(
+        f"{api_url}/v1/approval-assessments",
+        expected_status=404,
+        payload=unknown_request,
+    )
+    if "not found" not in str(missing.get("detail", "")).casefold():
+        raise AssertionError("Phase 7 missing evidence did not fail closed")
+
+    barrier = Barrier(2)
+
+    def create_positive() -> dict[str, object] | list[object]:
+        barrier.wait()
+        return request_json(
+            f"{api_url}/v1/approval-assessments",
+            method="POST",
+            payload=eligible_request,
+            timeout_seconds=30,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        concurrent = tuple(executor.map(lambda _: create_positive(), range(2)))
+    if not all(isinstance(item, dict) for item in concurrent) or concurrent[0] != concurrent[1]:
+        raise AssertionError("Concurrent identical Phase 7 assessment creation was not idempotent")
+    positive = dict(concurrent[0])
+
+    checks = positive.get("checks")
+    lineage = positive.get("phase6_lineage")
+    if not isinstance(checks, list) or not isinstance(lineage, dict):
+        raise AssertionError("Phase 7 positive artifact omitted checks or Phase 6 lineage")
+    if (
+        positive.get("outcome") != "APPROVED_PAPER"
+        or positive.get("reason_codes") != ["all_approval_and_risk_checks_passed"]
+        or [item.get("code") for item in checks if isinstance(item, dict)]
+        != list(PHASE_7_CHECK_CODES)
+        or len(checks) != len(PHASE_7_CHECK_CODES)
+        or any(not isinstance(item, dict) or item.get("status") != "PASS" for item in checks)
+        or positive.get("synthetic") is not True
+        or positive.get("simulated_paper_only") is not True
+        or positive.get("execution_authorized") is not False
+        or positive.get("execution_ready") is not False
+        or positive.get("no_personalized_investment_advice") is not True
+        or positive.get("no_real_performance_claimed") is not True
+        or positive.get("phase7_code_version_git_sha") != environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    ):
+        raise AssertionError("Phase 7 positive artifact violated approval or safety invariants")
+    if (
+        lineage.get("research_run_id") != phase6_run_ids["phase6-a-pass-v2"]
+        or lineage.get("research_configuration_id") != "phase6-a-pass-v2"
+        or lineage.get("promotion_state") != "PASS_RESEARCH"
+        or lineage.get("research_status") != "completed"
+        or lineage.get("gate_codes")
+        != [
+            "DATA_PIT",
+            "CV_CHRONOLOGY",
+            "PREPROCESSING",
+            "TRIAL_REGISTRY",
+            "DSR",
+            "PBO",
+            "COST_STRESS",
+            "LEAKAGE",
+            "SAMPLE_ADEQUACY",
+            "REGIME",
+            "RISK_LIMITS",
+            "REPRODUCIBILITY",
+        ]
+        or not isinstance(lineage.get("snapshot_bindings"), list)
+        or len(lineage["snapshot_bindings"]) != 7
+    ):
+        raise AssertionError("Phase 7 positive artifact lost exact Phase 6 A lineage")
+    for hash_field in (
+        "lineage_sha256",
+        "research_artifact_sha256",
+        "research_request_fingerprint_sha256",
+        "research_configuration_sha256",
+        "mapping_input_sha256",
+        "specification_sha256",
+        "research_pipeline_input_sha256",
+        "feature_lineage_sha256",
+        "snapshot_bundle_sha256",
+        "source_reproduction_audit_sha256",
+        "phase5_policy_sha256",
+        "phase5_fixture_sha256",
+        "evaluation_report_sha256",
+        "phase5_trial_set_sha256",
+    ):
+        if re.fullmatch(r"[0-9a-f]{64}", str(lineage.get(hash_field))) is None:
+            raise AssertionError(f"Phase 7 complete lineage omitted {hash_field}")
+
+    assessment_id = positive.get("assessment_id")
+    artifact_sha256 = positive.get("artifact_sha256")
+    if (
+        not isinstance(assessment_id, str)
+        or not isinstance(artifact_sha256, str)
+        or re.fullmatch(r"[0-9a-f]{64}", artifact_sha256) is None
+        or request_json(f"{api_url}/v1/approval-assessments/{assessment_id}") != positive
+    ):
+        raise AssertionError("Phase 7 positive assessment create/read evidence is inconsistent")
+
+    rejection_ids: set[str] = set()
+    for configuration_id in sorted(expected_run_ids - {"phase6-a-pass-v2"}):
+        payload = research_requests[configuration_id]
+        if not isinstance(payload, dict):
+            raise AssertionError(f"Phase 7 {configuration_id} references are malformed")
+        rejected = request_json(
+            f"{api_url}/v1/approval-assessments",
+            method="POST",
+            payload=payload,
+            timeout_seconds=30,
+        )
+        if not isinstance(rejected, dict):
+            raise AssertionError(f"Phase 7 {configuration_id} rejection is malformed")
+        rejected_checks = rejected.get("checks")
+        research_check = (
+            next(
+                (
+                    item
+                    for item in rejected_checks
+                    if isinstance(item, dict) and item.get("code") == "RESEARCH_PASS"
+                ),
+                None,
+            )
+            if isinstance(rejected_checks, list)
+            else None
+        )
+        if (
+            rejected.get("outcome") != "FAIL_REJECT"
+            or not isinstance(research_check, dict)
+            or research_check.get("status") != "FAIL"
+            or research_check.get("reason_code") != "phase6_research_not_eligible"
+            or rejected.get("phase6_lineage", {}).get("research_configuration_id")
+            != configuration_id
+        ):
+            raise AssertionError(
+                f"Phase 7 derived eligibility from an id token for {configuration_id}"
+            )
+        rejected_id = rejected.get("assessment_id")
+        if isinstance(rejected_id, str):
+            rejection_ids.add(rejected_id)
+
+    expected_scenario_checks = {
+        "expired": ("AUTHORIZATION_CURRENT", "BLOCKED"),
+        "stale": ("RISK_INPUT_FRESH", "BLOCKED"),
+        "conflicting": ("SCOPE_MATCH", "FAIL"),
+        "uncomputable": ("NOTIONAL_LIMIT", "UNCOMPUTABLE"),
+        "breach": ("NOTIONAL_LIMIT", "FAIL"),
+    }
+    for scenario, (check_code, status_value) in expected_scenario_checks.items():
+        payload = scenario_requests[scenario]
+        if not isinstance(payload, dict):
+            raise AssertionError(f"Phase 7 {scenario} references are malformed")
+        rejected = request_json(
+            f"{api_url}/v1/approval-assessments",
+            method="POST",
+            payload=payload,
+            timeout_seconds=30,
+        )
+        if not isinstance(rejected, dict) or rejected.get("outcome") != "FAIL_REJECT":
+            raise AssertionError(f"Phase 7 {scenario} evidence did not fail closed")
+        rejected_checks = rejected.get("checks")
+        target = (
+            next(
+                (
+                    item
+                    for item in rejected_checks
+                    if isinstance(item, dict) and item.get("code") == check_code
+                ),
+                None,
+            )
+            if isinstance(rejected_checks, list)
+            else None
+        )
+        if not isinstance(target, dict) or target.get("status") != status_value:
+            raise AssertionError(f"Phase 7 {scenario} did not persist {check_code}={status_value}")
+        rejected_id = rejected.get("assessment_id")
+        if isinstance(rejected_id, str):
+            rejection_ids.add(rejected_id)
+
+    invalid_revocation = request_error_json(
+        f"{api_url}/v1/approval-revocations",
+        expected_status=422,
+        payload={
+            "human_authorization_evidence_id": eligible_request["human_authorization_evidence_id"],
+            "revocation_evidence_id": revocation_evidence_id,
+            "revoked": True,
+        },
+    )
+    if not isinstance(invalid_revocation.get("detail"), list):
+        raise AssertionError("Phase 7 accepted client-supplied revocation state")
+    unknown_revocation = request_error_json(
+        f"{api_url}/v1/approval-revocations",
+        expected_status=404,
+        payload={
+            "human_authorization_evidence_id": eligible_request["human_authorization_evidence_id"],
+            "revocation_evidence_id": "00000000-0000-5000-8000-000000000708",
+        },
+    )
+    if "not found" not in str(unknown_revocation.get("detail", "")).casefold():
+        raise AssertionError("Phase 7 accepted unknown revocation evidence")
+
+    revocation_request = {
+        "human_authorization_evidence_id": eligible_request["human_authorization_evidence_id"],
+        "revocation_evidence_id": revocation_evidence_id,
+    }
+    revocation = request_json(
+        f"{api_url}/v1/approval-revocations",
+        method="POST",
+        payload=revocation_request,
+    )
+    repeated_revocation = request_json(
+        f"{api_url}/v1/approval-revocations",
+        method="POST",
+        payload=revocation_request,
+    )
+    if not isinstance(revocation, dict) or revocation != repeated_revocation:
+        raise AssertionError("Phase 7 revocation creation was not idempotent")
+    revocation_id = revocation.get("revocation_id")
+    if (
+        not isinstance(revocation_id, str)
+        or revocation.get("synthetic") is not True
+        or revocation.get("simulated_paper_only") is not True
+        or revocation.get("execution_authorized") is not False
+        or revocation.get("execution_ready") is not False
+        or request_json(f"{api_url}/v1/approval-revocations/{revocation_id}") != revocation
+    ):
+        raise AssertionError("Phase 7 revocation artifact violated safety or read invariants")
+    filtered_revocations = request_json(
+        f"{api_url}/v1/approval-revocations?human_authorization_evidence_id="
+        + str(eligible_request["human_authorization_evidence_id"])
+        + "&limit=100"
+    )
+    if not isinstance(filtered_revocations, list) or revocation_id not in {
+        item.get("revocation_id") for item in filtered_revocations if isinstance(item, dict)
+    }:
+        raise AssertionError("Phase 7 revocation list/filter evidence is incomplete")
+
+    revoked = request_json(
+        f"{api_url}/v1/approval-assessments",
+        method="POST",
+        payload=eligible_request,
+        timeout_seconds=30,
+    )
+    if not isinstance(revoked, dict):
+        raise AssertionError("Phase 7 revoked assessment is malformed")
+    revoked_checks = revoked.get("checks")
+    revocation_check = (
+        next(
+            (
+                item
+                for item in revoked_checks
+                if isinstance(item, dict) and item.get("code") == "REVOCATION_CLEAR"
+            ),
+            None,
+        )
+        if isinstance(revoked_checks, list)
+        else None
+    )
+    if (
+        revoked.get("outcome") != "FAIL_REJECT"
+        or revoked.get("assessment_id") == assessment_id
+        or not isinstance(revocation_check, dict)
+        or revocation_check.get("status") != "BLOCKED"
+        or revocation_check.get("reason_code") != "authorization_revoked"
+        or request_json(f"{api_url}/v1/approval-assessments/{assessment_id}") != positive
+    ):
+        raise AssertionError(
+            "Phase 7 revocation did not block reuse while preserving historical approval bytes"
+        )
+    revoked_id = revoked.get("assessment_id")
+    if isinstance(revoked_id, str):
+        rejection_ids.add(revoked_id)
+
+    assessments = request_json(f"{api_url}/v1/approval-assessments?limit=100")
+    if not isinstance(assessments, list):
+        raise AssertionError("Phase 7 assessment list is not an array")
+    listed_ids = {item.get("assessment_id") for item in assessments if isinstance(item, dict)}
+    if assessment_id not in listed_ids or not rejection_ids <= listed_ids:
+        raise AssertionError("Phase 7 assessment list omitted positive or rejected evidence")
+
+    print(
+        "Phase 7 exact Phase 6 eligibility, complete lineage, reference-only requests, "
+        "two-writer idempotency, expiry, staleness, conflict, uncomputable and breached "
+        "risk, revocation, historical-byte preservation, and non-execution proof passed "
+        f"(assessment_id={assessment_id}, artifact_sha256={artifact_sha256}, "
+        f"revocation_id={revocation_id}, rejected_assessments={len(rejection_ids)})."
+    )
+
+
 def verify_phase3_changed_rule_version(
     project: str,
     environment: dict[str, str],
@@ -4339,6 +5104,34 @@ def verify_phase6_postgres_acceptance(environment: dict[str, str]) -> None:
     print(
         "Phase 6 concurrent idempotency, complete child lineage, payload consistency, and "
         "append-only PostgreSQL tests passed."
+    )
+
+
+def verify_phase7_postgres_acceptance(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    test_environment["FABLE5_TEST_DATABASE_URL"] = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    test_environment["FABLE5_VERIFY_PHASE"] = "7"
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "services/risk/tests/test_phase7_postgres.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 7 isolated PostgreSQL acceptance tests failed")
+    print(
+        "Phase 7 two-writer idempotency, revocation serialization, exact lineage, complete "
+        "checks, payload consistency, and append-only PostgreSQL tests passed."
     )
 
 
@@ -4733,6 +5526,101 @@ def verify_phase6_append_only(project: str, environment: dict[str, str]) -> None
                     f"{statement} Output: {diagnostic.strip()}"
                 )
     print(f"Phase 6 append-only trigger proof passed for {len(PHASE_6_TABLES)} tables.")
+
+
+def verify_phase7_append_only(project: str, environment: dict[str, str]) -> None:
+    expected_trigger_names = sorted(
+        trigger_name
+        for table in PHASE_7_TABLES
+        for trigger_name in (f"{table}_immutable", f"{table}_no_truncate")
+    )
+    expected_triggers = ",".join(
+        sorted(
+            trigger
+            for table in PHASE_7_TABLES
+            for trigger in (f"{table}:{table}_immutable", f"{table}:{table}_no_truncate")
+        )
+    )
+    trigger_query = (
+        "SELECT string_agg(c.relname || ':' || t.tgname, ',' "
+        "ORDER BY c.relname, t.tgname) "
+        "FROM pg_trigger AS t "
+        "JOIN pg_class AS c ON c.oid = t.tgrelid "
+        "JOIN pg_namespace AS n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = 'public' AND NOT t.tgisinternal "
+        "AND t.tgenabled IN ('O','A') "
+        "AND c.relname IN ("
+        + ",".join(f"'{table}'" for table in PHASE_7_TABLES)
+        + ") AND t.tgname IN ("
+        + ",".join(f"'{trigger_name}'" for trigger_name in expected_trigger_names)
+        + ");"
+    )
+    installed_triggers = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", trigger_query],
+    ).stdout.strip()
+    if installed_triggers != expected_triggers:
+        raise AssertionError(
+            f"Phase 7 append-only trigger catalog did not match the migration: {installed_triggers}"
+        )
+
+    for table in PHASE_7_TABLES:
+        row_count = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                f"SELECT count(*) FROM public.{table};",
+            ],
+        ).stdout.strip()
+        if not row_count.isdigit() or int(row_count) < 1:
+            raise AssertionError(f"Phase 7 append-only proof has no persisted row in {table}")
+        column = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                "SELECT column_name FROM information_schema.columns "
+                f"WHERE table_schema = 'public' AND table_name = '{table}' "
+                "ORDER BY ordinal_position LIMIT 1;",
+            ],
+        ).stdout.strip()
+        if not column:
+            raise AssertionError(f"Phase 7 append-only proof found no column in {table}")
+        statements = (
+            f'UPDATE public.{table} SET "{column}" = "{column}";',
+            f"DELETE FROM public.{table};",
+            f"TRUNCATE public.{table} CASCADE;",
+        )
+        for statement in statements:
+            result = compose_exec(
+                project,
+                environment,
+                "postgres",
+                ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", statement],
+                check=False,
+            )
+            diagnostic = f"{result.stdout}\n{result.stderr}"
+            if result.returncode == 0 or PHASE_7_APPEND_ONLY_ERROR not in diagnostic:
+                raise AssertionError(
+                    "Phase 7 mutation was not rejected by its append-only trigger: "
+                    f"{statement} Output: {diagnostic.strip()}"
+                )
+    print(f"Phase 7 append-only trigger proof passed for {len(PHASE_7_TABLES)} tables.")
 
 
 def snapshot_tables(
@@ -5310,6 +6198,125 @@ def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> 
     )
 
 
+def verify_phase7_migration_cycle(
+    project: str,
+    environment: dict[str, str],
+) -> dict[str, tuple[int, str]]:
+    earlier_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+    )
+    before = snapshot_tables(project, environment, earlier_tables)
+    if len(before) != 39:
+        raise AssertionError("Phase 7 migration proof did not cover all 39 Phase 1-6 tables")
+    empty_earlier_tables = sorted(table for table, (count, _) in before.items() if count < 1)
+    if empty_earlier_tables:
+        raise AssertionError(
+            "Phase 7 migration proof requires preserved evidence in every earlier table: "
+            + ", ".join(empty_earlier_tables)
+        )
+    print(
+        "Phase 7 earlier-table snapshots: "
+        + json.dumps(
+            {
+                table: {"row_count": count, "sha256": digest}
+                for table, (count, digest) in before.items()
+            },
+            sort_keys=True,
+        )
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "downgrade",
+            "0006_phase6",
+        ],
+        project=project,
+        env=environment,
+    )
+    absent_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NULL" for table in PHASE_7_TABLES)
+        + " FROM alembic_version;"
+    )
+    downgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", absent_query],
+    ).stdout.strip()
+    expected_downgraded = "0006_phase6|" + "|".join("t" for _ in PHASE_7_TABLES)
+    if downgraded != expected_downgraded:
+        raise AssertionError(f"Phase 7 downgrade did not remove only Phase 7 tables: {downgraded}")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, earlier_tables),
+        "during downgrade to 0006_phase6",
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0007_phase7",
+        ],
+        project=project,
+        env=environment,
+    )
+    present_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NOT NULL" for table in PHASE_7_TABLES)
+        + " FROM alembic_version;"
+    )
+    restored = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", present_query],
+    ).stdout.strip()
+    expected_restored = "0007_phase7|" + "|".join("t" for _ in PHASE_7_TABLES)
+    if restored != expected_restored:
+        raise AssertionError(f"Phase 7 re-upgrade did not restore revision 0007: {restored}")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, earlier_tables),
+        "during re-upgrade to 0007_phase7",
+    )
+    print(
+        "Phase 7 0007->0006->0007 migration cycle preserved all 39 Phase 1-6 tables "
+        "byte-identically."
+    )
+    return before
+
+
+def verify_phase7_prior_rows_unchanged(
+    project: str,
+    environment: dict[str, str],
+    expected: dict[str, tuple[int, str]],
+) -> None:
+    assert_snapshots_equal(
+        expected,
+        snapshot_tables(project, environment, tuple(expected)),
+        "during Phase 7 assessment and revocation APIs",
+    )
+    print("Phase 7 APIs preserved all 39 Phase 1-6 tables byte-identically.")
+
+
 def wait_for_frontend(url: str, timeout: int = 60) -> str:
     deadline = time.monotonic() + timeout
     last_error: Exception | None = None
@@ -5409,10 +6416,42 @@ def verify_compose(phase: int = 1) -> None:
                             # Run the reversible cycle before Phase 6 creates additive Phase 4
                             # record types, whose downgrade guard intentionally fails closed.
                             verify_phase6_migration_cycle(project, environment)
-                            verify_phase6_api(api_url)
+                            if phase >= 7:
+                                run(
+                                    [
+                                        "exec",
+                                        "-T",
+                                        "api",
+                                        "alembic",
+                                        "-c",
+                                        "services/api/alembic.ini",
+                                        "upgrade",
+                                        "0007_phase7",
+                                    ],
+                                    project=project,
+                                    env=environment,
+                                )
+                            phase6_run_ids = verify_phase6_api(api_url)
                             verify_phase6_postgres_acceptance(environment)
                             verify_phase6_append_only(project, environment)
-                            print("Full Compose Phase 6 verification passed.")
+                            if phase == 6:
+                                print("Full Compose Phase 6 verification passed.")
+                            else:
+                                prior_rows = verify_phase7_migration_cycle(project, environment)
+                                verify_phase7_api(
+                                    project,
+                                    environment,
+                                    api_url,
+                                    phase6_run_ids,
+                                )
+                                verify_phase7_postgres_acceptance(environment)
+                                verify_phase7_append_only(project, environment)
+                                verify_phase7_prior_rows_unchanged(
+                                    project,
+                                    environment,
+                                    prior_rows,
+                                )
+                                print("Full Compose Phase 7 verification passed.")
         else:
             run(
                 [
@@ -5461,10 +6500,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "6"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "7"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, 5, or 6 "
-            "(default: FABLE5_VERIFY_PHASE or 6)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, or 7 "
+            "(default: FABLE5_VERIFY_PHASE or 7)."
         ),
     )
     args = parser.parse_args()

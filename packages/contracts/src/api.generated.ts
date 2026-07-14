@@ -38,6 +38,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/approval-assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Approval Assessments */
+        get: operations["list_approval_assessments_v1_approval_assessments_get"];
+        put?: never;
+        /** Create Approval Assessment */
+        post: operations["create_approval_assessment_v1_approval_assessments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approval-assessments/{assessment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Approval Assessment */
+        get: operations["get_approval_assessment_v1_approval_assessments__assessment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approval-revocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Approval Revocations */
+        get: operations["list_approval_revocations_v1_approval_revocations_get"];
+        put?: never;
+        /** Create Approval Revocation */
+        post: operations["create_approval_revocation_v1_approval_revocations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approval-revocations/{revocation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Approval Revocation */
+        get: operations["get_approval_revocation_v1_approval_revocations__revocation_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cards": {
         parameters: {
             query?: never;
@@ -506,6 +576,261 @@ export interface components {
          * @enum {string}
          */
         AmbiguityFlag: "synthetic_fixture" | "source_url_not_retrieved" | "social_manipulation_risk" | "official_corroboration_required" | "missing_action_rule" | "ambiguous_action_rule" | "missing_forecast_horizon" | "ambiguous_forecast_horizon" | "missing_raw_text";
+        /** ApprovalAssessmentArtifact */
+        ApprovalAssessmentArtifact: {
+            /** Approval Policy Sha256 */
+            approval_policy_sha256: string;
+            /**
+             * Approval Policy Version Id
+             * Format: uuid
+             */
+            approval_policy_version_id: string;
+            /** Approval Scope Sha256 */
+            approval_scope_sha256: string;
+            /**
+             * Approval Scope Version Id
+             * Format: uuid
+             */
+            approval_scope_version_id: string;
+            /**
+             * Artifact Schema Version
+             * @default phase7-approval-assessment-v1
+             * @constant
+             */
+            artifact_schema_version: "phase7-approval-assessment-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Assessment Id
+             * Format: uuid
+             */
+            assessment_id: string;
+            /** Authorization Sha256 */
+            authorization_sha256: string;
+            /** Checks */
+            checks: components["schemas"]["ApprovalCheckResult"][];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Currentness State Sha256 */
+            currentness_state_sha256: string;
+            /**
+             * Disclaimer
+             * @default Synthetic simulated-paper governance evidence only; no order, execution readiness, real performance claim, or investment advice.
+             * @constant
+             */
+            disclaimer: "Synthetic simulated-paper governance evidence only; no order, execution readiness, real performance claim, or investment advice.";
+            /**
+             * Execution Authorized
+             * @default false
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * Execution Ready
+             * @default false
+             * @constant
+             */
+            execution_ready: false;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * No Personalized Investment Advice
+             * @default true
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            outcome: components["schemas"]["ApprovalAssessmentOutcome"];
+            phase6_lineage: components["schemas"]["Phase6ApprovalLineage"];
+            /** Phase7 Code Version Git Sha */
+            phase7_code_version_git_sha: string;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /** Revocation Ids */
+            revocation_ids: string[];
+            /** Revocation Set Sha256 */
+            revocation_set_sha256: string;
+            /**
+             * Risk Input Id
+             * Format: uuid
+             */
+            risk_input_id: string;
+            /** Risk Input Sha256 */
+            risk_input_sha256: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
+        /** ApprovalAssessmentCreateRequest */
+        ApprovalAssessmentCreateRequest: {
+            /**
+             * Approval Policy Version Id
+             * Format: uuid
+             */
+            approval_policy_version_id: string;
+            /**
+             * Approval Scope Version Id
+             * Format: uuid
+             */
+            approval_scope_version_id: string;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /**
+             * Risk Input Id
+             * Format: uuid
+             */
+            risk_input_id: string;
+        };
+        /**
+         * ApprovalAssessmentOutcome
+         * @enum {string}
+         */
+        ApprovalAssessmentOutcome: "APPROVED_PAPER" | "FAIL_REJECT";
+        /** ApprovalAssessmentSummary */
+        ApprovalAssessmentSummary: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Assessment Id
+             * Format: uuid
+             */
+            assessment_id: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Execution Authorized
+             * @default false
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * Execution Ready
+             * @default false
+             * @constant
+             */
+            execution_ready: false;
+            /**
+             * No Personalized Investment Advice
+             * @default true
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            outcome: components["schemas"]["ApprovalAssessmentOutcome"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Research Configuration Id */
+            research_configuration_id: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
+        /**
+         * ApprovalCheckCode
+         * @enum {string}
+         */
+        ApprovalCheckCode: "RESEARCH_PASS" | "PHASE6_LINEAGE_COMPLETE" | "POLICY_CURRENT" | "POLICY_MATCH" | "SCOPE_CURRENT" | "SCOPE_MATCH" | "AUTHORIZATION_CURRENT" | "AUTHORIZATION_MATCH" | "REVOCATION_CLEAR" | "RISK_INPUT_FRESH" | "GLOBAL_CONTROL_CLEAR" | "STRATEGY_CONTROL_CLEAR" | "DATA_QUALITY_CONTROL_CLEAR" | "MARKET_CALENDAR_OPEN" | "DUPLICATE_CONTEXT_CLEAR" | "NOTIONAL_LIMIT" | "GROSS_EXPOSURE_LIMIT" | "NET_EXPOSURE_LIMIT" | "SECTOR_EXPOSURE_LIMIT" | "CONCENTRATION_LIMIT" | "LIQUIDITY_MINIMUM" | "TURNOVER_LIMIT" | "VOLATILITY_LIMIT" | "DAILY_LOSS_LIMIT" | "DRAWDOWN_LIMIT";
+        /** ApprovalCheckResult */
+        ApprovalCheckResult: {
+            /** Check Sha256 */
+            check_sha256: string;
+            code: components["schemas"]["ApprovalCheckCode"];
+            /** Evidence Sha256S */
+            evidence_sha256s: string[];
+            /** Observed Value */
+            observed_value?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Reason Code */
+            reason_code: string;
+            status: components["schemas"]["CheckStatus"];
+            /** Threshold Value */
+            threshold_value?: string | null;
+        };
+        /** ApprovalRevocationCreateRequest */
+        ApprovalRevocationCreateRequest: {
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * Revocation Evidence Id
+             * Format: uuid
+             */
+            revocation_evidence_id: string;
+        };
+        /** ApprovalValidationErrorResponse */
+        ApprovalValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["ApprovalValidationIssue"][];
+        };
+        /** ApprovalValidationIssue */
+        ApprovalValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /** AsReportedFundamentalPayload */
         AsReportedFundamentalPayload: {
             /** Amendment Sequence */
@@ -572,6 +897,144 @@ export interface components {
          * @enum {string}
          */
         AuthorityVerificationMethod: "manual_user_attestation" | "synthetic_fixture";
+        /** AuthorizationRevocationArtifact */
+        AuthorizationRevocationArtifact: {
+            /**
+             * Artifact Schema Version
+             * @default phase7-authorization-revocation-v1
+             * @constant
+             */
+            artifact_schema_version: "phase7-authorization-revocation-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /** Authorization Sha256 */
+            authorization_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Effective At Utc
+             * Format: date-time
+             */
+            effective_at_utc: string;
+            /**
+             * Execution Authorized
+             * @default false
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * Execution Ready
+             * @default false
+             * @constant
+             */
+            execution_ready: false;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * No Personalized Investment Advice
+             * @default true
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /** Phase7 Code Version Git Sha */
+            phase7_code_version_git_sha: string;
+            /** Reason */
+            reason: string;
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Revocation Evidence Id
+             * Format: uuid
+             */
+            revocation_evidence_id: string;
+            /** Revocation Evidence Sha256 */
+            revocation_evidence_sha256: string;
+            /**
+             * Revocation Id
+             * Format: uuid
+             */
+            revocation_id: string;
+            /** Revoked By */
+            revoked_by: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
+        /** AuthorizationRevocationSummary */
+        AuthorizationRevocationSummary: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Effective At Utc
+             * Format: date-time
+             */
+            effective_at_utc: string;
+            /**
+             * Execution Authorized
+             * @default false
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * Execution Ready
+             * @default false
+             * @constant
+             */
+            execution_ready: false;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * Revocation Evidence Id
+             * Format: uuid
+             */
+            revocation_evidence_id: string;
+            /**
+             * Revocation Id
+             * Format: uuid
+             */
+            revocation_id: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
         /** AuthorizedMappingIdentity */
         AuthorizedMappingIdentity: {
             canonical_family: components["schemas"]["CanonicalFamily"];
@@ -762,6 +1225,11 @@ export interface components {
             card: components["schemas"]["TradingIdeaCard"];
             memo: components["schemas"]["ResearchMemo"];
         };
+        /**
+         * CheckStatus
+         * @enum {string}
+         */
+        CheckStatus: "PASS" | "FAIL" | "UNCOMPUTABLE" | "BLOCKED";
         /**
          * ConstituentDisposition
          * @enum {string}
@@ -2744,6 +3212,116 @@ export interface components {
             raw_trial_count: number;
             /** Snapshot Bundle Sha256 */
             snapshot_bundle_sha256: string;
+        };
+        /** Phase6ApprovalLineage */
+        Phase6ApprovalLineage: {
+            canonical_family: components["schemas"]["CanonicalFamily"];
+            /** Code Version Git Sha */
+            code_version_git_sha: string;
+            /** Effective Trial Count */
+            effective_trial_count: string;
+            /** Evaluation Report Id */
+            evaluation_report_id: string | null;
+            /** Evaluation Report Sha256 */
+            evaluation_report_sha256: string | null;
+            /** Feature Lineage Sha256 */
+            feature_lineage_sha256: string;
+            /** Gate Codes */
+            gate_codes: components["schemas"]["GateCode"][];
+            /** Lineage Sha256 */
+            lineage_sha256: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /** Phase5 Fixture Id */
+            phase5_fixture_id: string;
+            /** Phase5 Fixture Sha256 */
+            phase5_fixture_sha256: string;
+            /**
+             * Phase5 Policy Id
+             * Format: uuid
+             */
+            phase5_policy_id: string;
+            /** Phase5 Policy Sha256 */
+            phase5_policy_sha256: string;
+            /** Phase5 Policy Version */
+            phase5_policy_version: number;
+            /** Phase5 Trial Set Sha256 */
+            phase5_trial_set_sha256: string | null;
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Random Seed */
+            random_seed: number;
+            /** Raw Trial Count */
+            raw_trial_count: number;
+            /** Research Artifact Sha256 */
+            research_artifact_sha256: string;
+            /** Research Configuration Id */
+            research_configuration_id: string;
+            /** Research Configuration Sha256 */
+            research_configuration_sha256: string;
+            /** Research Pipeline Input Sha256 */
+            research_pipeline_input_sha256: string;
+            /** Research Request Fingerprint Sha256 */
+            research_request_fingerprint_sha256: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /**
+             * Research Status
+             * @enum {string}
+             */
+            research_status: "completed" | "blocked";
+            /**
+             * Schema Version
+             * @default phase7-phase6-approval-lineage-v1
+             * @constant
+             */
+            schema_version: "phase7-phase6-approval-lineage-v1";
+            /** Snapshot Bindings */
+            snapshot_bindings: components["schemas"]["Phase6SnapshotBindingLineage"][];
+            /** Snapshot Bundle Sha256 */
+            snapshot_bundle_sha256: string;
+            /** Source Reproduction Audit Sha256 */
+            source_reproduction_audit_sha256: string;
+            /** Specification Sha256 */
+            specification_sha256: string;
+        };
+        /** Phase6SnapshotBindingLineage */
+        Phase6SnapshotBindingLineage: {
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            /** Binding Sha256 */
+            binding_sha256: string;
+            capability: components["schemas"]["DataCapability"];
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Quality Status */
+            quality_status: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
         };
         /** PolicyDeclaration */
         PolicyDeclaration: {
@@ -5469,6 +6047,197 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_approval_assessments_v1_approval_assessments_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalAssessmentSummary"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    create_approval_assessment_v1_approval_assessments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalAssessmentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalAssessmentArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_approval_assessment_v1_approval_assessments__assessment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assessment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalAssessmentArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    list_approval_revocations_v1_approval_revocations_get: {
+        parameters: {
+            query?: {
+                human_authorization_evidence_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizationRevocationSummary"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    create_approval_revocation_v1_approval_revocations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalRevocationCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizationRevocationArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_approval_revocation_v1_approval_revocations__revocation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revocation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizationRevocationArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
             };
         };
     };
