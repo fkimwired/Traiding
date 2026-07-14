@@ -36,6 +36,11 @@ AdapterResolver = Callable[
     [AuthorizedMappingIdentity],
     tuple[Phase4DataAdapter, QualityReferenceCatalog],
 ]
+ConfigurationResolver = Callable[[str], MockConfigurationIdentity | None]
+ConfiguredAdapterResolver = Callable[
+    [AuthorizedMappingIdentity, MockConfigurationIdentity],
+    tuple[Phase4DataAdapter, QualityReferenceCatalog],
+]
 
 
 class SnapshotAdapterUnavailable(RuntimeError):
@@ -62,12 +67,16 @@ class SnapshotWorkflow:
         configuration: MockConfigurationIdentity,
         quality_catalog: QualityReferenceCatalog,
         adapter_resolver: AdapterResolver | None = None,
+        configuration_resolver: ConfigurationResolver | None = None,
+        configured_adapter_resolver: ConfiguredAdapterResolver | None = None,
     ) -> None:
         self.repository = repository
         self.adapter = adapter
         self.configuration = configuration
         self.quality_catalog = quality_catalog
         self.adapter_resolver = adapter_resolver
+        self.configuration_resolver = configuration_resolver
+        self.configured_adapter_resolver = configured_adapter_resolver
 
     def _configuration_unavailable(
         self,
@@ -91,14 +100,22 @@ class SnapshotWorkflow:
         )
 
     def create_snapshot(self, request: SnapshotCreateRequest) -> SnapshotBundle:
-        if request.mock_configuration_id != self.configuration.configuration_id:
-            raise self._configuration_unavailable(request)
+        configuration = self.configuration
+        if request.mock_configuration_id != configuration.configuration_id:
+            if self.configuration_resolver is None:
+                raise self._configuration_unavailable(request)
+            resolved_configuration = self.configuration_resolver(request.mock_configuration_id)
+            if resolved_configuration is None:
+                raise self._configuration_unavailable(request)
+            configuration = resolved_configuration
 
         # Resolve and authorize the immutable Phase 3 mapping before adapter access.
         mapping = self.repository.resolve_mapping(request.mapping_id, request.capability)
         adapter = self.adapter
         quality_catalog = self.quality_catalog
-        if self.adapter_resolver is not None:
+        if self.configured_adapter_resolver is not None:
+            adapter, quality_catalog = self.configured_adapter_resolver(mapping, configuration)
+        elif self.adapter_resolver is not None:
             adapter, quality_catalog = self.adapter_resolver(mapping)
         parameters = SnapshotRequestParameters(
             mapping=mapping,
@@ -134,7 +151,7 @@ class SnapshotWorkflow:
         quality_result = run_mandatory_data_quality(
             request=parameters,
             result=adapter_result,
-            configuration=self.configuration,
+            configuration=configuration,
             catalog=quality_catalog,
         )
         if isinstance(quality_result, SnapshotBuildBlockedResult):
@@ -146,7 +163,7 @@ class SnapshotWorkflow:
             mapping=mapping,
             request=parameters,
             profile=adapter_result.profile,
-            configuration=self.configuration,
+            configuration=configuration,
             batch=quality_result.batch,
         )
         if not isinstance(materialized, SnapshotCandidate):
@@ -183,6 +200,8 @@ class SnapshotWorkflow:
 
 __all__ = [
     "AdapterResolver",
+    "ConfigurationResolver",
+    "ConfiguredAdapterResolver",
     "SnapshotAdapterUnavailable",
     "SnapshotQualityBlocked",
     "SnapshotWorkflow",

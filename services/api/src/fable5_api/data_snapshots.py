@@ -9,9 +9,14 @@ from fable5_data.contracts import (
     AdapterUnavailableResult,
     AuthorizedMappingIdentity,
     DataSnapshot,
+    MockConfigurationIdentity,
     SnapshotBuildBlockedResult,
     SnapshotBundle,
     SnapshotCreateRequest,
+)
+from fable5_data.phase6_synthetic import (
+    PHASE6_SYNTHETIC_MOCK_CONFIGURATION,
+    resolve_phase6_synthetic_adapter,
 )
 from fable5_data.quality import QualityReferenceCatalog
 from fable5_data.repository import (
@@ -42,9 +47,17 @@ from fable5_api.config import Settings
 def default_snapshot_workflow_factory(settings: Settings) -> SnapshotWorkflow:
     adapter = SyntheticPointInTimeAdapter()
 
-    def resolve_adapter(
+    def resolve_configuration(configuration_id: str) -> MockConfigurationIdentity | None:
+        if configuration_id == PHASE6_SYNTHETIC_MOCK_CONFIGURATION.configuration_id:
+            return PHASE6_SYNTHETIC_MOCK_CONFIGURATION
+        return None
+
+    def resolve_configured_adapter(
         mapping: AuthorizedMappingIdentity,
+        configuration: MockConfigurationIdentity,
     ) -> tuple[Phase4DataAdapter, QualityReferenceCatalog]:
+        if configuration.configuration_id == PHASE6_SYNTHETIC_MOCK_CONFIGURATION.configuration_id:
+            return resolve_phase6_synthetic_adapter(mapping)
         resolved = SyntheticPointInTimeAdapter.for_mapping(mapping)
         return resolved, QualityReferenceCatalog.from_results(resolved.all_results())
 
@@ -53,7 +66,8 @@ def default_snapshot_workflow_factory(settings: Settings) -> SnapshotWorkflow:
         adapter=adapter,
         configuration=SYNTHETIC_MOCK_CONFIGURATION,
         quality_catalog=QualityReferenceCatalog.from_results(adapter.all_results()),
-        adapter_resolver=resolve_adapter,
+        configuration_resolver=resolve_configuration,
+        configured_adapter_resolver=resolve_configured_adapter,
     )
 
 

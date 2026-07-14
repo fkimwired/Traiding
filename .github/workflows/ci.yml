@@ -1,11 +1,11 @@
-name: phase-5-ci
+name: phase-6-ci
 
 on:
   push:
   pull_request:
 
 env:
-  FABLE5_VERIFY_PHASE: "5"
+  FABLE5_VERIFY_PHASE: "6"
 
 jobs:
   quality:
@@ -31,7 +31,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only --phase 5
+      - run: python scripts/verify_phase1.py --static-only --phase 6
       - run: docker compose config --quiet
 
   compose-smoke:
@@ -44,4 +44,4 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install --constraint requirements.lock -e ".[dev]"
-      - run: python scripts/verify_phase1.py --phase 5
+      - run: python scripts/verify_phase1.py --phase 6

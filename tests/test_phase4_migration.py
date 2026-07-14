@@ -13,6 +13,7 @@ sys.path.insert(0, str(DATA_SRC))
 
 from fable5_data.contracts import (  # noqa: E402
     PHASE4_SCHEMA_CONSTANTS,
+    PHASE6_DATA_CONTRACT_CONSTANTS,
     AvailabilityConvention,
     AvailabilityPrecision,
     ConstituentDisposition,
@@ -231,20 +232,28 @@ def test_phase4_sql_vocabularies_and_versions_equal_contract_authority() -> None
         for value in PHASE4_SCHEMA_CONSTANTS[key]:
             assert f"'{value}'" in source
 
+    phase6_quality_codes = set(PHASE6_DATA_CONTRACT_CONSTANTS["additive_quality_codes"])
+    phase4_enum_values = {
+        DataRecordType: tuple(PHASE4_SCHEMA_CONSTANTS["record_types"]),
+        DataQualityCode: tuple(
+            value for value in enum_values(DataQualityCode) if value not in phase6_quality_codes
+        ),
+    }
     for enum_type in (
         DataCapability,
-        DataRecordType,
         ConstituentDisposition,
         FindingDisposition,
         DataQualitySeverity,
         SnapshotQualityStatus,
         MissingnessReason,
         QualityFlag,
-        DataQualityCode,
         AvailabilityPrecision,
         AvailabilityConvention,
     ):
         for value in enum_values(enum_type):
+            assert f"'{value}'" in source
+    for values in phase4_enum_values.values():
+        for value in values:
             assert f"'{value}'" in source
 
     for rejected_parallel_value in (

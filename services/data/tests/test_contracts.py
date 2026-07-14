@@ -22,7 +22,10 @@ from fable5_data.contracts import (
     AUTHORIZED_CAPABILITIES,
     CAPABILITY_RECORD_TYPES,
     NORMALIZED_OBSERVATION_SCHEMA_VERSION,
+    PHASE4_AUTHORIZED_CAPABILITIES,
+    PHASE4_CAPABILITY_RECORD_TYPES,
     PHASE4_SCHEMA_CONSTANTS,
+    PHASE6_DATA_CONTRACT_CONSTANTS,
     RAW_OBSERVATION_SCHEMA_VERSION,
     AdapterAvailableResult,
     AdapterBatchDraft,
@@ -61,6 +64,7 @@ from fable5_data.contracts import (
     UseRightsIdentity,
     UseRightsScope,
     conservative_date_available_at,
+    official_document_content_sha256,
 )
 from fable5_mapping.models import CanonicalFamily, ResearchVerdict
 from pydantic import TypeAdapter, ValidationError
@@ -360,10 +364,28 @@ def test_capability_vocabulary_and_family_authorization_are_frozen() -> None:
         CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME,
         CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY,
     }
-    assert CAPABILITY_RECORD_TYPES[DataCapability.SECURITY_MASTER] == {
+    assert PHASE4_CAPABILITY_RECORD_TYPES[DataCapability.SECURITY_MASTER] == {
         DataRecordType.INSTRUMENT_IDENTITY,
         DataRecordType.LISTING_IDENTITY,
     }
+    assert CAPABILITY_RECORD_TYPES[DataCapability.SECURITY_MASTER] == {
+        DataRecordType.INSTRUMENT_IDENTITY,
+        DataRecordType.LISTING_IDENTITY,
+        DataRecordType.SECTOR_CLASSIFICATION,
+    }
+    assert (
+        DataCapability.SECURITY_MASTER
+        not in PHASE4_AUTHORIZED_CAPABILITIES[CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME]
+    )
+    assert (
+        DataCapability.SECURITY_MASTER
+        in AUTHORIZED_CAPABILITIES[CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME]
+    )
+    assert PHASE6_DATA_CONTRACT_CONSTANTS["additive_record_types"] == (
+        "sector_classification",
+        "official_document_content",
+        "social_attention",
+    )
 
 
 def test_mapping_and_server_resolved_request_fail_closed() -> None:
@@ -479,6 +501,42 @@ def test_all_field_specific_payloads_use_a_discriminator() -> None:
             "window_end": EVENT_TIME,
             "bar_observation_ids": (NORMALIZED_ID,),
             "calendar_observation_ids": (REVISION_ID,),
+        },
+        {
+            "record_type": "sector_classification",
+            "classification_scheme_id": "synthetic-sector-scheme",
+            "classification_scheme_version": "v1",
+            "sector_id": "technology",
+            "sector_name": "Technology",
+        },
+        {
+            "record_type": "official_document_content",
+            "official_document_id": "filing-1",
+            "official_event_id": "event-1",
+            "official_source_version_id": UUID("40000000-0000-0000-0000-000000000020"),
+            "document_type": "regulatory_filing",
+            "event_type": "filing",
+            "accession_id": "accession-1",
+            "published_at": EVENT_TIME,
+            "accepted_at": AVAILABLE_AT,
+            "corrected_at": None,
+            "correction_sequence": 0,
+            "document_content_sha256": official_document_content_sha256(
+                "Synthetic official filing body."
+            ),
+            "document_text": "Synthetic official filing body.",
+            "amendment_of_document_id": None,
+        },
+        {
+            "record_type": "social_attention",
+            "social_attention_record_id": "social-1",
+            "platform_id": "synthetic-social-platform",
+            "observed_at": AVAILABLE_AT,
+            "social_content_sha256": HASH_A,
+            "entity_id": "issuer-1",
+            "claimed_official_source_version_id": UUID("40000000-0000-0000-0000-000000000020"),
+            "manipulation_prone": True,
+            "contributes_standalone": False,
         },
     ]
     adapter = TypeAdapter(NormalizedPayload)

@@ -337,10 +337,16 @@ def test_phase4_postgres_family_c_exact_corroboration_and_fail_closed_authorizat
                 unauthorized.mapping.mapping_id,
                 DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,
             )
+        resolved_ohlcv = snapshots.resolve_mapping(
+            family_c.mapping.mapping_id,
+            DataCapability.OHLCV,
+        )
+        assert resolved_ohlcv.mapping_id == family_c.mapping.mapping_id
+        assert resolved_ohlcv.canonical_family is CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY
         with pytest.raises(SnapshotAuthorization, match="not authorized"):
             snapshots.resolve_mapping(
                 family_c.mapping.mapping_id,
-                DataCapability.OHLCV,
+                DataCapability.CORPORATE_ACTIONS,
             )
         with pytest.raises(MappingNotFound, match="was not found"):
             snapshots.resolve_mapping(uuid4(), DataCapability.OHLCV)

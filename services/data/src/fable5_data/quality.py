@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+from itertools import pairwise
 from typing import Literal, cast
 from uuid import UUID
 
@@ -19,11 +20,15 @@ from fable5_data.canonical import (
     raw_payload_sha256,
 )
 from fable5_data.contracts import (
+    OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
+    PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+    SOCIAL_ATTENTION_SCHEMA_VERSION,
     AdapterAvailableResult,
     AdapterBatchDraft,
     AsReportedFundamentalPayload,
     ConstituentDisposition,
     CorporateActionPayload,
+    DataCapability,
     DataQualityCode,
     DataQualityFindingDraft,
     DataQualitySeverity,
@@ -35,15 +40,19 @@ from fable5_data.contracts import (
     MissingnessReason,
     MockConfigurationIdentity,
     NormalizedObservationDraft,
+    OfficialDocumentContentPayload,
     OfficialDocumentEventPayload,
     OhlcvBarPayload,
     RequestFingerprintInput,
+    SectorClassificationPayload,
     SnapshotBuildBlockedResult,
     SnapshotConstituentDraft,
     SnapshotRequestParameters,
+    SocialAttentionPayload,
     StrictModel,
     UniverseMembershipPayload,
     VolatilityReturnInputPayload,
+    official_document_content_sha256,
 )
 
 
@@ -120,6 +129,34 @@ DATASET_GRAIN_KEY_MATRIX: dict[DataRecordType, DatasetGrain] = {
         DataRecordType.VOLATILITY_RETURN_INPUT,
         "one exact input bundle per listing and return window",
         ("listing_id", "payload.window_start", "payload.window_end"),
+    ),
+    DataRecordType.SECTOR_CLASSIFICATION: DatasetGrain(
+        DataRecordType.SECTOR_CLASSIFICATION,
+        "one point-in-time sector classification per instrument, scheme, and validity start",
+        (
+            "instrument_id",
+            "payload.classification_scheme_id",
+            "payload.classification_scheme_version",
+            "valid_from",
+        ),
+    ),
+    DataRecordType.OFFICIAL_DOCUMENT_CONTENT: DatasetGrain(
+        DataRecordType.OFFICIAL_DOCUMENT_CONTENT,
+        "one immutable official UTF-8 document body per source version and correction sequence",
+        (
+            "payload.official_document_id",
+            "payload.official_source_version_id",
+            "payload.correction_sequence",
+        ),
+    ),
+    DataRecordType.SOCIAL_ATTENTION: DatasetGrain(
+        DataRecordType.SOCIAL_ATTENTION,
+        "one immutable social-attention observation per platform record and observation time",
+        (
+            "payload.social_attention_record_id",
+            "payload.platform_id",
+            "payload.observed_at",
+        ),
     ),
 }
 
@@ -221,9 +258,10 @@ def _finding(
     field_name: str | None = None,
     range_start: datetime | None = None,
     range_end: datetime | None = None,
+    rule_set_version: str = "phase4-data-quality-v1",
 ) -> DataQualityFindingDraft:
     values: dict[str, object] = {
-        "rule_set_version": "phase4-data-quality-v1",
+        "rule_set_version": rule_set_version,
         "rule_id": rule_id,
         "severity": severity,
         "code": code,
@@ -504,16 +542,16 @@ def _referential_and_consistency_findings(
 ) -> list[DataQualityFindingDraft]:
     findings: list[DataQualityFindingDraft] = []
     total = len(observations)
-    instruments = {
-        item.instrument_id: item
-        for item in catalog.observations
-        if DataRecordType(item.payload.record_type) is DataRecordType.INSTRUMENT_IDENTITY
-    }
-    listings = {
-        item.listing_id: item
-        for item in catalog.observations
-        if isinstance(item.payload, ListingIdentityPayload)
-    }
+    instruments: dict[UUID, list[NormalizedObservationDraft]] = defaultdict(list)
+    listings: dict[UUID, list[NormalizedObservationDraft]] = defaultdict(list)
+    for item in catalog.observations:
+        if (
+            item.instrument_id is not None
+            and DataRecordType(item.payload.record_type) is DataRecordType.INSTRUMENT_IDENTITY
+        ):
+            instruments[item.instrument_id].append(item)
+        if item.listing_id is not None and isinstance(item.payload, ListingIdentityPayload):
+            listings[item.listing_id].append(item)
     currency_required = {
         DataRecordType.OHLCV_BAR,
         DataRecordType.DELISTING_EVENT,
@@ -522,7 +560,21 @@ def _referential_and_consistency_findings(
     }
     for observation in observations:
         record_type = DataRecordType(observation.payload.record_type)
-        instrument = instruments.get(observation.instrument_id)
+        instrument_candidates = (
+            []
+            if observation.instrument_id is None
+            else instruments.get(observation.instrument_id, [])
+        )
+        instrument = next(
+            (
+                item
+                for item in instrument_candidates
+                if item.available_at <= observation.available_at
+                and item.valid_from <= observation.event_time
+                and (item.valid_to is None or observation.event_time < item.valid_to)
+            ),
+            None,
+        )
         if (
             record_type is not DataRecordType.CALENDAR_SESSION
             and record_type is not DataRecordType.INSTRUMENT_IDENTITY
@@ -541,15 +593,24 @@ def _referential_and_consistency_findings(
                     field_name="instrument_id",
                 )
             )
-        listing = listings.get(observation.listing_id)
+        listing_candidates = (
+            [] if observation.listing_id is None else listings.get(observation.listing_id, [])
+        )
+        listing = next(
+            (
+                item
+                for item in listing_candidates
+                if item.instrument_id == observation.instrument_id
+                and item.available_at <= observation.available_at
+                and item.valid_from <= observation.event_time
+                and (item.valid_to is None or observation.event_time < item.valid_to)
+            ),
+            None,
+        )
         if (
             observation.listing_id is not None
             and record_type is not DataRecordType.LISTING_IDENTITY
-            and (
-                listing is None
-                or listing.instrument_id != observation.instrument_id
-                or listing.available_at > observation.available_at
-            )
+            and listing is None
         ):
             findings.append(
                 _finding(
@@ -626,6 +687,80 @@ def _membership_findings(
                 range_end=max(item.valid_from for item in ordered),
             )
         )
+    return findings
+
+
+def _sector_classification_findings(
+    observations: tuple[NormalizedObservationDraft, ...],
+) -> list[DataQualityFindingDraft]:
+    sectors = [
+        item for item in observations if isinstance(item.payload, SectorClassificationPayload)
+    ]
+    findings: list[DataQualityFindingDraft] = []
+    total = max(len(sectors), 1)
+    for observation in sectors:
+        if observation.instrument_id is None or observation.listing_id is not None:
+            findings.append(
+                _finding(
+                    rule_id="phase6.sector-classification-instrument-scope",
+                    severity=DataQualitySeverity.BLOCKING,
+                    code=DataQualityCode.PIT_CLASSIFICATION_INVALID,
+                    disposition=FindingDisposition.BLOCKED,
+                    detail={"check": "instrument-scoped-sector-history"},
+                    occurrence_count=1,
+                    total_count=total,
+                    affected=observation,
+                    field_name="instrument_id",
+                    rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                )
+            )
+
+    # Multiple vintages of one logical classification are revision history.  Only the
+    # latest available vintage for each logical key participates in interval overlap checks.
+    latest_by_key: dict[str, NormalizedObservationDraft] = {}
+    for observation in sectors:
+        current = latest_by_key.get(observation.logical_record_key_sha256)
+        if current is None or (
+            observation.available_at,
+            str(observation.normalized_observation_id),
+        ) > (current.available_at, str(current.normalized_observation_id)):
+            latest_by_key[observation.logical_record_key_sha256] = observation
+
+    grouped: dict[tuple[UUID, str, str], list[NormalizedObservationDraft]] = defaultdict(list)
+    for observation in latest_by_key.values():
+        if observation.instrument_id is None:
+            continue
+        payload = cast(SectorClassificationPayload, observation.payload)
+        grouped[
+            (
+                observation.instrument_id,
+                payload.classification_scheme_id,
+                payload.classification_scheme_version,
+            )
+        ].append(observation)
+    for group in grouped.values():
+        ordered = sorted(
+            group,
+            key=lambda item: (item.valid_from, str(item.normalized_observation_id)),
+        )
+        for previous, current in pairwise(ordered):
+            if previous.valid_to is None or current.valid_from < previous.valid_to:
+                findings.append(
+                    _finding(
+                        rule_id="phase6.sector-classification-nonoverlap",
+                        severity=DataQualitySeverity.BLOCKING,
+                        code=DataQualityCode.PIT_CLASSIFICATION_INVALID,
+                        disposition=FindingDisposition.BLOCKED,
+                        detail={"check": "nonoverlapping-point-in-time-validity-intervals"},
+                        occurrence_count=2,
+                        total_count=total,
+                        affected=current,
+                        field_name="valid_from",
+                        range_start=previous.valid_from,
+                        range_end=current.valid_from,
+                        rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                    )
+                )
     return findings
 
 
@@ -810,11 +945,130 @@ def _volatility_reference_findings(
     return findings
 
 
+def _official_document_content_findings(
+    observations: tuple[NormalizedObservationDraft, ...],
+    catalog: QualityReferenceCatalog,
+) -> list[DataQualityFindingDraft]:
+    contents = [
+        item for item in observations if isinstance(item.payload, OfficialDocumentContentPayload)
+    ]
+    if not contents:
+        return []
+    total = len(contents)
+    findings: list[DataQualityFindingDraft] = []
+    metadata = [
+        item
+        for item in catalog.observations
+        if isinstance(item.payload, OfficialDocumentEventPayload)
+    ]
+    all_contents = [
+        item
+        for item in catalog.observations
+        if isinstance(item.payload, OfficialDocumentContentPayload)
+    ]
+
+    for observation in contents:
+        payload = cast(OfficialDocumentContentPayload, observation.payload)
+        try:
+            expected_hash = official_document_content_sha256(payload.document_text)
+        except ValueError:
+            expected_hash = ""
+        if payload.document_content_sha256 != expected_hash:
+            findings.append(
+                _finding(
+                    rule_id="phase6.official-document-content-utf8-sha256",
+                    severity=DataQualitySeverity.BLOCKING,
+                    code=DataQualityCode.DOCUMENT_CONTENT_HASH_MISMATCH,
+                    disposition=FindingDisposition.BLOCKED,
+                    detail={"check": "exact-utf8-document-text-sha256"},
+                    occurrence_count=1,
+                    total_count=total,
+                    affected=observation,
+                    field_name="payload.document_content_sha256",
+                    rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                )
+            )
+
+        matching_metadata = [
+            item
+            for item in metadata
+            if isinstance(item.payload, OfficialDocumentEventPayload)
+            and item.payload.official_document_id == payload.official_document_id
+            and item.payload.official_event_id == payload.official_event_id
+            and item.payload.official_source_version_id == payload.official_source_version_id
+            and item.payload.document_type is payload.document_type
+            and item.payload.event_type is payload.event_type
+            and item.payload.accession_id == payload.accession_id
+            and item.payload.document_content_sha256 == payload.document_content_sha256
+            and item.payload.amendment_of_document_id == payload.amendment_of_document_id
+            and item.instrument_id == observation.instrument_id
+            and item.listing_id == observation.listing_id
+            and item.available_at <= observation.available_at
+        ]
+        if not matching_metadata:
+            findings.append(
+                _finding(
+                    rule_id="phase6.official-document-content-metadata-lineage",
+                    severity=DataQualitySeverity.BLOCKING,
+                    code=DataQualityCode.OFFICIAL_CORROBORATION_MISMATCH,
+                    disposition=FindingDisposition.BLOCKED,
+                    detail={"check": "exact-official-metadata-content-lineage"},
+                    occurrence_count=1,
+                    total_count=total,
+                    affected=observation,
+                    field_name="payload.official_document_id",
+                    rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                )
+            )
+
+        if payload.correction_sequence == 0:
+            correction_valid = (
+                payload.corrected_at is None and payload.amendment_of_document_id is None
+            )
+        else:
+            predecessors = [
+                item
+                for item in all_contents
+                if isinstance(item.payload, OfficialDocumentContentPayload)
+                and item.payload.official_document_id == payload.amendment_of_document_id
+                and item.payload.official_event_id == payload.official_event_id
+                and item.payload.official_source_version_id == payload.official_source_version_id
+                and item.payload.correction_sequence + 1 == payload.correction_sequence
+                and item.instrument_id == observation.instrument_id
+                and item.listing_id == observation.listing_id
+                and item.available_at < observation.available_at
+                and item.payload.accepted_at < payload.accepted_at
+                and payload.corrected_at is not None
+                and item.payload.accepted_at < payload.corrected_at
+            ]
+            correction_valid = bool(predecessors)
+        if not correction_valid:
+            findings.append(
+                _finding(
+                    rule_id="phase6.official-document-correction-sequence",
+                    severity=DataQualitySeverity.BLOCKING,
+                    code=DataQualityCode.DOCUMENT_CORRECTION_TIMING_INVALID,
+                    disposition=FindingDisposition.BLOCKED,
+                    detail={"check": "strictly-later-immutable-correction-chain"},
+                    occurrence_count=1,
+                    total_count=total,
+                    affected=observation,
+                    field_name="payload.amendment_of_document_id",
+                    rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                )
+            )
+    return findings
+
+
 def _official_corroboration_findings(
     request: SnapshotRequestParameters,
+    result: AdapterAvailableResult,
     eligible: tuple[NormalizedObservationDraft, ...],
 ) -> list[DataQualityFindingDraft]:
-    if request.mapping.canonical_family is not CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY:
+    if (
+        request.mapping.canonical_family is not CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY
+        or request.capability is not DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA
+    ):
         return []
     expected = set(request.mapping.official_corroboration_source_version_ids)
     actual = {
@@ -822,29 +1076,119 @@ def _official_corroboration_findings(
         for item in eligible
         if isinstance(item.payload, OfficialDocumentEventPayload)
     }
-    if actual == expected:
-        return []
-    affected = next(
-        (item for item in eligible if isinstance(item.payload, OfficialDocumentEventPayload)),
-        None,
-    )
-    return [
-        _finding(
-            rule_id="phase4.family-c-exact-official-corroboration",
-            severity=DataQualitySeverity.BLOCKING,
-            code=DataQualityCode.ORPHAN_REFERENCE,
-            disposition=FindingDisposition.BLOCKED,
-            detail={
-                "check": "exact-persisted-official-source-version-set",
-                "expected_count": len(expected),
-                "actual_count": len(actual),
-            },
-            occurrence_count=max(len(expected.symmetric_difference(actual)), 1),
-            total_count=max(len(expected.union(actual)), 1),
-            affected=affected,
-            field_name="payload.official_source_version_id",
+    findings: list[DataQualityFindingDraft] = []
+    if actual != expected:
+        affected = next(
+            (item for item in eligible if isinstance(item.payload, OfficialDocumentEventPayload)),
+            None,
         )
-    ]
+        findings.append(
+            _finding(
+                rule_id="phase4.family-c-exact-official-corroboration",
+                severity=DataQualitySeverity.BLOCKING,
+                code=DataQualityCode.ORPHAN_REFERENCE,
+                disposition=FindingDisposition.BLOCKED,
+                detail={
+                    "check": "exact-persisted-official-source-version-set",
+                    "expected_count": len(expected),
+                    "actual_count": len(actual),
+                },
+                occurrence_count=max(len(expected.symmetric_difference(actual)), 1),
+                total_count=max(len(expected.union(actual)), 1),
+                affected=affected,
+                field_name="payload.official_source_version_id",
+            )
+        )
+
+    content_schema_declared = any(
+        item.dataset_schema_version == OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION
+        for item in result.profile.schema_bindings
+    )
+    content_actual = {
+        item.payload.official_source_version_id
+        for item in eligible
+        if isinstance(item.payload, OfficialDocumentContentPayload)
+    }
+    if content_schema_declared and content_actual != expected:
+        affected = next(
+            (item for item in eligible if isinstance(item.payload, OfficialDocumentContentPayload)),
+            None,
+        )
+        findings.append(
+            _finding(
+                rule_id="phase6.family-c-exact-official-content-corroboration",
+                severity=DataQualitySeverity.BLOCKING,
+                code=DataQualityCode.OFFICIAL_CORROBORATION_MISMATCH,
+                disposition=FindingDisposition.BLOCKED,
+                detail={
+                    "check": "exact-persisted-official-content-source-version-set",
+                    "expected_count": len(expected),
+                    "actual_count": len(content_actual),
+                },
+                occurrence_count=max(len(expected.symmetric_difference(content_actual)), 1),
+                total_count=max(len(expected.union(content_actual)), 1),
+                affected=affected,
+                field_name="payload.official_source_version_id",
+                rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+            )
+        )
+    social_schema_declared = any(
+        item.dataset_schema_version == SOCIAL_ATTENTION_SCHEMA_VERSION
+        for item in result.profile.schema_bindings
+    )
+    social_records = [item for item in eligible if isinstance(item.payload, SocialAttentionPayload)]
+    social_actual = {
+        cast(SocialAttentionPayload, item.payload).claimed_official_source_version_id
+        for item in social_records
+    }
+    if social_schema_declared and social_actual != expected:
+        affected = social_records[0] if social_records else None
+        findings.append(
+            _finding(
+                rule_id="phase6.family-c-social-attention-exact-official-source-set",
+                severity=DataQualitySeverity.BLOCKING,
+                code=DataQualityCode.OFFICIAL_CORROBORATION_MISMATCH,
+                disposition=FindingDisposition.BLOCKED,
+                detail={
+                    "check": "every-social-attention-record-has-exact-official-source",
+                    "expected_count": len(expected),
+                    "actual_count": len(social_actual),
+                },
+                occurrence_count=max(len(expected.symmetric_difference(social_actual)), 1),
+                total_count=max(len(expected.union(social_actual)), 1),
+                affected=affected,
+                field_name="payload.claimed_official_source_version_id",
+                rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+            )
+        )
+    for observation in social_records:
+        payload = cast(SocialAttentionPayload, observation.payload)
+        matching_official = [
+            item
+            for item in eligible
+            if isinstance(item.payload, OfficialDocumentContentPayload)
+            and item.payload.official_source_version_id
+            == payload.claimed_official_source_version_id
+            and item.instrument_id == observation.instrument_id
+            and item.listing_id == observation.listing_id
+            and item.available_at <= observation.available_at
+        ]
+        if not matching_official or payload.contributes_standalone:
+            findings.append(
+                _finding(
+                    rule_id="phase6.family-c-social-attention-official-document-lineage",
+                    severity=DataQualitySeverity.BLOCKING,
+                    code=DataQualityCode.OFFICIAL_CORROBORATION_MISMATCH,
+                    disposition=FindingDisposition.BLOCKED,
+                    detail={"check": "exact-official-document-precedes-social-attention"},
+                    occurrence_count=1,
+                    total_count=max(len(social_records), 1),
+                    affected=observation,
+                    field_name="payload.social_attention_record_id",
+                    rule_set_version=PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+                )
+            )
+    return findings
 
 
 def _future_findings(
@@ -1051,11 +1395,13 @@ def run_mandatory_data_quality(
     findings.extend(_lineage_coverage_findings(result))
     findings.extend(_referential_and_consistency_findings(observations, catalog))
     findings.extend(_membership_findings(request, observations))
+    findings.extend(_sector_classification_findings(observations))
     findings.extend(_fundamental_findings(observations, catalog))
     findings.extend(_corporate_action_findings(request, observations, catalog))
     findings.extend(_delisting_findings(eligible))
     findings.extend(_volatility_reference_findings(request, observations, catalog))
-    findings.extend(_official_corroboration_findings(request, eligible))
+    findings.extend(_official_document_content_findings(observations, catalog))
+    findings.extend(_official_corroboration_findings(request, result, eligible))
     findings.extend(_future_findings(request, future, len(observations)))
     findings.extend(_informational_findings(eligible))
     unique_findings = {item.finding_sha256: item for item in findings}

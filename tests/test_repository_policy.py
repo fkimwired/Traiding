@@ -131,20 +131,21 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase5_entrypoints_and_images_select_the_active_phase() -> None:
+def test_phase6_entrypoints_and_images_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, or 5" in source
+        assert "1, 2, 3, 4, 5, or 6" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-5-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "5"' in workflow
-    assert workflow.count("--phase 5") >= 2
+    assert workflow.startswith("name: phase-6-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "6"' in workflow
+    assert workflow.count("--phase 6") >= 2
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
         assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)
         assert "COPY services/backtester ./services/backtester" in normalized(ROOT / dockerfile)
+        assert "COPY services/research ./services/research" in normalized(ROOT / dockerfile)
     assert "COPY services/mapping ./services/mapping" in normalized(
         ROOT / "services/api/Dockerfile"
     )

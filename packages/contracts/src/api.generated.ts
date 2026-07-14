@@ -313,6 +313,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/research-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Research Runs */
+        get: operations["list_research_runs_v1_research_runs_get"];
+        put?: never;
+        /** Create Research Run */
+        post: operations["create_research_run_v1_research_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/research-runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Research Run */
+        get: operations["get_research_run_v1_research_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/source-versions/{source_version_id}": {
         parameters: {
             query?: never;
@@ -575,6 +610,11 @@ export interface components {
          * @enum {string}
          */
         BarInterval: "P1D";
+        /**
+         * BaselineOutcome
+         * @enum {string}
+         */
+        BaselineOutcome: "survives" | "rejected";
         /** BlockedEvaluationOutcome */
         BlockedEvaluationOutcome: {
             /**
@@ -704,6 +744,19 @@ export interface components {
          * @enum {string}
          */
         CanonicalFamily: "A_CROSS_SECTIONAL_EQUITY_RANKING" | "B_TIME_SERIES_MOMENTUM_REGIME" | "C_OFFICIAL_EVENT_TEXT_OVERLAY" | "D_PAIRS_STATISTICAL_ARBITRAGE" | "E_ORDER_BOOK_MICROSTRUCTURE" | "F_OPTIONS_FLOW_IV_RV_ANALYTICS";
+        /** CapacityEvidence */
+        CapacityEvidence: {
+            /** Adv Participation */
+            adv_participation: string;
+            /** Capacity Limit Breached */
+            capacity_limit_breached: boolean;
+            /** Capacity Units */
+            capacity_units: string;
+            /** Concentration */
+            concentration: string;
+            /** Turnover */
+            turnover: string;
+        };
         /** CardWithMemo */
         CardWithMemo: {
             card: components["schemas"]["TradingIdeaCard"];
@@ -850,6 +903,77 @@ export interface components {
          * @enum {string}
          */
         CostScenario: "baseline" | "all_cost_stress" | "liquidity_stress";
+        /** CrossSectionRankEvidence */
+        CrossSectionRankEvidence: {
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Eligible Members */
+            eligible_members: components["schemas"]["CrossSectionRankMember"][];
+            /** Evidence Sha256 */
+            evidence_sha256: string;
+            /**
+             * Nonlinear Formula Id
+             * @default frozen-depth-two-tree-momentum-quality-volatility-v1
+             * @constant
+             */
+            nonlinear_formula_id: "frozen-depth-two-tree-momentum-quality-volatility-v1";
+            /** Ordinal */
+            ordinal: number;
+            /** Selected Entity Id */
+            selected_entity_id: string;
+            /** Selected Linear Rank */
+            selected_linear_rank: number;
+            /** Selected Nonlinear Score */
+            selected_nonlinear_score: string;
+        };
+        /** CrossSectionRankMember */
+        CrossSectionRankMember: {
+            /** Entity Id */
+            entity_id: string;
+            /** Features */
+            features: components["schemas"]["ResearchFeatureValue"][];
+            /**
+             * Instrument Id
+             * Format: uuid
+             */
+            instrument_id: string;
+            /** Label Sha256 */
+            label_sha256: string;
+            /** Label Source References */
+            label_source_references: components["schemas"]["ResearchSourceReference"][];
+            /**
+             * Label T0 Utc
+             * Format: date-time
+             */
+            label_t0_utc: string;
+            /**
+             * Label T1 Utc
+             * Format: date-time
+             */
+            label_t1_utc: string;
+            /** Label Value */
+            label_value: string;
+            /** Linear Rank */
+            linear_rank: number;
+            /** Linear Score */
+            linear_score: string;
+            /**
+             * Listing Id
+             * Format: uuid
+             */
+            listing_id: string;
+            /** Member Sha256 */
+            member_sha256: string;
+            /** Nonlinear Score */
+            nonlinear_score: string;
+            /** Sector Id */
+            sector_id: string;
+            /** Source Lineage Sha256 */
+            source_lineage_sha256: string;
+        };
         /**
          * DataCapability
          * @enum {string}
@@ -859,7 +983,7 @@ export interface components {
          * DataQualityCode
          * @enum {string}
          */
-        DataQualityCode: "synthetic_fixture" | "date_only_convention_applied" | "future_availability_excluded" | "near_duplicate_retained" | "exact_duplicate_key" | "required_field_missing" | "invalid_enum_value" | "invalid_timestamp_order" | "orphan_reference" | "raw_normalized_lineage_gap" | "unit_currency_calendar_timezone_mismatch" | "schema_drift" | "current_universe_leakage" | "restatement_leakage" | "corporate_action_lookahead" | "missing_delisting_return" | "future_availability_included" | "unnormalized_rejected";
+        DataQualityCode: "synthetic_fixture" | "date_only_convention_applied" | "future_availability_excluded" | "near_duplicate_retained" | "exact_duplicate_key" | "required_field_missing" | "invalid_enum_value" | "invalid_timestamp_order" | "orphan_reference" | "raw_normalized_lineage_gap" | "unit_currency_calendar_timezone_mismatch" | "schema_drift" | "current_universe_leakage" | "restatement_leakage" | "corporate_action_lookahead" | "missing_delisting_return" | "future_availability_included" | "unnormalized_rejected" | "pit_classification_invalid" | "document_content_hash_mismatch" | "document_correction_timing_invalid" | "official_corroboration_mismatch";
         /** DataQualityFinding */
         DataQualityFinding: {
             /** Affected Record Identity */
@@ -893,9 +1017,9 @@ export interface components {
             /**
              * Rule Set Version
              * @default phase4-data-quality-v1
-             * @constant
+             * @enum {string}
              */
-            rule_set_version: "phase4-data-quality-v1";
+            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1";
             /** Sanitized Detail */
             sanitized_detail: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -942,9 +1066,9 @@ export interface components {
             /**
              * Rule Set Version
              * @default phase4-data-quality-v1
-             * @constant
+             * @enum {string}
              */
-            rule_set_version: "phase4-data-quality-v1";
+            rule_set_version: "phase4-data-quality-v1" | "phase6-data-contract-quality-v1";
             /** Sanitized Detail */
             sanitized_detail: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -960,7 +1084,7 @@ export interface components {
          * DataRecordType
          * @enum {string}
          */
-        DataRecordType: "instrument_identity" | "listing_identity" | "universe_membership" | "ohlcv_bar" | "corporate_action" | "delisting_event" | "as_reported_fundamental" | "calendar_session" | "official_document_event" | "volatility_return_input";
+        DataRecordType: "instrument_identity" | "listing_identity" | "universe_membership" | "ohlcv_bar" | "corporate_action" | "delisting_event" | "as_reported_fundamental" | "calendar_session" | "official_document_event" | "volatility_return_input" | "sector_classification" | "official_document_content" | "social_attention";
         /** DataSnapshot */
         DataSnapshot: {
             /** Active Constituent Count */
@@ -1369,6 +1493,126 @@ export interface components {
          * @enum {string}
          */
         ExtractorKind: "deterministic_mock" | "llm";
+        /** FamilyAEvidence */
+        FamilyAEvidence: {
+            /** Baseline Comparison Ids */
+            baseline_comparison_ids: string[];
+            capacity: components["schemas"]["CapacityEvidence"];
+            /** Cross Section Ranks */
+            cross_section_ranks: components["schemas"]["CrossSectionRankEvidence"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            family: "A_CROSS_SECTIONAL_EQUITY_RANKING";
+            /** Frozen Feature Names */
+            frozen_feature_names: ("liquidity" | "momentum" | "quality" | "turnover" | "value" | "volatility")[];
+            /**
+             * Nonlinear Model Id
+             * @default frozen-depth-two-tree-v1
+             * @constant
+             */
+            nonlinear_model_id: "frozen-depth-two-tree-v1";
+            /** Train Only Sector Fits */
+            train_only_sector_fits: components["schemas"]["ResearchTransformFit"][];
+            /**
+             * Transparent Model Id
+             * @default sector-relative-rank-linear-v1
+             * @constant
+             */
+            transparent_model_id: "sector-relative-rank-linear-v1";
+            /** Universe */
+            universe: components["schemas"]["UniverseSecurityEvidence"][];
+        };
+        /** FamilyBEvidence */
+        FamilyBEvidence: {
+            /**
+             * Adjusted Return Formula Id
+             * @default phase6-action-and-delisting-aware-return-v1
+             * @constant
+             */
+            adjusted_return_formula_id: "phase6-action-and-delisting-aware-return-v1";
+            /** Adjusted Return Observation Count */
+            adjusted_return_observation_count: number;
+            /** Corporate Action Source References */
+            corporate_action_source_references: components["schemas"]["ResearchSourceReference"][];
+            /** Crash Concentration */
+            crash_concentration?: string | null;
+            /** Crash Concentration Limit */
+            crash_concentration_limit: string;
+            /** Crash Evidence Complete */
+            crash_evidence_complete: boolean;
+            /** Drawdown Formula Id */
+            drawdown_formula_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            family: "B_TIME_SERIES_MOMENTUM_REGIME";
+            /** Lag Windows */
+            lag_windows: (1 | 5 | 20 | 63 | 126 | 252)[];
+            lifecycle: components["schemas"]["LifecycleEvidence"];
+            /** Lifecycle Tests */
+            lifecycle_tests: components["schemas"]["LifecycleTestEvidence"][];
+            /**
+             * No Image Candlestick Or Named Pattern Classifier
+             * @default true
+             * @constant
+             */
+            no_image_candlestick_or_named_pattern_classifier: true;
+            /**
+             * Nominal Feature Price Basis
+             * @default raw_unadjusted
+             * @constant
+             */
+            nominal_feature_price_basis: "raw_unadjusted";
+            /** Raw Nominal Bar Count */
+            raw_nominal_bar_count: number;
+            /** Realized Volatility Formula Id */
+            realized_volatility_formula_id: string;
+            /** Regime Results */
+            regime_results: components["schemas"]["RegimeResult"][];
+            /** Trend Strength Formula Id */
+            trend_strength_formula_id: string;
+        };
+        /** FamilyCEvidence */
+        FamilyCEvidence: {
+            /** Baseline Comparison Ids */
+            baseline_comparison_ids: string[];
+            /** Conventional Downstream Model Id */
+            conventional_downstream_model_id: string;
+            /**
+             * Corrections Are Later Observations
+             * @default true
+             * @constant
+             */
+            corrections_are_later_observations: true;
+            /** Corroborations */
+            corroborations: components["schemas"]["SocialOfficialCorroboration"][];
+            /** Extractions */
+            extractions: components["schemas"]["TextFeatureExtraction"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            family: "C_OFFICIAL_EVENT_TEXT_OVERLAY";
+            /**
+             * Llm Is Extraction Only
+             * @default true
+             * @constant
+             */
+            llm_is_extraction_only: true;
+            /** Non Text Baseline */
+            non_text_baseline: components["schemas"]["LaggedOhlcvBaselineEvidence"][];
+            /** Non Text Baseline Model Id */
+            non_text_baseline_model_id: string;
+            /**
+             * Prompt Model Drift Visible
+             * @default true
+             * @constant
+             */
+            prompt_model_drift_visible: true;
+        };
         /** FeatureSpecification */
         FeatureSpecification: {
             /** Availability Rule */
@@ -1698,6 +1942,113 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** LaggedOhlcvBaselineEvidence */
+        LaggedOhlcvBaselineEvidence: {
+            /** Baseline Output */
+            baseline_output: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Entity Id */
+            entity_id: string;
+            /** Evidence Sha256 */
+            evidence_sha256: string;
+            /**
+             * Formula Id
+             * @default one-session-raw-return-minus-intraday-range-v1
+             * @constant
+             */
+            formula_id: "one-session-raw-return-minus-intraday-range-v1";
+            /** Intraday Range */
+            intraday_range: string;
+            /** Lagged Return */
+            lagged_return: string;
+            /**
+             * Model Id
+             * @default lagged-return-range-linear-baseline-v1
+             * @constant
+             */
+            model_id: "lagged-return-range-linear-baseline-v1";
+            /** Ordinal */
+            ordinal: number;
+            /** Sample Id */
+            sample_id: string;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+            /**
+             * Used For Selection
+             * @default false
+             * @constant
+             */
+            used_for_selection: false;
+        };
+        /** LifecycleEvidence */
+        LifecycleEvidence: {
+            /**
+             * Inception At Utc
+             * Format: date-time
+             */
+            inception_at_utc: string;
+            /**
+             * Instrument Id
+             * Format: uuid
+             */
+            instrument_id: string;
+            /**
+             * Known At Decision
+             * @default true
+             * @constant
+             */
+            known_at_decision: true;
+            /**
+             * Listing Id
+             * Format: uuid
+             */
+            listing_id: string;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+            /** Termination At Utc */
+            termination_at_utc: string | null;
+        };
+        /** LifecycleTestEvidence */
+        LifecycleTestEvidence: {
+            /** Delisting Return Handled */
+            delisting_return_handled: boolean | null;
+            /** Evidence Sha256 */
+            evidence_sha256: string;
+            /**
+             * Inception At Utc
+             * Format: date-time
+             */
+            inception_at_utc: string;
+            /**
+             * Instrument Id
+             * Format: uuid
+             */
+            instrument_id: string;
+            /**
+             * Listing Id
+             * Format: uuid
+             */
+            listing_id: string;
+            /**
+             * Listing Status
+             * @enum {string}
+             */
+            listing_status: "active" | "inactive" | "delisted";
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+            /** Termination At Utc */
+            termination_at_utc: string | null;
+            /**
+             * Used As Feature
+             * @default false
+             * @constant
+             */
+            used_as_feature: false;
+        };
         /** ListingIdentityPayload */
         ListingIdentityPayload: {
             /** Exchange Mic */
@@ -1830,9 +2181,9 @@ export interface components {
             /**
              * Fixture Set Version
              * @default phase4-synthetic-pit-fixtures-v1
-             * @constant
+             * @enum {string}
              */
-            fixture_set_version: "phase4-synthetic-pit-fixtures-v1";
+            fixture_set_version: "phase4-synthetic-pit-fixtures-v1" | "phase6-synthetic-pit-fixtures-v1";
         };
         /**
          * NoTradeReturnPolicy
@@ -1903,7 +2254,7 @@ export interface components {
              */
             observation_revision_id: string;
             /** Payload */
-            payload: components["schemas"]["InstrumentIdentityPayload"] | components["schemas"]["ListingIdentityPayload"] | components["schemas"]["UniverseMembershipPayload"] | components["schemas"]["OhlcvBarPayload"] | components["schemas"]["CorporateActionPayload"] | components["schemas"]["DelistingEventPayload"] | components["schemas"]["AsReportedFundamentalPayload"] | components["schemas"]["CalendarSessionPayload"] | components["schemas"]["OfficialDocumentEventPayload"] | components["schemas"]["VolatilityReturnInputPayload"];
+            payload: components["schemas"]["InstrumentIdentityPayload"] | components["schemas"]["ListingIdentityPayload"] | components["schemas"]["UniverseMembershipPayload"] | components["schemas"]["OhlcvBarPayload"] | components["schemas"]["CorporateActionPayload"] | components["schemas"]["DelistingEventPayload"] | components["schemas"]["AsReportedFundamentalPayload"] | components["schemas"]["CalendarSessionPayload"] | components["schemas"]["OfficialDocumentEventPayload"] | components["schemas"]["VolatilityReturnInputPayload"] | components["schemas"]["SectorClassificationPayload"] | components["schemas"]["OfficialDocumentContentPayload"] | components["schemas"]["SocialAttentionPayload"];
             /** Product Id */
             product_id: string;
             /** Provider Id */
@@ -2062,6 +2413,50 @@ export interface components {
             /** Vintage Id */
             vintage_id: string;
         };
+        /**
+         * OfficialDocumentContentPayload
+         * @description Immutable official text evidence, never an LLM label or trading output.
+         */
+        OfficialDocumentContentPayload: {
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /** Accession Id */
+            accession_id: string;
+            /** Amendment Of Document Id */
+            amendment_of_document_id?: string | null;
+            /** Corrected At */
+            corrected_at: string | null;
+            /** Correction Sequence */
+            correction_sequence: number;
+            /** Document Content Sha256 */
+            document_content_sha256: string;
+            /** Document Text */
+            document_text: string;
+            document_type: components["schemas"]["OfficialDocumentType"];
+            event_type: components["schemas"]["OfficialEventType"];
+            /** Official Document Id */
+            official_document_id: string;
+            /** Official Event Id */
+            official_event_id: string;
+            /**
+             * Official Source Version Id
+             * Format: uuid
+             */
+            official_source_version_id: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "official_document_content";
+        };
         /** OfficialDocumentEventPayload */
         OfficialDocumentEventPayload: {
             /**
@@ -2216,6 +2611,50 @@ export interface components {
              * Format: uuid
              */
             trial_id: string;
+        };
+        /** Phase5EvaluationLink */
+        Phase5EvaluationLink: {
+            /** Config Hash */
+            config_hash: string;
+            /** Effective Trial Count */
+            effective_trial_count: string;
+            /** Evaluation Outcome Id */
+            evaluation_outcome_id: string | null;
+            /** Evaluation Report Id */
+            evaluation_report_id: string | null;
+            /** Evaluation Report Sha256 */
+            evaluation_report_sha256: string | null;
+            /** Fixture Id */
+            fixture_id: string;
+            /** Fixture Sha256 */
+            fixture_sha256: string;
+            /** Gate Codes */
+            gate_codes: components["schemas"]["GateCode"][];
+            /** Phase5 Trial Set Sha256 */
+            phase5_trial_set_sha256: string | null;
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /** Policy Sha256 */
+            policy_sha256: string;
+            /** Policy Version */
+            policy_version: number;
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Raw Trial Count */
+            raw_trial_count: number;
+            /** Snapshot Bundle Sha256 */
+            snapshot_bundle_sha256: string;
+        };
+        /** PolicyDeclaration */
+        PolicyDeclaration: {
+            /** Name */
+            name: string;
+            /** Units */
+            units: string;
+            /** Value */
+            value: string;
         };
         /** PreprocessingFitRecord */
         PreprocessingFitRecord: {
@@ -2424,6 +2863,17 @@ export interface components {
             /** Volatility Definition */
             volatility_definition: string;
         };
+        /** RegimeResult */
+        RegimeResult: {
+            /** Crash Window */
+            crash_window: boolean;
+            /** Net Return */
+            net_return: string;
+            /** Observation Count */
+            observation_count: number;
+            /** Regime Id */
+            regime_id: string;
+        };
         /**
          * RequiredData
          * @enum {string}
@@ -2436,6 +2886,147 @@ export interface components {
             state: components["schemas"]["EvidenceState"];
             /** Values */
             values: components["schemas"]["RequiredData"][];
+        };
+        /** ResearchAttempt */
+        ResearchAttempt: {
+            /** Attempt Sha256 */
+            attempt_sha256: string;
+            /** Configuration Sha256 */
+            configuration_sha256: string;
+            /** Failure Reason */
+            failure_reason?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Phase5 Trial Id */
+            phase5_trial_id: string | null;
+            /** Phase5 Trial Key */
+            phase5_trial_key: string | null;
+            status: components["schemas"]["ResearchAttemptStatus"];
+        };
+        /**
+         * ResearchAttemptStatus
+         * @enum {string}
+         */
+        ResearchAttemptStatus: "completed" | "failed" | "abandoned" | "no_return" | "blocked";
+        /** ResearchBaselineComparison */
+        ResearchBaselineComparison: {
+            /** Baseline Metric */
+            baseline_metric: string;
+            /** Baseline Model Id */
+            baseline_model_id: string;
+            /** Baseline Output Sha256 */
+            baseline_output_sha256: string;
+            /** Candidate Metric */
+            candidate_metric: string;
+            /** Candidate Model Id */
+            candidate_model_id: string;
+            /** Candidate Output Sha256 */
+            candidate_output_sha256: string;
+            /**
+             * Comparison Id
+             * Format: uuid
+             */
+            comparison_id: string;
+            /** Comparison Sha256 */
+            comparison_sha256: string;
+            /**
+             * Evaluation Scope
+             * @default descriptive_all_prepared_rows_not_used_for_selection
+             * @constant
+             */
+            evaluation_scope: "descriptive_all_prepared_rows_not_used_for_selection";
+            /** Label Sha256 */
+            label_sha256: string;
+            /** Metric Id */
+            metric_id: string;
+            /** Ordinal */
+            ordinal: number;
+            outcome: components["schemas"]["BaselineOutcome"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Used For Selection
+             * @default false
+             * @constant
+             */
+            used_for_selection: false;
+        };
+        /**
+         * ResearchConfigurationId
+         * @enum {string}
+         */
+        ResearchConfigurationId: "phase6-a-pass-v1" | "phase6-a-fail-cost-v1" | "phase6-b-pass-v1" | "phase6-b-fail-crash-v1" | "phase6-c-pass-v1" | "phase6-c-fail-corroboration-v1";
+        /** ResearchFeatureRow */
+        ResearchFeatureRow: {
+            /** Composite Score */
+            composite_score: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Entity Id */
+            entity_id: string;
+            /** Features */
+            features: components["schemas"]["ResearchFeatureValue"][];
+            /** Label Source References */
+            label_source_references: components["schemas"]["ResearchSourceReference"][];
+            /**
+             * Label T0 Utc
+             * Format: date-time
+             */
+            label_t0_utc: string;
+            /**
+             * Label T1 Utc
+             * Format: date-time
+             */
+            label_t1_utc: string;
+            /** Label Value */
+            label_value: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Row Id
+             * Format: uuid
+             */
+            row_id: string;
+            /** Row Sha256 */
+            row_sha256: string;
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-research-feature-row-v1
+             * @constant
+             */
+            schema_version: "phase6-research-feature-row-v1";
+            /**
+             * Score Semantics
+             * @default research_score_only
+             * @constant
+             */
+            score_semantics: "research_score_only";
+            /** Sector Id */
+            sector_id: string | null;
+            /** Source Lineage Sha256 */
+            source_lineage_sha256: string;
+        };
+        /** ResearchFeatureValue */
+        ResearchFeatureValue: {
+            /** Contribution */
+            contribution: string;
+            /** Feature Name */
+            feature_name: string;
+            /** Formula Id */
+            formula_id: string;
+            /** Raw Value */
+            raw_value: string;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+            /** Train Fit Id */
+            train_fit_id: string | null;
+            /** Transformed Value */
+            transformed_value: string;
         };
         /** ResearchMapping */
         ResearchMapping: {
@@ -2546,11 +3137,403 @@ export interface components {
              */
             template_version: "phase2-memo-v1";
         };
+        /** ResearchPipelineSpecification */
+        ResearchPipelineSpecification: {
+            family: components["schemas"]["CanonicalFamily"];
+            /** Feature Names */
+            feature_names: string[];
+            /** Label Interval Rule */
+            label_interval_rule: string;
+            /**
+             * Llm Role
+             * @enum {string}
+             */
+            llm_role: "absent" | "structured_text_extraction_only";
+            /**
+             * No Image Or Chart Pattern Classifier
+             * @default true
+             * @constant
+             */
+            no_image_or_chart_pattern_classifier: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Pass Research Is Not Paper Approval
+             * @default true
+             * @constant
+             */
+            pass_research_is_not_paper_approval: true;
+            /** Required Audit Fields */
+            required_audit_fields: string[];
+            /** Required Capabilities */
+            required_capabilities: components["schemas"]["DataCapability"][];
+            /** Risk Limits */
+            risk_limits: components["schemas"]["PolicyDeclaration"][];
+            /**
+             * Schema Version
+             * @default phase6-research-specification-v1
+             * @constant
+             */
+            schema_version: "phase6-research-specification-v1";
+            /**
+             * Score Semantics
+             * @default research_score_only
+             * @constant
+             */
+            score_semantics: "research_score_only";
+            /** Signal Definition */
+            signal_definition: string;
+            /** Slippage Model Id */
+            slippage_model_id: string;
+            /** Specification Id */
+            specification_id: string;
+            /** Specification Sha256 */
+            specification_sha256: string;
+            /** Specification Version */
+            specification_version: string;
+            /** Target Forecast Horizon */
+            target_forecast_horizon: string;
+            /** Transaction Cost Model Id */
+            transaction_cost_model_id: string;
+            walk_forward: components["schemas"]["WalkForwardDeclaration"];
+        };
         /**
          * ResearchReturnStatus
          * @enum {string}
          */
         ResearchReturnStatus: "observed" | "no_trade" | "delisted" | "missing";
+        /** ResearchRunArtifact */
+        ResearchRunArtifact: {
+            /**
+             * Artifact Schema Version
+             * @default phase6-research-artifact-v1
+             * @constant
+             */
+            artifact_schema_version: "phase6-research-artifact-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /** Attempts */
+            attempts: components["schemas"]["ResearchAttempt"][];
+            /** Baseline Comparisons */
+            baseline_comparisons: components["schemas"]["ResearchBaselineComparison"][];
+            /** Code Version Git Sha */
+            code_version_git_sha: string;
+            configuration_id: components["schemas"]["ResearchConfigurationId"];
+            /** Configuration Sha256 */
+            configuration_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Disclaimer
+             * @default Synthetic research only; no real performance or investment advice.
+             * @constant
+             */
+            disclaimer: "Synthetic research only; no real performance or investment advice.";
+            family: components["schemas"]["CanonicalFamily"];
+            /** Family Evidence */
+            family_evidence: components["schemas"]["FamilyAEvidence"] | components["schemas"]["FamilyBEvidence"] | components["schemas"]["FamilyCEvidence"];
+            /** Feature Lineage Sha256 */
+            feature_lineage_sha256: string;
+            /** Feature Rows */
+            feature_rows: components["schemas"]["ResearchFeatureRow"][];
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Paper Approval Granted
+             * @default false
+             * @constant
+             */
+            paper_approval_granted: false;
+            /**
+             * Pass Research Is Not Paper Approval
+             * @default true
+             * @constant
+             */
+            pass_research_is_not_paper_approval: true;
+            phase5_evaluation: components["schemas"]["Phase5EvaluationLink"];
+            /** Pipeline Input Sha256 */
+            pipeline_input_sha256: string;
+            /** Random Seed */
+            random_seed: number;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Scores */
+            scores: components["schemas"]["ResearchScoreOutput"][];
+            /** Snapshot Bindings */
+            snapshot_bindings: components["schemas"]["ResearchSnapshotBinding"][];
+            /** Snapshot Bundle Sha256 */
+            snapshot_bundle_sha256: string;
+            specification: components["schemas"]["ResearchPipelineSpecification"];
+            status: components["schemas"]["ResearchRunStatus"];
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** ResearchRunBlockedResponse */
+        ResearchRunBlockedResponse: {
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Sanitized Message */
+            sanitized_message: string;
+        };
+        /** ResearchRunCreateRequest */
+        ResearchRunCreateRequest: {
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            research_configuration_id: components["schemas"]["ResearchConfigurationId"];
+            /** Snapshot Ids */
+            snapshot_ids: string[];
+        };
+        /**
+         * ResearchRunStatus
+         * @enum {string}
+         */
+        ResearchRunStatus: "completed" | "blocked";
+        /** ResearchRunSummary */
+        ResearchRunSummary: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            configuration_id: components["schemas"]["ResearchConfigurationId"];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            family: components["schemas"]["CanonicalFamily"];
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Pass Research Is Not Paper Approval
+             * @default true
+             * @constant
+             */
+            pass_research_is_not_paper_approval: true;
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            status: components["schemas"]["ResearchRunStatus"];
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
+        /** ResearchScoreOutput */
+        ResearchScoreOutput: {
+            /** Entity Id */
+            entity_id: string;
+            /** Explanation */
+            explanation: string;
+            /** Explanation Sha256 */
+            explanation_sha256: string;
+            /**
+             * Feature Row Id
+             * Format: uuid
+             */
+            feature_row_id: string;
+            /** Model Id */
+            model_id: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Output Sha256 */
+            output_sha256: string;
+            /** Research Score */
+            research_score: string;
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase6-research-score-output-v1
+             * @constant
+             */
+            schema_version: "phase6-research-score-output-v1";
+            /**
+             * Score Id
+             * Format: uuid
+             */
+            score_id: string;
+            /**
+             * Score Semantics
+             * @default research_score_only
+             * @constant
+             */
+            score_semantics: "research_score_only";
+        };
+        /** ResearchSnapshotBinding */
+        ResearchSnapshotBinding: {
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            /** Binding Sha256 */
+            binding_sha256: string;
+            capability: components["schemas"]["DataCapability"];
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Quality Status */
+            quality_status: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /** ResearchSourceReference */
+        ResearchSourceReference: {
+            /**
+             * Available At Utc
+             * Format: date-time
+             */
+            available_at_utc: string;
+            capability: components["schemas"]["DataCapability"];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256: string;
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
+            /**
+             * Observation Revision Id
+             * Format: uuid
+             */
+            observation_revision_id: string;
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            /** Record Type */
+            record_type: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /**
+             * Valid From Utc
+             * Format: date-time
+             */
+            valid_from_utc: string;
+            /** Valid To Utc */
+            valid_to_utc: string | null;
+        };
+        /** ResearchTransformFit */
+        ResearchTransformFit: {
+            /** Feature Name */
+            feature_name: string;
+            /**
+             * Fit Id
+             * Format: uuid
+             */
+            fit_id: string;
+            /**
+             * Fold Id
+             * Format: uuid
+             */
+            fold_id: string;
+            /** Mean */
+            mean: string;
+            /**
+             * Prohibited Sample Ids
+             * @default []
+             */
+            prohibited_sample_ids: string[];
+            /** Sector Id */
+            sector_id: string | null;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+            /** Standard Deviation */
+            standard_deviation: string;
+            /** Statistic Sha256 */
+            statistic_sha256: string;
+            /** Train Entity Ids */
+            train_entity_ids: string[];
+            /** Train Sample Ids */
+            train_sample_ids: string[];
+            /** Transform Id */
+            transform_id: string;
+        };
+        /** ResearchValidationErrorResponse */
+        ResearchValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["ResearchValidationIssue"][];
+        };
+        /** ResearchValidationIssue */
+        ResearchValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /**
          * ResearchVerdict
          * @enum {string}
@@ -2679,7 +3662,7 @@ export interface components {
             feature_dependency_ids: string[];
             feature_derivation: components["schemas"]["SourceFeatureDerivation"];
             fundamental_revision: components["schemas"]["FundamentalRevisionEvidence"] | null;
-            membership_source_observation_key: components["schemas"]["SourceObservationKey"];
+            membership_source_observation_key: components["schemas"]["SourceObservationKey"] | null;
             /** Price Adjustment Basis */
             price_adjustment_basis: ("raw_unadjusted" | "adjusted_for_corporate_action") | null;
             /** Reference Price */
@@ -2706,6 +3689,25 @@ export interface components {
             dataset_schema_id: string;
             /** Dataset Schema Version */
             dataset_schema_version: string;
+        };
+        /**
+         * SectorClassificationPayload
+         * @description Point-in-time sector identity; temporal validity lives in the source envelope.
+         */
+        SectorClassificationPayload: {
+            /** Classification Scheme Id */
+            classification_scheme_id: string;
+            /** Classification Scheme Version */
+            classification_scheme_version: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "sector_classification";
+            /** Sector Id */
+            sector_id: string;
+            /** Sector Name */
+            sector_name: string;
         };
         /** SelectionPolicy */
         SelectionPolicy: {
@@ -3161,6 +4163,82 @@ export interface components {
             type: string;
         };
         /**
+         * SocialAttentionPayload
+         * @description Immutable synthetic social-attention metadata requiring official corroboration.
+         */
+        SocialAttentionPayload: {
+            /**
+             * Claimed Official Source Version Id
+             * Format: uuid
+             */
+            claimed_official_source_version_id: string;
+            /**
+             * Contributes Standalone
+             * @default false
+             * @constant
+             */
+            contributes_standalone: false;
+            /** Entity Id */
+            entity_id: string;
+            /**
+             * Manipulation Prone
+             * @default true
+             * @constant
+             */
+            manipulation_prone: true;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Platform Id */
+            platform_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "social_attention";
+            /** Social Attention Record Id */
+            social_attention_record_id: string;
+            /** Social Content Sha256 */
+            social_content_sha256: string;
+        };
+        /** SocialOfficialCorroboration */
+        SocialOfficialCorroboration: {
+            /**
+             * Contributes Standalone
+             * @default false
+             * @constant
+             */
+            contributes_standalone: false;
+            /**
+             * Corroboration Id
+             * Format: uuid
+             */
+            corroboration_id: string;
+            /** Corroboration Sha256 */
+            corroboration_sha256: string;
+            /**
+             * Exact Match
+             * @default true
+             * @constant
+             */
+            exact_match: true;
+            /** Official Document Sha256 */
+            official_document_sha256: string;
+            official_source_reference: components["schemas"]["ResearchSourceReference"];
+            /**
+             * Official Source Version Id
+             * Format: uuid
+             */
+            official_source_version_id: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Social Attention Record Id */
+            social_attention_record_id: string;
+            social_source_reference: components["schemas"]["ResearchSourceReference"];
+        };
+        /**
          * SourceAuthority
          * @enum {string}
          */
@@ -3211,7 +4289,7 @@ export interface components {
              * Source Payload Field
              * @enum {string}
              */
-            source_payload_field: "open" | "volume";
+            source_payload_field: "open" | "volume" | "document_content_sha256";
         };
         /**
          * SourceFeatureDerivation
@@ -3225,23 +4303,23 @@ export interface components {
             /**
              * Formula Id
              * @default source-decimal-times-frozen-multiplier-v1
-             * @constant
+             * @enum {string}
              */
-            formula_id: "source-decimal-times-frozen-multiplier-v1";
+            formula_id: "source-decimal-times-frozen-multiplier-v1" | "source-sha256-prefix64-times-frozen-multiplier-v1" | "source-decimal-times-frozen-multiplier-quantized-1e-12-v1";
             /** Multiplier */
             multiplier: string;
             /**
              * Schema Version
              * @default phase5-source-feature-derivation-v1
-             * @constant
+             * @enum {string}
              */
-            schema_version: "phase5-source-feature-derivation-v1";
+            schema_version: "phase5-source-feature-derivation-v1" | "phase5-source-feature-derivation-v2" | "phase6-source-feature-derivation-v1";
             source_observation_key: components["schemas"]["SourceObservationKey"];
             /**
              * Source Payload Field
              * @enum {string}
              */
-            source_payload_field: "open" | "volume";
+            source_payload_field: "open" | "volume" | "document_content_sha256";
         };
         /** SourceIntakeRequest */
         SourceIntakeRequest: {
@@ -3366,6 +4444,19 @@ export interface components {
             /** Volatility Multiplier */
             volatility_multiplier: string;
         };
+        /** StructuredTextFeatures */
+        StructuredTextFeatures: {
+            /** Direction */
+            direction: string;
+            /** Event Tags */
+            event_tags: string[];
+            /** Novelty */
+            novelty: string;
+            /** Risk Change */
+            risk_change: string;
+            /** Uncertainty */
+            uncertainty: string;
+        };
         /**
          * TestabilityReason
          * @enum {string}
@@ -3376,6 +4467,70 @@ export interface components {
          * @enum {string}
          */
         TestabilityStatus: "testable" | "non_testable";
+        /** TextFeatureExtraction */
+        TextFeatureExtraction: {
+            /**
+             * Available At Utc
+             * Format: date-time
+             */
+            available_at_utc: string;
+            /** Corrected At Utc */
+            corrected_at_utc: string | null;
+            /** Correction Sequence */
+            correction_sequence: number;
+            /** Document Content Sha256 */
+            document_content_sha256: string;
+            /** Entity Id */
+            entity_id: string;
+            /** Entity Resolution Method */
+            entity_resolution_method: string;
+            /**
+             * Extraction Id
+             * Format: uuid
+             */
+            extraction_id: string;
+            /** Extraction Schema Version */
+            extraction_schema_version: string;
+            /** Extraction Sha256 */
+            extraction_sha256: string;
+            /** Extractor Id */
+            extractor_id: string;
+            /**
+             * Extractor Kind
+             * @enum {string}
+             */
+            extractor_kind: "deterministic_mock" | "llm";
+            /** Extractor Version */
+            extractor_version: string;
+            features: components["schemas"]["StructuredTextFeatures"];
+            /** Model Id */
+            model_id: string;
+            /** Official Document Id */
+            official_document_id: string;
+            /**
+             * Official Source Version Id
+             * Format: uuid
+             */
+            official_source_version_id: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Output Boundary
+             * @default structured_features_only
+             * @constant
+             */
+            output_boundary: "structured_features_only";
+            /** Prompt Sha256 */
+            prompt_sha256: string;
+            /** Prompt Version */
+            prompt_version: string;
+            /**
+             * Schema Version
+             * @default phase6-text-feature-extraction-v1
+             * @constant
+             */
+            schema_version: "phase6-text-feature-extraction-v1";
+        };
         /** TradingIdeaCard */
         TradingIdeaCard: {
             action_rule: components["schemas"]["ActionRuleEvidence"];
@@ -3589,6 +4744,36 @@ export interface components {
             /** Universe Id */
             universe_id: string;
         };
+        /** UniverseSecurityEvidence */
+        UniverseSecurityEvidence: {
+            /** Delisting Return Handled */
+            delisting_return_handled: boolean;
+            /**
+             * Instrument Id
+             * Format: uuid
+             */
+            instrument_id: string;
+            /**
+             * Listing Id
+             * Format: uuid
+             */
+            listing_id: string;
+            /**
+             * Listing Status
+             * @enum {string}
+             */
+            listing_status: "active" | "inactive" | "delisted";
+            /**
+             * Membership Known At Decision
+             * @default true
+             * @constant
+             */
+            membership_known_at_decision: true;
+            /** Sector Id */
+            sector_id: string;
+            /** Source References */
+            source_references: components["schemas"]["ResearchSourceReference"][];
+        };
         /** UseRightsIdentity */
         UseRightsIdentity: {
             /** Derived Data Allowed */
@@ -3656,6 +4841,32 @@ export interface components {
              * Format: date-time
              */
             window_start: string;
+        };
+        /** WalkForwardDeclaration */
+        WalkForwardDeclaration: {
+            /** Embargo Rule */
+            embargo_rule?: null;
+            /**
+             * Final Confirmation Rule
+             * @default reserved_nonempty_untouched_interval_v1
+             * @constant
+             */
+            final_confirmation_rule: "reserved_nonempty_untouched_interval_v1";
+            /** Inner Fold Count */
+            inner_fold_count: number;
+            /** Outer Fold Count */
+            outer_fold_count: number;
+            /**
+             * Purge Rule
+             * @default label_interval_intersection_v1
+             * @constant
+             */
+            purge_rule: "label_interval_intersection_v1";
+            /**
+             * Train Mode
+             * @enum {string}
+             */
+            train_mode: "expanding_past_only" | "rolling_past_only";
         };
         /** WalkForwardPolicy */
         WalkForwardPolicy: {
@@ -4353,6 +5564,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MappingWithRationale"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_research_runs_v1_research_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRunSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_research_run_v1_research_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchRunCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRunArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRunBlockedResponse"] | components["schemas"]["ResearchValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_research_run_v1_research_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRunArtifact"];
                 };
             };
             /** @description Validation Error */

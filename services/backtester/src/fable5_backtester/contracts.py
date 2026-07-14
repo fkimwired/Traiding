@@ -18,6 +18,7 @@ from fable5_data.contracts import (
     DataCapability,
     NormalizedObservation,
     NormalizedObservationDraft,
+    OhlcvBarPayload,
     UniverseMembershipPayload,
 )
 from fable5_mapping.models import CanonicalFamily
@@ -62,6 +63,15 @@ PHASE5_SOURCE_OBSERVATION_BINDING_RULE = "phase5-exact-snapshot-constituent-valu
 PHASE5_SOURCE_FEATURE_DERIVATION_SCHEMA_VERSION = "phase5-source-feature-derivation-v1"
 PHASE5_SOURCE_FEATURE_DERIVATION_HASH_DOMAIN = "phase5-source-feature-derivation-v1"
 PHASE5_SOURCE_FEATURE_DERIVATION_FORMULA = "source-decimal-times-frozen-multiplier-v1"
+PHASE5_SOURCE_CONTENT_HASH_DERIVATION_SCHEMA_VERSION = "phase5-source-feature-derivation-v2"
+PHASE5_SOURCE_CONTENT_HASH_DERIVATION_HASH_DOMAIN = "phase5-source-feature-derivation-v2"
+PHASE5_SOURCE_CONTENT_HASH_DERIVATION_FORMULA = "source-sha256-prefix64-times-frozen-multiplier-v1"
+PHASE6_SOURCE_FEATURE_DERIVATION_SCHEMA_VERSION = "phase6-source-feature-derivation-v1"
+PHASE6_SOURCE_FEATURE_DERIVATION_HASH_DOMAIN = "phase6-source-feature-derivation-v1"
+PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA = (
+    "source-decimal-times-frozen-multiplier-quantized-1e-12-v1"
+)
+PHASE6_SOURCE_FEATURE_DERIVATION_QUANTUM = Decimal("1e-12")
 PHASE5_ADVERSARIAL_DEPENDENCY_REVIEW_VERSION = "phase5-adversarial-dependency-review-v1"
 PHASE5_ADVERSARIAL_DEPENDENCY_REVIEW_HASH_DOMAIN = "phase5-adversarial-dependency-review-v1"
 PHASE5_DECIMAL_QUANTUM = Decimal("1e-24")
@@ -463,6 +473,12 @@ def source_feature_dependency_id(capability: DataCapability, payload_field: str)
     return f"phase4-{capability.value}.{payload_field}"
 
 
+def is_capability_dependency_id(dependency_id: str, capability: DataCapability) -> bool:
+    """Return whether a canonical dependency declares one Phase 4 capability."""
+
+    return dependency_id.startswith(f"phase4-{capability.value}.")
+
+
 def label_dependency_id(label: LabelSpecification) -> str:
     """Return the canonical dependency id for the frozen label formula."""
 
@@ -473,7 +489,7 @@ class SourceFeatureDependencyNode(StrictModel):
     node_kind: Literal["source_feature"] = "source_feature"
     dependency_id: Identifier
     source_observation_key: SourceObservationKey
-    source_payload_field: Literal["open", "volume"]
+    source_payload_field: Literal["open", "volume", "document_content_sha256"]
     feature_specification_sha256: SHA256
 
     @model_validator(mode="after")
@@ -531,14 +547,18 @@ class DerivedDependencyGraph(StrictModel):
 class SourceFeatureDerivation(StrictModel):
     """Frozen preimage proving one feature value came from exact Phase 4 evidence."""
 
-    schema_version: Literal["phase5-source-feature-derivation-v1"] = (
-        "phase5-source-feature-derivation-v1"
-    )
-    formula_id: Literal["source-decimal-times-frozen-multiplier-v1"] = (
-        "source-decimal-times-frozen-multiplier-v1"
-    )
+    schema_version: Literal[
+        "phase5-source-feature-derivation-v1",
+        "phase5-source-feature-derivation-v2",
+        "phase6-source-feature-derivation-v1",
+    ] = "phase5-source-feature-derivation-v1"
+    formula_id: Literal[
+        "source-decimal-times-frozen-multiplier-v1",
+        "source-sha256-prefix64-times-frozen-multiplier-v1",
+        "source-decimal-times-frozen-multiplier-quantized-1e-12-v1",
+    ] = "source-decimal-times-frozen-multiplier-v1"
     source_observation_key: SourceObservationKey
-    source_payload_field: Literal["open", "volume"]
+    source_payload_field: Literal["open", "volume", "document_content_sha256"]
     multiplier: Decimal
     derived_feature_value: Decimal
     derivation_sha256: SHA256
@@ -552,13 +572,62 @@ class SourceFeatureDerivation(StrictModel):
 
     @model_validator(mode="after")
     def validate_derivation_hash(self) -> Self:
+        if self.formula_id == PHASE5_SOURCE_FEATURE_DERIVATION_FORMULA:
+            if self.schema_version != PHASE5_SOURCE_FEATURE_DERIVATION_SCHEMA_VERSION:
+                raise ValueError("decimal feature derivation requires the legacy v1 schema")
+            if self.source_payload_field not in {"open", "volume"}:
+                raise ValueError("decimal feature derivation requires a numeric source field")
+            hash_domain = PHASE5_SOURCE_FEATURE_DERIVATION_HASH_DOMAIN
+        elif self.formula_id == PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA:
+            if self.schema_version != PHASE6_SOURCE_FEATURE_DERIVATION_SCHEMA_VERSION:
+                raise ValueError("quantized decimal feature derivation requires the Phase 6 schema")
+            if self.source_payload_field not in {"open", "volume"}:
+                raise ValueError("quantized decimal derivation requires a numeric source field")
+            hash_domain = PHASE6_SOURCE_FEATURE_DERIVATION_HASH_DOMAIN
+        else:
+            if self.schema_version != PHASE5_SOURCE_CONTENT_HASH_DERIVATION_SCHEMA_VERSION:
+                raise ValueError("content-hash feature derivation requires the v2 schema")
+            if self.source_payload_field != "document_content_sha256":
+                raise ValueError("content-hash feature derivation requires document_content_sha256")
+            if (
+                self.source_observation_key.capability
+                is not DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA
+            ):
+                raise ValueError("content-hash feature derivation requires official document data")
+            hash_domain = PHASE5_SOURCE_CONTENT_HASH_DERIVATION_HASH_DOMAIN
         content = self.model_dump(mode="python", exclude={"derivation_sha256"})
         if self.derivation_sha256 != domain_sha256(
-            PHASE5_SOURCE_FEATURE_DERIVATION_HASH_DOMAIN,
+            hash_domain,
             content,
         ):
             raise ValueError("feature derivation hash must match its complete frozen preimage")
         return self
+
+    def derive_from_source_value(self, source_value: object) -> Decimal:
+        """Reproduce the feature value from one exact typed Phase 4 payload field."""
+
+        if self.formula_id in {
+            PHASE5_SOURCE_FEATURE_DERIVATION_FORMULA,
+            PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA,
+        }:
+            if not isinstance(source_value, Decimal) or not source_value.is_finite():
+                raise ValueError("numeric source feature value is not finite")
+            with localcontext() as context:
+                context.prec = 80
+                result = source_value * self.multiplier
+                if self.formula_id == PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA:
+                    return result.quantize(PHASE6_SOURCE_FEATURE_DERIVATION_QUANTUM)
+                return result
+        if (
+            not isinstance(source_value, str)
+            or len(source_value) != 64
+            or any(character not in "0123456789abcdef" for character in source_value)
+        ):
+            raise ValueError("document content source feature value is not a canonical SHA-256")
+        with localcontext() as context:
+            context.prec = 80
+            anchor = Decimal(int(source_value[:16], 16)) / Decimal(2**64)
+            return anchor * self.multiplier
 
 
 class SourceValueBinding(StrictModel):
@@ -601,8 +670,8 @@ class SyntheticSourceObservationExpectation(StrictModel):
                 raise ValueError("membership expectation must use membership capability")
             if self.value_bindings:
                 raise ValueError("membership expectation cannot use numeric sample bindings")
-        elif not self.value_bindings:
-            raise ValueError("numeric source expectations require at least one value binding")
+        elif not isinstance(payload, OhlcvBarPayload) and self.value_bindings:
+            raise ValueError("metadata-only source expectations cannot use numeric sample bindings")
         return self
 
 
@@ -1606,7 +1675,6 @@ class SyntheticEvaluationFixture(StrictModel):
         if sample_ids != tuple(sorted(sample_ids)) or len(sample_ids) != len(set(sample_ids)):
             raise ValueError("synthetic sample identities must be unique and canonically sorted")
         declared = set(expectation_keys)
-        used: set[tuple[str, str]] = set()
         for sample in self.samples:
             keys = {
                 (str(key.capability), str(key.normalized_observation_id))
@@ -1614,9 +1682,10 @@ class SyntheticEvaluationFixture(StrictModel):
             }
             if not keys.issubset(declared):
                 raise ValueError("every sample source observation must be declared by the fixture")
-            used.update(keys)
-        if used != declared:
-            raise ValueError("every fixture source-observation expectation must be used")
+        # A report-wide expectation may be a capability witness that is intentionally
+        # absent from an individual sample's PIT feature subset. Sample keys remain a
+        # strict subset of the declared immutable observations; Phase 5 policy checks
+        # still require the exact report-wide capability union.
         return self
 
 
@@ -1633,7 +1702,7 @@ class SampleSourceLineage(StrictModel):
     feature_dependency_ids: tuple[Identifier, ...]
     target_dependency_ids: tuple[Identifier, ...]
     universe_membership: UniverseMembershipEvidence | None
-    membership_source_observation_key: SourceObservationKey
+    membership_source_observation_key: SourceObservationKey | None
     dependency_graph: DerivedDependencyGraph
     synthetic_ledger_value_rule: Literal["deterministic-synthetic-research-ledger-input-v1"] = (
         "deterministic-synthetic-research-ledger-input-v1"
@@ -1678,20 +1747,47 @@ class SampleSourceLineage(StrictModel):
             for ref in self.source_observation_refs
         }:
             raise ValueError("feature derivation must resolve to sample source lineage")
-        membership_ref_key = (
-            str(self.membership_source_observation_key.capability),
-            str(self.membership_source_observation_key.normalized_observation_id),
-        )
-        if (
-            self.membership_source_observation_key.capability
-            is not DataCapability.UNIVERSE_MEMBERSHIP
-        ):
-            raise ValueError("sample membership role must reference universe-membership evidence")
-        if membership_ref_key not in {
-            (str(ref.capability), str(ref.normalized_observation_id))
+        membership_refs = tuple(
+            ref
             for ref in self.source_observation_refs
-        }:
-            raise ValueError("membership source must resolve to sample source lineage")
+            if ref.capability is DataCapability.UNIVERSE_MEMBERSHIP
+        )
+        membership_dependency_ids = tuple(
+            dependency_id
+            for dependency_id in (*self.feature_dependency_ids, *self.target_dependency_ids)
+            if is_capability_dependency_id(
+                dependency_id,
+                DataCapability.UNIVERSE_MEMBERSHIP,
+            )
+        )
+        if self.membership_source_observation_key is None:
+            if (
+                membership_refs
+                or membership_dependency_ids
+                or self.universe_membership is not None
+                or self.feature_derivation.source_observation_key.capability
+                is DataCapability.UNIVERSE_MEMBERSHIP
+            ):
+                raise ValueError(
+                    "null membership role requires no membership source, dependency, or declaration"
+                )
+        else:
+            membership_ref_key = (
+                str(self.membership_source_observation_key.capability),
+                str(self.membership_source_observation_key.normalized_observation_id),
+            )
+            if (
+                self.membership_source_observation_key.capability
+                is not DataCapability.UNIVERSE_MEMBERSHIP
+            ):
+                raise ValueError(
+                    "sample membership role must reference universe-membership evidence"
+                )
+            if membership_ref_key not in {
+                (str(ref.capability), str(ref.normalized_observation_id))
+                for ref in self.source_observation_refs
+            }:
+                raise ValueError("membership source must resolve to sample source lineage")
         if self.dependency_graph.sample_id != self.sample_id:
             raise ValueError("sample dependency graph must match sample identity")
         for field_name, dependency_ids in (
@@ -2294,7 +2390,6 @@ class EvaluationReport(StrictModel):
         ):
             raise ValueError("sample lineage hash must match the complete lineage graph")
         source_ref_key_set = set(source_ref_keys)
-        used_source_refs: set[tuple[str, str, str]] = set()
         lineage_by_sample = {item.sample_id: item for item in self.sample_lineage}
         for lineage in self.sample_lineage:
             lineage_ref_keys = {
@@ -2307,7 +2402,6 @@ class EvaluationReport(StrictModel):
             }
             if not lineage_ref_keys.issubset(source_ref_key_set):
                 raise ValueError("sample lineage cannot reference an unknown source observation")
-            used_source_refs.update(lineage_ref_keys)
             derivation = lineage.feature_derivation
             source = next(
                 (
@@ -2324,10 +2418,11 @@ class EvaluationReport(StrictModel):
                 derivation.source_payload_field,
                 None,
             )
-            if (
-                not isinstance(source_value, Decimal)
-                or source_value * derivation.multiplier != derivation.derived_feature_value
-            ):
+            try:
+                reproduced_feature_value = derivation.derive_from_source_value(source_value)
+            except ValueError:
+                reproduced_feature_value = None
+            if reproduced_feature_value != derivation.derived_feature_value:
                 raise ValueError(
                     "sample feature derivation must reproduce from persisted source evidence"
                 )
@@ -2340,8 +2435,6 @@ class EvaluationReport(StrictModel):
                     "sample dependency graph must derive from source lineage and "
                     "frozen specifications"
                 )
-        if used_source_refs != source_ref_key_set:
-            raise ValueError("every resolved source observation must be used by sample lineage")
         for entry in self.oos_ledger:
             entry_lineage = lineage_by_sample.get(entry.sample_id)
             if entry_lineage is None:

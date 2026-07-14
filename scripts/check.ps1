@@ -1,9 +1,9 @@
 $ErrorActionPreference = "Stop"
 $Python = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
-$VerifyPhase = if ($env:FABLE5_VERIFY_PHASE) { $env:FABLE5_VERIFY_PHASE } else { "5" }
+$VerifyPhase = if ($env:FABLE5_VERIFY_PHASE) { $env:FABLE5_VERIFY_PHASE } else { "6" }
 
-if ($VerifyPhase -notmatch "^[1-5]$") {
-    Write-Host "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, or 5."
+if ($VerifyPhase -notmatch "^[1-6]$") {
+    Write-Host "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, or 6."
     exit 2
 }
 

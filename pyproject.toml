@@ -37,6 +37,7 @@ where = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/research/src",
 ]
 
 [tool.setuptools.package-data]
@@ -52,6 +53,7 @@ testpaths = [
   "services/extraction/tests",
   "services/jobs/tests",
   "services/mapping/tests",
+  "services/research/tests",
 ]
 
 [tool.ruff]
@@ -75,6 +77,7 @@ files = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/research/src",
 ]
 mypy_path = [
   "services/api/src",
@@ -83,4 +86,5 @@ mypy_path = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/research/src",
 ]

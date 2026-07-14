@@ -32,6 +32,11 @@ from fable5_api.mappings import (
     router as mapping_router,
 )
 from fable5_api.readiness import check_dependencies
+from fable5_api.research import (
+    ResearchWorkflowFactory,
+    default_research_workflow_factory,
+)
+from fable5_api.research import router as research_router
 from fable5_api.schemas import DependencyStatus, HealthResponse, ReadinessResponse
 
 
@@ -42,6 +47,7 @@ def create_app(
     mapping_workflow_factory: MappingWorkflowFactory = default_mapping_workflow_factory,
     snapshot_workflow_factory: SnapshotWorkflowFactory = default_snapshot_workflow_factory,
     evaluation_workflow_factory: EvaluationWorkflowFactory = (default_evaluation_workflow_factory),
+    research_workflow_factory: ResearchWorkflowFactory = default_research_workflow_factory,
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -60,12 +66,14 @@ def create_app(
     app.state.mapping_workflow = mapping_workflow_factory(settings)
     app.state.snapshot_workflow = snapshot_workflow_factory(settings)
     app.state.evaluation_workflow = evaluation_workflow_factory(settings)
+    app.state.research_workflow = research_workflow_factory(settings)
     app.include_router(router)
     app.include_router(mapping_router)
     app.include_router(data_snapshot_router)
     app.include_router(evaluation_policy_router)
     app.include_router(evaluation_report_router)
     app.include_router(evaluation_outcome_router)
+    app.include_router(research_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

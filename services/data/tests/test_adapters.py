@@ -6,7 +6,7 @@ from importlib.resources import files
 import pytest
 from fable5_data.adapters import CredentialGatedAdapter, Phase4DataAdapter
 from fable5_data.contracts import (
-    CAPABILITY_RECORD_TYPES,
+    PHASE4_CAPABILITY_RECORD_TYPES,
     SYNTHETIC_ADAPTER_VERSION,
     SYNTHETIC_FIXTURE_SET_VERSION,
     AdapterProfile,
@@ -30,7 +30,9 @@ def test_synthetic_adapter_declares_and_serves_all_nine_capabilities() -> None:
     assert set(adapter.profile.capabilities) == set(DataCapability)
     assert adapter.profile.adapter_version == SYNTHETIC_ADAPTER_VERSION
     assert adapter.profile.synthetic is True
-    assert len(adapter.profile.schema_bindings) == len(DataRecordType)
+    assert len(adapter.profile.schema_bindings) == len(
+        {item for values in PHASE4_CAPABILITY_RECORD_TYPES.values() for item in values}
+    )
 
     observed_types: set[DataRecordType] = set()
     for capability in DataCapability:
@@ -41,9 +43,11 @@ def test_synthetic_adapter_declares_and_serves_all_nine_capabilities() -> None:
             DataRecordType(item.payload.record_type)
             for item in result.batch.normalized_observations
         }
-        assert record_types == CAPABILITY_RECORD_TYPES[capability]
+        assert record_types == PHASE4_CAPABILITY_RECORD_TYPES[capability]
         observed_types.update(record_types)
-    assert observed_types == set(DataRecordType)
+    assert observed_types == {
+        item for values in PHASE4_CAPABILITY_RECORD_TYPES.values() for item in values
+    }
 
 
 def test_synthetic_outputs_are_byte_stable_and_use_frozen_retrieval_times() -> None:

@@ -28,6 +28,7 @@ from fable5_backtester.contracts import (
     SyntheticSample,
     SyntheticSourceObservationExpectation,
     derive_dependency_graph,
+    is_capability_dependency_id,
 )
 
 
@@ -144,7 +145,8 @@ def _validate_sample_binding(
     ):
         raise SourceLineageInputError("snapshot_observation_not_available_at_decision")
 
-    for binding in expectation.value_bindings:
+    is_sample_anchor = expectation.key == sample.feature_derivation.source_observation_key
+    for binding in expectation.value_bindings if is_sample_anchor else ():
         source_value = getattr(observation.payload, binding.source_payload_field, None)
         sample_value = getattr(sample, binding.sample_field)
         if not isinstance(source_value, Decimal):
@@ -166,9 +168,10 @@ def _validate_feature_derivation(
         derivation.source_payload_field,
         None,
     )
-    if not isinstance(source_value, Decimal) or not source_value.is_finite():
-        raise SourceLineageInputError("snapshot_feature_value_uncomputable")
-    derived_feature_value = source_value * derivation.multiplier
+    try:
+        derived_feature_value = derivation.derive_from_source_value(source_value)
+    except ValueError as exc:
+        raise SourceLineageInputError("snapshot_feature_value_uncomputable") from exc
     if (
         derived_feature_value != derivation.derived_feature_value
         or derivation.derived_feature_value != sample.feature_value
@@ -211,10 +214,22 @@ def resolve_source_lineage(
         for key, expectation in expectations.items()
     }
     source_observations = tuple(resolved_by_key[key] for key in sorted(resolved_by_key))
+    membership_expected = (
+        DataCapability.UNIVERSE_MEMBERSHIP in policy.required_snapshot_capabilities
+    )
+    membership_expectation_count = sum(
+        expectation.key.capability is DataCapability.UNIVERSE_MEMBERSHIP
+        for expectation in expectations.values()
+    )
+    if membership_expected and membership_expectation_count < 1:
+        raise SourceLineageInputError("sample_membership_source_missing_or_ambiguous")
+    if not membership_expected and membership_expectation_count:
+        raise SourceLineageInputError("sample_membership_evidence_unscoped")
 
     sample_lineage: list[SampleSourceLineage] = []
     for sample in fixture.samples:
-        if {_key_tuple(key) for key in sample.source_observation_keys} != set(expectations):
+        sample_source_keys = {_key_tuple(key) for key in sample.source_observation_keys}
+        if not sample_source_keys or not sample_source_keys.issubset(expectations):
             raise SourceLineageInputError("sample_source_capability_coverage_incomplete")
         _validate_feature_derivation(sample, resolved_by_key)
         refs: list[ResolvedSourceObservationRef] = []
@@ -229,8 +244,28 @@ def resolve_source_lineage(
             refs.append(resolved.reference())
             if source_key.capability is DataCapability.UNIVERSE_MEMBERSHIP:
                 membership_keys.append(source_key)
-        if len(membership_keys) != 1:
-            raise SourceLineageInputError("sample_membership_source_missing_or_ambiguous")
+        membership_dependency_ids = tuple(
+            dependency_id
+            for dependency_id in (*sample.feature_dependency_ids, *sample.target_dependency_ids)
+            if is_capability_dependency_id(
+                dependency_id,
+                DataCapability.UNIVERSE_MEMBERSHIP,
+            )
+        )
+        if membership_expected:
+            if len(membership_keys) != 1:
+                raise SourceLineageInputError("sample_membership_source_missing_or_ambiguous")
+            membership_key: SourceObservationKey | None = membership_keys[0]
+        else:
+            if (
+                membership_keys
+                or membership_dependency_ids
+                or sample.universe_membership is not None
+                or sample.feature_derivation.source_observation_key.capability
+                is DataCapability.UNIVERSE_MEMBERSHIP
+            ):
+                raise SourceLineageInputError("sample_membership_evidence_unscoped")
+            membership_key = None
         ordered_refs = tuple(sorted(refs, key=_reference_tuple))
         sample_lineage.append(
             SampleSourceLineage(
@@ -246,7 +281,7 @@ def resolve_source_lineage(
                 feature_dependency_ids=sample.feature_dependency_ids,
                 target_dependency_ids=sample.target_dependency_ids,
                 universe_membership=sample.universe_membership,
-                membership_source_observation_key=membership_keys[0],
+                membership_source_observation_key=membership_key,
                 dependency_graph=derive_dependency_graph(
                     sample,
                     policy.feature_specification,

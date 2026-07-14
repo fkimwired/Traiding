@@ -32,9 +32,14 @@ from fable5_data.contracts import (
     DELISTING_EVENT_SCHEMA_VERSION,
     INSTRUMENT_IDENTITY_SCHEMA_VERSION,
     LISTING_IDENTITY_SCHEMA_VERSION,
+    OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
     OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION,
     OHLCV_BAR_SCHEMA_VERSION,
+    PHASE6_SYNTHETIC_ADAPTER_VERSION,
+    PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
     REVISION_SCHEMA_VERSION,
+    SECTOR_CLASSIFICATION_SCHEMA_VERSION,
+    SOCIAL_ATTENTION_SCHEMA_VERSION,
     SYNTHETIC_ADAPTER_VERSION,
     SYNTHETIC_FIXTURE_SET_VERSION,
     SYNTHETIC_USE_RIGHTS_ID,
@@ -58,6 +63,7 @@ from fable5_data.contracts import (
     QualityFlag,
     RawObservationDraft,
     SchemaBinding,
+    SyntheticFixtureSetVersion,
     UseRightsIdentity,
     UseRightsScope,
     conservative_date_available_at,
@@ -83,6 +89,13 @@ SCHEMA_VERSION_BY_RECORD_TYPE: dict[DataRecordType, str] = {
     DataRecordType.CALENDAR_SESSION: CALENDAR_SESSION_SCHEMA_VERSION,
     DataRecordType.OFFICIAL_DOCUMENT_EVENT: OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION,
     DataRecordType.VOLATILITY_RETURN_INPUT: VOLATILITY_RETURN_INPUT_SCHEMA_VERSION,
+}
+
+PHASE6_SCHEMA_VERSION_BY_RECORD_TYPE: dict[DataRecordType, str] = {
+    **SCHEMA_VERSION_BY_RECORD_TYPE,
+    DataRecordType.SECTOR_CLASSIFICATION: SECTOR_CLASSIFICATION_SCHEMA_VERSION,
+    DataRecordType.OFFICIAL_DOCUMENT_CONTENT: OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
+    DataRecordType.SOCIAL_ATTENTION: SOCIAL_ATTENTION_SCHEMA_VERSION,
 }
 
 SCHEMA_ID_BY_RECORD_TYPE: dict[DataRecordType, str] = {
@@ -130,6 +143,41 @@ SYNTHETIC_MOCK_CONFIGURATION = MockConfigurationIdentity(
             "adapter_version": SYNTHETIC_ADAPTER_VERSION,
         }
     ),
+)
+
+PHASE6_SYNTHETIC_ADAPTER_PROFILE = AdapterProfile(
+    provider_id=_PROVIDER_ID,
+    adapter_id=_ADAPTER_ID,
+    adapter_version=PHASE6_SYNTHETIC_ADAPTER_VERSION,
+    dataset_id="fable5-phase6-synthetic-point-in-time",
+    product_id="fable5-phase6-local-test-fixtures",
+    synthetic=True,
+    capabilities=tuple(sorted(DataCapability, key=str)),
+    schema_bindings=tuple(
+        sorted(
+            (
+                SchemaBinding(
+                    dataset_schema_id=SCHEMA_ID_BY_RECORD_TYPE[record_type],
+                    dataset_schema_version=version,
+                )
+                for record_type, version in PHASE6_SCHEMA_VERSION_BY_RECORD_TYPE.items()
+            ),
+            key=lambda item: (item.dataset_schema_id, item.dataset_schema_version),
+        )
+    ),
+    use_rights=SYNTHETIC_ADAPTER_PROFILE.use_rights,
+)
+
+PHASE6_SYNTHETIC_MOCK_CONFIGURATION = MockConfigurationIdentity(
+    configuration_id="phase6-synthetic-default-v1",
+    configuration_sha256=mock_configuration_sha256(
+        {
+            "configuration_id": "phase6-synthetic-default-v1",
+            "fixture_set_version": PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
+            "adapter_version": PHASE6_SYNTHETIC_ADAPTER_VERSION,
+        }
+    ),
+    fixture_set_version=PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
 )
 
 _PAYLOAD_ADAPTER: TypeAdapter[NormalizedPayload] = TypeAdapter(NormalizedPayload)
@@ -249,6 +297,7 @@ def _envelope(
     record: dict[str, object],
     *,
     fixture: dict[str, object],
+    profile: AdapterProfile,
     raw_hash: str,
     normalized: bool,
 ) -> ObservationEnvelopeDraft:
@@ -281,19 +330,27 @@ def _envelope(
         envelope_version = "phase4-normalized-observation-v1"
     else:
         envelope_version = "phase4-raw-observation-v1"
+    schema_id = SCHEMA_ID_BY_RECORD_TYPE[record_type]
+    schema_versions = tuple(
+        item.dataset_schema_version
+        for item in profile.schema_bindings
+        if item.dataset_schema_id == schema_id
+    )
+    if len(schema_versions) != 1:
+        raise ValueError("synthetic profile must bind exactly one schema for every fixture record")
     return ObservationEnvelopeDraft(
         envelope_schema_version=envelope_version,
         logical_record_id=str(logical_record_id_from_sha256(logical_hash)),
         logical_record_key_sha256=logical_hash,
-        provider_id=_PROVIDER_ID,
-        adapter_id=_ADAPTER_ID,
-        adapter_version=SYNTHETIC_ADAPTER_VERSION,
-        dataset_id=_DATASET_ID,
-        product_id=_PRODUCT_ID,
-        dataset_schema_id=SCHEMA_ID_BY_RECORD_TYPE[record_type],
-        dataset_schema_version=SCHEMA_VERSION_BY_RECORD_TYPE[record_type],
-        entitlement_id=_ENTITLEMENT_ID,
-        use_rights_id=SYNTHETIC_USE_RIGHTS_ID,
+        provider_id=profile.provider_id,
+        adapter_id=profile.adapter_id,
+        adapter_version=profile.adapter_version,
+        dataset_id=profile.dataset_id,
+        product_id=profile.product_id,
+        dataset_schema_id=schema_id,
+        dataset_schema_version=schema_versions[0],
+        entitlement_id=profile.use_rights.entitlement_id,
+        use_rights_id=profile.use_rights.use_rights_id,
         source_record_id=_required_str(record, "source_record_id"),
         instrument_id=(
             None
@@ -333,16 +390,24 @@ def _build_record(
     record: dict[str, object],
     *,
     fixture: dict[str, object],
+    profile: AdapterProfile,
+    fixture_set_version: SyntheticFixtureSetVersion,
     built: dict[str, NormalizedObservationDraft],
 ) -> tuple[RawObservationDraft, ObservationRevisionDraft, NormalizedObservationDraft]:
     raw_payload = canonical_json_bytes(
         {
-            "fixture_set_version": SYNTHETIC_FIXTURE_SET_VERSION,
+            "fixture_set_version": fixture_set_version,
             "source_record": record,
         }
     )
     raw_hash = raw_payload_sha256(raw_payload)
-    raw_envelope = _envelope(record, fixture=fixture, raw_hash=raw_hash, normalized=False)
+    raw_envelope = _envelope(
+        record,
+        fixture=fixture,
+        profile=profile,
+        raw_hash=raw_hash,
+        normalized=False,
+    )
     raw_values = raw_envelope.model_dump(mode="python")
     raw_identity = {**raw_values, "raw_content_type": _RAW_CONTENT_TYPE}
     raw_identity_hash = raw_observation_content_sha256(raw_identity)
@@ -353,7 +418,13 @@ def _build_record(
         raw_payload=raw_payload,
     )
 
-    normalized_envelope = _envelope(record, fixture=fixture, raw_hash=raw_hash, normalized=True)
+    normalized_envelope = _envelope(
+        record,
+        fixture=fixture,
+        profile=profile,
+        raw_hash=raw_hash,
+        normalized=True,
+    )
     envelope_values = normalized_envelope.model_dump(mode="python")
     predecessor_alias = record.get("predecessor_alias")
     predecessor_id = None
@@ -400,12 +471,20 @@ def _build_record(
 
 def build_synthetic_results(
     record_definitions: tuple[dict[str, object], ...] | None = None,
+    *,
+    profile: AdapterProfile = SYNTHETIC_ADAPTER_PROFILE,
+    fixture_set_version: SyntheticFixtureSetVersion = SYNTHETIC_FIXTURE_SET_VERSION,
+    retrieved_at: datetime | None = None,
 ) -> dict[DataCapability, AdapterAvailableResult]:
     """Build every capability from frozen definitions without time or network dependencies."""
 
     fixture = _read_fixture()
-    if fixture.get("fixture_set_version") != SYNTHETIC_FIXTURE_SET_VERSION:
+    if record_definitions is None and fixture.get("fixture_set_version") != fixture_set_version:
         raise ValueError("synthetic fixture set version does not match the frozen contract")
+    if retrieved_at is not None:
+        if retrieved_at.tzinfo is None or retrieved_at.utcoffset() is None:
+            raise ValueError("synthetic retrieved_at override must be timezone-aware")
+        fixture["retrieved_at"] = retrieved_at.isoformat()
     records = load_fixture_records() if record_definitions is None else deepcopy(record_definitions)
     grouped_raw: dict[DataCapability, list[RawObservationDraft]] = {
         capability: [] for capability in DataCapability
@@ -423,7 +502,13 @@ def build_synthetic_results(
         if alias in built:
             raise ValueError("synthetic fixture aliases must be unique")
         capability = DataCapability(_required_str(record, "capability"))
-        raw, revision, normalized = _build_record(record, fixture=fixture, built=built)
+        raw, revision, normalized = _build_record(
+            record,
+            fixture=fixture,
+            profile=profile,
+            fixture_set_version=fixture_set_version,
+            built=built,
+        )
         grouped_raw[capability].append(raw)
         grouped_revisions[capability].append(revision)
         grouped_normalized[capability].append(normalized)
@@ -431,7 +516,7 @@ def build_synthetic_results(
 
     return {
         capability: AdapterAvailableResult(
-            profile=SYNTHETIC_ADAPTER_PROFILE,
+            profile=profile,
             capability=capability,
             batch=AdapterBatchDraft(
                 raw_observations=tuple(grouped_raw[capability]),
@@ -501,13 +586,23 @@ def mapping_bound_record_definitions(
 class SyntheticPointInTimeAdapter:
     """A deterministic adapter whose only input is a versioned local fixture set."""
 
-    __slots__ = ("_results",)
+    __slots__ = ("_profile", "_results")
 
     def __init__(
         self,
         record_definitions: tuple[dict[str, object], ...] | None = None,
+        *,
+        profile: AdapterProfile = SYNTHETIC_ADAPTER_PROFILE,
+        fixture_set_version: SyntheticFixtureSetVersion = SYNTHETIC_FIXTURE_SET_VERSION,
+        retrieved_at: datetime | None = None,
     ) -> None:
-        self._results = build_synthetic_results(record_definitions)
+        self._profile = profile
+        self._results = build_synthetic_results(
+            record_definitions,
+            profile=profile,
+            fixture_set_version=fixture_set_version,
+            retrieved_at=retrieved_at,
+        )
 
     @classmethod
     def for_mapping(cls, mapping: AuthorizedMappingIdentity) -> SyntheticPointInTimeAdapter:
@@ -515,7 +610,7 @@ class SyntheticPointInTimeAdapter:
 
     @property
     def profile(self) -> AdapterProfile:
-        return SYNTHETIC_ADAPTER_PROFILE
+        return self._profile
 
     def fetch(self, capability: DataCapability) -> AdapterAvailableResult:
         return self._results[capability]
@@ -525,6 +620,9 @@ class SyntheticPointInTimeAdapter:
 
 
 __all__ = [
+    "PHASE6_SCHEMA_VERSION_BY_RECORD_TYPE",
+    "PHASE6_SYNTHETIC_ADAPTER_PROFILE",
+    "PHASE6_SYNTHETIC_MOCK_CONFIGURATION",
     "SCHEMA_ID_BY_RECORD_TYPE",
     "SCHEMA_VERSION_BY_RECORD_TYPE",
     "SYNTHETIC_ADAPTER_PROFILE",

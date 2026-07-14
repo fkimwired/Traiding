@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 from enum import StrEnum
@@ -62,6 +63,20 @@ CALENDAR_SESSION_SCHEMA_VERSION = "phase4-calendar-session-v1"
 OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION = "phase4-official-document-event-v1"
 VOLATILITY_RETURN_INPUT_SCHEMA_VERSION = "phase4-volatility-return-input-v1"
 
+# Phase 6 extends the normalized Phase 4 source boundary without changing any frozen
+# Phase 4 envelope, identity, or hash domain.  These payload schemas remain source
+# evidence only; they contain no feature, label, signal, model, or promotion output.
+PHASE6_DATA_CONTRACT_VERSION: Final = "phase6-data-contract-prerequisites-v1"
+PHASE6_DATA_QUALITY_RULE_SET_VERSION: Final = "phase6-data-contract-quality-v1"
+SECTOR_CLASSIFICATION_SCHEMA_VERSION: Final = "phase6-sector-classification-v1"
+OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION: Final = "phase6-official-document-content-v1"
+SOCIAL_ATTENTION_SCHEMA_VERSION: Final = "phase6-social-attention-v1"
+PHASE6_SYNTHETIC_ADAPTER_VERSION: Final = "phase6-synthetic-pit-adapter-v1"
+PHASE6_SYNTHETIC_FIXTURE_SET_VERSION: Final = "phase6-synthetic-pit-fixtures-v1"
+SyntheticFixtureSetVersion = Literal[
+    "phase4-synthetic-pit-fixtures-v1", "phase6-synthetic-pit-fixtures-v1"
+]
+
 
 def _identifier(value: str) -> str:
     forbidden = {"unknown", "n/a", "na", "null", "none", "undefined"}
@@ -81,6 +96,18 @@ def _timezone(value: str) -> str:
     return value
 
 
+def _document_text(value: str) -> str:
+    if not value.strip():
+        raise ValueError("document_text must contain non-whitespace text")
+    if "\x00" in value:
+        raise ValueError("document_text cannot contain NUL characters")
+    try:
+        value.encode("utf-8", errors="strict")
+    except UnicodeEncodeError as exc:
+        raise ValueError("document_text must be valid UTF-8 text") from exc
+    return value
+
+
 Identifier = Annotated[
     str,
     StringConstraints(min_length=1, max_length=256),
@@ -91,6 +118,18 @@ SHA256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 CurrencyCode = Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
 CountryCode = Annotated[str, StringConstraints(pattern=r"^[A-Z]{2}$")]
 ExchangeMic = Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{4}$")]
+DocumentText = Annotated[
+    str,
+    StringConstraints(min_length=1, max_length=5_000_000),
+    AfterValidator(_document_text),
+]
+
+
+def official_document_content_sha256(document_text: str) -> str:
+    """Hash the exact UTF-8 document text represented by a content payload."""
+
+    validated = _document_text(document_text)
+    return hashlib.sha256(validated.encode("utf-8", errors="strict")).hexdigest()
 
 
 def _utc(value: datetime) -> datetime:
@@ -124,7 +163,7 @@ class DataCapability(StrEnum):
     OFFICIAL_DOCUMENT_EVENT_METADATA = "official_document_event_metadata"
 
 
-AUTHORIZED_CAPABILITIES = MappingProxyType(
+PHASE4_AUTHORIZED_CAPABILITIES = MappingProxyType(
     {
         CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING: frozenset(
             {
@@ -152,6 +191,34 @@ AUTHORIZED_CAPABILITIES = MappingProxyType(
 )
 
 
+AUTHORIZED_CAPABILITIES = MappingProxyType(
+    {
+        CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING: PHASE4_AUTHORIZED_CAPABILITIES[
+            CanonicalFamily.A_CROSS_SECTIONAL_EQUITY_RANKING
+        ],
+        CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME: frozenset(
+            {
+                DataCapability.SECURITY_MASTER,
+                DataCapability.UNIVERSE_MEMBERSHIP,
+                DataCapability.OHLCV,
+                DataCapability.CORPORATE_ACTIONS,
+                DataCapability.DELISTINGS,
+                DataCapability.TRADING_CALENDAR,
+                DataCapability.VOLATILITY_RETURN_INPUTS,
+            }
+        ),
+        CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY: frozenset(
+            {
+                DataCapability.SECURITY_MASTER,
+                DataCapability.UNIVERSE_MEMBERSHIP,
+                DataCapability.OHLCV,
+                DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,
+            }
+        ),
+    }
+)
+
+
 class DataRecordType(StrEnum):
     INSTRUMENT_IDENTITY = "instrument_identity"
     LISTING_IDENTITY = "listing_identity"
@@ -163,9 +230,12 @@ class DataRecordType(StrEnum):
     CALENDAR_SESSION = "calendar_session"
     OFFICIAL_DOCUMENT_EVENT = "official_document_event"
     VOLATILITY_RETURN_INPUT = "volatility_return_input"
+    SECTOR_CLASSIFICATION = "sector_classification"
+    OFFICIAL_DOCUMENT_CONTENT = "official_document_content"
+    SOCIAL_ATTENTION = "social_attention"
 
 
-CAPABILITY_RECORD_TYPES = MappingProxyType(
+PHASE4_CAPABILITY_RECORD_TYPES = MappingProxyType(
     {
         DataCapability.SECURITY_MASTER: frozenset(
             {DataRecordType.INSTRUMENT_IDENTITY, DataRecordType.LISTING_IDENTITY}
@@ -183,6 +253,37 @@ CAPABILITY_RECORD_TYPES = MappingProxyType(
         ),
         DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA: frozenset(
             {DataRecordType.OFFICIAL_DOCUMENT_EVENT}
+        ),
+    }
+)
+
+
+CAPABILITY_RECORD_TYPES = MappingProxyType(
+    {
+        DataCapability.SECURITY_MASTER: frozenset(
+            {
+                DataRecordType.INSTRUMENT_IDENTITY,
+                DataRecordType.LISTING_IDENTITY,
+                DataRecordType.SECTOR_CLASSIFICATION,
+            }
+        ),
+        DataCapability.UNIVERSE_MEMBERSHIP: frozenset({DataRecordType.UNIVERSE_MEMBERSHIP}),
+        DataCapability.OHLCV: frozenset({DataRecordType.OHLCV_BAR}),
+        DataCapability.CORPORATE_ACTIONS: frozenset({DataRecordType.CORPORATE_ACTION}),
+        DataCapability.DELISTINGS: frozenset({DataRecordType.DELISTING_EVENT}),
+        DataCapability.AS_REPORTED_FUNDAMENTALS: frozenset(
+            {DataRecordType.AS_REPORTED_FUNDAMENTAL}
+        ),
+        DataCapability.TRADING_CALENDAR: frozenset({DataRecordType.CALENDAR_SESSION}),
+        DataCapability.VOLATILITY_RETURN_INPUTS: frozenset(
+            {DataRecordType.VOLATILITY_RETURN_INPUT}
+        ),
+        DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA: frozenset(
+            {
+                DataRecordType.OFFICIAL_DOCUMENT_EVENT,
+                DataRecordType.OFFICIAL_DOCUMENT_CONTENT,
+                DataRecordType.SOCIAL_ATTENTION,
+            }
         ),
     }
 )
@@ -238,6 +339,10 @@ class DataQualityCode(StrEnum):
     MISSING_DELISTING_RETURN = "missing_delisting_return"
     FUTURE_AVAILABILITY_INCLUDED = "future_availability_included"
     UNNORMALIZED_REJECTED = "unnormalized_rejected"
+    PIT_CLASSIFICATION_INVALID = "pit_classification_invalid"
+    DOCUMENT_CONTENT_HASH_MISMATCH = "document_content_hash_mismatch"
+    DOCUMENT_CORRECTION_TIMING_INVALID = "document_correction_timing_invalid"
+    OFFICIAL_CORROBORATION_MISMATCH = "official_corroboration_mismatch"
 
 
 class ConstituentDisposition(StrEnum):
@@ -268,11 +373,83 @@ PHASE4_SCHEMA_CONSTANTS = MappingProxyType(
         "request_fingerprint_version": REQUEST_FINGERPRINT_VERSION,
         "date_only_availability_convention": DATE_ONLY_AVAILABILITY_CONVENTION,
         "capabilities": tuple(item.value for item in DataCapability),
-        "record_types": tuple(item.value for item in DataRecordType),
+        "record_types": tuple(
+            item.value
+            for item in (
+                DataRecordType.INSTRUMENT_IDENTITY,
+                DataRecordType.LISTING_IDENTITY,
+                DataRecordType.UNIVERSE_MEMBERSHIP,
+                DataRecordType.OHLCV_BAR,
+                DataRecordType.CORPORATE_ACTION,
+                DataRecordType.DELISTING_EVENT,
+                DataRecordType.AS_REPORTED_FUNDAMENTAL,
+                DataRecordType.CALENDAR_SESSION,
+                DataRecordType.OFFICIAL_DOCUMENT_EVENT,
+                DataRecordType.VOLATILITY_RETURN_INPUT,
+            )
+        ),
         "constituent_dispositions": tuple(item.value for item in ConstituentDisposition),
         "finding_dispositions": tuple(item.value for item in FindingDisposition),
         "quality_severities": tuple(item.value for item in DataQualitySeverity),
         "snapshot_quality_statuses": tuple(item.value for item in SnapshotQualityStatus),
+    }
+)
+
+
+PHASE6_DATA_CONTRACT_CONSTANTS = MappingProxyType(
+    {
+        "contract_version": PHASE6_DATA_CONTRACT_VERSION,
+        "quality_rule_set_version": PHASE6_DATA_QUALITY_RULE_SET_VERSION,
+        "additive_record_types": (
+            DataRecordType.SECTOR_CLASSIFICATION.value,
+            DataRecordType.OFFICIAL_DOCUMENT_CONTENT.value,
+            DataRecordType.SOCIAL_ATTENTION.value,
+        ),
+        "additive_schema_versions": (
+            (
+                DataRecordType.SECTOR_CLASSIFICATION.value,
+                SECTOR_CLASSIFICATION_SCHEMA_VERSION,
+            ),
+            (
+                DataRecordType.OFFICIAL_DOCUMENT_CONTENT.value,
+                OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION,
+            ),
+            (
+                DataRecordType.SOCIAL_ATTENTION.value,
+                SOCIAL_ATTENTION_SCHEMA_VERSION,
+            ),
+        ),
+        "capability_record_type_additions": (
+            (
+                DataCapability.SECURITY_MASTER.value,
+                DataRecordType.SECTOR_CLASSIFICATION.value,
+            ),
+            (
+                DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA.value,
+                DataRecordType.OFFICIAL_DOCUMENT_CONTENT.value,
+            ),
+            (
+                DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA.value,
+                DataRecordType.SOCIAL_ATTENTION.value,
+            ),
+        ),
+        "family_b_capability_additions": (
+            DataCapability.SECURITY_MASTER.value,
+            DataCapability.UNIVERSE_MEMBERSHIP.value,
+        ),
+        "family_c_capability_additions": (
+            DataCapability.SECURITY_MASTER.value,
+            DataCapability.UNIVERSE_MEMBERSHIP.value,
+            DataCapability.OHLCV.value,
+        ),
+        "additive_quality_codes": (
+            DataQualityCode.PIT_CLASSIFICATION_INVALID.value,
+            DataQualityCode.DOCUMENT_CONTENT_HASH_MISMATCH.value,
+            DataQualityCode.DOCUMENT_CORRECTION_TIMING_INVALID.value,
+            DataQualityCode.OFFICIAL_CORROBORATION_MISMATCH.value,
+        ),
+        "synthetic_adapter_version": PHASE6_SYNTHETIC_ADAPTER_VERSION,
+        "synthetic_fixture_set_version": PHASE6_SYNTHETIC_FIXTURE_SET_VERSION,
     }
 )
 
@@ -404,7 +581,7 @@ class SnapshotRequestParameters(StrictModel):
 class MockConfigurationIdentity(StrictModel):
     configuration_id: Identifier
     configuration_sha256: SHA256
-    fixture_set_version: Literal["phase4-synthetic-pit-fixtures-v1"] = SYNTHETIC_FIXTURE_SET_VERSION
+    fixture_set_version: SyntheticFixtureSetVersion = SYNTHETIC_FIXTURE_SET_VERSION
 
 
 class RequestFingerprintInput(StrictModel):
@@ -801,6 +978,77 @@ class OfficialDocumentEventPayload(StrictModel):
         return self
 
 
+class SectorClassificationPayload(StrictModel):
+    """Point-in-time sector identity; temporal validity lives in the source envelope."""
+
+    record_type: Literal["sector_classification"] = "sector_classification"
+    classification_scheme_id: Identifier
+    classification_scheme_version: Identifier
+    sector_id: Identifier
+    sector_name: Identifier
+
+
+class OfficialDocumentContentPayload(StrictModel):
+    """Immutable official text evidence, never an LLM label or trading output."""
+
+    record_type: Literal["official_document_content"] = "official_document_content"
+    official_document_id: Identifier
+    official_event_id: Identifier
+    official_source_version_id: UUID
+    document_type: OfficialDocumentType
+    event_type: OfficialEventType
+    accession_id: Identifier
+    published_at: datetime
+    accepted_at: datetime
+    corrected_at: datetime | None
+    correction_sequence: int = Field(ge=0)
+    document_content_sha256: SHA256
+    document_text: DocumentText
+    amendment_of_document_id: Identifier | None = None
+
+    @field_validator("published_at", "accepted_at", "corrected_at")
+    @classmethod
+    def normalize_timestamps(cls, value: datetime | None) -> datetime | None:
+        return None if value is None else _utc(value)
+
+    @model_validator(mode="after")
+    def validate_content_and_correction(self) -> Self:
+        if self.accepted_at < self.published_at:
+            raise ValueError("official acceptance cannot precede publication")
+        if self.document_content_sha256 != official_document_content_sha256(self.document_text):
+            raise ValueError("document_content_sha256 must hash the exact UTF-8 document_text")
+        if self.correction_sequence == 0:
+            if self.corrected_at is not None or self.amendment_of_document_id is not None:
+                raise ValueError("an original document cannot carry correction fields")
+        else:
+            if self.corrected_at is None or self.amendment_of_document_id is None:
+                raise ValueError("a corrected document requires its timestamp and predecessor")
+            if self.corrected_at < self.published_at or self.accepted_at < self.corrected_at:
+                raise ValueError("corrected_at must be between publication and official acceptance")
+            if self.amendment_of_document_id == self.official_document_id:
+                raise ValueError("a corrected document cannot amend itself")
+        return self
+
+
+class SocialAttentionPayload(StrictModel):
+    """Immutable synthetic social-attention metadata requiring official corroboration."""
+
+    record_type: Literal["social_attention"] = "social_attention"
+    social_attention_record_id: Identifier
+    platform_id: Identifier
+    observed_at: datetime
+    social_content_sha256: SHA256
+    entity_id: Identifier
+    claimed_official_source_version_id: UUID
+    manipulation_prone: Literal[True] = True
+    contributes_standalone: Literal[False] = False
+
+    @field_validator("observed_at")
+    @classmethod
+    def normalize_observed_at(cls, value: datetime) -> datetime:
+        return _utc(value)
+
+
 class VolatilityReturnInputPayload(StrictModel):
     record_type: Literal["volatility_return_input"] = "volatility_return_input"
     window_start: datetime
@@ -842,7 +1090,10 @@ NormalizedPayload = Annotated[
     | AsReportedFundamentalPayload
     | CalendarSessionPayload
     | OfficialDocumentEventPayload
-    | VolatilityReturnInputPayload,
+    | VolatilityReturnInputPayload
+    | SectorClassificationPayload
+    | OfficialDocumentContentPayload
+    | SocialAttentionPayload,
     Field(discriminator="record_type"),
 ]
 
@@ -935,6 +1186,7 @@ class NormalizedObservationDraft(ObservationEnvelopeDraft):
             DataRecordType.OHLCV_BAR,
             DataRecordType.DELISTING_EVENT,
             DataRecordType.VOLATILITY_RETURN_INPUT,
+            DataRecordType.SOCIAL_ATTENTION,
         }
         if instrument_required and self.instrument_id is None:
             raise ValueError(f"{record_type.value} requires stable instrument identity")
@@ -945,6 +1197,7 @@ class NormalizedObservationDraft(ObservationEnvelopeDraft):
             in {
                 DataRecordType.INSTRUMENT_IDENTITY,
                 DataRecordType.CALENDAR_SESSION,
+                DataRecordType.SECTOR_CLASSIFICATION,
             }
             and self.listing_id is not None
         ):
@@ -973,6 +1226,19 @@ class NormalizedObservationDraft(ObservationEnvelopeDraft):
             and self.payload.accepted_at > self.available_at
         ):
             raise ValueError("official metadata cannot be available before acceptance")
+        if isinstance(self.payload, OfficialDocumentContentPayload):
+            if self.payload.accepted_at > self.available_at:
+                raise ValueError("official content cannot be available before acceptance")
+            if (
+                self.payload.corrected_at is not None
+                and self.payload.corrected_at > self.available_at
+            ):
+                raise ValueError("official corrections cannot be available before correction")
+        if (
+            isinstance(self.payload, SocialAttentionPayload)
+            and self.payload.observed_at > self.available_at
+        ):
+            raise ValueError("social attention cannot be available before it is observed")
         return self
 
 
@@ -1029,7 +1295,9 @@ class SnapshotConstituentDraft(ObservationEnvelopeDraft):
 class DataQualityFindingDraft(StrictModel):
     finding_id: UUID
     finding_sha256: SHA256
-    rule_set_version: Literal["phase4-data-quality-v1"] = QUALITY_RULE_SET_VERSION
+    rule_set_version: Literal["phase4-data-quality-v1", "phase6-data-contract-quality-v1"] = (
+        QUALITY_RULE_SET_VERSION
+    )
     rule_id: Identifier
     severity: DataQualitySeverity
     code: DataQualityCode
@@ -1616,14 +1884,24 @@ __all__ = [
     "INSTRUMENT_IDENTITY_SCHEMA_VERSION",
     "LISTING_IDENTITY_SCHEMA_VERSION",
     "NORMALIZED_OBSERVATION_SCHEMA_VERSION",
+    "OFFICIAL_DOCUMENT_CONTENT_SCHEMA_VERSION",
     "OFFICIAL_DOCUMENT_EVENT_SCHEMA_VERSION",
     "OHLCV_BAR_SCHEMA_VERSION",
+    "PHASE4_AUTHORIZED_CAPABILITIES",
+    "PHASE4_CAPABILITY_RECORD_TYPES",
     "PHASE4_SCHEMA_CONSTANTS",
+    "PHASE6_DATA_CONTRACT_CONSTANTS",
+    "PHASE6_DATA_CONTRACT_VERSION",
+    "PHASE6_DATA_QUALITY_RULE_SET_VERSION",
+    "PHASE6_SYNTHETIC_ADAPTER_VERSION",
+    "PHASE6_SYNTHETIC_FIXTURE_SET_VERSION",
     "QUALITY_RULE_SET_VERSION",
     "RAW_OBSERVATION_SCHEMA_VERSION",
     "REQUEST_FINGERPRINT_VERSION",
     "REVISION_SCHEMA_VERSION",
+    "SECTOR_CLASSIFICATION_SCHEMA_VERSION",
     "SNAPSHOT_SCHEMA_VERSION",
+    "SOCIAL_ATTENTION_SCHEMA_VERSION",
     "SYNTHETIC_ADAPTER_VERSION",
     "SYNTHETIC_FIXTURE_SET_VERSION",
     "SYNTHETIC_USE_RIGHTS_ID",
@@ -1672,6 +1950,7 @@ __all__ = [
     "ObservationEnvelopeDraft",
     "ObservationRevision",
     "ObservationRevisionDraft",
+    "OfficialDocumentContentPayload",
     "OfficialDocumentEventPayload",
     "OfficialDocumentType",
     "OfficialEventType",
@@ -1681,6 +1960,7 @@ __all__ = [
     "RawObservationDraft",
     "RequestFingerprintInput",
     "SchemaBinding",
+    "SectorClassificationPayload",
     "SnapshotBinding",
     "SnapshotBuildBlockedResult",
     "SnapshotBundle",
@@ -1692,11 +1972,14 @@ __all__ = [
     "SnapshotNondeterminismConflictResult",
     "SnapshotQualityStatus",
     "SnapshotRequestParameters",
+    "SocialAttentionPayload",
     "StrictModel",
+    "SyntheticFixtureSetVersion",
     "UniverseMembershipPayload",
     "UseRightsIdentity",
     "UseRightsScope",
     "VolatilityReturnInputPayload",
     "conservative_date_available_at",
     "mock_configuration_sha256",
+    "official_document_content_sha256",
 ]

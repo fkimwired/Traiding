@@ -16,6 +16,7 @@ import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 from threading import Barrier
 
@@ -226,6 +227,37 @@ PHASE_5_TABLES = (
     "evaluation_gate_results",
 )
 PHASE_5_APPEND_ONLY_ERROR = "Phase 5 evaluation records are append-only"
+PHASE_6_REQUIRED_PATHS = (
+    "docs/PHASE_06_RESEARCH_DECISIONS.md",
+    "docs/handoffs/PHASE_07.md",
+    "services/api/migrations/versions/0006_phase6_research.py",
+    "services/api/src/fable5_api/research.py",
+    "services/api/tests/test_phase6_openapi_contract.py",
+    "services/api/tests/test_phase6_routes.py",
+    "services/data/src/fable5_data/phase6_synthetic.py",
+    "services/data/tests/test_phase6_source_contracts.py",
+    "services/research/src/fable5_research/artifacts.py",
+    "services/research/src/fable5_research/canonical.py",
+    "services/research/src/fable5_research/contracts.py",
+    "services/research/src/fable5_research/phase5.py",
+    "services/research/src/fable5_research/repository.py",
+    "services/research/src/fable5_research/workflow.py",
+    "services/research/tests",
+    "packages/contracts/src/phase6-contract.type-test.ts",
+    "tests/test_phase6_migration.py",
+    "tests/test_phase6_static.py",
+)
+PHASE_6_TABLES = (
+    "research_pipeline_runs",
+    "research_pipeline_snapshot_bindings",
+    "research_pipeline_attempts",
+    "research_feature_rows",
+    "research_score_outputs",
+    "research_baseline_comparisons",
+    "research_text_extractions",
+    "research_text_corroborations",
+)
+PHASE_6_APPEND_ONLY_ERROR = "Phase 6 research artifacts are append-only"
 PHASE_4_CAPABILITIES = {
     "security_master",
     "universe_membership",
@@ -248,6 +280,11 @@ PHASE_4_RECORD_TYPES = {
     "calendar_session",
     "official_document_event",
     "volatility_return_input",
+}
+PHASE_6_ADDITIVE_RECORD_TYPES = {
+    "sector_classification",
+    "official_document_content",
+    "social_attention",
 }
 PHASE_4_SCHEMA_VERSIONS = {
     "phase4-canonical-json-v1",
@@ -275,6 +312,45 @@ PHASE_1_4_MIGRATION_SHA256 = {
     "services/api/migrations/versions/0004_phase4_point_in_time_data.py": (
         "78c52c613358708940d88cbd47069bdde9bc857046bf646d7461bd13b57b3008"
     ),
+}
+PHASE_1_5_MIGRATION_SHA256 = {
+    **PHASE_1_4_MIGRATION_SHA256,
+    "services/api/migrations/versions/0005_phase5_evaluation.py": (
+        "b368edf97c35c5b7d7ac651073a02c204816b638855d3bcae4d7cabf265a1404"
+    ),
+}
+PHASE_5_GATE_IMPLEMENTATION_SHA256 = {
+    "canonical.py": "095c174b94778d22feef4a0444279f0fea63d1d6b53b678aac571221faf4a4c0",
+    "chronology.py": "dd6418352b96089306ecfc8a026d1be4c217ef220fe818a05c92dc5aa813fa76",
+    "costs.py": "7b5a31c165756f99ca33ed72585aa5631d26588f48fb811f5e483dfc7f92273f",
+    "engine.py": "eaf99d7295a51b9f49019105fbc9c7272a911fd8cfeaffce8f5d4a7608d0cdc3",
+    "evaluation_geometry.py": ("8d66b3e4e31a1e45a13d0c3e57c5e8162a4487cd283fbef2b3a1404c3bdf03ce"),
+    "leakage.py": "a7e31285ddf9f376c402fe2dd4651442f513a4ed290f5267e06a17d918efebf1",
+    "metrics.py": "b8d21981b98c02f68be6b9393dd486d667882c0415e207d22f8449fac450f2aa",
+    "outcomes.py": "28d45549873ca6f805a20c1989e2985b91649ff332a638a11e54fe14d28a2f86",
+    "preprocessing.py": ("f8eadbd610aec003ea6700c2141656a34491d1b0e03992274ec8f1dd389d5c34"),
+    "statistics.py": "1afa8c4f5e6a3b3e1ba85b525d50b34b86eb3feb1178329bec2d069aedd30907",
+}
+PHASE_4_BASE_FUNCTION_PROSRC_SHA256 = {
+    "phase4_record_type_matches_capability(text,text)": (
+        "940e8e9b175cad7e0cc986b97cde39e1ef115022983114bcf73cff9918da4a27"
+    ),
+    "validate_phase4_snapshot_request()": (
+        "bf41f4906b94991731d80fbf1756dbad087081d552acc6d328e6b4eff6cca4af"
+    ),
+}
+PHASE_6_CONFIGURATION_IDS = {
+    "phase6-a-pass-v1",
+    "phase6-a-fail-cost-v1",
+    "phase6-b-pass-v1",
+    "phase6-b-fail-crash-v1",
+    "phase6-c-pass-v1",
+    "phase6-c-fail-corroboration-v1",
+}
+PHASE_6_FAMILIES = {
+    "A_CROSS_SECTIONAL_EQUITY_RANKING",
+    "B_TIME_SERIES_MOMENTUM_REGIME",
+    "C_OFFICIAL_EVENT_TEXT_OVERLAY",
 }
 FORBIDDEN_VENDOR_SDK_MODULES = {
     "alpaca",
@@ -345,9 +421,9 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, or 5") from exc
-    if phase not in {1, 2, 3, 4, 5}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, or 5")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, or 6") from exc
+    if phase not in {1, 2, 3, 4, 5, 6}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, or 6")
     return phase
 
 
@@ -456,6 +532,10 @@ def verify_static(phase: int = 1) -> None:
         missing_phase5 = [path for path in PHASE_5_REQUIRED_PATHS if not (ROOT / path).exists()]
         if missing_phase5:
             raise AssertionError(f"Missing Phase 5 paths: {', '.join(missing_phase5)}")
+    if phase >= 6:
+        missing_phase6 = [path for path in PHASE_6_REQUIRED_PATHS if not (ROOT / path).exists()]
+        if missing_phase6:
+            raise AssertionError(f"Missing Phase 6 paths: {', '.join(missing_phase6)}")
 
     gates = canonical_gates()
     for filename in ("AGENTS.md", "CLAUDE.md"):
@@ -637,7 +717,7 @@ def verify_static(phase: int = 1) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-5])", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-6])", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -778,9 +858,12 @@ def verify_static(phase: int = 1) -> None:
             raise AssertionError("Phase 3 decisions do not freeze the canonical rule-set hash")
 
     if phase >= 4:
+        migration_authority = (
+            PHASE_1_5_MIGRATION_SHA256 if phase >= 6 else PHASE_1_4_MIGRATION_SHA256
+        )
         immutable_migrations = {
             path: digest
-            for path, digest in PHASE_1_4_MIGRATION_SHA256.items()
+            for path, digest in migration_authority.items()
             if phase >= 5 or "0004_phase4" not in path
         }
         for relative_path, expected_sha256 in immutable_migrations.items():
@@ -828,9 +911,12 @@ def verify_static(phase: int = 1) -> None:
                 f"Phase 4 capability vocabulary is not exact: {sorted(actual_capabilities)}"
             )
         actual_record_types = enum_string_values(contracts_path, "DataRecordType")
-        if actual_record_types != PHASE_4_RECORD_TYPES:
+        expected_record_types = PHASE_4_RECORD_TYPES | (
+            PHASE_6_ADDITIVE_RECORD_TYPES if phase >= 6 else set()
+        )
+        if actual_record_types != expected_record_types:
             raise AssertionError(
-                f"Phase 4 record-type vocabulary is not exact: {sorted(actual_record_types)}"
+                f"Phase 4/6 record-type vocabulary is not exact: {sorted(actual_record_types)}"
             )
         for version in PHASE_4_SCHEMA_VERSIONS:
             if version not in contracts + canonical or f"`{version}`" not in decisions:
@@ -895,10 +981,13 @@ def verify_static(phase: int = 1) -> None:
                 raise AssertionError(f"{dockerfile} does not package the Phase 4 data domain")
 
         snapshot_api = normalized(ROOT / "services/api/src/fable5_api/data_snapshots.py")
-        for resolver_evidence in (
-            "SyntheticPointInTimeAdapter.for_mapping(mapping)",
-            "adapter_resolver=resolve_adapter",
-        ):
+        resolver_evidence_values = ["SyntheticPointInTimeAdapter.for_mapping(mapping)"]
+        resolver_evidence_values.append(
+            "configured_adapter_resolver=resolve_configured_adapter"
+            if phase >= 6
+            else "adapter_resolver=resolve_adapter"
+        )
+        for resolver_evidence in resolver_evidence_values:
             if resolver_evidence not in snapshot_api:
                 raise AssertionError(
                     "Default Phase 4 workflow does not server-resolve mapping-bound synthetic "
@@ -1132,6 +1221,272 @@ def verify_static(phase: int = 1) -> None:
             if schema not in generated:
                 raise AssertionError(f"Generated TypeScript contract is missing {schema}")
 
+    if phase >= 6:
+        migration = normalized(ROOT / "services/api/migrations/versions/0006_phase6_research.py")
+        if 'down_revision: str | None = "0005_phase5"' not in migration:
+            raise AssertionError("Phase 6 migration must directly revise immutable Phase 5")
+        for table in PHASE_6_TABLES:
+            if table not in migration:
+                raise AssertionError(f"Phase 6 migration is missing {table}")
+        for required_migration_evidence in (
+            "CREATE FUNCTION reject_phase6_research_mutation()",
+            "CREATE TRIGGER {table}_immutable",
+            "CREATE TRIGGER {table}_no_truncate",
+            "CREATE FUNCTION validate_phase6_payload_columns()",
+            "CREATE FUNCTION validate_phase6_research_pipeline_run()",
+            "phase4_record_type_matches_capability",
+            "validate_phase4_snapshot_request",
+            "validate_phase5_report_source_lineage_phase5_base",
+            "social_attention",
+            "social_source_reference",
+            "official_source_reference",
+            PHASE_6_APPEND_ONLY_ERROR,
+        ):
+            if required_migration_evidence not in migration:
+                raise AssertionError(
+                    "Phase 6 migration is missing fail-closed evidence "
+                    f"{required_migration_evidence}"
+                )
+
+        api_dockerfile = normalized(ROOT / "services/api/Dockerfile")
+        if "COPY services/research ./services/research" not in api_dockerfile:
+            raise AssertionError("services/api/Dockerfile does not package the Phase 6 domain")
+
+        research_root = ROOT / "services/research/src/fable5_research"
+        for path in research_root.rglob("*.py"):
+            forbidden = imported_module_roots(path) & (
+                FORBIDDEN_VENDOR_SDK_MODULES | FORBIDDEN_PHASE_4_NETWORK_MODULES
+            )
+            if forbidden:
+                raise AssertionError(
+                    "Phase 6 research imports a provider SDK or network client: "
+                    f"{path.relative_to(ROOT)} {sorted(forbidden)}"
+                )
+
+        contracts_path = research_root / "contracts.py"
+        contracts = normalized(contracts_path)
+        phase5_bridge = normalized(research_root / "phase5.py")
+        actual_configuration_ids = enum_string_values(
+            contracts_path,
+            "ResearchConfigurationId",
+        )
+        if actual_configuration_ids != PHASE_6_CONFIGURATION_IDS:
+            raise AssertionError(
+                "Phase 6 deterministic pass/fail fixture vocabulary is not exact: "
+                f"{sorted(actual_configuration_ids)}"
+            )
+        for required_contract in (
+            "class ResearchPipelineSpecification(StrictModel):",
+            "class FamilyAEvidence(StrictModel):",
+            "class FamilyBEvidence(StrictModel):",
+            "class FamilyCEvidence(StrictModel):",
+            "class Phase5EvaluationLink(StrictModel):",
+            "class ResearchRunArtifact(StrictModel):",
+            "structured_text_extraction_only",
+            "structured_features_only",
+            "no_image_candlestick_or_named_pattern_classifier",
+            "pass_research_is_not_paper_approval",
+            "no_real_performance_claimed",
+            "paper_approval_granted: Literal[False]",
+            "Synthetic research only; no real performance or investment advice.",
+        ):
+            if required_contract not in contracts:
+                raise AssertionError(f"Phase 6 contract invariant is missing: {required_contract}")
+        for phase5_bridge_evidence in (
+            "build_phase5_inputs",
+            "build_phase5_policy",
+            "REGISTERED_POLICY",
+            "PASS_RESEARCH is a research result and is not paper approval.",
+            "PHASE6_SOURCE_FEATURE_DERIVATION_FORMULA",
+        ):
+            if phase5_bridge_evidence not in phase5_bridge:
+                raise AssertionError(
+                    "Phase 6 does not bind research evidence to the unchanged Phase 5 engine: "
+                    f"{phase5_bridge_evidence}"
+                )
+
+        leakage_contracts = normalized(
+            ROOT / "services/backtester/src/fable5_backtester/contracts.py"
+        )
+        leakage_engine = normalized(ROOT / "services/backtester/src/fable5_backtester/leakage.py")
+        for legacy_lineage_contract in (
+            "PHASE5_SOURCE_FEATURE_DERIVATION_FORMULA",
+            "source-decimal-times-frozen-multiplier-v1",
+        ):
+            if legacy_lineage_contract not in leakage_contracts:
+                raise AssertionError(
+                    "Phase 6 changed the legacy Phase 5 source-derivation contract: "
+                    f"{legacy_lineage_contract}"
+                )
+        gate_root = ROOT / "services/backtester/src/fable5_backtester"
+        for filename, expected_sha256 in PHASE_5_GATE_IMPLEMENTATION_SHA256.items():
+            actual_sha256 = hashlib.sha256((gate_root / filename).read_bytes()).hexdigest()
+            if actual_sha256 != expected_sha256:
+                raise AssertionError(
+                    "A Phase 5 gate implementation changed during Phase 6: "
+                    f"{filename} ({actual_sha256})"
+                )
+        if enum_string_values(
+            ROOT / "services/backtester/src/fable5_backtester/contracts.py",
+            "LeakageCode",
+        ) != {"L01", "L02", "L03", "L04", "L05", "L06"}:
+            raise AssertionError("Phase 5 six-defect leakage vocabulary changed")
+        for evidence_type in (
+            "L01PriceBasisEvidence",
+            "L02FundamentalRevisionEvidence",
+            "L03FeatureAvailabilityEvidence",
+            "L04DependencyScanEvidence",
+            "L05MembershipReconstructionEvidence",
+            "L06TrainOnlyFitEvidence",
+        ):
+            if evidence_type not in leakage_contracts or evidence_type not in leakage_engine:
+                raise AssertionError(
+                    f"Phase 6 changed or bypassed Phase 5 leakage evidence {evidence_type}"
+                )
+
+        openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+        components = openapi["components"]["schemas"]
+        expected_research_paths = {
+            "/v1/research-runs": {"get", "post"},
+            "/v1/research-runs/{run_id}": {"get"},
+        }
+        research_paths = {
+            path: {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            for path, operations in openapi["paths"].items()
+            if path.startswith("/v1/research-runs")
+        }
+        if research_paths != expected_research_paths:
+            raise AssertionError(f"Phase 6 research paths/methods are not exact: {research_paths}")
+        for component in (
+            "FamilyAEvidence",
+            "FamilyBEvidence",
+            "FamilyCEvidence",
+            "Phase5EvaluationLink",
+            "ResearchConfigurationId",
+            "ResearchRunArtifact",
+            "ResearchRunCreateRequest",
+            "ResearchRunSummary",
+            "StructuredTextFeatures",
+            "TextFeatureExtraction",
+        ):
+            if component not in components:
+                raise AssertionError(f"Phase 6 OpenAPI is missing {component}")
+        if set(components["ResearchConfigurationId"].get("enum", [])) != (
+            PHASE_6_CONFIGURATION_IDS
+        ):
+            raise AssertionError("ResearchConfigurationId OpenAPI vocabulary is not exact")
+        request_schema = components["ResearchRunCreateRequest"]
+        request_fields = set(request_schema.get("properties", {}))
+        expected_request_fields = {
+            "mapping_id",
+            "snapshot_ids",
+            "research_configuration_id",
+        }
+        if (
+            request_fields != expected_request_fields
+            or set(request_schema.get("required", [])) != expected_request_fields
+            or request_schema.get("additionalProperties") is not False
+        ):
+            raise AssertionError(
+                "ResearchRunCreateRequest accepts client-authoritative results or metadata"
+            )
+        text_features = components["StructuredTextFeatures"]
+        if set(text_features.get("properties", {})) != {
+            "novelty",
+            "direction",
+            "uncertainty",
+            "risk_change",
+            "event_tags",
+        }:
+            raise AssertionError("LLM text output exceeds the structured-feature boundary")
+        extraction = components["TextFeatureExtraction"]
+        forbidden_extraction_fields = {
+            "label",
+            "signal",
+            "model_decision",
+            "buy_sell_call",
+            "allocation",
+            "position_size",
+            "promotion_outcome",
+            "execution_instruction",
+        }
+        if forbidden_extraction_fields & set(extraction.get("properties", {})):
+            raise AssertionError("LLM extraction schema exposes a prohibited decision field")
+        artifact_properties = components["ResearchRunArtifact"].get("properties", {})
+        if (
+            artifact_properties.get("synthetic", {}).get("const") is not True
+            or artifact_properties.get("no_real_performance_claimed", {}).get("const") is not True
+            or artifact_properties.get("pass_research_is_not_paper_approval", {}).get("const")
+            is not True
+            or artifact_properties.get("paper_approval_granted", {}).get("const") is not False
+        ):
+            raise AssertionError("Phase 6 research-only safety flags are not schema constants")
+
+        domain_paths = {
+            path: operations
+            for path, operations in openapi["paths"].items()
+            if path.startswith("/v1/")
+        }
+        for path, operations in domain_paths.items():
+            methods = {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            if methods - {"get", "post"}:
+                raise AssertionError(f"Phase 6 API exposes a mutation method: {path} {methods}")
+        forbidden_phase7_paths = (
+            "approval",
+            "pre-order",
+            "pre_order",
+            "broker",
+            "position",
+            "order",
+            "execution",
+            "paper-trad",
+            "live",
+        )
+        for path in domain_paths:
+            if any(term in path.casefold() for term in forbidden_phase7_paths):
+                raise AssertionError(f"Phase 7 or execution capability leaked into Phase 6: {path}")
+        for surface in (
+            contracts_path,
+            research_root / "phase5.py",
+            ROOT / "services/api/src/fable5_api/research.py",
+            ROOT / "services/api/migrations/versions/0006_phase6_research.py",
+        ):
+            body = surface.read_text(encoding="utf-8")
+            for forbidden_literal in (
+                "APPROVED_PAPER",
+                "PAPER_APPROVED",
+                "LIVE_TRADING",
+                "paper_execution",
+                "live_execution",
+            ):
+                if forbidden_literal in body:
+                    raise AssertionError(
+                        "Phase 7 approval or execution state leaked into Phase 6: "
+                        f"{surface.relative_to(ROOT)} {forbidden_literal}"
+                    )
+
+        generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+        for generated_contract in (
+            "ResearchRunArtifact:",
+            "ResearchRunCreateRequest:",
+            "ResearchRunSummary:",
+            "TextFeatureExtraction:",
+            '"/v1/research-runs"',
+            '"/v1/research-runs/{run_id}"',
+        ):
+            if generated_contract not in generated:
+                raise AssertionError(
+                    f"Generated TypeScript Phase 6 contract is missing {generated_contract}"
+                )
+
     print(f"Static repository policy checks passed for Phase {phase}.")
 
 
@@ -1174,6 +1529,7 @@ def acceptance_environment(phase: int = 1) -> tuple[dict[str, str], str, str]:
             "POSTGRES_USER": "fable5",
             "POSTGRES_PASSWORD": "fable5_dev_only",
             "FABLE5_ENVIRONMENT": "test",
+            "FABLE5_VERIFY_PHASE": str(phase),
             "FABLE5_EXECUTION_MODE": "paper",
             "FABLE5_DATABASE_URL": (
                 "postgresql+psycopg://fable5:fable5_dev_only@postgres:5432/fable5"
@@ -1216,6 +1572,7 @@ def request_json(
     *,
     method: str = "GET",
     payload: dict[str, object] | None = None,
+    timeout_seconds: float = 10,
 ) -> dict[str, object] | list[object]:
     body = None if payload is None else json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
@@ -1224,7 +1581,7 @@ def request_json(
         method=method,
         headers={"Content-Type": "application/json"} if body is not None else {},
     )
-    with urllib.request.urlopen(request, timeout=10) as response:
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         if response.status not in {200, 201, 202}:
             raise AssertionError(f"{method} {url} returned {response.status}")
         if "application/json" not in response.headers.get("content-type", ""):
@@ -2305,6 +2662,616 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
     return artifact_id
 
 
+def verify_phase6_api(api_url: str) -> dict[str, str]:
+    gate_codes = [
+        "DATA_PIT",
+        "CV_CHRONOLOGY",
+        "PREPROCESSING",
+        "TRIAL_REGISTRY",
+        "DSR",
+        "PBO",
+        "COST_STRESS",
+        "LEAKAGE",
+        "SAMPLE_ADEQUACY",
+        "REGIME",
+        "RISK_LIMITS",
+        "REPRODUCIBILITY",
+    ]
+    family_capabilities = {
+        "A_CROSS_SECTIONAL_EQUITY_RANKING": [
+            "as_reported_fundamentals",
+            "corporate_actions",
+            "delistings",
+            "ohlcv",
+            "security_master",
+            "universe_membership",
+        ],
+        "B_TIME_SERIES_MOMENTUM_REGIME": [
+            "corporate_actions",
+            "delistings",
+            "ohlcv",
+            "security_master",
+            "trading_calendar",
+            "universe_membership",
+            "volatility_return_inputs",
+        ],
+        "C_OFFICIAL_EVENT_TEXT_OVERLAY": [
+            "official_document_event_metadata",
+            "ohlcv",
+            "security_master",
+            "universe_membership",
+        ],
+    }
+    one_source_constituent_counts = {
+        "as_reported_fundamentals": 12,
+        "corporate_actions": 1,
+        "delistings": 1,
+        "official_document_event_metadata": 5,
+        "ohlcv": 852,
+        "security_master": 11,
+        "trading_calendar": 305,
+        "universe_membership": 5,
+        "volatility_return_inputs": 3,
+    }
+    if (
+        sum(one_source_constituent_counts.values()) != 1195
+        or one_source_constituent_counts["trading_calendar"] != 305
+    ):
+        raise AssertionError("Phase 6 one-source fixture accounting is internally inconsistent")
+    configuration_families = {
+        "phase6-a-pass-v1": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+        "phase6-a-fail-cost-v1": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+        "phase6-b-pass-v1": "B_TIME_SERIES_MOMENTUM_REGIME",
+        "phase6-b-fail-crash-v1": "B_TIME_SERIES_MOMENTUM_REGIME",
+        "phase6-c-pass-v1": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+        "phase6-c-fail-corroboration-v1": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+    }
+    expected_states = {
+        "phase6-a-pass-v1": "PASS_RESEARCH",
+        "phase6-a-fail-cost-v1": "FAIL_REJECT",
+        "phase6-b-pass-v1": "PASS_RESEARCH",
+        "phase6-b-fail-crash-v1": "RESEARCH_ONLY_REGIME_DEPENDENT",
+        "phase6-c-pass-v1": "PASS_RESEARCH",
+    }
+
+    mapping_results = request_json(f"{api_url}/v1/mappings?limit=100")
+    if not isinstance(mapping_results, list):
+        raise AssertionError("Phase 6 could not list mapping authority")
+    mappings: dict[str, dict[str, object]] = {}
+    for item in mapping_results:
+        if not isinstance(item, dict) or not isinstance(item.get("mapping"), dict):
+            continue
+        mapping = item["mapping"]
+        family = mapping.get("canonical_family")
+        if mapping.get("verdict") == "BUILD_RESEARCH" and isinstance(family, str):
+            mappings[family] = mapping
+    if set(family_capabilities) - set(mappings):
+        raise AssertionError("Phase 6 could not resolve authorized BUILD_RESEARCH A/B/C mappings")
+
+    snapshots_by_family: dict[str, list[str]] = {}
+    snapshot_hashes: dict[str, str] = {}
+    for family, capabilities in family_capabilities.items():
+        snapshot_ids: list[str] = []
+        for capability in capabilities:
+            payload = {
+                "mapping_id": mappings[family]["mapping_id"],
+                "as_of_utc": "2024-01-03T00:00:00Z",
+                "capability": capability,
+                "mock_configuration_id": "phase6-synthetic-default-v1",
+            }
+            created = request_json(
+                f"{api_url}/v1/data-snapshots",
+                method="POST",
+                payload=payload,
+            )
+            repeated = request_json(
+                f"{api_url}/v1/data-snapshots",
+                method="POST",
+                payload=payload,
+            )
+            if not isinstance(created, dict) or created != repeated:
+                raise AssertionError(f"Phase 6 {family}/{capability} snapshot was not idempotent")
+            snapshot = created.get("snapshot")
+            constituents = created.get("constituents")
+            if (
+                not isinstance(snapshot, dict)
+                or not isinstance(constituents, list)
+                or not constituents
+            ):
+                raise AssertionError(f"Phase 6 {capability} snapshot omitted immutable evidence")
+            if len(constituents) != one_source_constituent_counts[capability]:
+                raise AssertionError(
+                    "Phase 6 one-source fixture count drifted for "
+                    f"{capability}: {len(constituents)}"
+                )
+            snapshot_id = snapshot.get("snapshot_id")
+            snapshot_sha256 = snapshot.get("snapshot_sha256")
+            if (
+                not isinstance(snapshot_id, str)
+                or not isinstance(snapshot_sha256, str)
+                or re.fullmatch(r"[0-9a-f]{64}", snapshot_sha256) is None
+                or any(item.get("snapshot_id") != snapshot_id for item in constituents)
+            ):
+                raise AssertionError(f"Phase 6 {capability} snapshot lineage is invalid")
+            snapshot_ids.append(snapshot_id)
+            snapshot_hashes[snapshot_id] = snapshot_sha256
+        snapshots_by_family[family] = sorted(snapshot_ids)
+
+    def payload_for(configuration_id: str) -> dict[str, object]:
+        family = configuration_families[configuration_id]
+        return {
+            "mapping_id": mappings[family]["mapping_id"],
+            "snapshot_ids": snapshots_by_family[family],
+            "research_configuration_id": configuration_id,
+        }
+
+    barrier = Barrier(2)
+
+    def create_a_pass() -> dict[str, object] | list[object]:
+        barrier.wait()
+        return request_json(
+            f"{api_url}/v1/research-runs",
+            method="POST",
+            payload=payload_for("phase6-a-pass-v1"),
+            timeout_seconds=120,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        concurrent = tuple(executor.map(lambda _: create_a_pass(), range(2)))
+    if not all(isinstance(item, dict) for item in concurrent) or concurrent[0] != concurrent[1]:
+        raise AssertionError("Concurrent identical Phase 6 creation was not idempotent")
+
+    artifacts: dict[str, dict[str, object]] = {"phase6-a-pass-v1": dict(concurrent[0])}
+    for configuration_id in expected_states:
+        if configuration_id == "phase6-a-pass-v1":
+            continue
+        created = request_json(
+            f"{api_url}/v1/research-runs",
+            method="POST",
+            payload=payload_for(configuration_id),
+            timeout_seconds=120,
+        )
+        repeated = request_json(
+            f"{api_url}/v1/research-runs",
+            method="POST",
+            payload=payload_for(configuration_id),
+            timeout_seconds=120,
+        )
+        if not isinstance(created, dict) or created != repeated:
+            raise AssertionError(f"Phase 6 {configuration_id} run was not idempotent")
+        artifacts[configuration_id] = created
+
+    blocked = request_error_json(
+        f"{api_url}/v1/research-runs",
+        expected_status=422,
+        payload=payload_for("phase6-c-fail-corroboration-v1"),
+    )
+    repeated_blocked = request_error_json(
+        f"{api_url}/v1/research-runs",
+        expected_status=422,
+        payload=payload_for("phase6-c-fail-corroboration-v1"),
+    )
+    if (
+        blocked != repeated_blocked
+        or blocked.get("promotion_state") != "BLOCKED_MISSING_POLICY"
+        or blocked.get("reason_codes") != ["official_corroboration_required"]
+        or "detail" in blocked
+    ):
+        raise AssertionError("Phase 6 official-corroboration negative fixture did not fail closed")
+    forbidden = {
+        **payload_for("phase6-a-pass-v1"),
+        "metrics": {},
+        "artifact_sha256": "0" * 64,
+        "thresholds": {},
+        "created_at_utc": "2026-07-14T00:00:00Z",
+        "trial_results": [],
+        "promotion_state": "PASS_RESEARCH",
+    }
+    request_error_json(
+        f"{api_url}/v1/research-runs",
+        expected_status=422,
+        payload=forbidden,
+    )
+
+    reports: dict[str, dict[str, object]] = {}
+    run_ids: dict[str, str] = {}
+    for configuration_id, artifact in artifacts.items():
+        family = configuration_families[configuration_id]
+        run_id = artifact.get("run_id")
+        artifact_sha256 = artifact.get("artifact_sha256")
+        if (
+            not isinstance(run_id, str)
+            or not isinstance(artifact_sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", artifact_sha256) is None
+            or artifact.get("configuration_id") != configuration_id
+            or artifact.get("family") != family
+            or artifact.get("status") != "completed"
+            or artifact.get("synthetic") is not True
+            or artifact.get("no_real_performance_claimed") is not True
+            or artifact.get("pass_research_is_not_paper_approval") is not True
+            or artifact.get("paper_approval_granted") is not False
+            or artifact.get("disclaimer")
+            != "Synthetic research only; no real performance or investment advice."
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} violated research-only boundaries")
+        bindings = artifact.get("snapshot_bindings")
+        rows = artifact.get("feature_rows")
+        scores = artifact.get("scores")
+        attempts = artifact.get("attempts")
+        comparisons = artifact.get("baseline_comparisons")
+        phase5_link = artifact.get("phase5_evaluation")
+        if not all(
+            isinstance(item, list) for item in (bindings, rows, scores, attempts, comparisons)
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} omitted explainable evidence")
+        if not isinstance(phase5_link, dict):
+            raise AssertionError(f"Phase 6 {configuration_id} omitted Phase 5 lineage")
+        assert isinstance(bindings, list)
+        assert isinstance(rows, list)
+        assert isinstance(scores, list)
+        assert isinstance(attempts, list)
+        assert isinstance(comparisons, list)
+        if {item.get("snapshot_id") for item in bindings if isinstance(item, dict)} != set(
+            snapshots_by_family[family]
+        ) or any(
+            snapshot_hashes.get(str(item.get("snapshot_id"))) != item.get("snapshot_sha256")
+            for item in bindings
+            if isinstance(item, dict)
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} lost snapshot lineage")
+        row_ids = {item.get("row_id") for item in rows if isinstance(item, dict)}
+        if (
+            not rows
+            or {item.get("feature_row_id") for item in scores if isinstance(item, dict)} != row_ids
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} score explanations are incomplete")
+        for row in rows:
+            if not isinstance(row, dict) or not isinstance(row.get("features"), list):
+                raise AssertionError("Phase 6 feature row is malformed")
+            decision = datetime.fromisoformat(str(row["decision_time_utc"]).replace("Z", "+00:00"))
+            for feature in row["features"]:
+                references = feature.get("source_references") if isinstance(feature, dict) else None
+                if not isinstance(references, list) or not references:
+                    raise AssertionError("Phase 6 feature omitted source lineage")
+                for reference in references:
+                    if (
+                        not isinstance(reference, dict)
+                        or reference.get("snapshot_id") not in snapshots_by_family[family]
+                        or datetime.fromisoformat(
+                            str(reference.get("available_at_utc")).replace("Z", "+00:00")
+                        )
+                        > decision
+                    ):
+                        raise AssertionError("Phase 6 feature used non-PIT source evidence")
+        statuses = [item.get("status") for item in attempts if isinstance(item, dict)]
+        if len(attempts) != 6 or statuses.count("failed") != 1 or statuses.count("abandoned") != 1:
+            raise AssertionError(f"Phase 6 {configuration_id} attempt accounting is incomplete")
+        if not comparisons:
+            raise AssertionError(f"Phase 6 {configuration_id} omitted baseline comparisons")
+        if (
+            phase5_link.get("promotion_state") != expected_states[configuration_id]
+            or phase5_link.get("gate_codes") != gate_codes
+            or phase5_link.get("raw_trial_count") != 6
+            or re.fullmatch(
+                r"[0-9a-f]{64}",
+                str(phase5_link.get("phase5_trial_set_sha256")),
+            )
+            is None
+            or Decimal(str(phase5_link.get("effective_trial_count"))) <= 0
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} lost Phase 5 trial/gate lineage")
+        report_id = phase5_link.get("evaluation_report_id")
+        if not isinstance(report_id, str):
+            raise AssertionError(f"Phase 6 {configuration_id} omitted its Phase 5 report")
+        report = request_json(f"{api_url}/v1/evaluation-reports/{report_id}")
+        if not isinstance(report, dict):
+            raise AssertionError("Phase 6 linked Phase 5 report is unreadable")
+        gates = report.get("gates")
+        trials = report.get("trials")
+        sample_lineage = report.get("sample_lineage")
+        if (
+            report.get("artifact_sha256") != phase5_link.get("evaluation_report_sha256")
+            or report.get("promotion_state") != expected_states[configuration_id]
+            or report.get("raw_trial_count") != 6
+            or not isinstance(trials, list)
+            or len(trials) != 6
+            or not isinstance(gates, list)
+            or [item.get("gate_code") for item in gates if isinstance(item, dict)] != gate_codes
+            or not isinstance(sample_lineage, list)
+            or not sample_lineage
+            or any(
+                not isinstance(item, dict)
+                or not isinstance(item.get("feature_derivation"), dict)
+                or item["feature_derivation"].get("schema_version")
+                != "phase6-source-feature-derivation-v1"
+                or item["feature_derivation"].get("formula_id")
+                != "source-decimal-times-frozen-multiplier-quantized-1e-12-v1"
+                for item in sample_lineage
+            )
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} did not use Phase 5 unchanged")
+        attempt_set = {
+            (
+                item.get("phase5_trial_id"),
+                item.get("phase5_trial_key"),
+                item.get("status"),
+                item.get("configuration_sha256"),
+            )
+            for item in attempts
+            if isinstance(item, dict)
+        }
+        trial_set = {
+            (
+                item.get("trial_id"),
+                item.get("trial_key"),
+                item.get("status"),
+                item.get("config_sha256"),
+            )
+            for item in trials
+            if isinstance(item, dict)
+        }
+        if len(attempt_set) != 6 or attempt_set != trial_set:
+            raise AssertionError(
+                f"Phase 6 {configuration_id} attempt set differs from Phase 5 trials"
+            )
+        reports[configuration_id] = report
+        if request_json(f"{api_url}/v1/research-runs/{run_id}") != artifact:
+            raise AssertionError(f"Phase 6 {configuration_id} detail is not byte-stable")
+        run_ids[configuration_id] = run_id
+
+    def gate(configuration_id: str, code: str) -> dict[str, object]:
+        gates = reports[configuration_id].get("gates")
+        assert isinstance(gates, list)
+        matches = [
+            item for item in gates if isinstance(item, dict) and item.get("gate_code") == code
+        ]
+        if len(matches) != 1:
+            raise AssertionError(f"Phase 6 {configuration_id} has ambiguous {code} evidence")
+        return matches[0]
+
+    for configuration_id in (
+        "phase6-a-pass-v1",
+        "phase6-b-pass-v1",
+        "phase6-c-pass-v1",
+    ):
+        cost = gate(configuration_id, "COST_STRESS")
+        results = cost.get("results")
+        if (
+            cost.get("outcome") != "pass"
+            or not isinstance(results, dict)
+            or Decimal(str(results.get("all_cost_net_return"))) <= 0
+        ):
+            raise AssertionError(f"Phase 6 {configuration_id} retained non-positive stressed edge")
+    if gate("phase6-a-fail-cost-v1", "COST_STRESS").get("outcome") != "fail":
+        raise AssertionError("Phase 6 A negative fixture did not fail the unchanged cost gate")
+    if gate("phase6-b-fail-crash-v1", "REGIME").get("outcome") != "research_only":
+        raise AssertionError("Phase 6 B negative fixture did not remain regime-dependent")
+
+    a_evidence = artifacts["phase6-a-pass-v1"].get("family_evidence")
+    if not isinstance(a_evidence, dict):
+        raise AssertionError("Phase 6 A family evidence is missing")
+    universe = a_evidence.get("universe")
+    fits = a_evidence.get("train_only_sector_fits")
+    capacity = a_evidence.get("capacity")
+    if (
+        a_evidence.get("frozen_feature_names")
+        != ["liquidity", "momentum", "quality", "turnover", "value", "volatility"]
+        or not isinstance(universe, list)
+        or {item.get("listing_status") for item in universe if isinstance(item, dict)}
+        < {"active", "delisted"}
+        or not isinstance(fits, list)
+        or len(fits) != 6
+        or any(
+            len(item.get("train_entity_ids", [])) < 2
+            or len(item.get("train_entity_ids", [])) != len(set(item.get("train_entity_ids", [])))
+            for item in fits
+            if isinstance(item, dict)
+        )
+        or any(
+            set(item.get("train_sample_ids", [])) & set(item.get("prohibited_sample_ids", []))
+            for item in fits
+            if isinstance(item, dict)
+        )
+        or not isinstance(capacity, dict)
+        or capacity.get("capacity_limit_breached") is not False
+    ):
+        raise AssertionError("Phase 6 A universe, transform, or capacity evidence is incomplete")
+    if not any(
+        item.get("outcome") == "survives"
+        for item in artifacts["phase6-a-pass-v1"]["baseline_comparisons"]
+        if isinstance(item, dict)
+    ):
+        raise AssertionError("Phase 6 A did not survive a required baseline comparison")
+
+    b_pass = artifacts["phase6-b-pass-v1"].get("family_evidence")
+    b_fail = artifacts["phase6-b-fail-crash-v1"].get("family_evidence")
+    if (
+        not isinstance(b_pass, dict)
+        or not isinstance(b_fail, dict)
+        or b_pass.get("lag_windows") != [1, 5, 20, 63, 126, 252]
+        or b_pass.get("nominal_feature_price_basis") != "raw_unadjusted"
+        or b_pass.get("adjusted_return_formula_id") != "phase6-action-and-delisting-aware-return-v1"
+        or b_pass.get("no_image_candlestick_or_named_pattern_classifier") is not True
+        or b_pass.get("crash_evidence_complete") is not True
+        or b_fail.get("crash_evidence_complete") is not False
+        or b_fail.get("crash_concentration") is not None
+    ):
+        raise AssertionError("Phase 6 B adjustment, lag, or crash evidence is incomplete")
+    regimes = b_pass.get("regime_results")
+    if (
+        not isinstance(regimes, list)
+        or len(regimes) < 3
+        or not any(item.get("crash_window") is True for item in regimes if isinstance(item, dict))
+    ):
+        raise AssertionError("Phase 6 B did not report its predeclared crash regime")
+
+    c_evidence = artifacts["phase6-c-pass-v1"].get("family_evidence")
+    if not isinstance(c_evidence, dict):
+        raise AssertionError("Phase 6 C family evidence is missing")
+    extractions = c_evidence.get("extractions")
+    corroborations = c_evidence.get("corroborations")
+    if (
+        not isinstance(extractions, list)
+        or {item.get("correction_sequence") for item in extractions if isinstance(item, dict)}
+        < {0, 1}
+        or not isinstance(corroborations, list)
+        or not corroborations
+        or c_evidence.get("prompt_model_drift_visible") is not True
+        or c_evidence.get("corrections_are_later_observations") is not True
+        or c_evidence.get("llm_is_extraction_only") is not True
+    ):
+        raise AssertionError("Phase 6 C correction, drift, or extraction evidence is incomplete")
+    official_ids = {
+        item.get("official_source_version_id") for item in extractions if isinstance(item, dict)
+    }
+    official_document_hashes = {
+        (item.get("official_source_version_id"), item.get("document_content_sha256"))
+        for item in extractions
+        if isinstance(item, dict)
+    }
+    if any(
+        not isinstance(item, dict)
+        or item.get("official_source_version_id") not in official_ids
+        or (
+            item.get("official_source_version_id"),
+            item.get("official_document_sha256"),
+        )
+        not in official_document_hashes
+        or item.get("exact_match") is not True
+        or item.get("contributes_standalone") is not False
+        for item in corroborations
+    ):
+        raise AssertionError("Phase 6 C social attention lacks exact official corroboration")
+    for item in corroborations:
+        assert isinstance(item, dict)
+        social_reference = item.get("social_source_reference")
+        official_reference = item.get("official_source_reference")
+        if (
+            not isinstance(social_reference, dict)
+            or not isinstance(official_reference, dict)
+            or social_reference.get("record_type") != "social_attention"
+            or official_reference.get("record_type") != "official_document_content"
+            or not isinstance(social_reference.get("source_record_id"), str)
+            or not social_reference.get("source_record_id")
+            or not isinstance(official_reference.get("source_record_id"), str)
+            or not official_reference.get("source_record_id")
+            or social_reference.get("source_record_id")
+            == official_reference.get("source_record_id")
+            or social_reference.get("raw_observation_id")
+            == official_reference.get("raw_observation_id")
+            or social_reference.get("normalized_observation_id")
+            == official_reference.get("normalized_observation_id")
+            or social_reference.get("snapshot_id")
+            not in snapshots_by_family["C_OFFICIAL_EVENT_TEXT_OVERLAY"]
+            or official_reference.get("snapshot_id")
+            not in snapshots_by_family["C_OFFICIAL_EVENT_TEXT_OVERLAY"]
+            or social_reference.get("instrument_id") != official_reference.get("instrument_id")
+            or social_reference.get("listing_id") != official_reference.get("listing_id")
+            or social_reference.get("normalized_content_sha256")
+            == official_reference.get("normalized_content_sha256")
+            or datetime.fromisoformat(
+                str(official_reference.get("available_at_utc")).replace("Z", "+00:00")
+            )
+            > datetime.fromisoformat(
+                str(social_reference.get("available_at_utc")).replace("Z", "+00:00")
+            )
+        ):
+            raise AssertionError(
+                "Phase 6 C social corroboration is not bound to separate immutable PIT records"
+            )
+    extraction_feature_names = {
+        "novelty",
+        "direction",
+        "uncertainty",
+        "risk_change",
+        "event_tags",
+    }
+    if any(
+        not isinstance(item.get("features"), dict)
+        or set(item["features"]) != extraction_feature_names
+        or item.get("output_boundary") != "structured_features_only"
+        or item.get("extractor_kind") != "deterministic_mock"
+        or not all(
+            isinstance(item.get(field), str) and bool(item[field])
+            for field in (
+                "extractor_id",
+                "extractor_version",
+                "model_id",
+                "prompt_version",
+                "extraction_schema_version",
+                "entity_id",
+                "entity_resolution_method",
+            )
+        )
+        or not isinstance(item.get("prompt_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", str(item.get("prompt_sha256"))) is None
+        for item in extractions
+        if isinstance(item, dict)
+    ):
+        raise AssertionError("Phase 6 C extraction exceeded its structured-feature boundary")
+    expected_leakage_codes = {"L01", "L02", "L03", "L04", "L05", "L06"}
+    expected_standard_schemas = {
+        "L01": "phase5-leakage-l01-evidence-v1",
+        "L05": "phase5-leakage-l05-evidence-v1",
+    }
+    for configuration_id in artifacts:
+        leakage_gate = gate(configuration_id, "LEAKAGE")
+        leakage_inputs = leakage_gate.get("inputs")
+        if (
+            leakage_gate.get("outcome") != "pass"
+            or not isinstance(leakage_inputs, dict)
+            or not isinstance(leakage_inputs.get("per_check_evidence_json"), str)
+        ):
+            raise AssertionError(
+                f"Phase 6 {configuration_id} did not pass unchanged leakage checks"
+            )
+        leakage_evidence = json.loads(leakage_inputs["per_check_evidence_json"])
+        findings = {item.get("code"): item for item in leakage_evidence if isinstance(item, dict)}
+        if set(findings) != expected_leakage_codes:
+            raise AssertionError(f"Phase 6 {configuration_id} did not run all six leakage blockers")
+        for code, finding in findings.items():
+            records = finding.get("evidence_records")
+            if (
+                not isinstance(records, list)
+                or not records
+                or any(
+                    not isinstance(item, dict) or item.get("passed") is not True for item in records
+                )
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id} has incomplete {code} leakage evidence"
+                )
+            expected_schema = expected_standard_schemas.get(str(code))
+            if expected_schema is not None and any(
+                item.get("schema_version") != expected_schema
+                for item in records
+                if isinstance(item, dict)
+            ):
+                raise AssertionError(
+                    f"Phase 6 {configuration_id} special-cased unchanged {code} leakage logic"
+                )
+
+    listing = request_json(f"{api_url}/v1/research-runs?limit=100")
+    if not isinstance(listing, list):
+        raise AssertionError("Phase 6 research list is not an array")
+    listed = {item.get("configuration_id"): item for item in listing if isinstance(item, dict)}
+    if set(artifacts) - set(listed) or "phase6-c-fail-corroboration-v1" in listed:
+        raise AssertionError("Phase 6 list omitted runs or persisted a blocked fixture")
+    if any(
+        item.get("synthetic") is not True
+        or item.get("no_real_performance_claimed") is not True
+        or item.get("pass_research_is_not_paper_approval") is not True
+        for item in listed.values()
+    ):
+        raise AssertionError("Phase 6 list summary lost research-only flags")
+
+    print(
+        "Phase 6 deterministic A/B/C pass/fail fixtures, exact PIT lineage, unchanged Phase 5 "
+        "gates, explainability, official corroboration, and concurrent idempotency passed."
+    )
+    return run_ids
+
+
 def compose_exec(
     project: str,
     environment: dict[str, str],
@@ -2471,6 +3438,39 @@ def verify_phase5_postgres_acceptance(environment: dict[str, str]) -> None:
         raise AssertionError("Phase 5 isolated PostgreSQL acceptance tests failed")
     print(
         "Phase 5 concurrent idempotency, lineage, rollback, complete trial accounting, and "
+        "append-only PostgreSQL tests passed."
+    )
+
+
+def verify_phase6_postgres_acceptance(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    test_environment["FABLE5_TEST_DATABASE_URL"] = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "services/research/tests/test_postgres.py",
+            "-q",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 6 isolated PostgreSQL acceptance tests failed")
+    print(
+        "Phase 6 concurrent idempotency, complete child lineage, payload consistency, and "
         "append-only PostgreSQL tests passed."
     )
 
@@ -2771,6 +3771,101 @@ def verify_phase5_append_only(project: str, environment: dict[str, str]) -> None
                     f"{statement} Output: {diagnostic.strip()}"
                 )
     print(f"Phase 5 append-only trigger proof passed for {len(PHASE_5_TABLES)} tables.")
+
+
+def verify_phase6_append_only(project: str, environment: dict[str, str]) -> None:
+    expected_trigger_names = sorted(
+        trigger_name
+        for table in PHASE_6_TABLES
+        for trigger_name in (f"{table}_immutable", f"{table}_no_truncate")
+    )
+    expected_triggers = ",".join(
+        sorted(
+            trigger
+            for table in PHASE_6_TABLES
+            for trigger in (f"{table}:{table}_immutable", f"{table}:{table}_no_truncate")
+        )
+    )
+    trigger_query = (
+        "SELECT string_agg(c.relname || ':' || t.tgname, ',' "
+        "ORDER BY c.relname, t.tgname) "
+        "FROM pg_trigger AS t "
+        "JOIN pg_class AS c ON c.oid = t.tgrelid "
+        "JOIN pg_namespace AS n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = 'public' AND NOT t.tgisinternal "
+        "AND t.tgenabled IN ('O','A') "
+        "AND c.relname IN ("
+        + ",".join(f"'{table}'" for table in PHASE_6_TABLES)
+        + ") AND t.tgname IN ("
+        + ",".join(f"'{trigger_name}'" for trigger_name in expected_trigger_names)
+        + ");"
+    )
+    installed_triggers = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", trigger_query],
+    ).stdout.strip()
+    if installed_triggers != expected_triggers:
+        raise AssertionError(
+            f"Phase 6 append-only trigger catalog did not match the migration: {installed_triggers}"
+        )
+
+    for table in PHASE_6_TABLES:
+        row_count = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                f"SELECT count(*) FROM public.{table};",
+            ],
+        ).stdout.strip()
+        if not row_count.isdigit() or int(row_count) < 1:
+            raise AssertionError(f"Phase 6 append-only proof has no persisted row in {table}")
+        column = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                "SELECT column_name FROM information_schema.columns "
+                f"WHERE table_schema = 'public' AND table_name = '{table}' "
+                "ORDER BY ordinal_position LIMIT 1;",
+            ],
+        ).stdout.strip()
+        if not column:
+            raise AssertionError(f"Phase 6 append-only proof found no column in {table}")
+        statements = (
+            f'UPDATE public.{table} SET "{column}" = "{column}";',
+            f"DELETE FROM public.{table};",
+            f"TRUNCATE public.{table} CASCADE;",
+        )
+        for statement in statements:
+            result = compose_exec(
+                project,
+                environment,
+                "postgres",
+                ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", statement],
+                check=False,
+            )
+            diagnostic = f"{result.stdout}\n{result.stderr}"
+            if result.returncode == 0 or PHASE_6_APPEND_ONLY_ERROR not in diagnostic:
+                raise AssertionError(
+                    "Phase 6 mutation was not rejected by its append-only trigger: "
+                    f"{statement} Output: {diagnostic.strip()}"
+                )
+    print(f"Phase 6 append-only trigger proof passed for {len(PHASE_6_TABLES)} tables.")
 
 
 def snapshot_tables(
@@ -3167,6 +4262,174 @@ def verify_phase5_migration_cycle(project: str, environment: dict[str, str]) -> 
     )
 
 
+def verify_phase6_migration_cycle(project: str, environment: dict[str, str]) -> None:
+    earlier_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+    )
+    git_sha = environment.get("FABLE5_CODE_VERSION_GIT_SHA")
+    if git_sha is None or re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
+        raise AssertionError("Phase 6 migration proof requires the validated host git SHA")
+    audit_fixture_id = "00000000-0000-5000-8000-000000000006"
+    audit_insert = (
+        "INSERT INTO research_audit_events "
+        "(id,event_type,config_hash,data_snapshot_id,git_sha,random_seed,trial_count,payload) "
+        f"VALUES ('{audit_fixture_id}'::uuid,'phase6_migration_preservation_fixture',"
+        f"'{'6' * 64}','phase6-synthetic-preservation','{git_sha}',6,1,"
+        '\'{"fixture":"phase6_migration_preservation","synthetic":true}\'::jsonb) '
+        "ON CONFLICT (id) DO NOTHING;"
+    )
+    compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", audit_insert],
+    )
+    before = snapshot_tables(project, environment, earlier_tables)
+    if len(before) != 31:
+        raise AssertionError("Phase 6 migration proof did not cover all 31 Phase 1-5 tables")
+    empty_earlier_tables = sorted(table for table, (count, _) in before.items() if count < 1)
+    if empty_earlier_tables:
+        raise AssertionError(
+            "Phase 6 migration proof requires preserved evidence in every earlier table: "
+            + ", ".join(empty_earlier_tables)
+        )
+    print(
+        "Phase 6 earlier-table snapshots: "
+        + json.dumps(
+            {
+                table: {"row_count": count, "sha256": digest}
+                for table, (count, digest) in before.items()
+            },
+            sort_keys=True,
+        )
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "downgrade",
+            "0005_phase5",
+        ],
+        project=project,
+        env=environment,
+    )
+    absent_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NULL" for table in PHASE_6_TABLES)
+        + " FROM alembic_version;"
+    )
+    downgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", absent_query],
+    ).stdout.strip()
+    expected_downgraded = "0005_phase5|" + "|".join("t" for _ in PHASE_6_TABLES)
+    if downgraded != expected_downgraded:
+        raise AssertionError(f"Phase 6 downgrade did not remove only Phase 6 tables: {downgraded}")
+
+    restored_base_query = (
+        "SELECT "
+        "to_regprocedure('validate_phase5_report_source_lineage(uuid)') IS NOT NULL, "
+        "to_regprocedure('validate_phase5_report_source_lineage_phase5_base(uuid)') IS NULL, "
+        "position('sector_classification' in pg_get_functiondef("
+        "'phase4_record_type_matches_capability(text,text)'::regprocedure)) = 0, "
+        "position('official_document_content' in pg_get_functiondef("
+        "'phase4_record_type_matches_capability(text,text)'::regprocedure)) = 0, "
+        "position('social_attention' in pg_get_functiondef("
+        "'phase4_record_type_matches_capability(text,text)'::regprocedure)) = 0, "
+        "position('phase6-synthetic-pit-fixtures-v1' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_snapshot_frozen_versions')) = 0, "
+        "position('phase6-data-contract-quality-v1' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_quality_finding_identities')) = 0, "
+        "position('official_corroboration_mismatch' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_quality_finding_code')) = 0, "
+        "position('B_TIME_SERIES_MOMENTUM_REGIME' in pg_get_functiondef("
+        "'validate_phase4_snapshot_request()'::regprocedure)) > 0, "
+        "encode(sha256(convert_to((SELECT prosrc FROM pg_proc WHERE oid = "
+        "'phase4_record_type_matches_capability(text,text)'::regprocedure), "
+        "'UTF8')), 'hex') = '"
+        + PHASE_4_BASE_FUNCTION_PROSRC_SHA256["phase4_record_type_matches_capability(text,text)"]
+        + "', encode(sha256(convert_to((SELECT prosrc FROM pg_proc WHERE oid = "
+        "'validate_phase4_snapshot_request()'::regprocedure), 'UTF8')), 'hex') = '"
+        + PHASE_4_BASE_FUNCTION_PROSRC_SHA256["validate_phase4_snapshot_request()"]
+        + "';"
+    )
+    restored_base = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_base_query],
+    ).stdout.strip()
+    if restored_base != "t|t|t|t|t|t|t|t|t|t|t":
+        raise AssertionError(
+            "Phase 6 downgrade did not restore the exact Phase 4/5 function authority: "
+            f"{restored_base}"
+        )
+    after_downgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_downgrade, "during downgrade to 0005_phase5")
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0006_phase6",
+        ],
+        project=project,
+        env=environment,
+    )
+    restored_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NOT NULL" for table in PHASE_6_TABLES)
+        + ", to_regprocedure('validate_phase5_report_source_lineage(uuid)') IS NOT NULL"
+        + ", to_regprocedure("
+        "'validate_phase5_report_source_lineage_phase5_base(uuid)') IS NOT NULL"
+        + ", position('social_attention' in pg_get_functiondef("
+        "'phase4_record_type_matches_capability(text,text)'::regprocedure)) > 0"
+        + ", position('phase6-synthetic-pit-fixtures-v1' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_snapshot_frozen_versions')) > 0"
+        + ", position('phase6-data-contract-quality-v1' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_quality_finding_identities')) > 0"
+        + ", position('official_corroboration_mismatch' in ("
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'ck_data_quality_finding_code')) > 0" + " FROM alembic_version;"
+    )
+    restored = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_query],
+    ).stdout.strip()
+    expected_restored = "0006_phase6|" + "|".join("t" for _ in range(len(PHASE_6_TABLES) + 6))
+    if restored != expected_restored:
+        raise AssertionError(f"Phase 6 re-upgrade did not restore revision 0006: {restored}")
+    after_reupgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_reupgrade, "during re-upgrade to 0006_phase6")
+    print(
+        "Phase 6 0006->0005->0006 migration cycle preserved all 31 Phase 1-5 tables "
+        "byte-identically and restored the exact Phase 4/5 function boundaries."
+    )
+
+
 def wait_for_frontend(url: str, timeout: int = 60) -> str:
     deadline = time.monotonic() + timeout
     last_error: Exception | None = None
@@ -3259,8 +4522,17 @@ def verify_compose(phase: int = 1) -> None:
                         verify_phase5_api(api_url, phase4_snapshot_id)
                         verify_phase5_postgres_acceptance(environment)
                         verify_phase5_append_only(project, environment)
-                        verify_phase5_migration_cycle(project, environment)
-                        print("Full Compose Phase 5 verification passed.")
+                        if phase == 5:
+                            verify_phase5_migration_cycle(project, environment)
+                            print("Full Compose Phase 5 verification passed.")
+                        else:
+                            # Run the reversible cycle before Phase 6 creates additive Phase 4
+                            # record types, whose downgrade guard intentionally fails closed.
+                            verify_phase6_migration_cycle(project, environment)
+                            verify_phase6_api(api_url)
+                            verify_phase6_postgres_acceptance(environment)
+                            verify_phase6_append_only(project, environment)
+                            print("Full Compose Phase 6 verification passed.")
         else:
             run(
                 [
@@ -3309,10 +4581,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "5"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "6"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, or 5 "
-            "(default: FABLE5_VERIFY_PHASE or 5)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, or 6 "
+            "(default: FABLE5_VERIFY_PHASE or 6)."
         ),
     )
     args = parser.parse_args()

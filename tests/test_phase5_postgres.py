@@ -473,7 +473,7 @@ def _expected_payloads(
     }
 
 
-def test_phase5_online_migration_reaches_0005_and_creates_exact_table_set() -> None:
+def test_phase5_online_migration_reaches_expected_phase_head_and_creates_exact_table_set() -> None:
     assert DATABASE_URL is not None
     _upgrade_phase5(DATABASE_URL)
     engine = create_engine(DATABASE_URL)
@@ -482,7 +482,10 @@ def test_phase5_online_migration_reaches_0005_and_creates_exact_table_set() -> N
             revision = connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            assert revision == "0005_phase5"
+            expected_revision = (
+                "0006_phase6" if os.environ.get("FABLE5_VERIFY_PHASE") == "6" else "0005_phase5"
+            )
+            assert revision == expected_revision
         tables = set(inspect(engine).get_table_names())
         assert set(PHASE5_TABLES) <= tables
         assert len(PHASE5_TABLES) == 12

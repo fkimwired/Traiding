@@ -362,7 +362,10 @@ def test_phase5_source_lineage_contract_carries_snapshot_and_membership_identity
     assert lineage["additionalProperties"] is False
     assert "membership_source_observation_key" in lineage["required"]
     assert lineage["properties"]["membership_source_observation_key"] == {
-        "$ref": "#/components/schemas/SourceObservationKey"
+        "anyOf": [
+            {"$ref": "#/components/schemas/SourceObservationKey"},
+            {"type": "null"},
+        ]
     }
     assert lineage["properties"]["source_observation_refs"] == {
         "items": {"$ref": "#/components/schemas/ResolvedSourceObservationRef"},

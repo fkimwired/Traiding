@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from statistics import fmean, stdev
 from typing import Any
 from uuid import UUID
@@ -15,6 +15,8 @@ from fable5_backtester.canonical import (
     PHASE5_ARTIFACT_NAMESPACE,
     PHASE5_CONFIG_HASH_DOMAIN,
     PHASE5_DEPENDENCY_GRAPH_HASH_DOMAIN,
+    PHASE5_FEATURE_HASH_DOMAIN,
+    PHASE5_FEATURE_NAMESPACE,
     PHASE5_FIXTURE_HASH_DOMAIN,
     PHASE5_GATE_HASH_DOMAIN,
     PHASE5_GATE_NAMESPACE,
@@ -28,8 +30,12 @@ from fable5_backtester.canonical import (
 from fable5_backtester.contracts import (
     PHASE5_ADVERSARIAL_DEPENDENCY_REVIEW_HASH_DOMAIN,
     PHASE5_REPORT_HASH_EXCLUDED_FIELDS,
+    PHASE5_SOURCE_CONTENT_HASH_DERIVATION_FORMULA,
+    PHASE5_SOURCE_CONTENT_HASH_DERIVATION_HASH_DOMAIN,
+    PHASE5_SOURCE_CONTENT_HASH_DERIVATION_SCHEMA_VERSION,
     CostScenario,
     EvaluationReport,
+    FeatureSpecification,
     FoldKind,
     FoldRecord,
     FrozenEvaluationPolicy,
@@ -52,6 +58,7 @@ from fable5_backtester.contracts import (
     SyntheticTrial,
     TrialRecord,
     TrialStatus,
+    source_feature_dependency_id,
 )
 from fable5_backtester.costs import build_cost_ledger
 from fable5_backtester.engine import EvaluationEngineBlocked, evaluate_synthetic_fixture
@@ -291,6 +298,271 @@ def test_registered_evaluation_is_byte_identical_and_hash_identical(
     assert first.artifact_sha256 == second.artifact_sha256
     assert first.request_fingerprint_sha256 == second.request_fingerprint_sha256
     assert first.config_hash == second.config_hash
+
+
+def test_phase5_legacy_artifact_identity_trial_counts_and_gate_order_are_frozen(
+    report: EvaluationReport,
+) -> None:
+    assert report.artifact_id == UUID("7de23ba3-de47-5e0f-9f98-64ffa0b6467a")
+    assert report.artifact_sha256 == (
+        "73aeb65624055a72c244334e8dd59c327d3440b69c43daba1aca4f97621613c8"
+    )
+    assert report.raw_trial_count == 6
+    assert report.effective_trial_count == Decimal("3.060281566406074")
+    assert tuple(gate.gate_code for gate in report.gates) == tuple(GateCode)
+    assert tuple(gate.ordinal for gate in report.gates) == tuple(range(12))
+
+
+def test_family_b_lineage_without_membership_still_fails_unchanged_l05_gate() -> None:
+    policy_content = REGISTERED_POLICY.model_dump(
+        mode="python",
+        exclude={"policy_sha256", "policy_canonical_json"},
+    )
+    policy_content.update(
+        {
+            "strategy_family": CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME,
+            "selection_scope": "synthetic_family_b_lineage_regression_only",
+            "required_snapshot_capabilities": (DataCapability.OHLCV,),
+        }
+    )
+    policy_digest = domain_sha256(PHASE5_POLICY_HASH_DOMAIN, policy_content)
+    policy = FrozenEvaluationPolicy.model_validate(
+        {
+            **policy_content,
+            "policy_sha256": policy_digest,
+            "policy_canonical_json": canonical_json_text(policy_content),
+        }
+    )
+    ohlcv_expectation = next(
+        item
+        for item in REGISTERED_FIXTURE.source_observation_expectations
+        if item.key.capability is DataCapability.OHLCV
+    )
+    samples = tuple(
+        sample.model_copy(
+            update={
+                "source_observation_keys": (ohlcv_expectation.key,),
+                "universe_membership": None,
+            }
+        )
+        for sample in REGISTERED_FIXTURE.samples
+    )
+    fixture = _rehash_fixture(
+        samples=samples,
+        source_observation_expectations=(ohlcv_expectation,),
+    )
+    mapping = AuthorizedMappingIdentity(
+        mapping_id=UUID("bbbbbbbb-bbbb-5bbb-8bbb-bbbbbbbbbbbb"),
+        mapping_version=1,
+        mapping_input_sha256="3" * 64,
+        mapper_rule_set_version="phase3-test-rules-v1",
+        mapper_rule_set_sha256="2" * 64,
+        canonical_family=CanonicalFamily.B_TIME_SERIES_MOMENTUM_REGIME,
+        verdict=ResearchVerdict.BUILD_RESEARCH,
+    )
+    report = evaluate_synthetic_fixture(
+        policy=policy,
+        fixture=fixture,
+        mapping=mapping,
+        snapshots=(_snapshot_bundle(mapping),),
+        code_version_git_sha=CODE_VERSION,
+        created_at_utc=CREATED_AT,
+    )
+
+    assert report.promotion_state is PromotionState.FAIL_REJECT
+    assert all(
+        lineage.membership_source_observation_key is None for lineage in report.sample_lineage
+    )
+    l05 = leakage_module.evaluate_leakage_context(
+        report.sample_lineage,
+        report.source_observations,
+        feature_specification=report.feature_specification,
+        label_specification=report.label_specification,
+    )[4]
+    assert l05.blocked is True
+    assert all(not record.passed for record in l05.evidence_records)
+
+
+def test_family_c_metadata_lineage_anchors_feature_to_exact_document_hash() -> None:
+    mapping = AuthorizedMappingIdentity(
+        mapping_id=UUID("cccccccc-cccc-5ccc-8ccc-cccccccccccc"),
+        mapping_version=1,
+        mapping_input_sha256="4" * 64,
+        mapper_rule_set_version="phase3-test-rules-v1",
+        mapper_rule_set_sha256="2" * 64,
+        canonical_family=CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY,
+        verdict=ResearchVerdict.BUILD_RESEARCH,
+        official_corroboration_source_version_ids=(UUID("dddddddd-dddd-5ddd-8ddd-dddddddddddd"),),
+    )
+    adapter = SyntheticPointInTimeAdapter.for_mapping(mapping)
+    official_observation = next(
+        item
+        for item in adapter.fetch(
+            DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA
+        ).batch.normalized_observations
+        if item.payload.record_type == "official_document_event"
+    )
+    source_key = SourceObservationKey(
+        capability=DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,
+        normalized_observation_id=official_observation.normalized_observation_id,
+    )
+    source_expectation = SyntheticSourceObservationExpectation(
+        key=source_key,
+        normalized_observation=official_observation,
+        required_disposition=ConstituentDisposition.INCLUDED_AS_OF,
+        value_bindings=(),
+    )
+    feature_content = REGISTERED_POLICY.feature_specification.model_dump(
+        mode="python",
+        exclude={"feature_specification_id", "content_sha256"},
+    )
+    feature_content.update(
+        {
+            "version": "phase6-official-document-hash-lineage-regression-v1",
+            "formula_id": PHASE5_SOURCE_CONTENT_HASH_DERIVATION_FORMULA,
+            "source_fields": ("official_document_event_metadata.document_content_sha256",),
+        }
+    )
+    feature_digest = domain_sha256(PHASE5_FEATURE_HASH_DOMAIN, feature_content)
+    feature_specification = FeatureSpecification.model_validate(
+        {
+            **feature_content,
+            "feature_specification_id": identity(
+                PHASE5_FEATURE_NAMESPACE,
+                feature_digest,
+            ),
+            "content_sha256": feature_digest,
+        }
+    )
+    time_shift = timedelta(days=30)
+    walk_forward = REGISTERED_POLICY.walk_forward.model_copy(
+        update={
+            "final_confirmation_start_utc": (
+                REGISTERED_POLICY.walk_forward.final_confirmation_start_utc + time_shift
+            ),
+            "final_confirmation_end_utc": (
+                REGISTERED_POLICY.walk_forward.final_confirmation_end_utc + time_shift
+            ),
+        }
+    )
+    policy_content = REGISTERED_POLICY.model_dump(
+        mode="python",
+        exclude={"policy_sha256", "policy_canonical_json"},
+    )
+    policy_content.update(
+        {
+            "strategy_family": CanonicalFamily.C_OFFICIAL_EVENT_TEXT_OVERLAY,
+            "selection_scope": "synthetic_family_c_hash_lineage_regression_only",
+            "required_snapshot_capabilities": (DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,),
+            "feature_specification": feature_specification,
+            "walk_forward": walk_forward,
+        }
+    )
+    policy_digest = domain_sha256(PHASE5_POLICY_HASH_DOMAIN, policy_content)
+    policy = FrozenEvaluationPolicy.model_validate(
+        {
+            **policy_content,
+            "policy_sha256": policy_digest,
+            "policy_canonical_json": canonical_json_text(policy_content),
+        }
+    )
+    document_content_sha256 = official_observation.payload.document_content_sha256
+    with localcontext() as context:
+        context.prec = 80
+        document_anchor = Decimal(int(document_content_sha256[:16], 16)) / Decimal(2**64)
+
+    samples: list[SyntheticSample] = []
+    for index, sample in enumerate(REGISTERED_FIXTURE.samples, start=1):
+        with localcontext() as context:
+            context.prec = 80
+            derived_feature_value = document_anchor * Decimal(index)
+        derivation_content = {
+            "schema_version": PHASE5_SOURCE_CONTENT_HASH_DERIVATION_SCHEMA_VERSION,
+            "formula_id": PHASE5_SOURCE_CONTENT_HASH_DERIVATION_FORMULA,
+            "source_observation_key": source_key,
+            "source_payload_field": "document_content_sha256",
+            "multiplier": Decimal(index),
+            "derived_feature_value": derived_feature_value,
+        }
+        derivation = SourceFeatureDerivation.model_validate(
+            {
+                **derivation_content,
+                "derivation_sha256": domain_sha256(
+                    PHASE5_SOURCE_CONTENT_HASH_DERIVATION_HASH_DOMAIN,
+                    derivation_content,
+                ),
+            }
+        )
+        samples.append(
+            sample.model_copy(
+                update={
+                    "source_observation_keys": (source_key,),
+                    "feature_derivation": derivation,
+                    "decision_time_utc": sample.decision_time_utc + time_shift,
+                    "feature_available_at_utc": (sample.feature_available_at_utc + time_shift),
+                    "label_t0_utc": sample.label_t0_utc + time_shift,
+                    "label_t1_utc": sample.label_t1_utc + time_shift,
+                    "feature_value": derived_feature_value,
+                    "rate_available_at_utc": sample.rate_available_at_utc + time_shift,
+                    "price_adjustment_basis": None,
+                    "adjustment_action_as_of_utc": None,
+                    "feature_dependency_ids": (
+                        source_feature_dependency_id(
+                            DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,
+                            "document_content_sha256",
+                        ),
+                    ),
+                    "universe_membership": None,
+                }
+            )
+        )
+    trials = tuple(
+        trial.model_copy(
+            update={
+                "return_timestamps_utc": tuple(
+                    timestamp + time_shift for timestamp in trial.return_timestamps_utc
+                )
+            }
+        )
+        for trial in REGISTERED_FIXTURE.trials
+    )
+    fixture = _rehash_fixture(
+        samples=tuple(samples),
+        trials=trials,
+        source_observation_expectations=(source_expectation,),
+    )
+    report = evaluate_synthetic_fixture(
+        policy=policy,
+        fixture=fixture,
+        mapping=mapping,
+        snapshots=(
+            _snapshot_bundle(
+                mapping,
+                DataCapability.OFFICIAL_DOCUMENT_EVENT_METADATA,
+            ),
+        ),
+        code_version_git_sha=CODE_VERSION,
+        created_at_utc=CREATED_AT,
+    )
+
+    assert report.promotion_state is PromotionState.FAIL_REJECT
+    assert source_expectation.value_bindings == ()
+    assert all(
+        lineage.feature_derivation.derive_from_source_value(document_content_sha256)
+        == lineage.feature_derivation.derived_feature_value
+        for lineage in report.sample_lineage
+    )
+    l01, *_, l05 = leakage_module.evaluate_leakage_context(
+        report.sample_lineage,
+        report.source_observations,
+        feature_specification=report.feature_specification,
+        label_specification=report.label_specification,
+    )
+    assert l01.blocked is True
+    assert l05.blocked is True
+    assert all(not record.passed for record in (*l01.evidence_records, *l05.evidence_records))
+    assert tuple(gate.gate_code for gate in report.gates) == tuple(GateCode)
+    assert report.promotion_state is PromotionState.FAIL_REJECT
 
 
 def test_registered_report_contains_every_gate_family_and_passes_research(

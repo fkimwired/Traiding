@@ -460,6 +460,14 @@
         "title": "BarInterval",
         "type": "string"
       },
+      "BaselineOutcome": {
+        "enum": [
+          "survives",
+          "rejected"
+        ],
+        "title": "BaselineOutcome",
+        "type": "string"
+      },
       "BlockedEvaluationOutcome": {
         "additionalProperties": false,
         "properties": {
@@ -747,6 +755,44 @@
         ],
         "title": "CanonicalFamily",
         "type": "string"
+      },
+      "CapacityEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "adv_participation": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Adv Participation",
+            "type": "string"
+          },
+          "capacity_limit_breached": {
+            "title": "Capacity Limit Breached",
+            "type": "boolean"
+          },
+          "capacity_units": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Capacity Units",
+            "type": "string"
+          },
+          "concentration": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Concentration",
+            "type": "string"
+          },
+          "turnover": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Turnover",
+            "type": "string"
+          }
+        },
+        "required": [
+          "turnover",
+          "adv_participation",
+          "capacity_units",
+          "concentration",
+          "capacity_limit_breached"
+        ],
+        "title": "CapacityEvidence",
+        "type": "object"
       },
       "CardWithMemo": {
         "additionalProperties": false,
@@ -1155,6 +1201,172 @@
         "title": "CostScenario",
         "type": "string"
       },
+      "CrossSectionRankEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_time_utc": {
+            "format": "date-time",
+            "title": "Decision Time Utc",
+            "type": "string"
+          },
+          "eligible_members": {
+            "items": {
+              "$ref": "#/components/schemas/CrossSectionRankMember"
+            },
+            "minItems": 2,
+            "title": "Eligible Members",
+            "type": "array"
+          },
+          "evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "nonlinear_formula_id": {
+            "const": "frozen-depth-two-tree-momentum-quality-volatility-v1",
+            "default": "frozen-depth-two-tree-momentum-quality-volatility-v1",
+            "title": "Nonlinear Formula Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "selected_entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Selected Entity Id",
+            "type": "string"
+          },
+          "selected_linear_rank": {
+            "minimum": 1.0,
+            "title": "Selected Linear Rank",
+            "type": "integer"
+          },
+          "selected_nonlinear_score": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Selected Nonlinear Score",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "decision_time_utc",
+          "selected_entity_id",
+          "selected_linear_rank",
+          "selected_nonlinear_score",
+          "eligible_members",
+          "evidence_sha256"
+        ],
+        "title": "CrossSectionRankEvidence",
+        "type": "object"
+      },
+      "CrossSectionRankMember": {
+        "additionalProperties": false,
+        "properties": {
+          "entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchFeatureValue"
+            },
+            "maxItems": 6,
+            "minItems": 6,
+            "title": "Features",
+            "type": "array"
+          },
+          "instrument_id": {
+            "format": "uuid",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "label_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Label Sha256",
+            "type": "string"
+          },
+          "label_source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Label Source References",
+            "type": "array"
+          },
+          "label_t0_utc": {
+            "format": "date-time",
+            "title": "Label T0 Utc",
+            "type": "string"
+          },
+          "label_t1_utc": {
+            "format": "date-time",
+            "title": "Label T1 Utc",
+            "type": "string"
+          },
+          "label_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Label Value",
+            "type": "string"
+          },
+          "linear_rank": {
+            "minimum": 1.0,
+            "title": "Linear Rank",
+            "type": "integer"
+          },
+          "linear_score": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Linear Score",
+            "type": "string"
+          },
+          "listing_id": {
+            "format": "uuid",
+            "title": "Listing Id",
+            "type": "string"
+          },
+          "member_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Member Sha256",
+            "type": "string"
+          },
+          "nonlinear_score": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Nonlinear Score",
+            "type": "string"
+          },
+          "sector_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sector Id",
+            "type": "string"
+          },
+          "source_lineage_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Lineage Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "instrument_id",
+          "listing_id",
+          "sector_id",
+          "features",
+          "linear_score",
+          "linear_rank",
+          "nonlinear_score",
+          "label_t0_utc",
+          "label_t1_utc",
+          "label_value",
+          "label_source_references",
+          "label_sha256",
+          "source_lineage_sha256",
+          "member_sha256"
+        ],
+        "title": "CrossSectionRankMember",
+        "type": "object"
+      },
       "DataCapability": {
         "enum": [
           "security_master",
@@ -1189,7 +1401,11 @@
           "corporate_action_lookahead",
           "missing_delisting_return",
           "future_availability_included",
-          "unnormalized_rejected"
+          "unnormalized_rejected",
+          "pit_classification_invalid",
+          "document_content_hash_mismatch",
+          "document_correction_timing_invalid",
+          "official_corroboration_mismatch"
         ],
         "title": "DataQualityCode",
         "type": "string"
@@ -1321,8 +1537,11 @@
             "type": "string"
           },
           "rule_set_version": {
-            "const": "phase4-data-quality-v1",
             "default": "phase4-data-quality-v1",
+            "enum": [
+              "phase4-data-quality-v1",
+              "phase6-data-contract-quality-v1"
+            ],
             "title": "Rule Set Version",
             "type": "string"
           },
@@ -1489,8 +1708,11 @@
             "type": "string"
           },
           "rule_set_version": {
-            "const": "phase4-data-quality-v1",
             "default": "phase4-data-quality-v1",
+            "enum": [
+              "phase4-data-quality-v1",
+              "phase6-data-contract-quality-v1"
+            ],
             "title": "Rule Set Version",
             "type": "string"
           },
@@ -1539,7 +1761,10 @@
           "as_reported_fundamental",
           "calendar_session",
           "official_document_event",
-          "volatility_return_input"
+          "volatility_return_input",
+          "sector_classification",
+          "official_document_content",
+          "social_attention"
         ],
         "title": "DataRecordType",
         "type": "string"
@@ -2488,6 +2713,309 @@
         "title": "ExtractorKind",
         "type": "string"
       },
+      "FamilyAEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_comparison_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 2,
+            "title": "Baseline Comparison Ids",
+            "type": "array"
+          },
+          "capacity": {
+            "$ref": "#/components/schemas/CapacityEvidence"
+          },
+          "cross_section_ranks": {
+            "items": {
+              "$ref": "#/components/schemas/CrossSectionRankEvidence"
+            },
+            "minItems": 1,
+            "title": "Cross Section Ranks",
+            "type": "array"
+          },
+          "family": {
+            "const": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+            "default": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+            "title": "Family",
+            "type": "string"
+          },
+          "frozen_feature_names": {
+            "items": {
+              "enum": [
+                "liquidity",
+                "momentum",
+                "quality",
+                "turnover",
+                "value",
+                "volatility"
+              ],
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 6,
+            "title": "Frozen Feature Names",
+            "type": "array"
+          },
+          "nonlinear_model_id": {
+            "const": "frozen-depth-two-tree-v1",
+            "default": "frozen-depth-two-tree-v1",
+            "title": "Nonlinear Model Id",
+            "type": "string"
+          },
+          "train_only_sector_fits": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchTransformFit"
+            },
+            "minItems": 1,
+            "title": "Train Only Sector Fits",
+            "type": "array"
+          },
+          "transparent_model_id": {
+            "const": "sector-relative-rank-linear-v1",
+            "default": "sector-relative-rank-linear-v1",
+            "title": "Transparent Model Id",
+            "type": "string"
+          },
+          "universe": {
+            "items": {
+              "$ref": "#/components/schemas/UniverseSecurityEvidence"
+            },
+            "minItems": 3,
+            "title": "Universe",
+            "type": "array"
+          }
+        },
+        "required": [
+          "universe",
+          "train_only_sector_fits",
+          "cross_section_ranks",
+          "frozen_feature_names",
+          "baseline_comparison_ids",
+          "capacity"
+        ],
+        "title": "FamilyAEvidence",
+        "type": "object"
+      },
+      "FamilyBEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "adjusted_return_formula_id": {
+            "const": "phase6-action-and-delisting-aware-return-v1",
+            "default": "phase6-action-and-delisting-aware-return-v1",
+            "title": "Adjusted Return Formula Id",
+            "type": "string"
+          },
+          "adjusted_return_observation_count": {
+            "minimum": 252.0,
+            "title": "Adjusted Return Observation Count",
+            "type": "integer"
+          },
+          "corporate_action_source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Corporate Action Source References",
+            "type": "array"
+          },
+          "crash_concentration": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crash Concentration"
+          },
+          "crash_concentration_limit": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Crash Concentration Limit",
+            "type": "string"
+          },
+          "crash_evidence_complete": {
+            "title": "Crash Evidence Complete",
+            "type": "boolean"
+          },
+          "drawdown_formula_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Drawdown Formula Id",
+            "type": "string"
+          },
+          "family": {
+            "const": "B_TIME_SERIES_MOMENTUM_REGIME",
+            "default": "B_TIME_SERIES_MOMENTUM_REGIME",
+            "title": "Family",
+            "type": "string"
+          },
+          "lag_windows": {
+            "items": {
+              "enum": [
+                1,
+                5,
+                20,
+                63,
+                126,
+                252
+              ],
+              "type": "integer"
+            },
+            "maxItems": 6,
+            "minItems": 6,
+            "title": "Lag Windows",
+            "type": "array"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/LifecycleEvidence"
+          },
+          "lifecycle_tests": {
+            "items": {
+              "$ref": "#/components/schemas/LifecycleTestEvidence"
+            },
+            "minItems": 3,
+            "title": "Lifecycle Tests",
+            "type": "array"
+          },
+          "no_image_candlestick_or_named_pattern_classifier": {
+            "const": true,
+            "default": true,
+            "title": "No Image Candlestick Or Named Pattern Classifier",
+            "type": "boolean"
+          },
+          "nominal_feature_price_basis": {
+            "const": "raw_unadjusted",
+            "default": "raw_unadjusted",
+            "title": "Nominal Feature Price Basis",
+            "type": "string"
+          },
+          "raw_nominal_bar_count": {
+            "minimum": 253.0,
+            "title": "Raw Nominal Bar Count",
+            "type": "integer"
+          },
+          "realized_volatility_formula_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Realized Volatility Formula Id",
+            "type": "string"
+          },
+          "regime_results": {
+            "items": {
+              "$ref": "#/components/schemas/RegimeResult"
+            },
+            "minItems": 3,
+            "title": "Regime Results",
+            "type": "array"
+          },
+          "trend_strength_formula_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Trend Strength Formula Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lag_windows",
+          "raw_nominal_bar_count",
+          "adjusted_return_observation_count",
+          "trend_strength_formula_id",
+          "realized_volatility_formula_id",
+          "drawdown_formula_id",
+          "lifecycle",
+          "lifecycle_tests",
+          "corporate_action_source_references",
+          "regime_results",
+          "crash_evidence_complete",
+          "crash_concentration_limit"
+        ],
+        "title": "FamilyBEvidence",
+        "type": "object"
+      },
+      "FamilyCEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_comparison_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Baseline Comparison Ids",
+            "type": "array"
+          },
+          "conventional_downstream_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Conventional Downstream Model Id",
+            "type": "string"
+          },
+          "corrections_are_later_observations": {
+            "const": true,
+            "default": true,
+            "title": "Corrections Are Later Observations",
+            "type": "boolean"
+          },
+          "corroborations": {
+            "items": {
+              "$ref": "#/components/schemas/SocialOfficialCorroboration"
+            },
+            "minItems": 1,
+            "title": "Corroborations",
+            "type": "array"
+          },
+          "extractions": {
+            "items": {
+              "$ref": "#/components/schemas/TextFeatureExtraction"
+            },
+            "minItems": 2,
+            "title": "Extractions",
+            "type": "array"
+          },
+          "family": {
+            "const": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+            "default": "C_OFFICIAL_EVENT_TEXT_OVERLAY",
+            "title": "Family",
+            "type": "string"
+          },
+          "llm_is_extraction_only": {
+            "const": true,
+            "default": true,
+            "title": "Llm Is Extraction Only",
+            "type": "boolean"
+          },
+          "non_text_baseline": {
+            "items": {
+              "$ref": "#/components/schemas/LaggedOhlcvBaselineEvidence"
+            },
+            "minItems": 1,
+            "title": "Non Text Baseline",
+            "type": "array"
+          },
+          "non_text_baseline_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Non Text Baseline Model Id",
+            "type": "string"
+          },
+          "prompt_model_drift_visible": {
+            "const": true,
+            "default": true,
+            "title": "Prompt Model Drift Visible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "extractions",
+          "corroborations",
+          "non_text_baseline",
+          "baseline_comparison_ids",
+          "conventional_downstream_model_id",
+          "non_text_baseline_model_id"
+        ],
+        "title": "FamilyCEvidence",
+        "type": "object"
+      },
       "FeatureSpecification": {
         "additionalProperties": false,
         "properties": {
@@ -3382,6 +3910,229 @@
         "title": "LabelSpecification",
         "type": "object"
       },
+      "LaggedOhlcvBaselineEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_output": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Baseline Output",
+            "type": "string"
+          },
+          "decision_time_utc": {
+            "format": "date-time",
+            "title": "Decision Time Utc",
+            "type": "string"
+          },
+          "entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "formula_id": {
+            "const": "one-session-raw-return-minus-intraday-range-v1",
+            "default": "one-session-raw-return-minus-intraday-range-v1",
+            "title": "Formula Id",
+            "type": "string"
+          },
+          "intraday_range": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Intraday Range",
+            "type": "string"
+          },
+          "lagged_return": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Lagged Return",
+            "type": "string"
+          },
+          "model_id": {
+            "const": "lagged-return-range-linear-baseline-v1",
+            "default": "lagged-return-range-linear-baseline-v1",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Source References",
+            "type": "array"
+          },
+          "used_for_selection": {
+            "const": false,
+            "default": false,
+            "title": "Used For Selection",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ordinal",
+          "sample_id",
+          "entity_id",
+          "decision_time_utc",
+          "lagged_return",
+          "intraday_range",
+          "baseline_output",
+          "source_references",
+          "evidence_sha256"
+        ],
+        "title": "LaggedOhlcvBaselineEvidence",
+        "type": "object"
+      },
+      "LifecycleEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "inception_at_utc": {
+            "format": "date-time",
+            "title": "Inception At Utc",
+            "type": "string"
+          },
+          "instrument_id": {
+            "format": "uuid",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "known_at_decision": {
+            "const": true,
+            "default": true,
+            "title": "Known At Decision",
+            "type": "boolean"
+          },
+          "listing_id": {
+            "format": "uuid",
+            "title": "Listing Id",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "termination_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termination At Utc"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "listing_id",
+          "inception_at_utc",
+          "termination_at_utc",
+          "source_references"
+        ],
+        "title": "LifecycleEvidence",
+        "type": "object"
+      },
+      "LifecycleTestEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "delisting_return_handled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delisting Return Handled"
+          },
+          "evidence_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "inception_at_utc": {
+            "format": "date-time",
+            "title": "Inception At Utc",
+            "type": "string"
+          },
+          "instrument_id": {
+            "format": "uuid",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "listing_id": {
+            "format": "uuid",
+            "title": "Listing Id",
+            "type": "string"
+          },
+          "listing_status": {
+            "enum": [
+              "active",
+              "inactive",
+              "delisted"
+            ],
+            "title": "Listing Status",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 2,
+            "title": "Source References",
+            "type": "array"
+          },
+          "termination_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termination At Utc"
+          },
+          "used_as_feature": {
+            "const": false,
+            "default": false,
+            "title": "Used As Feature",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "listing_id",
+          "listing_status",
+          "inception_at_utc",
+          "termination_at_utc",
+          "delisting_return_handled",
+          "source_references",
+          "evidence_sha256"
+        ],
+        "title": "LifecycleTestEvidence",
+        "type": "object"
+      },
       "ListingIdentityPayload": {
         "additionalProperties": false,
         "properties": {
@@ -3729,8 +4480,11 @@
             "type": "string"
           },
           "fixture_set_version": {
-            "const": "phase4-synthetic-pit-fixtures-v1",
             "default": "phase4-synthetic-pit-fixtures-v1",
+            "enum": [
+              "phase4-synthetic-pit-fixtures-v1",
+              "phase6-synthetic-pit-fixtures-v1"
+            ],
             "title": "Fixture Set Version",
             "type": "string"
           }
@@ -3914,8 +4668,11 @@
                 "delisting_event": "#/components/schemas/DelistingEventPayload",
                 "instrument_identity": "#/components/schemas/InstrumentIdentityPayload",
                 "listing_identity": "#/components/schemas/ListingIdentityPayload",
+                "official_document_content": "#/components/schemas/OfficialDocumentContentPayload",
                 "official_document_event": "#/components/schemas/OfficialDocumentEventPayload",
                 "ohlcv_bar": "#/components/schemas/OhlcvBarPayload",
+                "sector_classification": "#/components/schemas/SectorClassificationPayload",
+                "social_attention": "#/components/schemas/SocialAttentionPayload",
                 "universe_membership": "#/components/schemas/UniverseMembershipPayload",
                 "volatility_return_input": "#/components/schemas/VolatilityReturnInputPayload"
               },
@@ -3951,6 +4708,15 @@
               },
               {
                 "$ref": "#/components/schemas/VolatilityReturnInputPayload"
+              },
+              {
+                "$ref": "#/components/schemas/SectorClassificationPayload"
+              },
+              {
+                "$ref": "#/components/schemas/OfficialDocumentContentPayload"
+              },
+              {
+                "$ref": "#/components/schemas/SocialAttentionPayload"
               }
             ],
             "title": "Payload"
@@ -4430,6 +5196,114 @@
         "title": "ObservationRevision",
         "type": "object"
       },
+      "OfficialDocumentContentPayload": {
+        "additionalProperties": false,
+        "description": "Immutable official text evidence, never an LLM label or trading output.",
+        "properties": {
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "accession_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Accession Id",
+            "type": "string"
+          },
+          "amendment_of_document_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amendment Of Document Id"
+          },
+          "corrected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected At"
+          },
+          "correction_sequence": {
+            "minimum": 0.0,
+            "title": "Correction Sequence",
+            "type": "integer"
+          },
+          "document_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Document Content Sha256",
+            "type": "string"
+          },
+          "document_text": {
+            "maxLength": 5000000,
+            "minLength": 1,
+            "title": "Document Text",
+            "type": "string"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/OfficialDocumentType"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/OfficialEventType"
+          },
+          "official_document_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Official Document Id",
+            "type": "string"
+          },
+          "official_event_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Official Event Id",
+            "type": "string"
+          },
+          "official_source_version_id": {
+            "format": "uuid",
+            "title": "Official Source Version Id",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "official_document_content",
+            "default": "official_document_content",
+            "title": "Record Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "official_document_id",
+          "official_event_id",
+          "official_source_version_id",
+          "document_type",
+          "event_type",
+          "accession_id",
+          "published_at",
+          "accepted_at",
+          "corrected_at",
+          "correction_sequence",
+          "document_content_sha256",
+          "document_text"
+        ],
+        "title": "OfficialDocumentContentPayload",
+        "type": "object"
+      },
       "OfficialDocumentEventPayload": {
         "additionalProperties": false,
         "properties": {
@@ -4754,6 +5628,160 @@
           "baseline_net_return"
         ],
         "title": "OosLedgerEntry",
+        "type": "object"
+      },
+      "Phase5EvaluationLink": {
+        "additionalProperties": false,
+        "properties": {
+          "config_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Config Hash",
+            "type": "string"
+          },
+          "effective_trial_count": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Effective Trial Count",
+            "type": "string"
+          },
+          "evaluation_outcome_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Outcome Id"
+          },
+          "evaluation_report_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Report Id"
+          },
+          "evaluation_report_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Report Sha256"
+          },
+          "fixture_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Fixture Id",
+            "type": "string"
+          },
+          "fixture_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Fixture Sha256",
+            "type": "string"
+          },
+          "gate_codes": {
+            "items": {
+              "$ref": "#/components/schemas/GateCode"
+            },
+            "title": "Gate Codes",
+            "type": "array"
+          },
+          "phase5_trial_set_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase5 Trial Set Sha256"
+          },
+          "policy_id": {
+            "format": "uuid",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Policy Sha256",
+            "type": "string"
+          },
+          "policy_version": {
+            "minimum": 1.0,
+            "title": "Policy Version",
+            "type": "integer"
+          },
+          "promotion_state": {
+            "$ref": "#/components/schemas/PromotionState"
+          },
+          "raw_trial_count": {
+            "minimum": 0.0,
+            "title": "Raw Trial Count",
+            "type": "integer"
+          },
+          "snapshot_bundle_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Bundle Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy_id",
+          "policy_version",
+          "policy_sha256",
+          "fixture_id",
+          "fixture_sha256",
+          "config_hash",
+          "snapshot_bundle_sha256",
+          "evaluation_report_id",
+          "evaluation_report_sha256",
+          "evaluation_outcome_id",
+          "promotion_state",
+          "gate_codes",
+          "raw_trial_count",
+          "effective_trial_count",
+          "phase5_trial_set_sha256"
+        ],
+        "title": "Phase5EvaluationLink",
+        "type": "object"
+      },
+      "PolicyDeclaration": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Name",
+            "type": "string"
+          },
+          "units": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Units",
+            "type": "string"
+          },
+          "value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "units"
+        ],
+        "title": "PolicyDeclaration",
         "type": "object"
       },
       "PreprocessingFitRecord": {
@@ -5328,6 +6356,38 @@
         "title": "RegimePolicy",
         "type": "object"
       },
+      "RegimeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "crash_window": {
+            "title": "Crash Window",
+            "type": "boolean"
+          },
+          "net_return": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Return",
+            "type": "string"
+          },
+          "observation_count": {
+            "minimum": 1.0,
+            "title": "Observation Count",
+            "type": "integer"
+          },
+          "regime_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Regime Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "regime_id",
+          "observation_count",
+          "net_return",
+          "crash_window"
+        ],
+        "title": "RegimeResult",
+        "type": "object"
+      },
       "RequiredData": {
         "enum": [
           "point_in_time_universe",
@@ -5369,6 +6429,377 @@
           "claim_ids"
         ],
         "title": "RequiredDataEvidence",
+        "type": "object"
+      },
+      "ResearchAttempt": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Attempt Sha256",
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Configuration Sha256",
+            "type": "string"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "phase5_trial_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase5 Trial Id"
+          },
+          "phase5_trial_key": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase5 Trial Key"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResearchAttemptStatus"
+          }
+        },
+        "required": [
+          "ordinal",
+          "attempt_sha256",
+          "phase5_trial_id",
+          "phase5_trial_key",
+          "status",
+          "configuration_sha256"
+        ],
+        "title": "ResearchAttempt",
+        "type": "object"
+      },
+      "ResearchAttemptStatus": {
+        "enum": [
+          "completed",
+          "failed",
+          "abandoned",
+          "no_return",
+          "blocked"
+        ],
+        "title": "ResearchAttemptStatus",
+        "type": "string"
+      },
+      "ResearchBaselineComparison": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_metric": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Baseline Metric",
+            "type": "string"
+          },
+          "baseline_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Baseline Model Id",
+            "type": "string"
+          },
+          "baseline_output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Baseline Output Sha256",
+            "type": "string"
+          },
+          "candidate_metric": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Candidate Metric",
+            "type": "string"
+          },
+          "candidate_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Candidate Model Id",
+            "type": "string"
+          },
+          "candidate_output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Candidate Output Sha256",
+            "type": "string"
+          },
+          "comparison_id": {
+            "format": "uuid",
+            "title": "Comparison Id",
+            "type": "string"
+          },
+          "comparison_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Comparison Sha256",
+            "type": "string"
+          },
+          "evaluation_scope": {
+            "const": "descriptive_all_prepared_rows_not_used_for_selection",
+            "default": "descriptive_all_prepared_rows_not_used_for_selection",
+            "title": "Evaluation Scope",
+            "type": "string"
+          },
+          "label_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Label Sha256",
+            "type": "string"
+          },
+          "metric_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/BaselineOutcome"
+          },
+          "reason_codes": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "used_for_selection": {
+            "const": false,
+            "default": false,
+            "title": "Used For Selection",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ordinal",
+          "comparison_id",
+          "comparison_sha256",
+          "candidate_model_id",
+          "baseline_model_id",
+          "metric_id",
+          "candidate_metric",
+          "baseline_metric",
+          "candidate_output_sha256",
+          "baseline_output_sha256",
+          "label_sha256",
+          "outcome",
+          "reason_codes"
+        ],
+        "title": "ResearchBaselineComparison",
+        "type": "object"
+      },
+      "ResearchConfigurationId": {
+        "enum": [
+          "phase6-a-pass-v1",
+          "phase6-a-fail-cost-v1",
+          "phase6-b-pass-v1",
+          "phase6-b-fail-crash-v1",
+          "phase6-c-pass-v1",
+          "phase6-c-fail-corroboration-v1"
+        ],
+        "title": "ResearchConfigurationId",
+        "type": "string"
+      },
+      "ResearchFeatureRow": {
+        "additionalProperties": false,
+        "properties": {
+          "composite_score": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Composite Score",
+            "type": "string"
+          },
+          "decision_time_utc": {
+            "format": "date-time",
+            "title": "Decision Time Utc",
+            "type": "string"
+          },
+          "entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchFeatureValue"
+            },
+            "minItems": 1,
+            "title": "Features",
+            "type": "array"
+          },
+          "label_source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Label Source References",
+            "type": "array"
+          },
+          "label_t0_utc": {
+            "format": "date-time",
+            "title": "Label T0 Utc",
+            "type": "string"
+          },
+          "label_t1_utc": {
+            "format": "date-time",
+            "title": "Label T1 Utc",
+            "type": "string"
+          },
+          "label_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Label Value",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "row_id": {
+            "format": "uuid",
+            "title": "Row Id",
+            "type": "string"
+          },
+          "row_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Row Sha256",
+            "type": "string"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-research-feature-row-v1",
+            "default": "phase6-research-feature-row-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "score_semantics": {
+            "const": "research_score_only",
+            "default": "research_score_only",
+            "title": "Score Semantics",
+            "type": "string"
+          },
+          "sector_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector Id"
+          },
+          "source_lineage_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Lineage Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "row_id",
+          "row_sha256",
+          "sample_id",
+          "entity_id",
+          "sector_id",
+          "decision_time_utc",
+          "label_t0_utc",
+          "label_t1_utc",
+          "label_value",
+          "label_source_references",
+          "features",
+          "composite_score",
+          "source_lineage_sha256"
+        ],
+        "title": "ResearchFeatureRow",
+        "type": "object"
+      },
+      "ResearchFeatureValue": {
+        "additionalProperties": false,
+        "properties": {
+          "contribution": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Contribution",
+            "type": "string"
+          },
+          "feature_name": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Feature Name",
+            "type": "string"
+          },
+          "formula_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Formula Id",
+            "type": "string"
+          },
+          "raw_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Raw Value",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "train_fit_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Train Fit Id"
+          },
+          "transformed_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Transformed Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_name",
+          "formula_id",
+          "raw_value",
+          "transformed_value",
+          "contribution",
+          "source_references",
+          "train_fit_id"
+        ],
+        "title": "ResearchFeatureValue",
         "type": "object"
       },
       "ResearchMapping": {
@@ -5630,6 +7061,151 @@
         "title": "ResearchMemo",
         "type": "object"
       },
+      "ResearchPipelineSpecification": {
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "$ref": "#/components/schemas/CanonicalFamily"
+          },
+          "feature_names": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Feature Names",
+            "type": "array"
+          },
+          "label_interval_rule": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Label Interval Rule",
+            "type": "string"
+          },
+          "llm_role": {
+            "enum": [
+              "absent",
+              "structured_text_extraction_only"
+            ],
+            "title": "Llm Role",
+            "type": "string"
+          },
+          "no_image_or_chart_pattern_classifier": {
+            "const": true,
+            "default": true,
+            "title": "No Image Or Chart Pattern Classifier",
+            "type": "boolean"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "pass_research_is_not_paper_approval": {
+            "const": true,
+            "default": true,
+            "title": "Pass Research Is Not Paper Approval",
+            "type": "boolean"
+          },
+          "required_audit_fields": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "minItems": 10,
+            "title": "Required Audit Fields",
+            "type": "array"
+          },
+          "required_capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/DataCapability"
+            },
+            "minItems": 1,
+            "title": "Required Capabilities",
+            "type": "array"
+          },
+          "risk_limits": {
+            "items": {
+              "$ref": "#/components/schemas/PolicyDeclaration"
+            },
+            "minItems": 1,
+            "title": "Risk Limits",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "phase6-research-specification-v1",
+            "default": "phase6-research-specification-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "score_semantics": {
+            "const": "research_score_only",
+            "default": "research_score_only",
+            "title": "Score Semantics",
+            "type": "string"
+          },
+          "signal_definition": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Signal Definition",
+            "type": "string"
+          },
+          "slippage_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Slippage Model Id",
+            "type": "string"
+          },
+          "specification_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Specification Id",
+            "type": "string"
+          },
+          "specification_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Specification Sha256",
+            "type": "string"
+          },
+          "specification_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Specification Version",
+            "type": "string"
+          },
+          "target_forecast_horizon": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Target Forecast Horizon",
+            "type": "string"
+          },
+          "transaction_cost_model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Transaction Cost Model Id",
+            "type": "string"
+          },
+          "walk_forward": {
+            "$ref": "#/components/schemas/WalkForwardDeclaration"
+          }
+        },
+        "required": [
+          "specification_id",
+          "specification_version",
+          "specification_sha256",
+          "family",
+          "signal_definition",
+          "target_forecast_horizon",
+          "required_capabilities",
+          "feature_names",
+          "label_interval_rule",
+          "transaction_cost_model_id",
+          "slippage_model_id",
+          "walk_forward",
+          "risk_limits",
+          "required_audit_fields",
+          "llm_role"
+        ],
+        "title": "ResearchPipelineSpecification",
+        "type": "object"
+      },
       "ResearchReturnStatus": {
         "enum": [
           "observed",
@@ -5639,6 +7215,781 @@
         ],
         "title": "ResearchReturnStatus",
         "type": "string"
+      },
+      "ResearchRunArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_schema_version": {
+            "const": "phase6-research-artifact-v1",
+            "default": "phase6-research-artifact-v1",
+            "title": "Artifact Schema Version",
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchAttempt"
+            },
+            "minItems": 1,
+            "title": "Attempts",
+            "type": "array"
+          },
+          "baseline_comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchBaselineComparison"
+            },
+            "minItems": 1,
+            "title": "Baseline Comparisons",
+            "type": "array"
+          },
+          "code_version_git_sha": {
+            "pattern": "^[0-9a-f]{40}$",
+            "title": "Code Version Git Sha",
+            "type": "string"
+          },
+          "configuration_id": {
+            "$ref": "#/components/schemas/ResearchConfigurationId"
+          },
+          "configuration_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Configuration Sha256",
+            "type": "string"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "disclaimer": {
+            "const": "Synthetic research only; no real performance or investment advice.",
+            "default": "Synthetic research only; no real performance or investment advice.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "family": {
+            "$ref": "#/components/schemas/CanonicalFamily"
+          },
+          "family_evidence": {
+            "discriminator": {
+              "mapping": {
+                "A_CROSS_SECTIONAL_EQUITY_RANKING": "#/components/schemas/FamilyAEvidence",
+                "B_TIME_SERIES_MOMENTUM_REGIME": "#/components/schemas/FamilyBEvidence",
+                "C_OFFICIAL_EVENT_TEXT_OVERLAY": "#/components/schemas/FamilyCEvidence"
+              },
+              "propertyName": "family"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FamilyAEvidence"
+              },
+              {
+                "$ref": "#/components/schemas/FamilyBEvidence"
+              },
+              {
+                "$ref": "#/components/schemas/FamilyCEvidence"
+              }
+            ],
+            "title": "Family Evidence"
+          },
+          "feature_lineage_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Feature Lineage Sha256",
+            "type": "string"
+          },
+          "feature_rows": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchFeatureRow"
+            },
+            "minItems": 1,
+            "title": "Feature Rows",
+            "type": "array"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "mapping_version": {
+            "minimum": 1.0,
+            "title": "Mapping Version",
+            "type": "integer"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "paper_approval_granted": {
+            "const": false,
+            "default": false,
+            "title": "Paper Approval Granted",
+            "type": "boolean"
+          },
+          "pass_research_is_not_paper_approval": {
+            "const": true,
+            "default": true,
+            "title": "Pass Research Is Not Paper Approval",
+            "type": "boolean"
+          },
+          "phase5_evaluation": {
+            "$ref": "#/components/schemas/Phase5EvaluationLink"
+          },
+          "pipeline_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Pipeline Input Sha256",
+            "type": "string"
+          },
+          "random_seed": {
+            "minimum": 0.0,
+            "title": "Random Seed",
+            "type": "integer"
+          },
+          "reason_codes": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchScoreOutput"
+            },
+            "minItems": 1,
+            "title": "Scores",
+            "type": "array"
+          },
+          "snapshot_bindings": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSnapshotBinding"
+            },
+            "minItems": 1,
+            "title": "Snapshot Bindings",
+            "type": "array"
+          },
+          "snapshot_bundle_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Bundle Sha256",
+            "type": "string"
+          },
+          "specification": {
+            "$ref": "#/components/schemas/ResearchPipelineSpecification"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResearchRunStatus"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "run_id",
+          "artifact_sha256",
+          "request_fingerprint_sha256",
+          "pipeline_input_sha256",
+          "configuration_id",
+          "configuration_sha256",
+          "mapping_id",
+          "mapping_version",
+          "mapping_input_sha256",
+          "family",
+          "specification",
+          "snapshot_bindings",
+          "snapshot_bundle_sha256",
+          "feature_rows",
+          "feature_lineage_sha256",
+          "scores",
+          "attempts",
+          "baseline_comparisons",
+          "family_evidence",
+          "phase5_evaluation",
+          "code_version_git_sha",
+          "random_seed",
+          "created_at_utc",
+          "status",
+          "reason_codes",
+          "warnings"
+        ],
+        "title": "ResearchRunArtifact",
+        "type": "object"
+      },
+      "ResearchRunBlockedResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "promotion_state": {
+            "$ref": "#/components/schemas/PromotionState"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "sanitized_message": {
+            "title": "Sanitized Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "promotion_state",
+          "reason_codes",
+          "sanitized_message"
+        ],
+        "title": "ResearchRunBlockedResponse",
+        "type": "object"
+      },
+      "ResearchRunCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "research_configuration_id": {
+            "$ref": "#/components/schemas/ResearchConfigurationId"
+          },
+          "snapshot_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Snapshot Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mapping_id",
+          "snapshot_ids",
+          "research_configuration_id"
+        ],
+        "title": "ResearchRunCreateRequest",
+        "type": "object"
+      },
+      "ResearchRunStatus": {
+        "enum": [
+          "completed",
+          "blocked"
+        ],
+        "title": "ResearchRunStatus",
+        "type": "string"
+      },
+      "ResearchRunSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Sha256",
+            "type": "string"
+          },
+          "configuration_id": {
+            "$ref": "#/components/schemas/ResearchConfigurationId"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "family": {
+            "$ref": "#/components/schemas/CanonicalFamily"
+          },
+          "no_real_performance_claimed": {
+            "const": true,
+            "default": true,
+            "title": "No Real Performance Claimed",
+            "type": "boolean"
+          },
+          "pass_research_is_not_paper_approval": {
+            "const": true,
+            "default": true,
+            "title": "Pass Research Is Not Paper Approval",
+            "type": "boolean"
+          },
+          "promotion_state": {
+            "$ref": "#/components/schemas/PromotionState"
+          },
+          "reason_codes": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResearchRunStatus"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "run_id",
+          "artifact_sha256",
+          "configuration_id",
+          "family",
+          "promotion_state",
+          "status",
+          "created_at_utc",
+          "reason_codes"
+        ],
+        "title": "ResearchRunSummary",
+        "type": "object"
+      },
+      "ResearchScoreOutput": {
+        "additionalProperties": false,
+        "properties": {
+          "entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "explanation": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "explanation_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Explanation Sha256",
+            "type": "string"
+          },
+          "feature_row_id": {
+            "format": "uuid",
+            "title": "Feature Row Id",
+            "type": "string"
+          },
+          "model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "output_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Output Sha256",
+            "type": "string"
+          },
+          "research_score": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Research Score",
+            "type": "string"
+          },
+          "sample_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sample Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-research-score-output-v1",
+            "default": "phase6-research-score-output-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "score_id": {
+            "format": "uuid",
+            "title": "Score Id",
+            "type": "string"
+          },
+          "score_semantics": {
+            "const": "research_score_only",
+            "default": "research_score_only",
+            "title": "Score Semantics",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "score_id",
+          "output_sha256",
+          "sample_id",
+          "entity_id",
+          "model_id",
+          "research_score",
+          "explanation",
+          "explanation_sha256",
+          "feature_row_id"
+        ],
+        "title": "ResearchScoreOutput",
+        "type": "object"
+      },
+      "ResearchSnapshotBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of_utc": {
+            "format": "date-time",
+            "title": "As Of Utc",
+            "type": "string"
+          },
+          "binding_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Binding Sha256",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "quality_status": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Quality Status",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "snapshot_id",
+          "snapshot_sha256",
+          "capability",
+          "binding_sha256",
+          "mapping_id",
+          "mapping_input_sha256",
+          "as_of_utc",
+          "quality_status"
+        ],
+        "title": "ResearchSnapshotBinding",
+        "type": "object"
+      },
+      "ResearchSourceReference": {
+        "additionalProperties": false,
+        "properties": {
+          "available_at_utc": {
+            "format": "date-time",
+            "title": "Available At Utc",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "normalized_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Normalized Content Sha256",
+            "type": "string"
+          },
+          "normalized_observation_id": {
+            "format": "uuid",
+            "title": "Normalized Observation Id",
+            "type": "string"
+          },
+          "observation_revision_id": {
+            "format": "uuid",
+            "title": "Observation Revision Id",
+            "type": "string"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "record_type": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          },
+          "source_record_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "valid_from_utc": {
+            "format": "date-time",
+            "title": "Valid From Utc",
+            "type": "string"
+          },
+          "valid_to_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To Utc"
+          }
+        },
+        "required": [
+          "capability",
+          "snapshot_id",
+          "snapshot_sha256",
+          "raw_observation_id",
+          "observation_revision_id",
+          "normalized_observation_id",
+          "raw_payload_sha256",
+          "normalized_content_sha256",
+          "record_type",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "available_at_utc",
+          "valid_from_utc",
+          "valid_to_utc"
+        ],
+        "title": "ResearchSourceReference",
+        "type": "object"
+      },
+      "ResearchTransformFit": {
+        "additionalProperties": false,
+        "properties": {
+          "feature_name": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Feature Name",
+            "type": "string"
+          },
+          "fit_id": {
+            "format": "uuid",
+            "title": "Fit Id",
+            "type": "string"
+          },
+          "fold_id": {
+            "format": "uuid",
+            "title": "Fold Id",
+            "type": "string"
+          },
+          "mean": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Mean",
+            "type": "string"
+          },
+          "prohibited_sample_ids": {
+            "default": [],
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "title": "Prohibited Sample Ids",
+            "type": "array"
+          },
+          "sector_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector Id"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "standard_deviation": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Standard Deviation",
+            "type": "string"
+          },
+          "statistic_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Statistic Sha256",
+            "type": "string"
+          },
+          "train_entity_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 2,
+            "title": "Train Entity Ids",
+            "type": "array"
+          },
+          "train_sample_ids": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "minItems": 2,
+            "title": "Train Sample Ids",
+            "type": "array"
+          },
+          "transform_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Transform Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fit_id",
+          "fold_id",
+          "transform_id",
+          "feature_name",
+          "sector_id",
+          "train_sample_ids",
+          "train_entity_ids",
+          "mean",
+          "standard_deviation",
+          "source_references",
+          "statistic_sha256"
+        ],
+        "title": "ResearchTransformFit",
+        "type": "object"
+      },
+      "ResearchValidationErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchValidationIssue"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ResearchValidationErrorResponse",
+        "type": "object"
+      },
+      "ResearchValidationIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ResearchValidationIssue",
+        "type": "object"
       },
       "ResearchVerdict": {
         "enum": [
@@ -5956,7 +8307,14 @@
             ]
           },
           "membership_source_observation_key": {
-            "$ref": "#/components/schemas/SourceObservationKey"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceObservationKey"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "price_adjustment_basis": {
             "anyOf": [
@@ -6066,6 +8424,50 @@
           "dataset_schema_version"
         ],
         "title": "SchemaBinding",
+        "type": "object"
+      },
+      "SectorClassificationPayload": {
+        "additionalProperties": false,
+        "description": "Point-in-time sector identity; temporal validity lives in the source envelope.",
+        "properties": {
+          "classification_scheme_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Classification Scheme Id",
+            "type": "string"
+          },
+          "classification_scheme_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Classification Scheme Version",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "sector_classification",
+            "default": "sector_classification",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "sector_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Sector Id",
+            "type": "string"
+          },
+          "sector_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Sector Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "classification_scheme_id",
+          "classification_scheme_version",
+          "sector_id",
+          "sector_name"
+        ],
+        "title": "SectorClassificationPayload",
         "type": "object"
       },
       "SelectionPolicy": {
@@ -7319,6 +9721,138 @@
         "title": "SnapshotValidationIssue",
         "type": "object"
       },
+      "SocialAttentionPayload": {
+        "additionalProperties": false,
+        "description": "Immutable synthetic social-attention metadata requiring official corroboration.",
+        "properties": {
+          "claimed_official_source_version_id": {
+            "format": "uuid",
+            "title": "Claimed Official Source Version Id",
+            "type": "string"
+          },
+          "contributes_standalone": {
+            "const": false,
+            "default": false,
+            "title": "Contributes Standalone",
+            "type": "boolean"
+          },
+          "entity_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "manipulation_prone": {
+            "const": true,
+            "default": true,
+            "title": "Manipulation Prone",
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "platform_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Platform Id",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "social_attention",
+            "default": "social_attention",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "social_attention_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Social Attention Record Id",
+            "type": "string"
+          },
+          "social_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Social Content Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "social_attention_record_id",
+          "platform_id",
+          "observed_at",
+          "social_content_sha256",
+          "entity_id",
+          "claimed_official_source_version_id"
+        ],
+        "title": "SocialAttentionPayload",
+        "type": "object"
+      },
+      "SocialOfficialCorroboration": {
+        "additionalProperties": false,
+        "properties": {
+          "contributes_standalone": {
+            "const": false,
+            "default": false,
+            "title": "Contributes Standalone",
+            "type": "boolean"
+          },
+          "corroboration_id": {
+            "format": "uuid",
+            "title": "Corroboration Id",
+            "type": "string"
+          },
+          "corroboration_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Corroboration Sha256",
+            "type": "string"
+          },
+          "exact_match": {
+            "const": true,
+            "default": true,
+            "title": "Exact Match",
+            "type": "boolean"
+          },
+          "official_document_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Official Document Sha256",
+            "type": "string"
+          },
+          "official_source_reference": {
+            "$ref": "#/components/schemas/ResearchSourceReference"
+          },
+          "official_source_version_id": {
+            "format": "uuid",
+            "title": "Official Source Version Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "social_attention_record_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Social Attention Record Id",
+            "type": "string"
+          },
+          "social_source_reference": {
+            "$ref": "#/components/schemas/ResearchSourceReference"
+          }
+        },
+        "required": [
+          "ordinal",
+          "corroboration_id",
+          "corroboration_sha256",
+          "social_attention_record_id",
+          "official_source_version_id",
+          "official_document_sha256",
+          "social_source_reference",
+          "official_source_reference"
+        ],
+        "title": "SocialOfficialCorroboration",
+        "type": "object"
+      },
       "SourceAuthority": {
         "enum": [
           "official",
@@ -7481,7 +10015,8 @@
           "source_payload_field": {
             "enum": [
               "open",
-              "volume"
+              "volume",
+              "document_content_sha256"
             ],
             "title": "Source Payload Field",
             "type": "string"
@@ -7511,8 +10046,12 @@
             "type": "string"
           },
           "formula_id": {
-            "const": "source-decimal-times-frozen-multiplier-v1",
             "default": "source-decimal-times-frozen-multiplier-v1",
+            "enum": [
+              "source-decimal-times-frozen-multiplier-v1",
+              "source-sha256-prefix64-times-frozen-multiplier-v1",
+              "source-decimal-times-frozen-multiplier-quantized-1e-12-v1"
+            ],
             "title": "Formula Id",
             "type": "string"
           },
@@ -7522,8 +10061,12 @@
             "type": "string"
           },
           "schema_version": {
-            "const": "phase5-source-feature-derivation-v1",
             "default": "phase5-source-feature-derivation-v1",
+            "enum": [
+              "phase5-source-feature-derivation-v1",
+              "phase5-source-feature-derivation-v2",
+              "phase6-source-feature-derivation-v1"
+            ],
             "title": "Schema Version",
             "type": "string"
           },
@@ -7533,7 +10076,8 @@
           "source_payload_field": {
             "enum": [
               "open",
-              "volume"
+              "volume",
+              "document_content_sha256"
             ],
             "title": "Source Payload Field",
             "type": "string"
@@ -7915,6 +10459,49 @@
         "title": "StressPolicy",
         "type": "object"
       },
+      "StructuredTextFeatures": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Direction",
+            "type": "string"
+          },
+          "event_tags": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Event Tags",
+            "type": "array"
+          },
+          "novelty": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Novelty",
+            "type": "string"
+          },
+          "risk_change": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Risk Change",
+            "type": "string"
+          },
+          "uncertainty": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Uncertainty",
+            "type": "string"
+          }
+        },
+        "required": [
+          "novelty",
+          "direction",
+          "uncertainty",
+          "risk_change",
+          "event_tags"
+        ],
+        "title": "StructuredTextFeatures",
+        "type": "object"
+      },
       "TestabilityReason": {
         "enum": [
           "missing_raw_text",
@@ -7933,6 +10520,149 @@
         ],
         "title": "TestabilityStatus",
         "type": "string"
+      },
+      "TextFeatureExtraction": {
+        "additionalProperties": false,
+        "properties": {
+          "available_at_utc": {
+            "format": "date-time",
+            "title": "Available At Utc",
+            "type": "string"
+          },
+          "corrected_at_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected At Utc"
+          },
+          "correction_sequence": {
+            "minimum": 0.0,
+            "title": "Correction Sequence",
+            "type": "integer"
+          },
+          "document_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Document Content Sha256",
+            "type": "string"
+          },
+          "entity_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_resolution_method": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Entity Resolution Method",
+            "type": "string"
+          },
+          "extraction_id": {
+            "format": "uuid",
+            "title": "Extraction Id",
+            "type": "string"
+          },
+          "extraction_schema_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Extraction Schema Version",
+            "type": "string"
+          },
+          "extraction_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Sha256",
+            "type": "string"
+          },
+          "extractor_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Extractor Id",
+            "type": "string"
+          },
+          "extractor_kind": {
+            "enum": [
+              "deterministic_mock",
+              "llm"
+            ],
+            "title": "Extractor Kind",
+            "type": "string"
+          },
+          "extractor_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Extractor Version",
+            "type": "string"
+          },
+          "features": {
+            "$ref": "#/components/schemas/StructuredTextFeatures"
+          },
+          "model_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Model Id",
+            "type": "string"
+          },
+          "official_document_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Official Document Id",
+            "type": "string"
+          },
+          "official_source_version_id": {
+            "format": "uuid",
+            "title": "Official Source Version Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "output_boundary": {
+            "const": "structured_features_only",
+            "default": "structured_features_only",
+            "title": "Output Boundary",
+            "type": "string"
+          },
+          "prompt_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Prompt Sha256",
+            "type": "string"
+          },
+          "prompt_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "phase6-text-feature-extraction-v1",
+            "default": "phase6-text-feature-extraction-v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "extraction_id",
+          "extraction_sha256",
+          "official_source_version_id",
+          "official_document_id",
+          "document_content_sha256",
+          "available_at_utc",
+          "corrected_at_utc",
+          "correction_sequence",
+          "extractor_kind",
+          "extractor_id",
+          "extractor_version",
+          "model_id",
+          "prompt_version",
+          "prompt_sha256",
+          "extraction_schema_version",
+          "entity_id",
+          "entity_resolution_method",
+          "features"
+        ],
+        "title": "TextFeatureExtraction",
+        "type": "object"
       },
       "TradingIdeaCard": {
         "additionalProperties": false,
@@ -8528,6 +11258,63 @@
         "title": "UniverseMembershipPayload",
         "type": "object"
       },
+      "UniverseSecurityEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "delisting_return_handled": {
+            "title": "Delisting Return Handled",
+            "type": "boolean"
+          },
+          "instrument_id": {
+            "format": "uuid",
+            "title": "Instrument Id",
+            "type": "string"
+          },
+          "listing_id": {
+            "format": "uuid",
+            "title": "Listing Id",
+            "type": "string"
+          },
+          "listing_status": {
+            "enum": [
+              "active",
+              "inactive",
+              "delisted"
+            ],
+            "title": "Listing Status",
+            "type": "string"
+          },
+          "membership_known_at_decision": {
+            "const": true,
+            "default": true,
+            "title": "Membership Known At Decision",
+            "type": "boolean"
+          },
+          "sector_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "title": "Sector Id",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSourceReference"
+            },
+            "minItems": 3,
+            "title": "Source References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "instrument_id",
+          "listing_id",
+          "sector_id",
+          "listing_status",
+          "delisting_return_handled",
+          "source_references"
+        ],
+        "title": "UniverseSecurityEvidence",
+        "type": "object"
+      },
       "UseRightsIdentity": {
         "additionalProperties": false,
         "properties": {
@@ -8689,6 +11476,52 @@
           "calendar_observation_ids"
         ],
         "title": "VolatilityReturnInputPayload",
+        "type": "object"
+      },
+      "WalkForwardDeclaration": {
+        "additionalProperties": false,
+        "properties": {
+          "embargo_rule": {
+            "title": "Embargo Rule",
+            "type": "null"
+          },
+          "final_confirmation_rule": {
+            "const": "reserved_nonempty_untouched_interval_v1",
+            "default": "reserved_nonempty_untouched_interval_v1",
+            "title": "Final Confirmation Rule",
+            "type": "string"
+          },
+          "inner_fold_count": {
+            "minimum": 2.0,
+            "title": "Inner Fold Count",
+            "type": "integer"
+          },
+          "outer_fold_count": {
+            "minimum": 2.0,
+            "title": "Outer Fold Count",
+            "type": "integer"
+          },
+          "purge_rule": {
+            "const": "label_interval_intersection_v1",
+            "default": "label_interval_intersection_v1",
+            "title": "Purge Rule",
+            "type": "string"
+          },
+          "train_mode": {
+            "enum": [
+              "expanding_past_only",
+              "rolling_past_only"
+            ],
+            "title": "Train Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "train_mode",
+          "outer_fold_count",
+          "inner_fold_count"
+        ],
+        "title": "WalkForwardDeclaration",
         "type": "object"
       },
       "WalkForwardPolicy": {
@@ -9791,6 +12624,145 @@
         "summary": "Get Mapping",
         "tags": [
           "canon-mapping"
+        ]
+      }
+    },
+    "/v1/research-runs": {
+      "get": {
+        "operationId": "list_research_runs_v1_research_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ResearchRunSummary"
+                  },
+                  "title": "Response List Research Runs V1 Research Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Research Runs",
+        "tags": [
+          "research-pipelines"
+        ]
+      },
+      "post": {
+        "operationId": "create_research_run_v1_research_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchRunCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchRunArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ResearchRunBlockedResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ResearchValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Create Research Run V1 Research Runs Post"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Create Research Run",
+        "tags": [
+          "research-pipelines"
+        ]
+      }
+    },
+    "/v1/research-runs/{run_id}": {
+      "get": {
+        "operationId": "get_research_run_v1_research_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchRunArtifact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Research Run",
+        "tags": [
+          "research-pipelines"
         ]
       }
     },
