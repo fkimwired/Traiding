@@ -131,14 +131,15 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase3_entrypoints_and_images_select_the_active_phase() -> None:
-    assert "--phase 3" in normalized(ROOT / "scripts/check.ps1")
-    assert "--phase 3" in normalized(ROOT / "scripts/check.sh")
-    assert "--phase 3" in normalized(ROOT / "Makefile")
+def test_phase4_entrypoints_and_images_select_the_active_phase() -> None:
+    assert "--phase 4" in normalized(ROOT / "scripts/check.ps1")
+    assert "--phase 4" in normalized(ROOT / "scripts/check.sh")
+    assert "--phase 4" in normalized(ROOT / "Makefile")
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.count("--phase 3") >= 2
+    assert workflow.count("--phase 4") >= 2
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
+        assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)
     assert "COPY services/mapping ./services/mapping" in normalized(
         ROOT / "services/api/Dockerfile"
     )
@@ -437,13 +438,14 @@ def test_phase3_full_verifier_has_fixture_precedence_triggers_and_preserving_cyc
 
     compose_branch = verifier.split("def verify_compose", 1)[1]
     assert "if phase == 2:\n                verify_phase2_migration_cycle" in compose_branch
-    assert (
-        "else:\n                phase3_card_id = verify_phase3_api(api_url)\n"
-        "                verify_phase3_changed_rule_version(project, environment, phase3_card_id)\n"
-        "                verify_phase3_postgres_acceptance(environment)\n"
-        "                verify_phase3_append_only(project, environment)\n"
-        "                verify_phase3_migration_cycle(project, environment)"
-    ) in compose_branch
+    for preserved_phase3_gate in (
+        "phase3_card_id = verify_phase3_api(api_url)",
+        "verify_phase3_changed_rule_version(project, environment, phase3_card_id)",
+        "verify_phase3_postgres_acceptance(environment)",
+        "verify_phase3_append_only(project, environment)",
+        "if phase == 3:\n                    verify_phase3_migration_cycle",
+    ):
+        assert preserved_phase3_gate in compose_branch
     phase2_cycle = verifier.split("def verify_phase2_migration_cycle", 1)[1].split(
         "def verify_phase3_migration_cycle", 1
     )[0]
@@ -463,3 +465,53 @@ def test_phase3_full_verifier_has_fixture_precedence_triggers_and_preserving_cyc
         "assert_snapshots_equal(before, after_reupgrade",
     ):
         assert evidence in verifier
+
+
+def test_phase4_verifier_has_static_contract_isolation_live_gate_and_preserving_cycle() -> None:
+    verifier = normalized(ROOT / "scripts/verify_phase1.py")
+
+    for static_evidence in (
+        "PHASE_4_REQUIRED_PATHS",
+        "PHASE_4_CAPABILITIES",
+        "PHASE_4_RECORD_TYPES",
+        "PHASE_4_SCHEMA_VERSIONS",
+        "PHASE_1_3_MIGRATION_SHA256",
+        "FORBIDDEN_VENDOR_SDK_MODULES",
+        "FORBIDDEN_PHASE_4_NETWORK_MODULES",
+        "PHASE_5_SYMBOL_PREFIXES",
+        "SnapshotCreateRequest accepts fields beyond server-resolvable identities",
+        "Phase 4 credential-unavailable zero-network evidence is missing",
+        "Default Phase 4 workflow does not server-resolve mapping-bound synthetic",
+        "Forbidden Phase 5+ or execution API path",
+    ):
+        assert static_evidence in verifier
+
+    compose_branch = verifier.split("def verify_compose", 1)[1]
+    for compose_gate in (
+        "verify_phase4_api(api_url)",
+        "verify_phase4_postgres_acceptance(environment)",
+        "verify_phase4_migration_cycle(project, environment)",
+    ):
+        assert compose_gate in compose_branch
+    for full_gate in (
+        "tests/test_phase4_postgres.py",
+        "Phase 4 authorized A/B/C create/read/list",
+        "all-seven-table append-only PostgreSQL tests passed",
+    ):
+        assert full_gate in verifier
+
+    phase4_cycle = verifier.split("def verify_phase4_migration_cycle", 1)[1].split(
+        "def wait_for_frontend", 1
+    )[0]
+    for preservation_evidence in (
+        'earlier_tables = ("research_audit_events", *PHASE_2_TABLES, *PHASE_3_TABLES)',
+        "phase4_migration_preservation_fixture",
+        "len(before) != 12",
+        "empty_earlier_tables",
+        '"downgrade",\n            "0003_phase3"',
+        '"upgrade",\n            "0004_phase4"',
+        "assert_snapshots_equal(before, after_downgrade",
+        "assert_snapshots_equal(before, after_reupgrade",
+        "preserved all 12 Phase 1-3 tables",
+    ):
+        assert preservation_evidence in phase4_cycle

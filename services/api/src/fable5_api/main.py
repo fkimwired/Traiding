@@ -5,6 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from fable5_api import __version__
 from fable5_api.config import Settings, get_settings
+from fable5_api.data_snapshots import (
+    SnapshotWorkflowFactory,
+    default_snapshot_workflow_factory,
+)
+from fable5_api.data_snapshots import router as data_snapshot_router
 from fable5_api.idea_intake import WorkflowFactory, default_workflow_factory, router
 from fable5_api.mappings import (
     MappingWorkflowFactory,
@@ -22,6 +27,7 @@ def create_app(
     dependency_checker: Callable[[Settings], DependencyStatus] = check_dependencies,
     workflow_factory: WorkflowFactory = default_workflow_factory,
     mapping_workflow_factory: MappingWorkflowFactory = default_mapping_workflow_factory,
+    snapshot_workflow_factory: SnapshotWorkflowFactory = default_snapshot_workflow_factory,
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -38,8 +44,10 @@ def create_app(
     )
     app.state.idea_intake_workflow = workflow_factory(settings)
     app.state.mapping_workflow = mapping_workflow_factory(settings)
+    app.state.snapshot_workflow = snapshot_workflow_factory(settings)
     app.include_router(router)
     app.include_router(mapping_router)
+    app.include_router(data_snapshot_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

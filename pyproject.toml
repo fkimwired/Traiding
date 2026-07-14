@@ -32,16 +32,21 @@ dev = [
 [tool.setuptools.packages.find]
 where = [
   "services/api/src",
+  "services/data/src",
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
 ]
+
+[tool.setuptools.package-data]
+fable5_data = ["fixtures/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = [
   "tests",
   "services/api/tests",
+  "services/data/tests",
   "services/extraction/tests",
   "services/jobs/tests",
   "services/mapping/tests",
@@ -63,12 +68,14 @@ python_version = "3.12"
 strict = true
 files = [
   "services/api/src",
+  "services/data/src",
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
 ]
 mypy_path = [
   "services/api/src",
+  "services/data/src",
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",

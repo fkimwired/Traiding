@@ -15,5 +15,5 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 npm run check --workspace @fable5/contracts
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& $Python scripts/verify_phase1.py --static-only --phase 3
+& $Python scripts/verify_phase1.py --static-only --phase 4
 exit $LASTEXITCODE

@@ -5,7 +5,7 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 3 implementation status
+## Phase 4 implementation status
 
 Implemented and verified by the full isolated Compose acceptance gate:
 
@@ -32,9 +32,17 @@ Implemented and verified by the full isolated Compose acceptance gate:
   read-only-options outcomes;
 - immutable, versioned mapping and deterministic rationale records with exact Phase 2 lineage;
 - create/read/list-only Phase 3 mapping APIs and source-linked rationale presentation in Idea Intake.
+- field-specific, vendor-neutral point-in-time contracts for the authorized Family A/B/C surfaces;
+- deterministic synthetic adapters, explicit entitlements, typed credential-unavailable results, and
+  a mandatory data-quality gate with leakage and revision-replay checks;
+- immutable raw, revision, normalized, constituent, quality-finding, and canonical snapshot lineage;
+- create/read/list-only Phase 4 snapshot APIs and regenerated TypeScript contracts;
+- reversible `0004_phase4` persistence with concurrent idempotence, deterministic hashes, and
+  database rejection of update, delete, and truncate across all seven Phase 4 tables.
 
-Intentionally absent: real-data adapters, feature pipelines, backtesting, alpha models, signals,
-portfolio risk enforcement, broker adapters, paper orders, and every live-order capability.
+Intentionally absent: real-provider implementations, features or labels, backtesting, alpha models,
+signals or strategies, performance metrics, portfolio/risk logic, approvals, brokers, positions,
+paper orders, and every live-order capability.
 
 ## Prerequisites
 
@@ -42,9 +50,9 @@ portfolio risk enforcement, broker adapters, paper orders, and every live-order 
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 3. Local and CI extraction
-uses the deterministic mock; mapping is pure deterministic code; source URLs are stored as provenance
-and are not fetched.
+No data-provider, LLM, broker, or commercial credential is needed for Phase 4. Local and CI extraction
+and point-in-time data use deterministic synthetic implementations; mapping is pure deterministic
+code; source URLs are stored as provenance and are not fetched.
 
 ## Start the full stack
 
@@ -104,17 +112,17 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 3 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 4 policy checks:
 
 ```powershell
 .\scripts\check.ps1
 ```
 
-Run the isolated full-stack Phase 3 acceptance verifier (it creates and removes its own Compose
+Run the isolated full-stack Phase 4 acceptance verifier (it creates and removes its own Compose
 project and volumes):
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 3
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 4
 ```
 
 ### macOS/Linux/CI
@@ -164,19 +172,21 @@ Applied revisions are immutable. `0002_phase2` adds append-only source, source-v
 corroboration, extraction-request/event, card, and memo records without editing the Phase 1 baseline.
 `0003_phase3` adds append-only mapping versions, database-validated parent lineage, deferred exact
 corroboration-set equality, post-finalization append guards, and deterministic rationale artifacts.
-The Phase 3 acceptance cycle
-runs real two-writer and lineage-negative tests, snapshots every Phase 1/2 row, downgrades
-specifically to `0002_phase2`, proves those rows are byte-identical, and re-upgrades to head.
+`0004_phase4` adds immutable point-in-time snapshot headers, raw observations, revisions, normalized
+observations, constituents, quality findings, and manifests with exact canonical-hash validation.
+The Phase 4 acceptance cycle runs real concurrency, lineage, and append-only tests, snapshots every
+Phase 1-3 row, downgrades specifically to `0003_phase3`, proves those rows are byte-identical, and
+re-upgrades to head.
 
 ## Architecture
 
 | Component | Current responsibility | Boundary |
 |---|---|---|
 | `frontend` | Navigation, simulation disclosure, and source-linked deterministic rationale | no actionable paper-order controls |
-| `api` | Health/readiness plus typed source/card/mapping create/read/list authority | no signal, performance, or execution endpoint |
+| `api` | Health/readiness plus typed source/card/mapping/snapshot create/read/list authority | no signal, performance, or execution endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no strategy/backtest/trading queue |
-| `postgres` | Immutable audit, provenance, mapping, and rationale records | no evaluation, risk, or order records |
+| `postgres` | Immutable audit, provenance, mapping, and point-in-time snapshot lineage | no evaluation, risk, or order records |
 | `redis` | queue/cache connectivity | no trading queue exists |
 | `packages/contracts` | generated OpenAPI TypeScript | never a second schema authority |
 
@@ -192,9 +202,13 @@ MLflow service or dependency is added prematurely.
 - `docs/IMPLEMENTATION_PLAN.md`: phase dependencies and the required handoff template.
 - `docs/PHASE_02_SCHEMA_DECISIONS.md`: frozen evidence, null, testability, and corroboration semantics.
 - `docs/PHASE_03_MAPPING_DECISIONS.md`: frozen family, rule, reason, precedence, and rationale semantics.
-- `docs/handoffs/PHASE_04.md`: ready-to-paste point-in-time adapter/snapshot task.
+- `docs/PHASE_04_DATA_DECISIONS.md`: frozen point-in-time schemas, authorization, canonicalization,
+  availability, revision, entitlement, quality, and snapshot semantics.
+- `docs/handoffs/PHASE_04.md`: authoritative Phase 4 acceptance boundary and inputs.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
+- `services/data`: vendor-neutral Phase 4 contracts, synthetic adapters, quality gate, immutable
+  snapshot materializer/repository/workflow, fixtures, and tests.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -207,6 +221,7 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-After the full Phase 3 acceptance gate passes, use `docs/handoffs/PHASE_04.md` for point-in-time data
-contracts, immutable snapshots, and deterministic mock adapters only. Do not begin features,
-backtesting, signals, risk execution, paper orders, or any live capability in that task.
+After the full Phase 4 acceptance gate passes, Phase 5 may define feature/label contracts and the
+evaluation harness only after freezing signal definitions, horizons, required data, realistic costs
+and slippage, purged/embargoed walk-forward reports, risk limits, and audit output. Do not add paper
+execution, brokers, positions, orders, or any live capability.

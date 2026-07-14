@@ -15,6 +15,7 @@ import urllib.error
 import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 from threading import Barrier
 
@@ -161,6 +162,144 @@ PHASE_3_FIXTURE_MATRIX: dict[str, tuple[str, str, list[str] | None]] = {
         ["missing_action_rule"],
     ),
 }
+PHASE_4_REQUIRED_PATHS = (
+    "docs/PHASE_04_DATA_DECISIONS.md",
+    "services/api/migrations/versions/0004_phase4_point_in_time_data.py",
+    "services/api/src/fable5_api/data_snapshots.py",
+    "services/api/tests/test_phase4_routes.py",
+    "services/data/src/fable5_data/__init__.py",
+    "services/data/src/fable5_data/adapters.py",
+    "services/data/src/fable5_data/canonical.py",
+    "services/data/src/fable5_data/contracts.py",
+    "services/data/src/fable5_data/quality.py",
+    "services/data/src/fable5_data/repository.py",
+    "services/data/src/fable5_data/snapshots.py",
+    "services/data/src/fable5_data/synthetic.py",
+    "services/data/src/fable5_data/workflow.py",
+    "services/data/src/fable5_data/fixtures/phase4_synthetic_pit_v1.json",
+    "services/data/tests/test_adapters.py",
+    "services/data/tests/test_canonical.py",
+    "services/data/tests/test_contracts.py",
+    "services/data/tests/test_phase4_repository.py",
+    "services/data/tests/test_phase4_workflow.py",
+    "services/data/tests/test_quality.py",
+    "services/data/tests/test_snapshots.py",
+    "tests/test_phase4_migration.py",
+    "tests/test_phase4_postgres.py",
+)
+PHASE_4_TABLES = (
+    "data_snapshots",
+    "data_raw_observations",
+    "data_observation_revisions",
+    "data_normalized_observations",
+    "data_snapshot_constituents",
+    "data_quality_findings",
+    "data_snapshot_manifests",
+)
+PHASE_4_CAPABILITIES = {
+    "security_master",
+    "universe_membership",
+    "ohlcv",
+    "corporate_actions",
+    "delistings",
+    "as_reported_fundamentals",
+    "trading_calendar",
+    "volatility_return_inputs",
+    "official_document_event_metadata",
+}
+PHASE_4_RECORD_TYPES = {
+    "instrument_identity",
+    "listing_identity",
+    "universe_membership",
+    "ohlcv_bar",
+    "corporate_action",
+    "delisting_event",
+    "as_reported_fundamental",
+    "calendar_session",
+    "official_document_event",
+    "volatility_return_input",
+}
+PHASE_4_SCHEMA_VERSIONS = {
+    "phase4-canonical-json-v1",
+    "phase4-data-snapshot-v1",
+    "phase4-raw-observation-v1",
+    "phase4-normalized-observation-v1",
+    "phase4-observation-revision-v1",
+    "phase4-data-quality-v1",
+    "phase4-request-fingerprint-v1",
+    "phase4-date-only-next-day-v1",
+    "phase4-synthetic-pit-adapter-v1",
+    "phase4-synthetic-pit-fixtures-v1",
+    "phase4-synthetic-test-fixture-rights-v1",
+}
+PHASE_1_3_MIGRATION_SHA256 = {
+    "services/api/migrations/versions/0001_phase1_audit_spine.py": (
+        "5cd27e1bde6b03720f54fe5e1260cf5f9085e16a4eebed957aeeba1a3a7d17f8"
+    ),
+    "services/api/migrations/versions/0002_phase2_source_extraction.py": (
+        "d45c1cb0ade079cfba7492c75c1aff13fc714aaae0a81637f21942c175c4e5c8"
+    ),
+    "services/api/migrations/versions/0003_phase3_canon_mapping.py": (
+        "6859c63723dc31d6ede4cdd5528a42640f16e3c6103567b5d900a46741edf07d"
+    ),
+}
+FORBIDDEN_VENDOR_SDK_MODULES = {
+    "alpaca",
+    "alpaca_trade_api",
+    "alpaca_py",
+    "bloomberg",
+    "ccxt",
+    "databento",
+    "finnhub",
+    "ib_insync",
+    "ibapi",
+    "polygon",
+    "refinitiv",
+    "yfinance",
+}
+FORBIDDEN_PHASE_4_NETWORK_MODULES = {
+    "aiohttp",
+    "httpx",
+    "requests",
+    "socket",
+    "urllib3",
+}
+PHASE_4_FORBIDDEN_API_TERMS = (
+    "feature",
+    "label",
+    "signal",
+    "strategy",
+    "model",
+    "train",
+    "backtest",
+    "performance",
+    "portfolio",
+    "risk",
+    "approval",
+    "broker",
+    "position",
+    "order",
+    "execution",
+    "live",
+    "paper",
+)
+PHASE_5_SYMBOL_PREFIXES = (
+    "feature",
+    "label",
+    "signal",
+    "strategy",
+    "model",
+    "train",
+    "backtest",
+    "performance",
+    "portfolio",
+    "risk",
+    "approval",
+    "broker",
+    "position",
+    "order",
+    "execution",
+)
 FORBIDDEN_EXECUTABLE_PATTERNS = re.compile(
     r"submit_order|place_order|create_order|/v2/orders|api\.alpaca\.markets|"
     r"alpaca-py|ib_insync|\bibapi\b|\bccxt\b",
@@ -173,9 +312,9 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, or 3") from exc
-    if phase not in {1, 2, 3}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, or 3")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, or 4") from exc
+    if phase not in {1, 2, 3, 4}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, or 4")
     return phase
 
 
@@ -195,6 +334,26 @@ def enum_string_values(path: Path, class_name: str) -> set[str]:
                 and isinstance(child.value.value, str)
             }
     raise AssertionError(f"Missing enum {class_name} in {path.relative_to(ROOT)}")
+
+
+def imported_module_roots(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    roots: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            roots.add(node.module.split(".", 1)[0])
+    return roots
+
+
+def declared_symbols(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    return {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+    }
 
 
 def assigned_call_keyword(path: Path, assignment_name: str, keyword_name: str) -> str:
@@ -256,6 +415,10 @@ def verify_static(phase: int = 1) -> None:
         missing_phase3 = [path for path in PHASE_3_REQUIRED_PATHS if not (ROOT / path).exists()]
         if missing_phase3:
             raise AssertionError(f"Missing Phase 3 paths: {', '.join(missing_phase3)}")
+    if phase >= 4:
+        missing_phase4 = [path for path in PHASE_4_REQUIRED_PATHS if not (ROOT / path).exists()]
+        if missing_phase4:
+            raise AssertionError(f"Missing Phase 4 paths: {', '.join(missing_phase4)}")
 
     gates = canonical_gates()
     for filename in ("AGENTS.md", "CLAUDE.md"):
@@ -431,10 +594,20 @@ def verify_static(phase: int = 1) -> None:
             raise AssertionError("services/api/Dockerfile does not package the mapping domain")
 
         for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
-            if "--phase 3" not in normalized(ROOT / entrypoint):
-                raise AssertionError(f"{entrypoint} does not select the Phase 3 verifier")
-        if normalized(ROOT / ".github/workflows/ci.yml").count("--phase 3") < 2:
-            raise AssertionError("CI does not run both static and full Phase 3 verification")
+            selected_phases = {
+                int(value)
+                for value in re.findall(r"--phase\s+([1-4])", normalized(ROOT / entrypoint))
+            }
+            if not selected_phases or max(selected_phases) < phase:
+                raise AssertionError(
+                    f"{entrypoint} selects no verifier at or beyond required Phase {phase}"
+                )
+        ci = normalized(ROOT / ".github/workflows/ci.yml")
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-4])", ci)]
+        if sum(selected >= phase for selected in ci_phases) < 2:
+            raise AssertionError(
+                f"CI does not run both static and full verification at or beyond Phase {phase}"
+            )
 
         openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
         components = openapi["components"]["schemas"]
@@ -565,6 +738,235 @@ def verify_static(phase: int = 1) -> None:
         if f"`{PHASE_3_RULE_SET_SHA256}`" not in decisions:
             raise AssertionError("Phase 3 decisions do not freeze the canonical rule-set hash")
 
+    if phase >= 4:
+        for relative_path, expected_sha256 in PHASE_1_3_MIGRATION_SHA256.items():
+            actual_sha256 = hashlib.sha256(
+                normalized(ROOT / relative_path).encode("utf-8")
+            ).hexdigest()
+            if actual_sha256 != expected_sha256:
+                raise AssertionError(
+                    f"Immutable earlier migration changed: {relative_path} ({actual_sha256})"
+                )
+
+        contracts_path = ROOT / "services/data/src/fable5_data/contracts.py"
+        contracts = normalized(contracts_path)
+        canonical = normalized(ROOT / "services/data/src/fable5_data/canonical.py")
+        decisions = normalized(ROOT / "docs/PHASE_04_DATA_DECISIONS.md")
+        migration = normalized(
+            ROOT / "services/api/migrations/versions/0004_phase4_point_in_time_data.py"
+        )
+        if 'down_revision: str | None = "0003_phase3"' not in migration:
+            raise AssertionError("Phase 4 migration must directly revise immutable Phase 3")
+        for table in PHASE_4_TABLES:
+            if table not in migration:
+                raise AssertionError(f"Phase 4 migration is missing {table}")
+        for required_constraint in (
+            "CREATE FUNCTION validate_phase4_snapshot_request()",
+            "CREATE FUNCTION validate_phase4_observation_envelope()",
+            "CREATE FUNCTION validate_phase4_raw_observation()",
+            "CREATE FUNCTION validate_phase4_observation_revision()",
+            "CREATE FUNCTION validate_phase4_normalized_observation()",
+            "CREATE FUNCTION validate_phase4_snapshot_constituent()",
+            "CREATE FUNCTION validate_phase4_quality_finding()",
+            "CREATE FUNCTION validate_phase4_snapshot_manifest()",
+            "CREATE CONSTRAINT TRIGGER data_snapshots_manifest_required",
+            "CREATE FUNCTION reject_phase4_data_mutation()",
+            "CREATE TRIGGER {table}_immutable",
+            "CREATE TRIGGER {table}_no_truncate",
+            "Phase 4 data records are append-only",
+        ):
+            if required_constraint not in migration:
+                raise AssertionError(
+                    f"Phase 4 migration is missing invariant {required_constraint}"
+                )
+
+        actual_capabilities = enum_string_values(contracts_path, "DataCapability")
+        if actual_capabilities != PHASE_4_CAPABILITIES:
+            raise AssertionError(
+                f"Phase 4 capability vocabulary is not exact: {sorted(actual_capabilities)}"
+            )
+        actual_record_types = enum_string_values(contracts_path, "DataRecordType")
+        if actual_record_types != PHASE_4_RECORD_TYPES:
+            raise AssertionError(
+                f"Phase 4 record-type vocabulary is not exact: {sorted(actual_record_types)}"
+            )
+        for version in PHASE_4_SCHEMA_VERSIONS:
+            if version not in contracts + canonical or f"`{version}`" not in decisions:
+                raise AssertionError(f"Phase 4 schema/version identity is not frozen: {version}")
+
+        for required_contract in (
+            "class SnapshotCreateRequest(StrictModel):",
+            "class AdapterAvailableResult(StrictModel):",
+            "class AdapterUnavailableResult(StrictModel):",
+            "class RawObservationDraft(ObservationEnvelopeDraft):",
+            "class ObservationRevisionDraft(ObservationEnvelopeDraft):",
+            "class NormalizedObservationDraft(ObservationEnvelopeDraft):",
+            "class DataSnapshot(",
+            "class SnapshotBundle(StrictModel):",
+            "class DataQualityFindingDraft(StrictModel):",
+            "PHASE4_SCHEMA_CONSTANTS = MappingProxyType(",
+            "item.available_at > self.request.as_of_utc",
+        ):
+            if required_contract not in contracts:
+                raise AssertionError(f"Phase 4 contract invariant is missing: {required_contract}")
+
+        data_source_root = ROOT / "services/data/src/fable5_data"
+        for path in data_source_root.rglob("*.py"):
+            if path.stem.casefold().startswith(PHASE_5_SYMBOL_PREFIXES):
+                raise AssertionError(
+                    f"Phase 5+ data module is present during Phase 4: {path.relative_to(ROOT)}"
+                )
+            forbidden_symbols = sorted(
+                symbol
+                for symbol in declared_symbols(path)
+                if symbol.casefold().startswith(PHASE_5_SYMBOL_PREFIXES)
+            )
+            if forbidden_symbols:
+                raise AssertionError(
+                    "Phase 5+ symbol is present in the Phase 4 data package: "
+                    f"{path.relative_to(ROOT)} {forbidden_symbols}"
+                )
+            imported = imported_module_roots(path)
+            forbidden = imported & (
+                FORBIDDEN_VENDOR_SDK_MODULES | FORBIDDEN_PHASE_4_NETWORK_MODULES
+            )
+            if forbidden:
+                raise AssertionError(
+                    "Phase 4 data package imports a provider SDK or network client: "
+                    f"{path.relative_to(ROOT)} {sorted(forbidden)}"
+                )
+        for source_root in (
+            ROOT / "services/api/src",
+            ROOT / "services/extraction/src",
+            ROOT / "services/mapping/src",
+        ):
+            for path in source_root.rglob("*.py"):
+                forbidden = imported_module_roots(path) & FORBIDDEN_VENDOR_SDK_MODULES
+                if forbidden:
+                    raise AssertionError(
+                        "A Phase 1-4 production package imports a provider SDK: "
+                        f"{path.relative_to(ROOT)} {sorted(forbidden)}"
+                    )
+
+        for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
+            if "COPY services/data ./services/data" not in normalized(ROOT / dockerfile):
+                raise AssertionError(f"{dockerfile} does not package the Phase 4 data domain")
+
+        snapshot_api = normalized(ROOT / "services/api/src/fable5_api/data_snapshots.py")
+        for resolver_evidence in (
+            "SyntheticPointInTimeAdapter.for_mapping(mapping)",
+            "adapter_resolver=resolve_adapter",
+        ):
+            if resolver_evidence not in snapshot_api:
+                raise AssertionError(
+                    "Default Phase 4 workflow does not server-resolve mapping-bound synthetic "
+                    f"data: {resolver_evidence}"
+                )
+
+        adapter_test = normalized(ROOT / "services/data/tests/test_adapters.py")
+        for evidence in (
+            'assert calls == {"factory": 0, "transport": 0}',
+            "AdapterUnavailableReason.CREDENTIALS_UNAVAILABLE",
+            "assert planted_secret not in rendered",
+        ):
+            if evidence not in adapter_test:
+                raise AssertionError(
+                    f"Phase 4 credential-unavailable zero-network evidence is missing: {evidence}"
+                )
+
+        openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+        components = openapi["components"]["schemas"]
+        expected_snapshot_paths = {
+            "/v1/data-snapshots": {"get", "post"},
+            "/v1/data-snapshots/{snapshot_id}": {"get"},
+        }
+        snapshot_paths = {
+            path: {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            for path, operations in openapi["paths"].items()
+            if path.startswith("/v1/data-snapshots")
+        }
+        if snapshot_paths != expected_snapshot_paths:
+            raise AssertionError(f"Phase 4 snapshot paths/methods are not exact: {snapshot_paths}")
+        for component in (
+            "AdapterUnavailableResult",
+            "DataCapability",
+            "DataSnapshot",
+            "SnapshotBuildBlockedResult",
+            "SnapshotBundle",
+            "SnapshotCreateRequest",
+        ):
+            if component not in components:
+                raise AssertionError(f"Phase 4 OpenAPI is missing {component}")
+        if set(components["DataCapability"].get("enum", [])) != PHASE_4_CAPABILITIES:
+            raise AssertionError("DataCapability OpenAPI vocabulary is not exact")
+        request_schema = components["SnapshotCreateRequest"]
+        request_fields = set(request_schema.get("properties", {}))
+        expected_request_fields = {
+            "mapping_id",
+            "as_of_utc",
+            "capability",
+            "mock_configuration_id",
+        }
+        if (
+            request_fields != expected_request_fields
+            or set(request_schema.get("required", [])) != expected_request_fields
+        ):
+            raise AssertionError(
+                "SnapshotCreateRequest accepts fields beyond server-resolvable identities"
+            )
+        if request_schema.get("additionalProperties") is not False:
+            raise AssertionError(
+                "SnapshotCreateRequest does not reject client-authoritative extras"
+            )
+
+        domain_paths = {
+            path: operations
+            for path, operations in openapi["paths"].items()
+            if path.startswith("/v1/")
+        }
+        for path, operations in domain_paths.items():
+            methods = {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            if methods - {"get", "post"}:
+                raise AssertionError(f"Phase 4 API exposes a mutation method: {path} {methods}")
+            if any(term in path.casefold() for term in PHASE_4_FORBIDDEN_API_TERMS):
+                raise AssertionError(f"Forbidden Phase 5+ or execution API path: {path}")
+
+        generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+        for generated_contract in (
+            "AdapterUnavailableResult:",
+            "DataSnapshot:",
+            "SnapshotBuildBlockedResult:",
+            "SnapshotBundle:",
+            "SnapshotCreateRequest:",
+            '"/v1/data-snapshots"',
+            '"/v1/data-snapshots/{snapshot_id}"',
+        ):
+            if generated_contract not in generated:
+                raise AssertionError(
+                    f"Generated TypeScript Phase 4 contract is missing {generated_contract}"
+                )
+
+        secret_pattern = re.compile(r"\b(?:sk|api[_-]?key)[-_][A-Za-z0-9_-]{8,}\b", re.IGNORECASE)
+        secret_surfaces = (
+            ROOT / "services/data/src/fable5_data/fixtures/phase4_synthetic_pit_v1.json",
+            ROOT / "packages/contracts/openapi.json",
+            ROOT / "packages/contracts/src/api.generated.ts",
+        )
+        for path in secret_surfaces:
+            match = secret_pattern.search(path.read_text(encoding="utf-8"))
+            if match:
+                raise AssertionError(
+                    f"Credential-shaped content leaked into {path.relative_to(ROOT)}"
+                )
+
     print(f"Static repository policy checks passed for Phase {phase}.")
 
 
@@ -652,6 +1054,36 @@ def request_json(
         if "application/json" not in response.headers.get("content-type", ""):
             raise AssertionError(f"{method} {url} did not return JSON")
         return json.load(response)
+
+
+def request_error_json(
+    url: str,
+    *,
+    expected_status: int,
+    method: str = "POST",
+    payload: dict[str, object] | None = None,
+) -> dict[str, object]:
+    body = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        method=method,
+        headers={"Content-Type": "application/json"} if body is not None else {},
+    )
+    try:
+        urllib.request.urlopen(request, timeout=10)
+    except urllib.error.HTTPError as exc:
+        if exc.code != expected_status:
+            raise AssertionError(
+                f"{method} {url} returned {exc.code}, expected {expected_status}"
+            ) from exc
+        if "application/json" not in exc.headers.get("content-type", ""):
+            raise AssertionError(f"{method} {url} error did not return JSON") from exc
+        result = json.load(exc)
+        if not isinstance(result, dict):
+            raise AssertionError(f"{method} {url} error did not return an object") from exc
+        return result
+    raise AssertionError(f"{method} {url} unexpectedly succeeded")
 
 
 def wait_for_cards(api_url: str, expected: int, timeout: int = 90) -> list[dict[str, object]]:
@@ -1006,6 +1438,190 @@ def verify_phase3_api(api_url: str) -> str:
     return str(ranking_card["card_id"])
 
 
+def verify_phase4_api(api_url: str) -> str:
+    family_b_source = request_json(
+        f"{api_url}/v1/sources",
+        method="POST",
+        payload={
+            "source_type": "synthetic_fixture",
+            "source_authority": "other",
+            "raw_text": (
+                "When the moving average crosses, evaluate the next day trend claim in liquid ETFs."
+            ),
+            "ingest_idempotency_key": "phase4-family-b-verifier-v1",
+        },
+    )
+    if not isinstance(family_b_source, dict) or not isinstance(
+        family_b_source.get("source_version"), dict
+    ):
+        raise AssertionError("Phase 4 verifier could not create a testable Family B source")
+    family_b_source_version_id = str(family_b_source["source_version"]["source_version_id"])
+    family_b_card = wait_for_source_cards(api_url, {family_b_source_version_id})[
+        family_b_source_version_id
+    ]
+    family_b_result = request_json(
+        f"{api_url}/v1/cards/{family_b_card['card_id']}/mappings",
+        method="POST",
+    )
+    if (
+        not isinstance(family_b_result, dict)
+        or not isinstance(family_b_result.get("mapping"), dict)
+        or family_b_result["mapping"].get("canonical_family") != "B_TIME_SERIES_MOMENTUM_REGIME"
+        or family_b_result["mapping"].get("verdict") != "BUILD_RESEARCH"
+    ):
+        raise AssertionError("Phase 4 verifier did not produce an authorized Family B mapping")
+
+    mappings = request_json(f"{api_url}/v1/mappings")
+    if not isinstance(mappings, list):
+        raise AssertionError("Phase 3 mappings were unavailable before Phase 4 snapshot creation")
+
+    authorized_mappings: dict[str, dict[str, object]] = {}
+    unauthorized_mapping: dict[str, object] | None = None
+    for item in mappings:
+        if not isinstance(item, dict) or not isinstance(item.get("mapping"), dict):
+            continue
+        mapping = item["mapping"]
+        family = mapping.get("canonical_family")
+        if mapping.get("verdict") == "BUILD_RESEARCH" and isinstance(family, str):
+            authorized_mappings[family] = mapping
+        elif mapping.get("verdict") != "BUILD_RESEARCH":
+            unauthorized_mapping = mapping
+    family_capabilities = {
+        "A_CROSS_SECTIONAL_EQUITY_RANKING": "ohlcv",
+        "B_TIME_SERIES_MOMENTUM_REGIME": "trading_calendar",
+        "C_OFFICIAL_EVENT_TEXT_OVERLAY": "official_document_event_metadata",
+    }
+    missing_families = set(family_capabilities) - set(authorized_mappings)
+    if missing_families or unauthorized_mapping is None:
+        raise AssertionError(
+            "Phase 4 verifier could not resolve authorized A/B/C and denied mappings: "
+            f"{sorted(missing_families)}"
+        )
+
+    as_of_text = "2024-01-03T00:00:00Z"
+    as_of_utc = datetime.fromisoformat(as_of_text.replace("Z", "+00:00"))
+    created_by_family: dict[str, dict[str, object]] = {}
+    payload_by_family: dict[str, dict[str, object]] = {}
+    for family, capability in family_capabilities.items():
+        mapping = authorized_mappings[family]
+        create_payload: dict[str, object] = {
+            "mapping_id": mapping["mapping_id"],
+            "as_of_utc": as_of_text,
+            "capability": capability,
+            "mock_configuration_id": "phase4-synthetic-default-v1",
+        }
+        created = request_json(
+            f"{api_url}/v1/data-snapshots",
+            method="POST",
+            payload=create_payload,
+        )
+        repeated = request_json(
+            f"{api_url}/v1/data-snapshots",
+            method="POST",
+            payload=create_payload,
+        )
+        if not isinstance(created, dict) or created != repeated:
+            raise AssertionError(
+                f"Identical Phase 4 {family} API creation was not deterministic and idempotent"
+            )
+        snapshot = created.get("snapshot")
+        constituents = created.get("constituents")
+        if not isinstance(snapshot, dict) or not isinstance(constituents, list) or not constituents:
+            raise AssertionError(f"Phase 4 {family} API returned no immutable constituents")
+        snapshot_id = snapshot.get("snapshot_id")
+        snapshot_sha256 = snapshot.get("snapshot_sha256")
+        if not isinstance(snapshot_id, str) or not isinstance(snapshot_sha256, str):
+            raise AssertionError(f"Phase 4 {family} API omitted snapshot identity/hash")
+        if not re.fullmatch(r"[0-9a-f]{64}", snapshot_sha256):
+            raise AssertionError(f"Phase 4 {family} API returned a non-SHA-256 snapshot hash")
+        manifest = snapshot.get("manifest")
+        if (
+            not isinstance(manifest, dict)
+            or not isinstance(manifest.get("payload"), dict)
+            or not isinstance(manifest["payload"].get("mapping"), dict)
+            or manifest["payload"]["mapping"].get("canonical_family") != family
+        ):
+            raise AssertionError(f"Phase 4 {family} manifest lost persisted mapping lineage")
+        for constituent in constituents:
+            if not isinstance(constituent, dict):
+                raise AssertionError("Phase 4 snapshot constituent was not an object")
+            if constituent.get("snapshot_id") != snapshot_id:
+                raise AssertionError("Phase 4 snapshot constituent lost its snapshot lineage")
+            available_at = constituent.get("available_at")
+            if not isinstance(available_at, str):
+                raise AssertionError("Phase 4 snapshot constituent omitted available_at")
+            parsed_available_at = datetime.fromisoformat(available_at.replace("Z", "+00:00"))
+            if parsed_available_at > as_of_utc:
+                raise AssertionError("Phase 4 API included a future-available constituent")
+
+        detail = request_json(f"{api_url}/v1/data-snapshots/{snapshot_id}")
+        if detail != created:
+            raise AssertionError(f"Phase 4 {family} detail did not reproduce its bundle")
+        listed = request_json(
+            f"{api_url}/v1/data-snapshots?mapping_id={mapping['mapping_id']}&limit=100"
+        )
+        if not isinstance(listed, list) or snapshot_id not in {
+            item.get("snapshot_id") for item in listed if isinstance(item, dict)
+        }:
+            raise AssertionError(f"Phase 4 {family} list omitted its persisted snapshot")
+        created_by_family[family] = created
+        payload_by_family[family] = create_payload
+
+    family_a = "A_CROSS_SECTIONAL_EQUITY_RANKING"
+    create_payload = payload_by_family[family_a]
+    created = created_by_family[family_a]
+    snapshot = created["snapshot"]
+    assert isinstance(snapshot, dict)
+    snapshot_id = snapshot["snapshot_id"]
+    assert isinstance(snapshot_id, str)
+
+    forbidden_client_payload = dict(create_payload)
+    forbidden_client_payload.update(
+        {
+            "canonical_family": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+            "observations": [],
+            "provider_id": "client-claim",
+            "snapshot_sha256": "0" * 64,
+        }
+    )
+    request_error_json(
+        f"{api_url}/v1/data-snapshots",
+        expected_status=422,
+        payload=forbidden_client_payload,
+    )
+    denied_payload = dict(create_payload)
+    denied_payload["mapping_id"] = unauthorized_mapping["mapping_id"]
+    request_error_json(
+        f"{api_url}/v1/data-snapshots",
+        expected_status=422,
+        payload=denied_payload,
+    )
+    unavailable_payload = dict(create_payload)
+    unavailable_payload["mock_configuration_id"] = "unregistered-configuration"
+    unavailable = request_error_json(
+        f"{api_url}/v1/data-snapshots",
+        expected_status=503,
+        payload=unavailable_payload,
+    )
+    if (
+        unavailable.get("status") != "unavailable"
+        or unavailable.get("reason_code") != "configuration_unavailable"
+        or "detail" in unavailable
+    ):
+        raise AssertionError("Phase 4 API did not return its typed sanitized unavailable result")
+    request_error_json(
+        f"{api_url}/v1/data-snapshots",
+        expected_status=422,
+        payload={**create_payload, "capability": "options"},
+    )
+
+    print(
+        "Phase 4 authorized A/B/C create/read/list, deterministic retry, server-authority, and "
+        f"fail-closed API proof passed (Family A snapshot {snapshot_id})."
+    )
+    return snapshot_id
+
+
 def compose_exec(
     project: str,
     environment: dict[str, str],
@@ -1121,6 +1737,32 @@ def verify_phase3_postgres_acceptance(environment: dict[str, str]) -> None:
     if result.returncode != 0:
         raise AssertionError("Phase 3 isolated PostgreSQL acceptance tests failed")
     print("Phase 3 lineage, exact corroboration-set, and two-writer PostgreSQL tests passed.")
+
+
+def verify_phase4_postgres_acceptance(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    test_environment["FABLE5_TEST_DATABASE_URL"] = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/test_phase4_postgres.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 4 isolated PostgreSQL acceptance tests failed")
+    print(
+        "Phase 4 lineage, as-of, exact corroboration, concurrent idempotency, rollback, and "
+        "all-seven-table append-only PostgreSQL tests passed."
+    )
 
 
 def verify_phase2_queue_processing(
@@ -1470,7 +2112,16 @@ def verify_phase3_migration_cycle(project: str, environment: dict[str, str]) -> 
     assert_snapshots_equal(before, after_downgrade, "during downgrade to 0002_phase2")
 
     run(
-        ["exec", "-T", "api", "alembic", "-c", "services/api/alembic.ini", "upgrade", "head"],
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0003_phase3",
+        ],
         project=project,
         env=environment,
     )
@@ -1491,6 +2142,111 @@ def verify_phase3_migration_cycle(project: str, environment: dict[str, str]) -> 
     assert_snapshots_equal(before, after_reupgrade, "during re-upgrade to 0003_phase3")
     print(
         "Phase 3 downgrade/re-upgrade preserved research_audit_events and all eight Phase 2 tables."
+    )
+
+
+def verify_phase4_migration_cycle(project: str, environment: dict[str, str]) -> None:
+    earlier_tables = ("research_audit_events", *PHASE_2_TABLES, *PHASE_3_TABLES)
+    audit_fixture_id = "00000000-0000-5000-8000-000000000004"
+    audit_insert = (
+        "INSERT INTO research_audit_events "
+        "(id,event_type,config_hash,data_snapshot_id,git_sha,random_seed,trial_count,payload) "
+        f"VALUES ('{audit_fixture_id}'::uuid,'phase4_migration_preservation_fixture',"
+        f"'{'4' * 64}','phase4-synthetic-preservation',"
+        "'24e243e373ec6c6aacad22cf47505c50cc7bbcaa',4,1,"
+        '\'{"fixture":"phase4_migration_preservation","synthetic":true}\'::jsonb) '
+        "ON CONFLICT (id) DO NOTHING;"
+    )
+    compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", audit_insert],
+    )
+    before = snapshot_tables(project, environment, earlier_tables)
+    if len(before) != 12:
+        raise AssertionError("Phase 4 migration proof did not cover all 12 Phase 1-3 tables")
+    empty_earlier_tables = sorted(table for table, (count, _) in before.items() if count < 1)
+    if empty_earlier_tables:
+        raise AssertionError(
+            "Phase 4 migration proof requires preserved evidence in every earlier table: "
+            + ", ".join(empty_earlier_tables)
+        )
+    print(
+        "Phase 4 earlier-table snapshots: "
+        + json.dumps(
+            {
+                table: {"row_count": count, "sha256": digest}
+                for table, (count, digest) in before.items()
+            },
+            sort_keys=True,
+        )
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "downgrade",
+            "0003_phase3",
+        ],
+        project=project,
+        env=environment,
+    )
+    absent_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NULL" for table in PHASE_4_TABLES)
+        + " FROM alembic_version;"
+    )
+    downgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", absent_query],
+    ).stdout.strip()
+    expected_downgraded = "0003_phase3|" + "|".join("t" for _ in PHASE_4_TABLES)
+    if downgraded != expected_downgraded:
+        raise AssertionError(f"Phase 4 downgrade did not remove only Phase 4 tables: {downgraded}")
+    after_downgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_downgrade, "during downgrade to 0003_phase3")
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0004_phase4",
+        ],
+        project=project,
+        env=environment,
+    )
+    restored_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NOT NULL" for table in PHASE_4_TABLES)
+        + " FROM alembic_version;"
+    )
+    restored = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_query],
+    ).stdout.strip()
+    expected_restored = "0004_phase4|" + "|".join("t" for _ in PHASE_4_TABLES)
+    if restored != expected_restored:
+        raise AssertionError(f"Phase 4 re-upgrade did not restore revision 0004: {restored}")
+    after_reupgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_reupgrade, "during re-upgrade to 0004_phase4")
+    print(
+        "Phase 4 0004->0003->0004 migration cycle preserved all 12 Phase 1-3 tables "
+        "byte-identically."
     )
 
 
@@ -1573,8 +2329,14 @@ def verify_compose(phase: int = 1) -> None:
                 verify_phase3_changed_rule_version(project, environment, phase3_card_id)
                 verify_phase3_postgres_acceptance(environment)
                 verify_phase3_append_only(project, environment)
-                verify_phase3_migration_cycle(project, environment)
-                print("Full Compose Phase 3 verification passed.")
+                if phase == 3:
+                    verify_phase3_migration_cycle(project, environment)
+                    print("Full Compose Phase 3 verification passed.")
+                else:
+                    verify_phase4_api(api_url)
+                    verify_phase4_postgres_acceptance(environment)
+                    verify_phase4_migration_cycle(project, environment)
+                    print("Full Compose Phase 4 verification passed.")
         else:
             run(
                 [
@@ -1625,7 +2387,7 @@ def main() -> int:
         type=phase_number,
         default=os.environ.get("FABLE5_VERIFY_PHASE", "1"),
         help=(
-            "Apply repository policy checks for phase 1, 2, or 3 "
+            "Apply repository policy checks for phase 1, 2, 3, or 4 "
             "(default: FABLE5_VERIFY_PHASE or 1)."
         ),
     )

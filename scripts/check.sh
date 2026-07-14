@@ -7,4 +7,4 @@ python -m mypy
 npm run lint
 npm run typecheck
 npm run contracts:check
-python scripts/verify_phase1.py --static-only --phase 3
+python scripts/verify_phase1.py --static-only --phase 4

@@ -106,6 +106,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/data-snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Data Snapshots */
+        get: operations["list_data_snapshots_v1_data_snapshots_get"];
+        put?: never;
+        /** Create Data Snapshot */
+        post: operations["create_data_snapshot_v1_data_snapshots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/data-snapshots/{snapshot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Data Snapshot */
+        get: operations["get_data_snapshot_v1_data_snapshots__snapshot_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/extractions": {
         parameters: {
             query?: never;
@@ -270,11 +305,108 @@ export interface components {
             claim_ids: string[];
             state: components["schemas"]["EvidenceState"];
         };
+        /** AdapterProfile */
+        AdapterProfile: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            /** Capabilities */
+            capabilities: components["schemas"]["DataCapability"][];
+            /** Dataset Id */
+            dataset_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /** Schema Bindings */
+            schema_bindings: components["schemas"]["SchemaBinding"][];
+            /** Synthetic */
+            synthetic: boolean;
+            use_rights: components["schemas"]["UseRightsIdentity"];
+        };
+        /**
+         * AdapterUnavailableReason
+         * @enum {string}
+         */
+        AdapterUnavailableReason: "credentials_unavailable" | "capability_unavailable" | "entitlement_unavailable" | "configuration_unavailable";
+        /** AdapterUnavailableResult */
+        AdapterUnavailableResult: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            capability: components["schemas"]["DataCapability"];
+            /** Dataset Id */
+            dataset_id: string;
+            /** Entitlement Id */
+            entitlement_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            reason_code: components["schemas"]["AdapterUnavailableReason"];
+            /** Sanitized Message */
+            sanitized_message: string;
+            /**
+             * Status
+             * @default unavailable
+             * @constant
+             */
+            status: "unavailable";
+            /** Use Rights Id */
+            use_rights_id: string;
+        };
+        /**
+         * AdjustmentBasis
+         * @enum {string}
+         */
+        AdjustmentBasis: "raw_unadjusted" | "as_of_adjusted";
         /**
          * AmbiguityFlag
          * @enum {string}
          */
         AmbiguityFlag: "synthetic_fixture" | "source_url_not_retrieved" | "social_manipulation_risk" | "official_corroboration_required" | "missing_action_rule" | "ambiguous_action_rule" | "missing_forecast_horizon" | "ambiguous_forecast_horizon" | "missing_raw_text";
+        /** AsReportedFundamentalPayload */
+        AsReportedFundamentalPayload: {
+            /** Amendment Sequence */
+            amendment_sequence: number;
+            /**
+             * As Reported
+             * @default true
+             * @constant
+             */
+            as_reported: true;
+            /** Concept Id */
+            concept_id: string;
+            /**
+             * Filing Accepted At
+             * Format: date-time
+             */
+            filing_accepted_at: string;
+            /**
+             * Fiscal Period End
+             * Format: date
+             */
+            fiscal_period_end: string;
+            /**
+             * Fiscal Period Start
+             * Format: date
+             */
+            fiscal_period_start: string;
+            fiscal_period_type: components["schemas"]["FiscalPeriodType"];
+            /** Official Document Id */
+            official_document_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "as_reported_fundamental";
+            /** Restates Revision Id */
+            restates_revision_id?: string | null;
+            /** Value */
+            value: string | null;
+        };
         /**
          * AssetClass
          * @enum {string}
@@ -292,6 +424,69 @@ export interface components {
          * @enum {string}
          */
         AuthorityVerificationMethod: "manual_user_attestation" | "synthetic_fixture";
+        /** AuthorizedMappingIdentity */
+        AuthorizedMappingIdentity: {
+            canonical_family: components["schemas"]["CanonicalFamily"];
+            /** Mapper Rule Set Sha256 */
+            mapper_rule_set_sha256: string;
+            /** Mapper Rule Set Version */
+            mapper_rule_set_version: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /**
+             * Official Corroboration Source Version Ids
+             * @default []
+             */
+            official_corroboration_source_version_ids: string[];
+            verdict: components["schemas"]["ResearchVerdict"];
+        };
+        /**
+         * AvailabilityConvention
+         * @enum {string}
+         */
+        AvailabilityConvention: "source_timestamp" | "phase4-date-only-next-day-v1";
+        /**
+         * AvailabilityPrecision
+         * @enum {string}
+         */
+        AvailabilityPrecision: "timestamp" | "date";
+        /**
+         * BarInterval
+         * @enum {string}
+         */
+        BarInterval: "P1D";
+        /** CalendarSessionPayload */
+        CalendarSessionPayload: {
+            /** Close At */
+            close_at: string | null;
+            /** Early Close */
+            early_close: boolean;
+            /** Open At */
+            open_at: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "calendar_session";
+            /**
+             * Session Date
+             * Format: date
+             */
+            session_date: string;
+            status: components["schemas"]["CalendarSessionStatus"];
+        };
+        /**
+         * CalendarSessionStatus
+         * @enum {string}
+         */
+        CalendarSessionStatus: "open" | "closed";
         /**
          * CanonicalFamily
          * @enum {string}
@@ -303,6 +498,11 @@ export interface components {
             memo: components["schemas"]["ResearchMemo"];
         };
         /**
+         * ConstituentDisposition
+         * @enum {string}
+         */
+        ConstituentDisposition: "included_as_of" | "retained_historical_vintage" | "explicit_missingness";
+        /**
          * ContentState
          * @enum {string}
          */
@@ -312,11 +512,215 @@ export interface components {
          * @enum {string}
          */
         ContributionStatus: "not_blocked_by_corroboration" | "blocked_official_corroboration_required";
+        /** CorporateActionPayload */
+        CorporateActionPayload: {
+            action_type: components["schemas"]["CorporateActionType"];
+            /**
+             * Announcement At
+             * Format: date-time
+             */
+            announcement_at: string;
+            /** Cash Amount */
+            cash_amount?: string | null;
+            /** Corporate Action Id */
+            corporate_action_id: string;
+            /**
+             * Effective At
+             * Format: date-time
+             */
+            effective_at: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "corporate_action";
+            /** Split Ratio */
+            split_ratio?: string | null;
+            /** Target Instrument Id */
+            target_instrument_id?: string | null;
+        };
+        /**
+         * CorporateActionType
+         * @enum {string}
+         */
+        CorporateActionType: "split" | "cash_dividend" | "merger" | "spinoff";
         /**
          * CorroborationStatus
          * @enum {string}
          */
         CorroborationStatus: "not_required" | "missing" | "linked_unverified" | "verified";
+        /**
+         * DataCapability
+         * @enum {string}
+         */
+        DataCapability: "security_master" | "universe_membership" | "ohlcv" | "corporate_actions" | "delistings" | "as_reported_fundamentals" | "trading_calendar" | "volatility_return_inputs" | "official_document_event_metadata";
+        /**
+         * DataQualityCode
+         * @enum {string}
+         */
+        DataQualityCode: "synthetic_fixture" | "date_only_convention_applied" | "future_availability_excluded" | "near_duplicate_retained" | "exact_duplicate_key" | "required_field_missing" | "invalid_enum_value" | "invalid_timestamp_order" | "orphan_reference" | "raw_normalized_lineage_gap" | "unit_currency_calendar_timezone_mismatch" | "schema_drift" | "current_universe_leakage" | "restatement_leakage" | "corporate_action_lookahead" | "missing_delisting_return" | "future_availability_included" | "unnormalized_rejected";
+        /** DataQualityFinding */
+        DataQualityFinding: {
+            /** Affected Record Identity */
+            affected_record_identity?: string | null;
+            affected_record_type?: components["schemas"]["DataRecordType"] | null;
+            code: components["schemas"]["DataQualityCode"];
+            disposition: components["schemas"]["FindingDisposition"];
+            /** Field Name */
+            field_name?: string | null;
+            /**
+             * Finding Id
+             * Format: uuid
+             */
+            finding_id: string;
+            /** Finding Sha256 */
+            finding_sha256: string;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256?: string | null;
+            /** Occurrence Count */
+            occurrence_count: number;
+            /** Occurrence Rate */
+            occurrence_rate?: string | null;
+            /** Range End Utc */
+            range_end_utc?: string | null;
+            /** Range Start Utc */
+            range_start_utc?: string | null;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256?: string | null;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Rule Set Version
+             * @default phase4-data-quality-v1
+             * @constant
+             */
+            rule_set_version: "phase4-data-quality-v1";
+            /** Sanitized Detail */
+            sanitized_detail: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            severity: components["schemas"]["DataQualitySeverity"];
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /** DataQualityFindingDraft */
+        DataQualityFindingDraft: {
+            /** Affected Record Identity */
+            affected_record_identity?: string | null;
+            affected_record_type?: components["schemas"]["DataRecordType"] | null;
+            code: components["schemas"]["DataQualityCode"];
+            disposition: components["schemas"]["FindingDisposition"];
+            /** Field Name */
+            field_name?: string | null;
+            /**
+             * Finding Id
+             * Format: uuid
+             */
+            finding_id: string;
+            /** Finding Sha256 */
+            finding_sha256: string;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256?: string | null;
+            /** Occurrence Count */
+            occurrence_count: number;
+            /** Occurrence Rate */
+            occurrence_rate?: string | null;
+            /** Range End Utc */
+            range_end_utc?: string | null;
+            /** Range Start Utc */
+            range_start_utc?: string | null;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256?: string | null;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Rule Set Version
+             * @default phase4-data-quality-v1
+             * @constant
+             */
+            rule_set_version: "phase4-data-quality-v1";
+            /** Sanitized Detail */
+            sanitized_detail: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            severity: components["schemas"]["DataQualitySeverity"];
+        };
+        /**
+         * DataQualitySeverity
+         * @enum {string}
+         */
+        DataQualitySeverity: "info" | "warning" | "error" | "blocking";
+        /**
+         * DataRecordType
+         * @enum {string}
+         */
+        DataRecordType: "instrument_identity" | "listing_identity" | "universe_membership" | "ohlcv_bar" | "corporate_action" | "delisting_event" | "as_reported_fundamental" | "calendar_session" | "official_document_event" | "volatility_return_input";
+        /** DataSnapshot */
+        DataSnapshot: {
+            /** Active Constituent Count */
+            active_constituent_count: number;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            manifest: components["schemas"]["SnapshotManifest"];
+            /** Normalized Observation Count */
+            normalized_observation_count: number;
+            /** Quality Finding Count */
+            quality_finding_count: number;
+            quality_status: components["schemas"]["SnapshotQualityStatus"];
+            /** Raw Observation Count */
+            raw_observation_count: number;
+            /** Revision Count */
+            revision_count: number;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /** DelistingEventPayload */
+        DelistingEventPayload: {
+            /** Delisting Event Id */
+            delisting_event_id: string;
+            /** Delisting Return */
+            delisting_return: string | null;
+            delisting_type: components["schemas"]["DelistingType"];
+            /**
+             * Effective At
+             * Format: date-time
+             */
+            effective_at: string;
+            /**
+             * Last Trade At
+             * Format: date-time
+             */
+            last_trade_at: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "delisting_event";
+            return_inclusion: components["schemas"]["DelistingReturnInclusion"];
+        };
+        /**
+         * DelistingReturnInclusion
+         * @enum {string}
+         */
+        DelistingReturnInclusion: "separate_return_required" | "provider_total_return_includes";
+        /**
+         * DelistingType
+         * @enum {string}
+         */
+        DelistingType: "merger" | "bankruptcy" | "liquidation" | "exchange_removal" | "other";
         /** DependencyStatus */
         DependencyStatus: {
             /**
@@ -409,6 +813,24 @@ export interface components {
          * @enum {string}
          */
         ExtractorKind: "deterministic_mock" | "llm";
+        /** FieldMissingness */
+        FieldMissingness: {
+            /** Field Name */
+            field_name: string;
+            reason: components["schemas"]["MissingnessReason"];
+            /** Source Detail Code */
+            source_detail_code?: string | null;
+        };
+        /**
+         * FindingDisposition
+         * @enum {string}
+         */
+        FindingDisposition: "retained" | "excluded" | "blocked";
+        /**
+         * FiscalPeriodType
+         * @enum {string}
+         */
+        FiscalPeriodType: "quarter" | "year" | "trailing_twelve_months";
         /**
          * ForecastHorizon
          * @enum {string}
@@ -452,6 +874,49 @@ export interface components {
          * @enum {string}
          */
         InfraRisk: "unknown" | "low" | "medium" | "high";
+        /** InstrumentIdentityPayload */
+        InstrumentIdentityPayload: {
+            /** Country Code */
+            country_code: string;
+            instrument_type: components["schemas"]["InstrumentType"];
+            /** Issuer Id */
+            issuer_id: string;
+            /** Legal Name */
+            legal_name: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "instrument_identity";
+            /** Share Class Id */
+            share_class_id: string;
+        };
+        /**
+         * InstrumentType
+         * @enum {string}
+         */
+        InstrumentType: "common_stock" | "etf";
+        JsonValue: unknown;
+        /** ListingIdentityPayload */
+        ListingIdentityPayload: {
+            /** Exchange Mic */
+            exchange_mic: string;
+            /** Primary Listing */
+            primary_listing: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "listing_identity";
+            status: components["schemas"]["ListingStatus"];
+            /** Symbol */
+            symbol: string;
+        };
+        /**
+         * ListingStatus
+         * @enum {string}
+         */
+        ListingStatus: "active" | "inactive" | "delisted";
         /** MappingEvidenceReference */
         MappingEvidenceReference: {
             /**
@@ -507,6 +972,345 @@ export interface components {
             mapping: components["schemas"]["ResearchMapping"];
             rationale: components["schemas"]["MappingRationale"];
         };
+        /**
+         * MembershipStatus
+         * @enum {string}
+         */
+        MembershipStatus: "included" | "excluded";
+        /**
+         * MissingnessReason
+         * @enum {string}
+         */
+        MissingnessReason: "not_applicable" | "not_provided_by_source" | "not_yet_available_as_of" | "entitlement_restricted" | "unresolved_identity" | "delisting_return_not_provided" | "provider_return_already_includes_delisting";
+        /** MockConfigurationIdentity */
+        MockConfigurationIdentity: {
+            /** Configuration Id */
+            configuration_id: string;
+            /** Configuration Sha256 */
+            configuration_sha256: string;
+            /**
+             * Fixture Set Version
+             * @default phase4-synthetic-pit-fixtures-v1
+             * @constant
+             */
+            fixture_set_version: "phase4-synthetic-pit-fixtures-v1";
+        };
+        /** NormalizedObservation */
+        NormalizedObservation: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            availability_convention: components["schemas"]["AvailabilityConvention"];
+            availability_precision: components["schemas"]["AvailabilityPrecision"];
+            /** Availability Source Date */
+            availability_source_date?: string | null;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Calendar Id */
+            calendar_id: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+            /** Entitlement Id */
+            entitlement_id: string;
+            /**
+             * Envelope Schema Version
+             * @default phase4-normalized-observation-v1
+             * @constant
+             */
+            envelope_schema_version: "phase4-normalized-observation-v1";
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /**
+             * Field Missingness
+             * @default []
+             */
+            field_missingness: components["schemas"]["FieldMissingness"][];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Logical Record Id */
+            logical_record_id: string;
+            /** Logical Record Key Sha256 */
+            logical_record_key_sha256: string;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256: string;
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
+            /**
+             * Observation Revision Id
+             * Format: uuid
+             */
+            observation_revision_id: string;
+            /** Payload */
+            payload: components["schemas"]["InstrumentIdentityPayload"] | components["schemas"]["ListingIdentityPayload"] | components["schemas"]["UniverseMembershipPayload"] | components["schemas"]["OhlcvBarPayload"] | components["schemas"]["CorporateActionPayload"] | components["schemas"]["DelistingEventPayload"] | components["schemas"]["AsReportedFundamentalPayload"] | components["schemas"]["CalendarSessionPayload"] | components["schemas"]["OfficialDocumentEventPayload"] | components["schemas"]["VolatilityReturnInputPayload"];
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Quality Flags
+             * @default []
+             */
+            quality_flags: components["schemas"]["QualityFlag"][];
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            /** Retrieved At */
+            retrieved_at: string | null;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /** Source Timezone */
+            source_timezone: string;
+            /** Unit */
+            unit: string | null;
+            /** Use Rights Id */
+            use_rights_id: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Vintage Id */
+            vintage_id: string;
+        };
+        /** ObservationRevision */
+        ObservationRevision: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            availability_convention: components["schemas"]["AvailabilityConvention"];
+            availability_precision: components["schemas"]["AvailabilityPrecision"];
+            /** Availability Source Date */
+            availability_source_date?: string | null;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Calendar Id */
+            calendar_id: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+            /** Entitlement Id */
+            entitlement_id: string;
+            /**
+             * Envelope Schema Version
+             * @default phase4-normalized-observation-v1
+             * @constant
+             */
+            envelope_schema_version: "phase4-normalized-observation-v1";
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /**
+             * Field Missingness
+             * @default []
+             */
+            field_missingness: components["schemas"]["FieldMissingness"][];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Logical Record Id */
+            logical_record_id: string;
+            /** Logical Record Key Sha256 */
+            logical_record_key_sha256: string;
+            /** Predecessor Revision Record Id */
+            predecessor_revision_record_id?: string | null;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Quality Flags
+             * @default []
+             */
+            quality_flags: components["schemas"]["QualityFlag"][];
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            /** Retrieved At */
+            retrieved_at: string | null;
+            /** Revision Content Sha256 */
+            revision_content_sha256: string;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Revision Record Id
+             * Format: uuid
+             */
+            revision_record_id: string;
+            /**
+             * Revision Schema Version
+             * @default phase4-observation-revision-v1
+             * @constant
+             */
+            revision_schema_version: "phase4-observation-revision-v1";
+            /** Revision Sequence */
+            revision_sequence: number;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /** Source Timezone */
+            source_timezone: string;
+            /** Unit */
+            unit: string | null;
+            /** Use Rights Id */
+            use_rights_id: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Vintage Id */
+            vintage_id: string;
+        };
+        /** OfficialDocumentEventPayload */
+        OfficialDocumentEventPayload: {
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /** Accession Id */
+            accession_id: string;
+            /** Amendment Of Document Id */
+            amendment_of_document_id?: string | null;
+            /** Document Content Sha256 */
+            document_content_sha256: string;
+            document_type: components["schemas"]["OfficialDocumentType"];
+            event_type: components["schemas"]["OfficialEventType"];
+            /** Official Document Id */
+            official_document_id: string;
+            /** Official Event Id */
+            official_event_id: string;
+            /**
+             * Official Source Version Id
+             * Format: uuid
+             */
+            official_source_version_id: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "official_document_event";
+        };
+        /**
+         * OfficialDocumentType
+         * @enum {string}
+         */
+        OfficialDocumentType: "regulatory_filing" | "issuer_release" | "earnings_transcript_metadata";
+        /**
+         * OfficialEventType
+         * @enum {string}
+         */
+        OfficialEventType: "filing" | "earnings" | "corporate_event";
+        /** OhlcvBarPayload */
+        OhlcvBarPayload: {
+            /** Adjustment As Of */
+            adjustment_as_of?: string | null;
+            adjustment_basis: components["schemas"]["AdjustmentBasis"];
+            /**
+             * Bar End
+             * Format: date-time
+             */
+            bar_end: string;
+            bar_interval: components["schemas"]["BarInterval"];
+            /**
+             * Bar Start
+             * Format: date-time
+             */
+            bar_start: string;
+            /** Close */
+            close: string;
+            /**
+             * Corporate Action Revision Ids
+             * @default []
+             */
+            corporate_action_revision_ids: string[];
+            /** High */
+            high: string;
+            /** Low */
+            low: string;
+            /** Open */
+            open: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "ohlcv_bar";
+            /** Volume */
+            volume: string;
+            /**
+             * Volume Unit
+             * @default shares
+             * @constant
+             */
+            volume_unit: "shares";
+        };
+        /**
+         * QualityFlag
+         * @enum {string}
+         */
+        QualityFlag: "synthetic_fixture" | "date_only_convention_applied" | "future_availability_excluded" | "revision_replayed_as_of" | "near_duplicate_retained";
         /** QuotedClaim */
         QuotedClaim: {
             /** Claim Id */
@@ -516,6 +1320,106 @@ export interface components {
             /** Kind */
             kind: string;
             span: components["schemas"]["SourceSpan"];
+        };
+        /** RawObservation */
+        RawObservation: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            availability_convention: components["schemas"]["AvailabilityConvention"];
+            availability_precision: components["schemas"]["AvailabilityPrecision"];
+            /** Availability Source Date */
+            availability_source_date?: string | null;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Calendar Id */
+            calendar_id: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+            /** Entitlement Id */
+            entitlement_id: string;
+            /**
+             * Envelope Schema Version
+             * @default phase4-raw-observation-v1
+             * @constant
+             */
+            envelope_schema_version: "phase4-raw-observation-v1";
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /**
+             * Field Missingness
+             * @default []
+             */
+            field_missingness: components["schemas"]["FieldMissingness"][];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Logical Record Id */
+            logical_record_id: string;
+            /** Logical Record Key Sha256 */
+            logical_record_key_sha256: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Quality Flags
+             * @default []
+             */
+            quality_flags: components["schemas"]["QualityFlag"][];
+            /** Raw Content Type */
+            raw_content_type: string;
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload */
+            raw_payload: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            /** Retrieved At */
+            retrieved_at: string | null;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /** Source Timezone */
+            source_timezone: string;
+            /** Unit */
+            unit: string | null;
+            /** Use Rights Id */
+            use_rights_id: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Vintage Id */
+            vintage_id: string;
         };
         /** ReadinessResponse */
         ReadinessResponse: {
@@ -673,6 +1577,13 @@ export interface components {
             /** Values */
             values: components["schemas"]["RiskAssumption"][];
         };
+        /** SchemaBinding */
+        SchemaBinding: {
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+        };
         /**
          * SignalFamily
          * @enum {string}
@@ -684,6 +1595,337 @@ export interface components {
             claim_ids: string[];
             state: components["schemas"]["EvidenceState"];
             value: components["schemas"]["SignalFamily"] | null;
+        };
+        /** SnapshotBuildBlockedResult */
+        SnapshotBuildBlockedResult: {
+            /** Quality Findings */
+            quality_findings: components["schemas"]["DataQualityFindingDraft"][];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Status
+             * @default blocked
+             * @constant
+             */
+            status: "blocked";
+        };
+        /** SnapshotBundle */
+        SnapshotBundle: {
+            /** Constituents */
+            constituents: components["schemas"]["SnapshotConstituent"][];
+            /** Normalized Observations */
+            normalized_observations: components["schemas"]["NormalizedObservation"][];
+            /** Quality Findings */
+            quality_findings: components["schemas"]["DataQualityFinding"][];
+            /** Raw Observations */
+            raw_observations: components["schemas"]["RawObservation"][];
+            /** Revisions */
+            revisions: components["schemas"]["ObservationRevision"][];
+            snapshot: components["schemas"]["DataSnapshot"];
+        };
+        /** SnapshotConstituent */
+        SnapshotConstituent: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            availability_convention: components["schemas"]["AvailabilityConvention"];
+            availability_precision: components["schemas"]["AvailabilityPrecision"];
+            /** Availability Source Date */
+            availability_source_date?: string | null;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Calendar Id */
+            calendar_id: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+            disposition: components["schemas"]["ConstituentDisposition"];
+            /** Entitlement Id */
+            entitlement_id: string;
+            /**
+             * Envelope Schema Version
+             * @default phase4-normalized-observation-v1
+             * @constant
+             */
+            envelope_schema_version: "phase4-normalized-observation-v1";
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /**
+             * Field Missingness
+             * @default []
+             */
+            field_missingness: components["schemas"]["FieldMissingness"][];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Logical Record Id */
+            logical_record_id: string;
+            /** Logical Record Key Sha256 */
+            logical_record_key_sha256: string;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256: string;
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
+            /**
+             * Observation Revision Id
+             * Format: uuid
+             */
+            observation_revision_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Quality Flags
+             * @default []
+             */
+            quality_flags: components["schemas"]["QualityFlag"][];
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            record_type: components["schemas"]["DataRecordType"];
+            /** Retrieved At */
+            retrieved_at: string | null;
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /** Source Timezone */
+            source_timezone: string;
+            /** Unit */
+            unit: string | null;
+            /** Use Rights Id */
+            use_rights_id: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Vintage Id */
+            vintage_id: string;
+        };
+        /** SnapshotConstituentDraft */
+        SnapshotConstituentDraft: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            availability_convention: components["schemas"]["AvailabilityConvention"];
+            availability_precision: components["schemas"]["AvailabilityPrecision"];
+            /** Availability Source Date */
+            availability_source_date?: string | null;
+            /**
+             * Available At
+             * Format: date-time
+             */
+            available_at: string;
+            /** Calendar Id */
+            calendar_id: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Id */
+            dataset_schema_id: string;
+            /** Dataset Schema Version */
+            dataset_schema_version: string;
+            disposition: components["schemas"]["ConstituentDisposition"];
+            /** Entitlement Id */
+            entitlement_id: string;
+            /**
+             * Envelope Schema Version
+             * @default phase4-normalized-observation-v1
+             * @constant
+             */
+            envelope_schema_version: "phase4-normalized-observation-v1";
+            /**
+             * Event Time
+             * Format: date-time
+             */
+            event_time: string;
+            /**
+             * Field Missingness
+             * @default []
+             */
+            field_missingness: components["schemas"]["FieldMissingness"][];
+            /** Instrument Id */
+            instrument_id: string | null;
+            /** Listing Id */
+            listing_id: string | null;
+            /** Logical Record Id */
+            logical_record_id: string;
+            /** Logical Record Key Sha256 */
+            logical_record_key_sha256: string;
+            /** Normalized Content Sha256 */
+            normalized_content_sha256: string;
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
+            /**
+             * Observation Revision Id
+             * Format: uuid
+             */
+            observation_revision_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Quality Flags
+             * @default []
+             */
+            quality_flags: components["schemas"]["QualityFlag"][];
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            record_type: components["schemas"]["DataRecordType"];
+            /** Retrieved At */
+            retrieved_at: string | null;
+            /** Revision Id */
+            revision_id: string;
+            /** Source Record Id */
+            source_record_id: string;
+            /** Source Timezone */
+            source_timezone: string;
+            /** Unit */
+            unit: string | null;
+            /** Use Rights Id */
+            use_rights_id: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Vintage Id */
+            vintage_id: string;
+        };
+        /** SnapshotCreateRequest */
+        SnapshotCreateRequest: {
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            capability: components["schemas"]["DataCapability"];
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mock Configuration Id */
+            mock_configuration_id: string;
+        };
+        /** SnapshotManifest */
+        SnapshotManifest: {
+            payload: components["schemas"]["SnapshotManifestDraft"];
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /** SnapshotManifestDraft */
+        SnapshotManifestDraft: {
+            adapter: components["schemas"]["AdapterProfile"];
+            /**
+             * Canonicalization Version
+             * @default phase4-canonical-json-v1
+             * @constant
+             */
+            canonicalization_version: "phase4-canonical-json-v1";
+            configuration: components["schemas"]["MockConfigurationIdentity"];
+            /** Constituents */
+            constituents: components["schemas"]["SnapshotConstituentDraft"][];
+            mapping: components["schemas"]["AuthorizedMappingIdentity"];
+            /** Quality Findings */
+            quality_findings: components["schemas"]["DataQualityFindingDraft"][];
+            request: components["schemas"]["SnapshotRequestParameters"];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /** Schema Bindings */
+            schema_bindings: components["schemas"]["SchemaBinding"][];
+            /**
+             * Snapshot Schema Version
+             * @default phase4-data-snapshot-v1
+             * @constant
+             */
+            snapshot_schema_version: "phase4-data-snapshot-v1";
+            use_rights: components["schemas"]["UseRightsIdentity"];
+        };
+        /**
+         * SnapshotQualityStatus
+         * @enum {string}
+         */
+        SnapshotQualityStatus: "data_quality_accepted" | "data_quality_accepted_with_warnings";
+        /** SnapshotRequestError */
+        SnapshotRequestError: {
+            /** Detail */
+            detail: string;
+        };
+        /** SnapshotRequestParameters */
+        SnapshotRequestParameters: {
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            capability: components["schemas"]["DataCapability"];
+            mapping: components["schemas"]["AuthorizedMappingIdentity"];
+            /** Mock Configuration Id */
+            mock_configuration_id: string;
+        };
+        /** SnapshotValidationErrorResponse */
+        SnapshotValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["SnapshotValidationIssue"][];
+        };
+        /** SnapshotValidationIssue */
+        SnapshotValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
         };
         /**
          * SourceAuthority
@@ -906,6 +2148,40 @@ export interface components {
             testability_score_method: "phase2-testability-v1";
             testability_status: components["schemas"]["TestabilityStatus"];
         };
+        /** UniverseMembershipPayload */
+        UniverseMembershipPayload: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "universe_membership";
+            status: components["schemas"]["MembershipStatus"];
+            /** Universe Id */
+            universe_id: string;
+        };
+        /** UseRightsIdentity */
+        UseRightsIdentity: {
+            /** Derived Data Allowed */
+            derived_data_allowed: boolean;
+            /** Display Allowed */
+            display_allowed: boolean;
+            /** Entitlement Id */
+            entitlement_id: string;
+            /** Non Display Allowed */
+            non_display_allowed: boolean;
+            /** Redistribution Allowed */
+            redistribution_allowed: boolean;
+            scope: components["schemas"]["UseRightsScope"];
+            /** Storage Allowed */
+            storage_allowed: boolean;
+            /** Use Rights Id */
+            use_rights_id: string;
+        };
+        /**
+         * UseRightsScope
+         * @enum {string}
+         */
+        UseRightsScope: "internal_test_fixture_only" | "internal_research_only";
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -918,6 +2194,38 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VolatilityReturnInputPayload */
+        VolatilityReturnInputPayload: {
+            /** Bar Observation Ids */
+            bar_observation_ids: string[];
+            /** Calendar Observation Ids */
+            calendar_observation_ids: string[];
+            /**
+             * Corporate Action Observation Ids
+             * @default []
+             */
+            corporate_action_observation_ids: string[];
+            /**
+             * Delisting Observation Ids
+             * @default []
+             */
+            delisting_observation_ids: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            record_type: "volatility_return_input";
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
         };
     };
     responses: never;
@@ -1086,6 +2394,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResearchMemo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_data_snapshots_v1_data_snapshots_get: {
+        parameters: {
+            query?: {
+                mapping_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataSnapshot"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_data_snapshot_v1_data_snapshots_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SnapshotCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotBundle"];
+                };
+            };
+            /** @description Request validation, mapping authorization, or mandatory data-quality failure */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotBuildBlockedResult"] | components["schemas"]["SnapshotRequestError"] | components["schemas"]["SnapshotValidationErrorResponse"];
+                };
+            };
+            /** @description Typed, sanitized adapter/configuration unavailability */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdapterUnavailableResult"];
+                };
+            };
+        };
+    };
+    get_data_snapshot_v1_data_snapshots__snapshot_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotBundle"];
                 };
             };
             /** @description Validation Error */

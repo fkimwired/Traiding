@@ -1,4 +1,4 @@
-name: phase-3-ci
+name: phase-4-ci
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only --phase 3
+      - run: python scripts/verify_phase1.py --static-only --phase 4
       - run: docker compose config --quiet
 
   compose-smoke:
@@ -36,4 +36,9 @@ jobs:
     needs: quality
     steps:
       - uses: actions/checkout@v4
-      - run: python scripts/verify_phase1.py --phase 3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --constraint requirements.lock -e ".[dev]"
+      - run: python scripts/verify_phase1.py --phase 4

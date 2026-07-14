@@ -22,6 +22,172 @@
         "title": "ActionRuleEvidence",
         "type": "object"
       },
+      "AdapterProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/DataCapability"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "schema_bindings": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaBinding"
+            },
+            "title": "Schema Bindings",
+            "type": "array"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "use_rights": {
+            "$ref": "#/components/schemas/UseRightsIdentity"
+          }
+        },
+        "required": [
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "synthetic",
+          "capabilities",
+          "schema_bindings",
+          "use_rights"
+        ],
+        "title": "AdapterProfile",
+        "type": "object"
+      },
+      "AdapterUnavailableReason": {
+        "enum": [
+          "credentials_unavailable",
+          "capability_unavailable",
+          "entitlement_unavailable",
+          "configuration_unavailable"
+        ],
+        "title": "AdapterUnavailableReason",
+        "type": "string"
+      },
+      "AdapterUnavailableResult": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/AdapterUnavailableReason"
+          },
+          "sanitized_message": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Sanitized Message",
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Status",
+            "type": "string"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason_code",
+          "capability",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "entitlement_id",
+          "use_rights_id",
+          "sanitized_message"
+        ],
+        "title": "AdapterUnavailableResult",
+        "type": "object"
+      },
+      "AdjustmentBasis": {
+        "enum": [
+          "raw_unadjusted",
+          "as_of_adjusted"
+        ],
+        "title": "AdjustmentBasis",
+        "type": "string"
+      },
       "AmbiguityFlag": {
         "enum": [
           "synthetic_fixture",
@@ -36,6 +202,95 @@
         ],
         "title": "AmbiguityFlag",
         "type": "string"
+      },
+      "AsReportedFundamentalPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "amendment_sequence": {
+            "minimum": 0.0,
+            "title": "Amendment Sequence",
+            "type": "integer"
+          },
+          "as_reported": {
+            "const": true,
+            "default": true,
+            "title": "As Reported",
+            "type": "boolean"
+          },
+          "concept_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "filing_accepted_at": {
+            "format": "date-time",
+            "title": "Filing Accepted At",
+            "type": "string"
+          },
+          "fiscal_period_end": {
+            "format": "date",
+            "title": "Fiscal Period End",
+            "type": "string"
+          },
+          "fiscal_period_start": {
+            "format": "date",
+            "title": "Fiscal Period Start",
+            "type": "string"
+          },
+          "fiscal_period_type": {
+            "$ref": "#/components/schemas/FiscalPeriodType"
+          },
+          "official_document_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Official Document Id",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "as_reported_fundamental",
+            "default": "as_reported_fundamental",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "restates_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restates Revision Id"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "concept_id",
+          "fiscal_period_start",
+          "fiscal_period_end",
+          "fiscal_period_type",
+          "official_document_id",
+          "filing_accepted_at",
+          "amendment_sequence",
+          "value"
+        ],
+        "title": "AsReportedFundamentalPayload",
+        "type": "object"
       },
       "AssetClass": {
         "enum": [
@@ -88,6 +343,150 @@
         "title": "AuthorityVerificationMethod",
         "type": "string"
       },
+      "AuthorizedMappingIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_family": {
+            "$ref": "#/components/schemas/CanonicalFamily"
+          },
+          "mapper_rule_set_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapper Rule Set Sha256",
+            "type": "string"
+          },
+          "mapper_rule_set_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Mapper Rule Set Version",
+            "type": "string"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mapping_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mapping Input Sha256",
+            "type": "string"
+          },
+          "mapping_version": {
+            "minimum": 1.0,
+            "title": "Mapping Version",
+            "type": "integer"
+          },
+          "official_corroboration_source_version_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Official Corroboration Source Version Ids",
+            "type": "array"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ResearchVerdict"
+          }
+        },
+        "required": [
+          "mapping_id",
+          "mapping_version",
+          "mapping_input_sha256",
+          "mapper_rule_set_version",
+          "mapper_rule_set_sha256",
+          "canonical_family",
+          "verdict"
+        ],
+        "title": "AuthorizedMappingIdentity",
+        "type": "object"
+      },
+      "AvailabilityConvention": {
+        "enum": [
+          "source_timestamp",
+          "phase4-date-only-next-day-v1"
+        ],
+        "title": "AvailabilityConvention",
+        "type": "string"
+      },
+      "AvailabilityPrecision": {
+        "enum": [
+          "timestamp",
+          "date"
+        ],
+        "title": "AvailabilityPrecision",
+        "type": "string"
+      },
+      "BarInterval": {
+        "enum": [
+          "P1D"
+        ],
+        "title": "BarInterval",
+        "type": "string"
+      },
+      "CalendarSessionPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "close_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close At"
+          },
+          "early_close": {
+            "title": "Early Close",
+            "type": "boolean"
+          },
+          "open_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open At"
+          },
+          "record_type": {
+            "const": "calendar_session",
+            "default": "calendar_session",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "session_date": {
+            "format": "date",
+            "title": "Session Date",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CalendarSessionStatus"
+          }
+        },
+        "required": [
+          "session_date",
+          "status",
+          "open_at",
+          "close_at",
+          "early_close"
+        ],
+        "title": "CalendarSessionPayload",
+        "type": "object"
+      },
+      "CalendarSessionStatus": {
+        "enum": [
+          "open",
+          "closed"
+        ],
+        "title": "CalendarSessionStatus",
+        "type": "string"
+      },
       "CanonicalFamily": {
         "enum": [
           "A_CROSS_SECTIONAL_EQUITY_RANKING",
@@ -117,6 +516,15 @@
         "title": "CardWithMemo",
         "type": "object"
       },
+      "ConstituentDisposition": {
+        "enum": [
+          "included_as_of",
+          "retained_historical_vintage",
+          "explicit_missingness"
+        ],
+        "title": "ConstituentDisposition",
+        "type": "string"
+      },
       "ContentState": {
         "enum": [
           "supplied_text",
@@ -134,6 +542,90 @@
         "title": "ContributionStatus",
         "type": "string"
       },
+      "CorporateActionPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "action_type": {
+            "$ref": "#/components/schemas/CorporateActionType"
+          },
+          "announcement_at": {
+            "format": "date-time",
+            "title": "Announcement At",
+            "type": "string"
+          },
+          "cash_amount": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Amount"
+          },
+          "corporate_action_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Corporate Action Id",
+            "type": "string"
+          },
+          "effective_at": {
+            "format": "date-time",
+            "title": "Effective At",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "corporate_action",
+            "default": "corporate_action",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "split_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Split Ratio"
+          },
+          "target_instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Instrument Id"
+          }
+        },
+        "required": [
+          "corporate_action_id",
+          "action_type",
+          "announcement_at",
+          "effective_at"
+        ],
+        "title": "CorporateActionPayload",
+        "type": "object"
+      },
+      "CorporateActionType": {
+        "enum": [
+          "split",
+          "cash_dividend",
+          "merger",
+          "spinoff"
+        ],
+        "title": "CorporateActionType",
+        "type": "string"
+      },
       "CorroborationStatus": {
         "enum": [
           "not_required",
@@ -142,6 +634,534 @@
           "verified"
         ],
         "title": "CorroborationStatus",
+        "type": "string"
+      },
+      "DataCapability": {
+        "enum": [
+          "security_master",
+          "universe_membership",
+          "ohlcv",
+          "corporate_actions",
+          "delistings",
+          "as_reported_fundamentals",
+          "trading_calendar",
+          "volatility_return_inputs",
+          "official_document_event_metadata"
+        ],
+        "title": "DataCapability",
+        "type": "string"
+      },
+      "DataQualityCode": {
+        "enum": [
+          "synthetic_fixture",
+          "date_only_convention_applied",
+          "future_availability_excluded",
+          "near_duplicate_retained",
+          "exact_duplicate_key",
+          "required_field_missing",
+          "invalid_enum_value",
+          "invalid_timestamp_order",
+          "orphan_reference",
+          "raw_normalized_lineage_gap",
+          "unit_currency_calendar_timezone_mismatch",
+          "schema_drift",
+          "current_universe_leakage",
+          "restatement_leakage",
+          "corporate_action_lookahead",
+          "missing_delisting_return",
+          "future_availability_included",
+          "unnormalized_rejected"
+        ],
+        "title": "DataQualityCode",
+        "type": "string"
+      },
+      "DataQualityFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_record_identity": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Record Identity"
+          },
+          "affected_record_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataRecordType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "code": {
+            "$ref": "#/components/schemas/DataQualityCode"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/FindingDisposition"
+          },
+          "field_name": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Name"
+          },
+          "finding_id": {
+            "format": "uuid",
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "finding_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Finding Sha256",
+            "type": "string"
+          },
+          "normalized_content_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Content Sha256"
+          },
+          "occurrence_count": {
+            "minimum": 1.0,
+            "title": "Occurrence Count",
+            "type": "integer"
+          },
+          "occurrence_rate": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence Rate"
+          },
+          "range_end_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range End Utc"
+          },
+          "range_start_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Start Utc"
+          },
+          "raw_payload_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Payload Sha256"
+          },
+          "rule_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_set_version": {
+            "const": "phase4-data-quality-v1",
+            "default": "phase4-data-quality-v1",
+            "title": "Rule Set Version",
+            "type": "string"
+          },
+          "sanitized_detail": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Sanitized Detail",
+            "type": "object"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/DataQualitySeverity"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_id",
+          "finding_sha256",
+          "rule_id",
+          "severity",
+          "code",
+          "disposition",
+          "occurrence_count",
+          "sanitized_detail",
+          "snapshot_id",
+          "snapshot_sha256"
+        ],
+        "title": "DataQualityFinding",
+        "type": "object"
+      },
+      "DataQualityFindingDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_record_identity": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Record Identity"
+          },
+          "affected_record_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataRecordType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "code": {
+            "$ref": "#/components/schemas/DataQualityCode"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/FindingDisposition"
+          },
+          "field_name": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Name"
+          },
+          "finding_id": {
+            "format": "uuid",
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "finding_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Finding Sha256",
+            "type": "string"
+          },
+          "normalized_content_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Content Sha256"
+          },
+          "occurrence_count": {
+            "minimum": 1.0,
+            "title": "Occurrence Count",
+            "type": "integer"
+          },
+          "occurrence_rate": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence Rate"
+          },
+          "range_end_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range End Utc"
+          },
+          "range_start_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Start Utc"
+          },
+          "raw_payload_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Payload Sha256"
+          },
+          "rule_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_set_version": {
+            "const": "phase4-data-quality-v1",
+            "default": "phase4-data-quality-v1",
+            "title": "Rule Set Version",
+            "type": "string"
+          },
+          "sanitized_detail": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Sanitized Detail",
+            "type": "object"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/DataQualitySeverity"
+          }
+        },
+        "required": [
+          "finding_id",
+          "finding_sha256",
+          "rule_id",
+          "severity",
+          "code",
+          "disposition",
+          "occurrence_count",
+          "sanitized_detail"
+        ],
+        "title": "DataQualityFindingDraft",
+        "type": "object"
+      },
+      "DataQualitySeverity": {
+        "enum": [
+          "info",
+          "warning",
+          "error",
+          "blocking"
+        ],
+        "title": "DataQualitySeverity",
+        "type": "string"
+      },
+      "DataRecordType": {
+        "enum": [
+          "instrument_identity",
+          "listing_identity",
+          "universe_membership",
+          "ohlcv_bar",
+          "corporate_action",
+          "delisting_event",
+          "as_reported_fundamental",
+          "calendar_session",
+          "official_document_event",
+          "volatility_return_input"
+        ],
+        "title": "DataRecordType",
+        "type": "string"
+      },
+      "DataSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "active_constituent_count": {
+            "minimum": 0.0,
+            "title": "Active Constituent Count",
+            "type": "integer"
+          },
+          "created_at_utc": {
+            "format": "date-time",
+            "title": "Created At Utc",
+            "type": "string"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/SnapshotManifest"
+          },
+          "normalized_observation_count": {
+            "minimum": 0.0,
+            "title": "Normalized Observation Count",
+            "type": "integer"
+          },
+          "quality_finding_count": {
+            "minimum": 0.0,
+            "title": "Quality Finding Count",
+            "type": "integer"
+          },
+          "quality_status": {
+            "$ref": "#/components/schemas/SnapshotQualityStatus"
+          },
+          "raw_observation_count": {
+            "minimum": 0.0,
+            "title": "Raw Observation Count",
+            "type": "integer"
+          },
+          "revision_count": {
+            "minimum": 0.0,
+            "title": "Revision Count",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "snapshot_sha256",
+          "manifest",
+          "quality_status",
+          "raw_observation_count",
+          "normalized_observation_count",
+          "revision_count",
+          "active_constituent_count",
+          "quality_finding_count",
+          "created_at_utc"
+        ],
+        "title": "DataSnapshot",
+        "type": "object"
+      },
+      "DelistingEventPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "delisting_event_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Delisting Event Id",
+            "type": "string"
+          },
+          "delisting_return": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delisting Return"
+          },
+          "delisting_type": {
+            "$ref": "#/components/schemas/DelistingType"
+          },
+          "effective_at": {
+            "format": "date-time",
+            "title": "Effective At",
+            "type": "string"
+          },
+          "last_trade_at": {
+            "format": "date-time",
+            "title": "Last Trade At",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "delisting_event",
+            "default": "delisting_event",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "return_inclusion": {
+            "$ref": "#/components/schemas/DelistingReturnInclusion"
+          }
+        },
+        "required": [
+          "delisting_event_id",
+          "delisting_type",
+          "last_trade_at",
+          "effective_at",
+          "return_inclusion",
+          "delisting_return"
+        ],
+        "title": "DelistingEventPayload",
+        "type": "object"
+      },
+      "DelistingReturnInclusion": {
+        "enum": [
+          "separate_return_required",
+          "provider_total_return_includes"
+        ],
+        "title": "DelistingReturnInclusion",
+        "type": "string"
+      },
+      "DelistingType": {
+        "enum": [
+          "merger",
+          "bankruptcy",
+          "liquidation",
+          "exchange_removal",
+          "other"
+        ],
+        "title": "DelistingType",
         "type": "string"
       },
       "DependencyStatus": {
@@ -347,6 +1367,57 @@
         "title": "ExtractorKind",
         "type": "string"
       },
+      "FieldMissingness": {
+        "additionalProperties": false,
+        "properties": {
+          "field_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Field Name",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/MissingnessReason"
+          },
+          "source_detail_code": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Detail Code"
+          }
+        },
+        "required": [
+          "field_name",
+          "reason"
+        ],
+        "title": "FieldMissingness",
+        "type": "object"
+      },
+      "FindingDisposition": {
+        "enum": [
+          "retained",
+          "excluded",
+          "blocked"
+        ],
+        "title": "FindingDisposition",
+        "type": "string"
+      },
+      "FiscalPeriodType": {
+        "enum": [
+          "quarter",
+          "year",
+          "trailing_twelve_months"
+        ],
+        "title": "FiscalPeriodType",
+        "type": "string"
+      },
       "ForecastHorizon": {
         "enum": [
           "sub_minute",
@@ -437,6 +1508,107 @@
           "high"
         ],
         "title": "InfraRisk",
+        "type": "string"
+      },
+      "InstrumentIdentityPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "country_code": {
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country Code",
+            "type": "string"
+          },
+          "instrument_type": {
+            "$ref": "#/components/schemas/InstrumentType"
+          },
+          "issuer_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Issuer Id",
+            "type": "string"
+          },
+          "legal_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Legal Name",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "instrument_identity",
+            "default": "instrument_identity",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "share_class_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Share Class Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instrument_type",
+          "issuer_id",
+          "legal_name",
+          "country_code",
+          "share_class_id"
+        ],
+        "title": "InstrumentIdentityPayload",
+        "type": "object"
+      },
+      "InstrumentType": {
+        "enum": [
+          "common_stock",
+          "etf"
+        ],
+        "title": "InstrumentType",
+        "type": "string"
+      },
+      "JsonValue": {},
+      "ListingIdentityPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "exchange_mic": {
+            "pattern": "^[A-Z0-9]{4}$",
+            "title": "Exchange Mic",
+            "type": "string"
+          },
+          "primary_listing": {
+            "title": "Primary Listing",
+            "type": "boolean"
+          },
+          "record_type": {
+            "const": "listing_identity",
+            "default": "listing_identity",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingStatus"
+          },
+          "symbol": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "exchange_mic",
+          "status",
+          "primary_listing"
+        ],
+        "title": "ListingIdentityPayload",
+        "type": "object"
+      },
+      "ListingStatus": {
+        "enum": [
+          "active",
+          "inactive",
+          "delisted"
+        ],
+        "title": "ListingStatus",
         "type": "string"
       },
       "MappingEvidenceReference": {
@@ -589,6 +1761,939 @@
         "title": "MappingWithRationale",
         "type": "object"
       },
+      "MembershipStatus": {
+        "enum": [
+          "included",
+          "excluded"
+        ],
+        "title": "MembershipStatus",
+        "type": "string"
+      },
+      "MissingnessReason": {
+        "enum": [
+          "not_applicable",
+          "not_provided_by_source",
+          "not_yet_available_as_of",
+          "entitlement_restricted",
+          "unresolved_identity",
+          "delisting_return_not_provided",
+          "provider_return_already_includes_delisting"
+        ],
+        "title": "MissingnessReason",
+        "type": "string"
+      },
+      "MockConfigurationIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Configuration Id",
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Configuration Sha256",
+            "type": "string"
+          },
+          "fixture_set_version": {
+            "const": "phase4-synthetic-pit-fixtures-v1",
+            "default": "phase4-synthetic-pit-fixtures-v1",
+            "title": "Fixture Set Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "configuration_id",
+          "configuration_sha256"
+        ],
+        "title": "MockConfigurationIdentity",
+        "type": "object"
+      },
+      "NormalizedObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "availability_convention": {
+            "$ref": "#/components/schemas/AvailabilityConvention"
+          },
+          "availability_precision": {
+            "$ref": "#/components/schemas/AvailabilityPrecision"
+          },
+          "availability_source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Source Date"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "calendar_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "envelope_schema_version": {
+            "const": "phase4-normalized-observation-v1",
+            "default": "phase4-normalized-observation-v1",
+            "title": "Envelope Schema Version",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "field_missingness": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldMissingness"
+            },
+            "title": "Field Missingness",
+            "type": "array"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "logical_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Logical Record Id",
+            "type": "string"
+          },
+          "logical_record_key_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Logical Record Key Sha256",
+            "type": "string"
+          },
+          "normalized_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Normalized Content Sha256",
+            "type": "string"
+          },
+          "normalized_observation_id": {
+            "format": "uuid",
+            "title": "Normalized Observation Id",
+            "type": "string"
+          },
+          "observation_revision_id": {
+            "format": "uuid",
+            "title": "Observation Revision Id",
+            "type": "string"
+          },
+          "payload": {
+            "discriminator": {
+              "mapping": {
+                "as_reported_fundamental": "#/components/schemas/AsReportedFundamentalPayload",
+                "calendar_session": "#/components/schemas/CalendarSessionPayload",
+                "corporate_action": "#/components/schemas/CorporateActionPayload",
+                "delisting_event": "#/components/schemas/DelistingEventPayload",
+                "instrument_identity": "#/components/schemas/InstrumentIdentityPayload",
+                "listing_identity": "#/components/schemas/ListingIdentityPayload",
+                "official_document_event": "#/components/schemas/OfficialDocumentEventPayload",
+                "ohlcv_bar": "#/components/schemas/OhlcvBarPayload",
+                "universe_membership": "#/components/schemas/UniverseMembershipPayload",
+                "volatility_return_input": "#/components/schemas/VolatilityReturnInputPayload"
+              },
+              "propertyName": "record_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/InstrumentIdentityPayload"
+              },
+              {
+                "$ref": "#/components/schemas/ListingIdentityPayload"
+              },
+              {
+                "$ref": "#/components/schemas/UniverseMembershipPayload"
+              },
+              {
+                "$ref": "#/components/schemas/OhlcvBarPayload"
+              },
+              {
+                "$ref": "#/components/schemas/CorporateActionPayload"
+              },
+              {
+                "$ref": "#/components/schemas/DelistingEventPayload"
+              },
+              {
+                "$ref": "#/components/schemas/AsReportedFundamentalPayload"
+              },
+              {
+                "$ref": "#/components/schemas/CalendarSessionPayload"
+              },
+              {
+                "$ref": "#/components/schemas/OfficialDocumentEventPayload"
+              },
+              {
+                "$ref": "#/components/schemas/VolatilityReturnInputPayload"
+              }
+            ],
+            "title": "Payload"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "quality_flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "revision_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          },
+          "source_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "source_timezone": {
+            "title": "Source Timezone",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_record_id",
+          "logical_record_key_sha256",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "dataset_schema_id",
+          "dataset_schema_version",
+          "entitlement_id",
+          "use_rights_id",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "event_time",
+          "available_at",
+          "retrieved_at",
+          "valid_from",
+          "valid_to",
+          "revision_id",
+          "vintage_id",
+          "source_timezone",
+          "calendar_id",
+          "unit",
+          "currency",
+          "availability_precision",
+          "availability_convention",
+          "raw_payload_sha256",
+          "normalized_observation_id",
+          "raw_observation_id",
+          "observation_revision_id",
+          "normalized_content_sha256",
+          "payload",
+          "snapshot_id",
+          "snapshot_sha256"
+        ],
+        "title": "NormalizedObservation",
+        "type": "object"
+      },
+      "ObservationRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "availability_convention": {
+            "$ref": "#/components/schemas/AvailabilityConvention"
+          },
+          "availability_precision": {
+            "$ref": "#/components/schemas/AvailabilityPrecision"
+          },
+          "availability_source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Source Date"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "calendar_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "envelope_schema_version": {
+            "const": "phase4-normalized-observation-v1",
+            "default": "phase4-normalized-observation-v1",
+            "title": "Envelope Schema Version",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "field_missingness": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldMissingness"
+            },
+            "title": "Field Missingness",
+            "type": "array"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "logical_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Logical Record Id",
+            "type": "string"
+          },
+          "logical_record_key_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Logical Record Key Sha256",
+            "type": "string"
+          },
+          "predecessor_revision_record_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predecessor Revision Record Id"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "quality_flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "revision_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Revision Content Sha256",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revision_record_id": {
+            "format": "uuid",
+            "title": "Revision Record Id",
+            "type": "string"
+          },
+          "revision_schema_version": {
+            "const": "phase4-observation-revision-v1",
+            "default": "phase4-observation-revision-v1",
+            "title": "Revision Schema Version",
+            "type": "string"
+          },
+          "revision_sequence": {
+            "minimum": 1.0,
+            "title": "Revision Sequence",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          },
+          "source_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "source_timezone": {
+            "title": "Source Timezone",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_record_id",
+          "logical_record_key_sha256",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "dataset_schema_id",
+          "dataset_schema_version",
+          "entitlement_id",
+          "use_rights_id",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "event_time",
+          "available_at",
+          "retrieved_at",
+          "valid_from",
+          "valid_to",
+          "revision_id",
+          "vintage_id",
+          "source_timezone",
+          "calendar_id",
+          "unit",
+          "currency",
+          "availability_precision",
+          "availability_convention",
+          "raw_payload_sha256",
+          "revision_record_id",
+          "revision_content_sha256",
+          "raw_observation_id",
+          "revision_sequence",
+          "snapshot_id",
+          "snapshot_sha256"
+        ],
+        "title": "ObservationRevision",
+        "type": "object"
+      },
+      "OfficialDocumentEventPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "accession_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Accession Id",
+            "type": "string"
+          },
+          "amendment_of_document_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amendment Of Document Id"
+          },
+          "document_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Document Content Sha256",
+            "type": "string"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/OfficialDocumentType"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/OfficialEventType"
+          },
+          "official_document_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Official Document Id",
+            "type": "string"
+          },
+          "official_event_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Official Event Id",
+            "type": "string"
+          },
+          "official_source_version_id": {
+            "format": "uuid",
+            "title": "Official Source Version Id",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "official_document_event",
+            "default": "official_document_event",
+            "title": "Record Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "official_document_id",
+          "official_event_id",
+          "official_source_version_id",
+          "document_type",
+          "event_type",
+          "accession_id",
+          "published_at",
+          "accepted_at",
+          "document_content_sha256"
+        ],
+        "title": "OfficialDocumentEventPayload",
+        "type": "object"
+      },
+      "OfficialDocumentType": {
+        "enum": [
+          "regulatory_filing",
+          "issuer_release",
+          "earnings_transcript_metadata"
+        ],
+        "title": "OfficialDocumentType",
+        "type": "string"
+      },
+      "OfficialEventType": {
+        "enum": [
+          "filing",
+          "earnings",
+          "corporate_event"
+        ],
+        "title": "OfficialEventType",
+        "type": "string"
+      },
+      "OhlcvBarPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustment_as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustment As Of"
+          },
+          "adjustment_basis": {
+            "$ref": "#/components/schemas/AdjustmentBasis"
+          },
+          "bar_end": {
+            "format": "date-time",
+            "title": "Bar End",
+            "type": "string"
+          },
+          "bar_interval": {
+            "$ref": "#/components/schemas/BarInterval"
+          },
+          "bar_start": {
+            "format": "date-time",
+            "title": "Bar Start",
+            "type": "string"
+          },
+          "close": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Close",
+            "type": "string"
+          },
+          "corporate_action_revision_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Corporate Action Revision Ids",
+            "type": "array"
+          },
+          "high": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "High",
+            "type": "string"
+          },
+          "low": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Low",
+            "type": "string"
+          },
+          "open": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Open",
+            "type": "string"
+          },
+          "record_type": {
+            "const": "ohlcv_bar",
+            "default": "ohlcv_bar",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "volume": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Volume",
+            "type": "string"
+          },
+          "volume_unit": {
+            "const": "shares",
+            "default": "shares",
+            "title": "Volume Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bar_interval",
+          "bar_start",
+          "bar_end",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "adjustment_basis"
+        ],
+        "title": "OhlcvBarPayload",
+        "type": "object"
+      },
+      "QualityFlag": {
+        "enum": [
+          "synthetic_fixture",
+          "date_only_convention_applied",
+          "future_availability_excluded",
+          "revision_replayed_as_of",
+          "near_duplicate_retained"
+        ],
+        "title": "QualityFlag",
+        "type": "string"
+      },
       "QuotedClaim": {
         "additionalProperties": false,
         "properties": {
@@ -615,6 +2720,307 @@
           "exact_text"
         ],
         "title": "QuotedClaim",
+        "type": "object"
+      },
+      "RawObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "availability_convention": {
+            "$ref": "#/components/schemas/AvailabilityConvention"
+          },
+          "availability_precision": {
+            "$ref": "#/components/schemas/AvailabilityPrecision"
+          },
+          "availability_source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Source Date"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "calendar_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "envelope_schema_version": {
+            "const": "phase4-raw-observation-v1",
+            "default": "phase4-raw-observation-v1",
+            "title": "Envelope Schema Version",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "field_missingness": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldMissingness"
+            },
+            "title": "Field Missingness",
+            "type": "array"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "logical_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Logical Record Id",
+            "type": "string"
+          },
+          "logical_record_key_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Logical Record Key Sha256",
+            "type": "string"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "quality_flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "raw_content_type": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Raw Content Type",
+            "type": "string"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Raw Payload",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "revision_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          },
+          "source_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "source_timezone": {
+            "title": "Source Timezone",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_record_id",
+          "logical_record_key_sha256",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "dataset_schema_id",
+          "dataset_schema_version",
+          "entitlement_id",
+          "use_rights_id",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "event_time",
+          "available_at",
+          "retrieved_at",
+          "valid_from",
+          "valid_to",
+          "revision_id",
+          "vintage_id",
+          "source_timezone",
+          "calendar_id",
+          "unit",
+          "currency",
+          "availability_precision",
+          "availability_convention",
+          "raw_payload_sha256",
+          "raw_observation_id",
+          "raw_content_type",
+          "raw_payload",
+          "snapshot_id",
+          "snapshot_sha256"
+        ],
+        "title": "RawObservation",
         "type": "object"
       },
       "ReadinessResponse": {
@@ -995,6 +3401,29 @@
         "title": "RiskAssumptionsEvidence",
         "type": "object"
       },
+      "SchemaBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset_schema_id",
+          "dataset_schema_version"
+        ],
+        "title": "SchemaBinding",
+        "type": "object"
+      },
       "SignalFamily": {
         "enum": [
           "cross_sectional_ranking_claim",
@@ -1037,6 +3466,933 @@
           "claim_ids"
         ],
         "title": "SignalFamilyEvidence",
+        "type": "object"
+      },
+      "SnapshotBuildBlockedResult": {
+        "additionalProperties": false,
+        "properties": {
+          "quality_findings": {
+            "items": {
+              "$ref": "#/components/schemas/DataQualityFindingDraft"
+            },
+            "title": "Quality Findings",
+            "type": "array"
+          },
+          "request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "default": "blocked",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_fingerprint_sha256",
+          "quality_findings"
+        ],
+        "title": "SnapshotBuildBlockedResult",
+        "type": "object"
+      },
+      "SnapshotBundle": {
+        "additionalProperties": false,
+        "properties": {
+          "constituents": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotConstituent"
+            },
+            "title": "Constituents",
+            "type": "array"
+          },
+          "normalized_observations": {
+            "items": {
+              "$ref": "#/components/schemas/NormalizedObservation"
+            },
+            "title": "Normalized Observations",
+            "type": "array"
+          },
+          "quality_findings": {
+            "items": {
+              "$ref": "#/components/schemas/DataQualityFinding"
+            },
+            "title": "Quality Findings",
+            "type": "array"
+          },
+          "raw_observations": {
+            "items": {
+              "$ref": "#/components/schemas/RawObservation"
+            },
+            "title": "Raw Observations",
+            "type": "array"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationRevision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/DataSnapshot"
+          }
+        },
+        "required": [
+          "snapshot",
+          "raw_observations",
+          "normalized_observations",
+          "revisions",
+          "constituents",
+          "quality_findings"
+        ],
+        "title": "SnapshotBundle",
+        "type": "object"
+      },
+      "SnapshotConstituent": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "availability_convention": {
+            "$ref": "#/components/schemas/AvailabilityConvention"
+          },
+          "availability_precision": {
+            "$ref": "#/components/schemas/AvailabilityPrecision"
+          },
+          "availability_source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Source Date"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "calendar_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/ConstituentDisposition"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "envelope_schema_version": {
+            "const": "phase4-normalized-observation-v1",
+            "default": "phase4-normalized-observation-v1",
+            "title": "Envelope Schema Version",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "field_missingness": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldMissingness"
+            },
+            "title": "Field Missingness",
+            "type": "array"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "logical_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Logical Record Id",
+            "type": "string"
+          },
+          "logical_record_key_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Logical Record Key Sha256",
+            "type": "string"
+          },
+          "normalized_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Normalized Content Sha256",
+            "type": "string"
+          },
+          "normalized_observation_id": {
+            "format": "uuid",
+            "title": "Normalized Observation Id",
+            "type": "string"
+          },
+          "observation_revision_id": {
+            "format": "uuid",
+            "title": "Observation Revision Id",
+            "type": "string"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "quality_flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "record_type": {
+            "$ref": "#/components/schemas/DataRecordType"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "revision_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          },
+          "source_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "source_timezone": {
+            "title": "Source Timezone",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_record_id",
+          "logical_record_key_sha256",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "dataset_schema_id",
+          "dataset_schema_version",
+          "entitlement_id",
+          "use_rights_id",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "event_time",
+          "available_at",
+          "retrieved_at",
+          "valid_from",
+          "valid_to",
+          "revision_id",
+          "vintage_id",
+          "source_timezone",
+          "calendar_id",
+          "unit",
+          "currency",
+          "availability_precision",
+          "availability_convention",
+          "raw_payload_sha256",
+          "record_type",
+          "raw_observation_id",
+          "observation_revision_id",
+          "normalized_observation_id",
+          "normalized_content_sha256",
+          "disposition",
+          "snapshot_id",
+          "snapshot_sha256"
+        ],
+        "title": "SnapshotConstituent",
+        "type": "object"
+      },
+      "SnapshotConstituentDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "availability_convention": {
+            "$ref": "#/components/schemas/AvailabilityConvention"
+          },
+          "availability_precision": {
+            "$ref": "#/components/schemas/AvailabilityPrecision"
+          },
+          "availability_source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Availability Source Date"
+          },
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "calendar_id": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "dataset_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "dataset_schema_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Id",
+            "type": "string"
+          },
+          "dataset_schema_version": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Dataset Schema Version",
+            "type": "string"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/ConstituentDisposition"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "envelope_schema_version": {
+            "const": "phase4-normalized-observation-v1",
+            "default": "phase4-normalized-observation-v1",
+            "title": "Envelope Schema Version",
+            "type": "string"
+          },
+          "event_time": {
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "field_missingness": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FieldMissingness"
+            },
+            "title": "Field Missingness",
+            "type": "array"
+          },
+          "instrument_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instrument Id"
+          },
+          "listing_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Id"
+          },
+          "logical_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Logical Record Id",
+            "type": "string"
+          },
+          "logical_record_key_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Logical Record Key Sha256",
+            "type": "string"
+          },
+          "normalized_content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Normalized Content Sha256",
+            "type": "string"
+          },
+          "normalized_observation_id": {
+            "format": "uuid",
+            "title": "Normalized Observation Id",
+            "type": "string"
+          },
+          "observation_revision_id": {
+            "format": "uuid",
+            "title": "Observation Revision Id",
+            "type": "string"
+          },
+          "product_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Product Id",
+            "type": "string"
+          },
+          "provider_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "quality_flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QualityFlag"
+            },
+            "title": "Quality Flags",
+            "type": "array"
+          },
+          "raw_observation_id": {
+            "format": "uuid",
+            "title": "Raw Observation Id",
+            "type": "string"
+          },
+          "raw_payload_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Raw Payload Sha256",
+            "type": "string"
+          },
+          "record_type": {
+            "$ref": "#/components/schemas/DataRecordType"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "revision_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "source_record_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Record Id",
+            "type": "string"
+          },
+          "source_timezone": {
+            "title": "Source Timezone",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "vintage_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Vintage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "logical_record_id",
+          "logical_record_key_sha256",
+          "provider_id",
+          "adapter_id",
+          "adapter_version",
+          "dataset_id",
+          "product_id",
+          "dataset_schema_id",
+          "dataset_schema_version",
+          "entitlement_id",
+          "use_rights_id",
+          "source_record_id",
+          "instrument_id",
+          "listing_id",
+          "event_time",
+          "available_at",
+          "retrieved_at",
+          "valid_from",
+          "valid_to",
+          "revision_id",
+          "vintage_id",
+          "source_timezone",
+          "calendar_id",
+          "unit",
+          "currency",
+          "availability_precision",
+          "availability_convention",
+          "raw_payload_sha256",
+          "record_type",
+          "raw_observation_id",
+          "observation_revision_id",
+          "normalized_observation_id",
+          "normalized_content_sha256",
+          "disposition"
+        ],
+        "title": "SnapshotConstituentDraft",
+        "type": "object"
+      },
+      "SnapshotCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of_utc": {
+            "format": "date-time",
+            "title": "As Of Utc",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "mapping_id": {
+            "format": "uuid",
+            "title": "Mapping Id",
+            "type": "string"
+          },
+          "mock_configuration_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Mock Configuration Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mapping_id",
+          "as_of_utc",
+          "capability",
+          "mock_configuration_id"
+        ],
+        "title": "SnapshotCreateRequest",
+        "type": "object"
+      },
+      "SnapshotManifest": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/SnapshotManifestDraft"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "snapshot_sha256",
+          "payload"
+        ],
+        "title": "SnapshotManifest",
+        "type": "object"
+      },
+      "SnapshotManifestDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter": {
+            "$ref": "#/components/schemas/AdapterProfile"
+          },
+          "canonicalization_version": {
+            "const": "phase4-canonical-json-v1",
+            "default": "phase4-canonical-json-v1",
+            "title": "Canonicalization Version",
+            "type": "string"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/MockConfigurationIdentity"
+          },
+          "constituents": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotConstituentDraft"
+            },
+            "title": "Constituents",
+            "type": "array"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/AuthorizedMappingIdentity"
+          },
+          "quality_findings": {
+            "items": {
+              "$ref": "#/components/schemas/DataQualityFindingDraft"
+            },
+            "title": "Quality Findings",
+            "type": "array"
+          },
+          "request": {
+            "$ref": "#/components/schemas/SnapshotRequestParameters"
+          },
+          "request_fingerprint_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Fingerprint Sha256",
+            "type": "string"
+          },
+          "schema_bindings": {
+            "items": {
+              "$ref": "#/components/schemas/SchemaBinding"
+            },
+            "title": "Schema Bindings",
+            "type": "array"
+          },
+          "snapshot_schema_version": {
+            "const": "phase4-data-snapshot-v1",
+            "default": "phase4-data-snapshot-v1",
+            "title": "Snapshot Schema Version",
+            "type": "string"
+          },
+          "use_rights": {
+            "$ref": "#/components/schemas/UseRightsIdentity"
+          }
+        },
+        "required": [
+          "request_fingerprint_sha256",
+          "mapping",
+          "request",
+          "adapter",
+          "schema_bindings",
+          "use_rights",
+          "configuration",
+          "constituents",
+          "quality_findings"
+        ],
+        "title": "SnapshotManifestDraft",
+        "type": "object"
+      },
+      "SnapshotQualityStatus": {
+        "enum": [
+          "data_quality_accepted",
+          "data_quality_accepted_with_warnings"
+        ],
+        "title": "SnapshotQualityStatus",
+        "type": "string"
+      },
+      "SnapshotRequestError": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "SnapshotRequestError",
+        "type": "object"
+      },
+      "SnapshotRequestParameters": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of_utc": {
+            "format": "date-time",
+            "title": "As Of Utc",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/DataCapability"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/AuthorizedMappingIdentity"
+          },
+          "mock_configuration_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Mock Configuration Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mapping",
+          "as_of_utc",
+          "capability",
+          "mock_configuration_id"
+        ],
+        "title": "SnapshotRequestParameters",
+        "type": "object"
+      },
+      "SnapshotValidationErrorResponse": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotValidationIssue"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "SnapshotValidationErrorResponse",
+        "type": "object"
+      },
+      "SnapshotValidationIssue": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "SnapshotValidationIssue",
         "type": "object"
       },
       "SourceAuthority": {
@@ -1727,6 +5083,92 @@
         "title": "TradingIdeaCard",
         "type": "object"
       },
+      "UniverseMembershipPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "record_type": {
+            "const": "universe_membership",
+            "default": "universe_membership",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MembershipStatus"
+          },
+          "universe_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Universe Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "universe_id",
+          "status"
+        ],
+        "title": "UniverseMembershipPayload",
+        "type": "object"
+      },
+      "UseRightsIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "derived_data_allowed": {
+            "title": "Derived Data Allowed",
+            "type": "boolean"
+          },
+          "display_allowed": {
+            "title": "Display Allowed",
+            "type": "boolean"
+          },
+          "entitlement_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Entitlement Id",
+            "type": "string"
+          },
+          "non_display_allowed": {
+            "title": "Non Display Allowed",
+            "type": "boolean"
+          },
+          "redistribution_allowed": {
+            "title": "Redistribution Allowed",
+            "type": "boolean"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/UseRightsScope"
+          },
+          "storage_allowed": {
+            "title": "Storage Allowed",
+            "type": "boolean"
+          },
+          "use_rights_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Use Rights Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entitlement_id",
+          "use_rights_id",
+          "scope",
+          "storage_allowed",
+          "display_allowed",
+          "non_display_allowed",
+          "derived_data_allowed",
+          "redistribution_allowed"
+        ],
+        "title": "UseRightsIdentity",
+        "type": "object"
+      },
+      "UseRightsScope": {
+        "enum": [
+          "internal_test_fixture_only",
+          "internal_research_only"
+        ],
+        "title": "UseRightsScope",
+        "type": "string"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1765,6 +5207,69 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VolatilityReturnInputPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "bar_observation_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Bar Observation Ids",
+            "type": "array"
+          },
+          "calendar_observation_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Calendar Observation Ids",
+            "type": "array"
+          },
+          "corporate_action_observation_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Corporate Action Observation Ids",
+            "type": "array"
+          },
+          "delisting_observation_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Delisting Observation Ids",
+            "type": "array"
+          },
+          "record_type": {
+            "const": "volatility_return_input",
+            "default": "volatility_return_input",
+            "title": "Record Type",
+            "type": "string"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "window_start",
+          "window_end",
+          "bar_observation_ids",
+          "calendar_observation_ids"
+        ],
+        "title": "VolatilityReturnInputPayload",
         "type": "object"
       }
     }
@@ -1996,6 +5501,175 @@
         "summary": "Get Memo",
         "tags": [
           "idea-intake"
+        ]
+      }
+    },
+    "/v1/data-snapshots": {
+      "get": {
+        "operationId": "list_data_snapshots_v1_data_snapshots_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mapping_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mapping Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DataSnapshot"
+                  },
+                  "title": "Response List Data Snapshots V1 Data Snapshots Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Data Snapshots",
+        "tags": [
+          "point-in-time-data"
+        ]
+      },
+      "post": {
+        "operationId": "create_data_snapshot_v1_data_snapshots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotBundle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SnapshotBuildBlockedResult"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SnapshotRequestError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SnapshotValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Create Data Snapshot V1 Data Snapshots Post"
+                }
+              }
+            },
+            "description": "Request validation, mapping authorization, or mandatory data-quality failure"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdapterUnavailableResult"
+                }
+              }
+            },
+            "description": "Typed, sanitized adapter/configuration unavailability"
+          }
+        },
+        "summary": "Create Data Snapshot",
+        "tags": [
+          "point-in-time-data"
+        ]
+      }
+    },
+    "/v1/data-snapshots/{snapshot_id}": {
+      "get": {
+        "operationId": "get_data_snapshot_v1_data_snapshots__snapshot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotBundle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Data Snapshot",
+        "tags": [
+          "point-in-time-data"
         ]
       }
     },

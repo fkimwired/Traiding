@@ -1,0 +1,53 @@
+"""Vendor-neutral, point-in-time Phase 4 data contracts."""
+
+from fable5_data.canonical import (
+    CANONICAL_JSON_VERSION,
+    PHASE4_LOGICAL_RECORD_NAMESPACE,
+    PHASE4_NORMALIZED_OBSERVATION_NAMESPACE,
+    PHASE4_OBSERVATION_NAMESPACE,
+    PHASE4_QUALITY_FINDING_NAMESPACE,
+    PHASE4_RAW_OBSERVATION_NAMESPACE,
+    PHASE4_REQUEST_NAMESPACE,
+    PHASE4_REVISION_NAMESPACE,
+    PHASE4_SNAPSHOT_NAMESPACE,
+    canonical_json_bytes,
+    domain_sha256,
+    snapshot_id_from_sha256,
+)
+from fable5_data.contracts import (
+    AUTHORIZED_CAPABILITIES,
+    PHASE4_SCHEMA_CONSTANTS,
+    REQUEST_FINGERPRINT_VERSION,
+    SNAPSHOT_SCHEMA_VERSION,
+    AdapterResult,
+    DataCapability,
+    DataSnapshot,
+    RequestFingerprintInput,
+    SnapshotBundle,
+    SnapshotCreateRequest,
+)
+
+__all__ = [
+    "AUTHORIZED_CAPABILITIES",
+    "CANONICAL_JSON_VERSION",
+    "PHASE4_LOGICAL_RECORD_NAMESPACE",
+    "PHASE4_NORMALIZED_OBSERVATION_NAMESPACE",
+    "PHASE4_OBSERVATION_NAMESPACE",
+    "PHASE4_QUALITY_FINDING_NAMESPACE",
+    "PHASE4_RAW_OBSERVATION_NAMESPACE",
+    "PHASE4_REQUEST_NAMESPACE",
+    "PHASE4_REVISION_NAMESPACE",
+    "PHASE4_SCHEMA_CONSTANTS",
+    "PHASE4_SNAPSHOT_NAMESPACE",
+    "REQUEST_FINGERPRINT_VERSION",
+    "SNAPSHOT_SCHEMA_VERSION",
+    "AdapterResult",
+    "DataCapability",
+    "DataSnapshot",
+    "RequestFingerprintInput",
+    "SnapshotBundle",
+    "SnapshotCreateRequest",
+    "canonical_json_bytes",
+    "domain_sha256",
+    "snapshot_id_from_sha256",
+]
