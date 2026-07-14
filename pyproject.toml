@@ -32,6 +32,7 @@ dev = [
 [tool.setuptools.packages.find]
 where = [
   "services/api/src",
+  "services/backtester/src",
   "services/data/src",
   "services/extraction/src",
   "services/jobs/src",
@@ -46,6 +47,7 @@ addopts = "-ra --strict-config --strict-markers"
 testpaths = [
   "tests",
   "services/api/tests",
+  "services/backtester/tests",
   "services/data/tests",
   "services/extraction/tests",
   "services/jobs/tests",
@@ -68,6 +70,7 @@ python_version = "3.12"
 strict = true
 files = [
   "services/api/src",
+  "services/backtester/src",
   "services/data/src",
   "services/extraction/src",
   "services/jobs/src",
@@ -75,6 +78,7 @@ files = [
 ]
 mypy_path = [
   "services/api/src",
+  "services/backtester/src",
   "services/data/src",
   "services/extraction/src",
   "services/jobs/src",

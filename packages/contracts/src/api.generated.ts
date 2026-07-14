@@ -141,6 +141,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/evaluation-outcomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Evaluation Outcomes */
+        get: operations["list_evaluation_outcomes_v1_evaluation_outcomes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/evaluation-outcomes/{outcome_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Evaluation Outcome */
+        get: operations["get_evaluation_outcome_v1_evaluation_outcomes__outcome_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/evaluation-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Evaluation Policies */
+        get: operations["list_evaluation_policies_v1_evaluation_policies_get"];
+        put?: never;
+        /** Create Evaluation Policy */
+        post: operations["create_evaluation_policy_v1_evaluation_policies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/evaluation-policies/{policy_id}/versions/{policy_version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Evaluation Policy */
+        get: operations["get_evaluation_policy_v1_evaluation_policies__policy_id__versions__policy_version__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/evaluation-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Evaluation Reports */
+        get: operations["list_evaluation_reports_v1_evaluation_reports_get"];
+        put?: never;
+        /** Create Evaluation Report */
+        post: operations["create_evaluation_report_v1_evaluation_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/evaluation-reports/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Evaluation Report */
+        get: operations["get_evaluation_report_v1_evaluation_reports__artifact_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/extractions": {
         parameters: {
             query?: never;
@@ -419,6 +523,15 @@ export interface components {
             state: components["schemas"]["EvidenceState"];
             value: components["schemas"]["AssetClass"] | null;
         };
+        /** AuditPolicy */
+        AuditPolicy: {
+            /** Append Only Rule */
+            append_only_rule: string;
+            /** Numeric Metadata Rule */
+            numeric_metadata_rule: string;
+            /** Required Fields */
+            required_fields: string[];
+        };
         /**
          * AuthorityVerificationMethod
          * @enum {string}
@@ -462,6 +575,105 @@ export interface components {
          * @enum {string}
          */
         BarInterval: "P1D";
+        /** BlockedEvaluationOutcome */
+        BlockedEvaluationOutcome: {
+            /**
+             * Artifact Type
+             * @default blocked_synthetic_research_evaluation
+             * @constant
+             */
+            artifact_type: "blocked_synthetic_research_evaluation";
+            /** Code Version Git Sha */
+            code_version_git_sha?: string | null;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            failure_stage: components["schemas"]["BlockedFailureStage"];
+            /** Fixture Id */
+            fixture_id: string;
+            /** Idempotency Sha256 */
+            idempotency_sha256: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Outcome Id
+             * Format: uuid
+             */
+            outcome_id: string;
+            /** Outcome Sha256 */
+            outcome_sha256: string;
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /** Policy Version */
+            policy_version: number;
+            /**
+             * Promotion State
+             * @enum {string}
+             */
+            promotion_state: "BLOCKED_MISSING_POLICY" | "BLOCKED_UNCOMPUTABLE";
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Resolved Fixture Random Seed */
+            resolved_fixture_random_seed?: number | null;
+            /** Resolved Fixture Sha256 */
+            resolved_fixture_sha256?: string | null;
+            /** Resolved Policy Sha256 */
+            resolved_policy_sha256?: string | null;
+            /** Resolved Raw Trial Count */
+            resolved_raw_trial_count?: number | null;
+            /**
+             * Resolved Snapshots
+             * @default []
+             */
+            resolved_snapshots: components["schemas"]["ResolvedSnapshotEvidence"][];
+            /**
+             * Sanitized Message
+             * @default Phase 5 evaluation stopped because required evidence was unavailable.
+             * @constant
+             */
+            sanitized_message: "Phase 5 evaluation stopped because required evidence was unavailable.";
+            /**
+             * Schema Version
+             * @default phase5-blocked-evaluation-outcome-v1
+             * @constant
+             */
+            schema_version: "phase5-blocked-evaluation-outcome-v1";
+            /** Snapshot Ids */
+            snapshot_ids: string[];
+            /**
+             * Status
+             * @default blocked
+             * @constant
+             */
+            status: "blocked";
+            /** Submission Sha256 */
+            submission_sha256: string;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+        };
+        /**
+         * BlockedFailureStage
+         * @enum {string}
+         */
+        BlockedFailureStage: "precheck" | "policy_resolution" | "fixture_resolution" | "snapshot_resolution" | "snapshot_lineage" | "engine_computation";
         /** CalendarSessionPayload */
         CalendarSessionPayload: {
             /** Close At */
@@ -549,6 +761,95 @@ export interface components {
          * @enum {string}
          */
         CorroborationStatus: "not_required" | "missing" | "linked_unverified" | "verified";
+        /** CostLedgerEntry */
+        CostLedgerEntry: {
+            /** Allocation Input Sha256 */
+            allocation_input_sha256: string;
+            /** Borrow Cost */
+            borrow_cost: string;
+            /** Capacity Breached */
+            capacity_breached: boolean;
+            /** Capacity Cost */
+            capacity_cost: string;
+            /**
+             * Cost Entry Id
+             * Format: uuid
+             */
+            cost_entry_id: string;
+            /** Cost Entry Sha256 */
+            cost_entry_sha256: string;
+            /** Fee Cost */
+            fee_cost: string;
+            /**
+             * Fill Status
+             * @enum {string}
+             */
+            fill_status: "filled" | "capacity_rejected" | "no_trade";
+            /** Filled Quantity */
+            filled_quantity: string;
+            /** Gross Return */
+            gross_return: string;
+            /** Hard To Borrow Available */
+            hard_to_borrow_available: boolean;
+            /** Impact Cost */
+            impact_cost: string;
+            /** Latency Cost */
+            latency_cost: string;
+            /** Net Return */
+            net_return: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Participation Rate */
+            participation_rate: string;
+            /** Rejected Quantity */
+            rejected_quantity: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            return_status: components["schemas"]["ResearchReturnStatus"];
+            /** Sample Id */
+            sample_id: string;
+            scenario: components["schemas"]["CostScenario"];
+            /** Spread Cost */
+            spread_cost: string;
+            /** Total Cost */
+            total_cost: string;
+            /** Unfilled Quantity */
+            unfilled_quantity: string;
+        };
+        /** CostPolicy */
+        CostPolicy: {
+            /** Baseline Max Participation */
+            baseline_max_participation: string;
+            /** Borrow Source */
+            borrow_source: string;
+            /** Capacity Rule */
+            capacity_rule: string;
+            /** Fee Schedule Effective Date */
+            fee_schedule_effective_date: string;
+            /** Fee Schedule Id */
+            fee_schedule_id: string;
+            /** Hard To Borrow Rule */
+            hard_to_borrow_rule: string;
+            /** Impact Calibration Id */
+            impact_calibration_id: string;
+            /** Impact Model Id */
+            impact_model_id: string;
+            /** Impact Model Version */
+            impact_model_version: string;
+            /** Latency Rule */
+            latency_rule: string;
+            /** Slippage Model Id */
+            slippage_model_id: string;
+            /** Spread Fallback Rule */
+            spread_fallback_rule: string;
+            /** Spread Source */
+            spread_source: string;
+        };
+        /**
+         * CostScenario
+         * @enum {string}
+         */
+        CostScenario: "baseline" | "all_cost_stress" | "liquidity_stress";
         /**
          * DataCapability
          * @enum {string}
@@ -736,6 +1037,261 @@ export interface components {
              */
             redis: "ok";
         };
+        /** DerivedDependencyGraph */
+        DerivedDependencyGraph: {
+            /** Feature Nodes */
+            feature_nodes: components["schemas"]["SourceFeatureDependencyNode"][];
+            /** Graph Sha256 */
+            graph_sha256: string;
+            /** Label Nodes */
+            label_nodes: components["schemas"]["LabelDependencyNode"][];
+            /** Sample Id */
+            sample_id: string;
+            /**
+             * Schema Version
+             * @default phase5-derived-dependency-graph-v1
+             * @constant
+             */
+            schema_version: "phase5-derived-dependency-graph-v1";
+        };
+        /** EvaluationBlockedResult */
+        EvaluationBlockedResult: {
+            /**
+             * Promotion State
+             * @enum {string}
+             */
+            promotion_state: "BLOCKED_MISSING_POLICY" | "BLOCKED_UNCOMPUTABLE";
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Sanitized Message */
+            sanitized_message: string;
+            /**
+             * Status
+             * @default blocked
+             * @constant
+             */
+            status: "blocked";
+        };
+        /** EvaluationPolicyCreateRequest */
+        EvaluationPolicyCreateRequest: {
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /** Policy Version */
+            policy_version: number;
+        };
+        /** EvaluationReport */
+        EvaluationReport: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /**
+             * Artifact Schema Version
+             * @default phase5-evaluation-report-v1
+             * @constant
+             */
+            artifact_schema_version: "phase5-evaluation-report-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Artifact Type
+             * @default synthetic_research_evaluation
+             * @constant
+             */
+            artifact_type: "synthetic_research_evaluation";
+            /** Code Version Git Sha */
+            code_version_git_sha: string;
+            /** Config Hash */
+            config_hash: string;
+            /** Cost Ledger */
+            cost_ledger: components["schemas"]["CostLedgerEntry"][];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Data Snapshots */
+            data_snapshots: components["schemas"]["SnapshotEvidence"][];
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * Disclaimer
+             * @default Synthetic research only; no real performance or investment advice.
+             * @constant
+             */
+            disclaimer: "Synthetic research only; no real performance or investment advice.";
+            /** Effective Trial Count */
+            effective_trial_count: string;
+            /**
+             * Effective Trial Method
+             * @default bailey-average-correlation-interpolation-v1
+             * @constant
+             */
+            effective_trial_method: "bailey-average-correlation-interpolation-v1";
+            /**
+             * Evaluation Policy Id
+             * Format: uuid
+             */
+            evaluation_policy_id: string;
+            /** Evaluation Policy Sha256 */
+            evaluation_policy_sha256: string;
+            /** Evaluation Policy Version */
+            evaluation_policy_version: number;
+            feature_specification: components["schemas"]["FeatureSpecification"];
+            /** Fixture Id */
+            fixture_id: string;
+            /** Fixture Sha256 */
+            fixture_sha256: string;
+            /**
+             * Fixture Version
+             * @default phase5-synthetic-evaluation-fixtures-v1
+             * @constant
+             */
+            fixture_version: "phase5-synthetic-evaluation-fixtures-v1";
+            /** Folds */
+            folds: components["schemas"]["FoldRecord"][];
+            /** Gates */
+            gates: components["schemas"]["GateResult"][];
+            label_specification: components["schemas"]["LabelSpecification"];
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /** Metrics */
+            metrics: components["schemas"]["MetricRecord"][];
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /** Oos Ledger */
+            oos_ledger: components["schemas"]["OosLedgerEntry"][];
+            /** Parent Artifact Ids */
+            parent_artifact_ids: string[];
+            /**
+             * Pass Research Is Not Paper Approval
+             * @default true
+             * @constant
+             */
+            pass_research_is_not_paper_approval: true;
+            /** Preprocessing Fits */
+            preprocessing_fits: components["schemas"]["PreprocessingFitRecord"][];
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Provider Source Versions */
+            provider_source_versions: string[];
+            /** Random Seed */
+            random_seed: number;
+            /** Raw Trial Count */
+            raw_trial_count: number;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Request Fingerprint Version
+             * @default phase5-evaluation-request-v1
+             * @constant
+             */
+            request_fingerprint_version: "phase5-evaluation-request-v1";
+            /** Sample Lineage */
+            sample_lineage: components["schemas"]["SampleSourceLineage"][];
+            /** Sample Lineage Sha256 */
+            sample_lineage_sha256: string;
+            /** Snapshot Bundle Sha256 */
+            snapshot_bundle_sha256: string;
+            /** Source Observations */
+            source_observations: components["schemas"]["ResolvedSourceObservation"][];
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Trials */
+            trials: components["schemas"]["TrialRecord"][];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** EvaluationReportSummary */
+        EvaluationReportSummary: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Fixture Id */
+            fixture_id: string;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            promotion_state: components["schemas"]["PromotionState"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Warning Count */
+            warning_count: number;
+        };
+        /** EvaluationRunCreateRequest */
+        EvaluationRunCreateRequest: {
+            /** Fixture Id */
+            fixture_id: string;
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /** Policy Version */
+            policy_version: number;
+            /** Snapshot Ids */
+            snapshot_ids: string[];
+        };
+        /** EvaluationValidationErrorResponse */
+        EvaluationValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["EvaluationValidationIssue"][];
+        };
+        /** EvaluationValidationIssue */
+        EvaluationValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /**
          * EvidenceState
          * @enum {string}
@@ -813,6 +1369,47 @@ export interface components {
          * @enum {string}
          */
         ExtractorKind: "deterministic_mock" | "llm";
+        /** FeatureSpecification */
+        FeatureSpecification: {
+            /** Availability Rule */
+            availability_rule: string;
+            /** Content Sha256 */
+            content_sha256: string;
+            /** Encoding Policy */
+            encoding_policy: string;
+            /** Feature Selection Policy */
+            feature_selection_policy: string;
+            /**
+             * Feature Specification Id
+             * Format: uuid
+             */
+            feature_specification_id: string;
+            /** Formula Id */
+            formula_id: string;
+            /** Hyperparameter Policy */
+            hyperparameter_policy: string;
+            /** Imputation Policy */
+            imputation_policy: string;
+            /** Lookback Rule */
+            lookback_rule: string;
+            /** Preprocessing Rules */
+            preprocessing_rules: string[];
+            /**
+             * Schema Version
+             * @default phase5-feature-specification-v1
+             * @constant
+             */
+            schema_version: "phase5-feature-specification-v1";
+            /** Source Fields */
+            source_fields: string[];
+            /**
+             * Source Observation Binding Rule
+             * @constant
+             */
+            source_observation_binding_rule: "phase5-exact-snapshot-constituent-value-v1";
+            /** Version */
+            version: string;
+        };
         /** FieldMissingness */
         FieldMissingness: {
             /** Field Name */
@@ -832,6 +1429,58 @@ export interface components {
          */
         FiscalPeriodType: "quarter" | "year" | "trailing_twelve_months";
         /**
+         * FoldKind
+         * @enum {string}
+         */
+        FoldKind: "outer" | "inner" | "cpcv";
+        /** FoldRecord */
+        FoldRecord: {
+            /** Embargo Applied */
+            embargo_applied: boolean;
+            /** Embargo Duration Seconds */
+            embargo_duration_seconds: number;
+            /** Embargoed Sample Ids */
+            embargoed_sample_ids: string[];
+            /**
+             * Fold Id
+             * Format: uuid
+             */
+            fold_id: string;
+            fold_kind: components["schemas"]["FoldKind"];
+            /** Fold Sha256 */
+            fold_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Parent Fold Id */
+            parent_fold_id: string | null;
+            /** Purged Sample Ids */
+            purged_sample_ids: string[];
+            /**
+             * Test End Utc
+             * Format: date-time
+             */
+            test_end_utc: string;
+            /** Test Sample Ids */
+            test_sample_ids: string[];
+            /**
+             * Test Start Utc
+             * Format: date-time
+             */
+            test_start_utc: string;
+            /**
+             * Train End Utc
+             * Format: date-time
+             */
+            train_end_utc: string;
+            /** Train Sample Ids */
+            train_sample_ids: string[];
+            /**
+             * Train Start Utc
+             * Format: date-time
+             */
+            train_start_utc: string;
+        };
+        /**
          * ForecastHorizon
          * @enum {string}
          */
@@ -842,6 +1491,116 @@ export interface components {
             claim_ids: string[];
             state: components["schemas"]["EvidenceState"];
             value: components["schemas"]["ForecastHorizon"] | null;
+        };
+        /** FrozenEvaluationPolicy */
+        FrozenEvaluationPolicy: {
+            /** Approved By */
+            approved_by: string;
+            audit: components["schemas"]["AuditPolicy"];
+            costs: components["schemas"]["CostPolicy"];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            feature_specification: components["schemas"]["FeatureSpecification"];
+            label_specification: components["schemas"]["LabelSpecification"];
+            /** Policy Canonical Json */
+            policy_canonical_json: string;
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /** Policy Sha256 */
+            policy_sha256: string;
+            /** Policy Version */
+            policy_version: number;
+            regimes: components["schemas"]["RegimePolicy"];
+            /** Required Snapshot Capabilities */
+            required_snapshot_capabilities: components["schemas"]["DataCapability"][];
+            risk: components["schemas"]["RiskPolicy"];
+            sample_adequacy: components["schemas"]["SampleAdequacyPolicy"];
+            /**
+             * Schema Version
+             * @default phase5-evaluation-policy-v1
+             * @constant
+             */
+            schema_version: "phase5-evaluation-policy-v1";
+            selection: components["schemas"]["SelectionPolicy"];
+            /** Selection Scope */
+            selection_scope: string;
+            signal_specification: components["schemas"]["SignalSpecification"];
+            strategy_family: components["schemas"]["CanonicalFamily"];
+            stress: components["schemas"]["StressPolicy"];
+            /**
+             * Synthetic Fixture Policy
+             * @default true
+             * @constant
+             */
+            synthetic_fixture_policy: true;
+            walk_forward: components["schemas"]["WalkForwardPolicy"];
+        };
+        /** FundamentalRevisionEvidence */
+        FundamentalRevisionEvidence: {
+            /**
+             * Accepted At Utc
+             * Format: date-time
+             */
+            accepted_at_utc: string;
+            /**
+             * Available At Utc
+             * Format: date-time
+             */
+            available_at_utc: string;
+            /** Dependency Ids */
+            dependency_ids: string[];
+            /** Revision Id */
+            revision_id: string;
+            /** Revision Trace Ids */
+            revision_trace_ids: string[];
+        };
+        /**
+         * GateCode
+         * @enum {string}
+         */
+        GateCode: "DATA_PIT" | "CV_CHRONOLOGY" | "PREPROCESSING" | "TRIAL_REGISTRY" | "DSR" | "PBO" | "COST_STRESS" | "LEAKAGE" | "SAMPLE_ADEQUACY" | "REGIME" | "RISK_LIMITS" | "REPRODUCIBILITY";
+        /**
+         * GateOutcome
+         * @enum {string}
+         */
+        GateOutcome: "pass" | "fail" | "blocked_missing_policy" | "blocked_uncomputable" | "research_only";
+        /** GateResult */
+        GateResult: {
+            /** Config Hash */
+            config_hash: string;
+            gate_code: components["schemas"]["GateCode"];
+            /**
+             * Gate Result Id
+             * Format: uuid
+             */
+            gate_result_id: string;
+            /** Gate Result Sha256 */
+            gate_result_sha256: string;
+            /** Inputs */
+            inputs: {
+                [key: string]: string | number | boolean;
+            };
+            /** Ordinal */
+            ordinal: number;
+            outcome: components["schemas"]["GateOutcome"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Results */
+            results: {
+                [key: string]: string | number | boolean;
+            };
+            /** Thresholds */
+            thresholds: {
+                [key: string]: string | number | boolean;
+            };
+            /** Warnings */
+            warnings: string[];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -897,6 +1656,48 @@ export interface components {
          */
         InstrumentType: "common_stock" | "etf";
         JsonValue: unknown;
+        /** LabelDependencyNode */
+        LabelDependencyNode: {
+            /** Dependency Id */
+            dependency_id: string;
+            /** Label Formula Id */
+            label_formula_id: string;
+            /** Label Specification Sha256 */
+            label_specification_sha256: string;
+            /**
+             * Node Kind
+             * @enum {string}
+             */
+            node_kind: "label" | "future_label";
+        };
+        /** LabelSpecification */
+        LabelSpecification: {
+            /** Content Sha256 */
+            content_sha256: string;
+            /** Delisting Return Policy */
+            delisting_return_policy: string;
+            /** Forecast Horizon */
+            forecast_horizon: string;
+            /** Formula Id */
+            formula_id: string;
+            /** Information Interval Rule */
+            information_interval_rule: string;
+            /**
+             * Label Specification Id
+             * Format: uuid
+             */
+            label_specification_id: string;
+            missing_return_policy: components["schemas"]["MissingReturnPolicy"];
+            no_trade_return_policy: components["schemas"]["NoTradeReturnPolicy"];
+            /**
+             * Schema Version
+             * @default phase5-label-specification-v1
+             * @constant
+             */
+            schema_version: "phase5-label-specification-v1";
+            /** Version */
+            version: string;
+        };
         /** ListingIdentityPayload */
         ListingIdentityPayload: {
             /** Exchange Mic */
@@ -977,6 +1778,44 @@ export interface components {
          * @enum {string}
          */
         MembershipStatus: "included" | "excluded";
+        /** MetricRecord */
+        MetricRecord: {
+            /** Annualization Factor */
+            annualization_factor: number;
+            /** Calendar */
+            calendar: string;
+            /** Denominator */
+            denominator: string;
+            /** Exclusions */
+            exclusions: string[];
+            /** Formula Version */
+            formula_version: string;
+            /** Frequency */
+            frequency: string;
+            /** Inputs */
+            inputs: {
+                [key: string]: string | number;
+            };
+            /** Metric Id */
+            metric_id: string;
+            /** Population */
+            population: string;
+            /**
+             * Timezone
+             * @default UTC
+             * @constant
+             */
+            timezone: "UTC";
+            /** Units */
+            units: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * MissingReturnPolicy
+         * @enum {string}
+         */
+        MissingReturnPolicy: "block_missing_return_v1";
         /**
          * MissingnessReason
          * @enum {string}
@@ -995,6 +1834,11 @@ export interface components {
              */
             fixture_set_version: "phase4-synthetic-pit-fixtures-v1";
         };
+        /**
+         * NoTradeReturnPolicy
+         * @enum {string}
+         */
+        NoTradeReturnPolicy: "explicit_zero_research_observation_v1";
         /** NormalizedObservation */
         NormalizedObservation: {
             /** Adapter Id */
@@ -1306,6 +2150,134 @@ export interface components {
              */
             volume_unit: "shares";
         };
+        /** OosLedgerEntry */
+        OosLedgerEntry: {
+            /** Baseline Net Return */
+            baseline_net_return: string | null;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * Delisting Return Handled
+             * @default true
+             * @constant
+             */
+            delisting_return_handled: true;
+            /**
+             * Fold Id
+             * Format: uuid
+             */
+            fold_id: string;
+            /** Gross Return */
+            gross_return: string | null;
+            /**
+             * Information End Utc
+             * Format: date-time
+             */
+            information_end_utc: string;
+            /**
+             * Information Start Utc
+             * Format: date-time
+             */
+            information_start_utc: string;
+            /**
+             * Label T0 Utc
+             * Format: date-time
+             */
+            label_t0_utc: string;
+            /**
+             * Label T1 Utc
+             * Format: date-time
+             */
+            label_t1_utc: string;
+            /**
+             * Ledger Entry Id
+             * Format: uuid
+             */
+            ledger_entry_id: string;
+            /** Ledger Entry Sha256 */
+            ledger_entry_sha256: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Predicted Value */
+            predicted_value: string;
+            /** @default observed */
+            return_status: components["schemas"]["ResearchReturnStatus"];
+            /** Sample Id */
+            sample_id: string;
+            /** Sample Sha256 */
+            sample_sha256: string;
+            /** Source Observation Refs */
+            source_observation_refs: components["schemas"]["ResolvedSourceObservationRef"][];
+            /**
+             * Trial Id
+             * Format: uuid
+             */
+            trial_id: string;
+        };
+        /** PreprocessingFitRecord */
+        PreprocessingFitRecord: {
+            /**
+             * Ddof
+             * @default 1
+             * @constant
+             */
+            ddof: 1;
+            /**
+             * Fit Id
+             * Format: uuid
+             */
+            fit_id: string;
+            /** Fit Preimage Canonical Json */
+            fit_preimage_canonical_json: string;
+            /** Fit Sha256 */
+            fit_sha256: string;
+            /**
+             * Fold Id
+             * Format: uuid
+             */
+            fold_id: string;
+            /** Fold Sha256 */
+            fold_sha256: string;
+            /** Mean */
+            mean: string;
+            /** Standard Deviation */
+            standard_deviation: string;
+            /** Statistics Sha256 */
+            statistics_sha256: string;
+            /** Train Sample Ids */
+            train_sample_ids: string[];
+            /** Train Sample Ids Canonical Json */
+            train_sample_ids_canonical_json: string;
+            /** Train Sample Ids Sha256 */
+            train_sample_ids_sha256: string;
+            /** Train Sample Values */
+            train_sample_values: components["schemas"]["PreprocessingFitSampleValue"][];
+            /** Transformer Id */
+            transformer_id: string;
+            /**
+             * Transformer Version
+             * @default phase5-train-only-standardizer-v1
+             * @constant
+             */
+            transformer_version: "phase5-train-only-standardizer-v1";
+        };
+        /** PreprocessingFitSampleValue */
+        PreprocessingFitSampleValue: {
+            /** Sample Id */
+            sample_id: string;
+            /** Sample Sha256 */
+            sample_sha256: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * PromotionState
+         * @enum {string}
+         */
+        PromotionState: "PASS_RESEARCH" | "FAIL_REJECT" | "BLOCKED_MISSING_POLICY" | "BLOCKED_UNCOMPUTABLE" | "RESEARCH_ONLY_REGIME_DEPENDENT";
         /**
          * QualityFlag
          * @enum {string}
@@ -1437,6 +2409,21 @@ export interface components {
              */
             status: "ready";
         };
+        /** RegimePolicy */
+        RegimePolicy: {
+            /** Crisis Windows */
+            crisis_windows: string[];
+            /** Dependency Rule */
+            dependency_rule: string;
+            /** Rate Cut */
+            rate_cut: string;
+            /** Rate Definition */
+            rate_definition: string;
+            /** Volatility Cut */
+            volatility_cut: string;
+            /** Volatility Definition */
+            volatility_definition: string;
+        };
         /**
          * RequiredData
          * @enum {string}
@@ -1560,10 +2547,76 @@ export interface components {
             template_version: "phase2-memo-v1";
         };
         /**
+         * ResearchReturnStatus
+         * @enum {string}
+         */
+        ResearchReturnStatus: "observed" | "no_trade" | "delisted" | "missing";
+        /**
          * ResearchVerdict
          * @enum {string}
          */
         ResearchVerdict: "BUILD_RESEARCH" | "DEFER" | "DEFER_READ_ONLY" | "REJECT_PLATFORM" | "NON_TESTABLE";
+        /** ResolvedSnapshotEvidence */
+        ResolvedSnapshotEvidence: {
+            /**
+             * Mapping Id
+             * Format: uuid
+             */
+            mapping_id: string;
+            /** Mapping Input Sha256 */
+            mapping_input_sha256: string;
+            /** Mapping Version */
+            mapping_version: number;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /** ResolvedSourceObservation */
+        ResolvedSourceObservation: {
+            disposition: components["schemas"]["ConstituentDisposition"];
+            key: components["schemas"]["SourceObservationKey"];
+            normalized_observation: components["schemas"]["NormalizedObservation"];
+            /**
+             * Schema Version
+             * @default phase5-resolved-source-observation-v1
+             * @constant
+             */
+            schema_version: "phase5-resolved-source-observation-v1";
+        };
+        /** ResolvedSourceObservationRef */
+        ResolvedSourceObservationRef: {
+            capability: components["schemas"]["DataCapability"];
+            /** Normalized Content Sha256 */
+            normalized_content_sha256: string;
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
+            /**
+             * Observation Revision Id
+             * Format: uuid
+             */
+            observation_revision_id: string;
+            /**
+             * Raw Observation Id
+             * Format: uuid
+             */
+            raw_observation_id: string;
+            /** Raw Payload Sha256 */
+            raw_payload_sha256: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
         /**
          * RiskAssumption
          * @enum {string}
@@ -1577,12 +2630,123 @@ export interface components {
             /** Values */
             values: components["schemas"]["RiskAssumption"][];
         };
+        /** RiskPolicy */
+        RiskPolicy: {
+            /** Max Drawdown */
+            max_drawdown: string;
+            /** Max Gross Exposure */
+            max_gross_exposure: string;
+            /** Max Loss */
+            max_loss: string;
+            /** Max Net Exposure */
+            max_net_exposure: string;
+            /** Max Sector Exposure */
+            max_sector_exposure: string;
+            /** Max Single Observation Exposure */
+            max_single_observation_exposure: string;
+            /** Max Turnover */
+            max_turnover: string;
+            /** Max Volatility */
+            max_volatility: string;
+        };
+        /** SampleAdequacyPolicy */
+        SampleAdequacyPolicy: {
+            /** Min Independent Events */
+            min_independent_events: number;
+            /** Min Oos Observations */
+            min_oos_observations: number;
+            /** Min Synchronized Trials */
+            min_synchronized_trials: number;
+            missing_return_policy: components["schemas"]["MissingReturnPolicy"];
+            no_trade_return_policy: components["schemas"]["NoTradeReturnPolicy"];
+        };
+        /** SampleSourceLineage */
+        SampleSourceLineage: {
+            /** Adjustment Action As Of Utc */
+            adjustment_action_as_of_utc: string | null;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            dependency_graph: components["schemas"]["DerivedDependencyGraph"];
+            /**
+             * Feature Available At Utc
+             * Format: date-time
+             */
+            feature_available_at_utc: string;
+            /** Feature Dependency Ids */
+            feature_dependency_ids: string[];
+            feature_derivation: components["schemas"]["SourceFeatureDerivation"];
+            fundamental_revision: components["schemas"]["FundamentalRevisionEvidence"] | null;
+            membership_source_observation_key: components["schemas"]["SourceObservationKey"];
+            /** Price Adjustment Basis */
+            price_adjustment_basis: ("raw_unadjusted" | "adjusted_for_corporate_action") | null;
+            /** Reference Price */
+            reference_price: string;
+            /** Sample Id */
+            sample_id: string;
+            /** Sample Sha256 */
+            sample_sha256: string;
+            /** Source Observation Refs */
+            source_observation_refs: components["schemas"]["ResolvedSourceObservationRef"][];
+            /**
+             * Synthetic Ledger Value Rule
+             * @default deterministic-synthetic-research-ledger-input-v1
+             * @constant
+             */
+            synthetic_ledger_value_rule: "deterministic-synthetic-research-ledger-input-v1";
+            /** Target Dependency Ids */
+            target_dependency_ids: string[];
+            universe_membership: components["schemas"]["UniverseMembershipEvidence"] | null;
+        };
         /** SchemaBinding */
         SchemaBinding: {
             /** Dataset Schema Id */
             dataset_schema_id: string;
             /** Dataset Schema Version */
             dataset_schema_version: string;
+        };
+        /** SelectionPolicy */
+        SelectionPolicy: {
+            /** Annualization Factor */
+            annualization_factor: number;
+            /** Cscv Block Count */
+            cscv_block_count: number;
+            /** Dsr Min Probability */
+            dsr_min_probability: string;
+            /**
+             * Effective Trial Method
+             * @default bailey-average-correlation-interpolation-v1
+             * @constant
+             */
+            effective_trial_method: "bailey-average-correlation-interpolation-v1";
+            /** Pbo Max */
+            pbo_max: string;
+            /**
+             * Pbo Rank Orientation
+             * @default worst_is_one
+             * @constant
+             */
+            pbo_rank_orientation: "worst_is_one";
+            /**
+             * Pbo Tie Policy
+             * @default reject_ties
+             * @constant
+             */
+            pbo_tie_policy: "reject_ties";
+            /**
+             * Primary Selection Metric
+             * @default mean_net_return
+             * @constant
+             */
+            primary_selection_metric: "mean_net_return";
+            /** Raw Trial Definition */
+            raw_trial_definition: string;
+            /** Return Frequency */
+            return_frequency: string;
+            /** Serial Correlation Method */
+            serial_correlation_method: string;
         };
         /**
          * SignalFamily
@@ -1595,6 +2759,43 @@ export interface components {
             claim_ids: string[];
             state: components["schemas"]["EvidenceState"];
             value: components["schemas"]["SignalFamily"] | null;
+        };
+        /** SignalSpecification */
+        SignalSpecification: {
+            /** Definition */
+            definition: string;
+            /** Deterministic Formula Id */
+            deterministic_formula_id: string;
+            /** Executable Decision Lag */
+            executable_decision_lag: string;
+            /** Forecast Horizon */
+            forecast_horizon: string;
+            /** Holding Rule */
+            holding_rule: string;
+            /**
+             * Llm Generated
+             * @default false
+             * @constant
+             */
+            llm_generated: false;
+            /**
+             * Output Semantics
+             * @default research_score_only
+             * @constant
+             */
+            output_semantics: "research_score_only";
+            /** Overlap Rule */
+            overlap_rule: string;
+            /** Rebalance Rule */
+            rebalance_rule: string;
+            /** Specification Id */
+            specification_id: string;
+            /** Universe Eligibility Rule */
+            universe_eligibility_rule: string;
+            /** Universe Exclusion Rule */
+            universe_exclusion_rule: string;
+            /** Version */
+            version: string;
         };
         /** SnapshotBuildBlockedResult */
         SnapshotBuildBlockedResult: {
@@ -1852,6 +3053,38 @@ export interface components {
             /** Mock Configuration Id */
             mock_configuration_id: string;
         };
+        /** SnapshotEvidence */
+        SnapshotEvidence: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            capability: components["schemas"]["DataCapability"];
+            /** Dataset Id */
+            dataset_id: string;
+            /** Dataset Schema Versions */
+            dataset_schema_versions: string[];
+            /** Fixture Set Version */
+            fixture_set_version: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /** Quality Status */
+            quality_status: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
         /** SnapshotManifest */
         SnapshotManifest: {
             payload: components["schemas"]["SnapshotManifestDraft"];
@@ -1961,6 +3194,55 @@ export interface components {
             /** Versions */
             versions: components["schemas"]["SourceVersion"][];
         };
+        /** SourceFeatureDependencyNode */
+        SourceFeatureDependencyNode: {
+            /** Dependency Id */
+            dependency_id: string;
+            /** Feature Specification Sha256 */
+            feature_specification_sha256: string;
+            /**
+             * Node Kind
+             * @default source_feature
+             * @constant
+             */
+            node_kind: "source_feature";
+            source_observation_key: components["schemas"]["SourceObservationKey"];
+            /**
+             * Source Payload Field
+             * @enum {string}
+             */
+            source_payload_field: "open" | "volume";
+        };
+        /**
+         * SourceFeatureDerivation
+         * @description Frozen preimage proving one feature value came from exact Phase 4 evidence.
+         */
+        SourceFeatureDerivation: {
+            /** Derivation Sha256 */
+            derivation_sha256: string;
+            /** Derived Feature Value */
+            derived_feature_value: string;
+            /**
+             * Formula Id
+             * @default source-decimal-times-frozen-multiplier-v1
+             * @constant
+             */
+            formula_id: "source-decimal-times-frozen-multiplier-v1";
+            /** Multiplier */
+            multiplier: string;
+            /**
+             * Schema Version
+             * @default phase5-source-feature-derivation-v1
+             * @constant
+             */
+            schema_version: "phase5-source-feature-derivation-v1";
+            source_observation_key: components["schemas"]["SourceObservationKey"];
+            /**
+             * Source Payload Field
+             * @enum {string}
+             */
+            source_payload_field: "open" | "volume";
+        };
         /** SourceIntakeRequest */
         SourceIntakeRequest: {
             authority_verification_method?: components["schemas"]["AuthorityVerificationMethod"] | null;
@@ -1977,6 +3259,15 @@ export interface components {
             source_type: components["schemas"]["SourceType"];
             /** Source Url */
             source_url?: string | null;
+        };
+        /** SourceObservationKey */
+        SourceObservationKey: {
+            capability: components["schemas"]["DataCapability"];
+            /**
+             * Normalized Observation Id
+             * Format: uuid
+             */
+            normalized_observation_id: string;
         };
         /** SourceRecord */
         SourceRecord: {
@@ -2047,6 +3338,33 @@ export interface components {
              * Format: date-time
              */
             supplied_at_utc: string;
+        };
+        /** StressPolicy */
+        StressPolicy: {
+            /** Adv Multiplier */
+            adv_multiplier: string;
+            /** All Cost Multiplier */
+            all_cost_multiplier: string;
+            /** Borrow Multiplier */
+            borrow_multiplier: string;
+            /** Impact Coefficient Multiplier */
+            impact_coefficient_multiplier: string;
+            /** Latency Multiplier */
+            latency_multiplier: string;
+            /** Max Capacity Breach Rate */
+            max_capacity_breach_rate: string;
+            /** Max Stressed Drawdown */
+            max_stressed_drawdown: string;
+            /** Min Stressed Annual Return */
+            min_stressed_annual_return: string;
+            /** Min Stressed Net Pnl */
+            min_stressed_net_pnl: string;
+            /** Min Stressed Sharpe */
+            min_stressed_sharpe: string;
+            /** Spread Multiplier */
+            spread_multiplier: string;
+            /** Volatility Multiplier */
+            volatility_multiplier: string;
         };
         /**
          * TestabilityReason
@@ -2148,6 +3466,118 @@ export interface components {
             testability_score_method: "phase2-testability-v1";
             testability_status: components["schemas"]["TestabilityStatus"];
         };
+        /**
+         * TrainMode
+         * @enum {string}
+         */
+        TrainMode: "expanding_past_only" | "rolling_past_only" | "purged_combinatorial";
+        /** TrialRecord */
+        TrialRecord: {
+            /** Config Preimage */
+            config_preimage: {
+                [key: string]: unknown;
+            };
+            /** Config Sha256 */
+            config_sha256: string;
+            /** Configuration */
+            configuration: {
+                [key: string]: string;
+            };
+            /** Cost Policy Sha256 */
+            cost_policy_sha256: string;
+            /**
+             * Counts Toward Raw
+             * @default true
+             * @constant
+             */
+            counts_toward_raw: true;
+            /** Effective Trial Contribution */
+            effective_trial_contribution: string;
+            /** Failure Reason */
+            failure_reason?: string | null;
+            /** Feature Specification Sha256 */
+            feature_specification_sha256: string;
+            /**
+             * Initiated At Utc
+             * Format: date-time
+             */
+            initiated_at_utc: string;
+            /** Initiated By */
+            initiated_by: string;
+            /** Label Specification Sha256 */
+            label_specification_sha256: string;
+            /** Net Returns */
+            net_returns: (string | null)[];
+            /** Oos Return State */
+            oos_return_state: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Parent Trial Ids
+             * @default []
+             */
+            parent_trial_ids: string[];
+            /** Policy Sha256 */
+            policy_sha256: string;
+            /** Return Statuses */
+            return_statuses: components["schemas"]["ResearchReturnStatus"][];
+            /** Return Timestamps Utc */
+            return_timestamps_utc: string[];
+            /** Risk Policy Sha256 */
+            risk_policy_sha256: string;
+            /** Selection Metric */
+            selection_metric: string;
+            /** Selection Policy Sha256 */
+            selection_policy_sha256: string;
+            /** Selection Scope */
+            selection_scope: string;
+            /** Sharpe Convention */
+            sharpe_convention: string;
+            /** Signal Specification Sha256 */
+            signal_specification_sha256: string;
+            status: components["schemas"]["TrialStatus"];
+            strategy_family: components["schemas"]["CanonicalFamily"];
+            /** Stress Policy Sha256 */
+            stress_policy_sha256: string;
+            /**
+             * Trial Id
+             * Format: uuid
+             */
+            trial_id: string;
+            /** Trial Key */
+            trial_key: string;
+            /** Trial Sha256 */
+            trial_sha256: string;
+        };
+        /**
+         * TrialStatus
+         * @enum {string}
+         */
+        TrialStatus: "completed" | "failed" | "abandoned" | "no_return";
+        /** UniverseMembershipEvidence */
+        UniverseMembershipEvidence: {
+            /**
+             * As Of Utc
+             * Format: date-time
+             */
+            as_of_utc: string;
+            /** Membership Id */
+            membership_id: string;
+            /**
+             * Membership Status
+             * @enum {string}
+             */
+            membership_status: "included" | "excluded";
+            /** Universe Id */
+            universe_id: string;
+            /**
+             * Valid From Utc
+             * Format: date-time
+             */
+            valid_from_utc: string;
+            /** Valid To Utc */
+            valid_to_utc: string | null;
+        };
         /** UniverseMembershipPayload */
         UniverseMembershipPayload: {
             /**
@@ -2226,6 +3656,52 @@ export interface components {
              * Format: date-time
              */
             window_start: string;
+        };
+        /** WalkForwardPolicy */
+        WalkForwardPolicy: {
+            /** Decision Calendar */
+            decision_calendar: string;
+            /**
+             * Decision Timezone
+             * @default UTC
+             * @constant
+             */
+            decision_timezone: "UTC";
+            /** Embargo Rule */
+            embargo_rule: string | null;
+            /** Embargo Seconds */
+            embargo_seconds?: number | null;
+            /**
+             * Final Confirmation End Utc
+             * Format: date-time
+             */
+            final_confirmation_end_utc: string;
+            /** Final Confirmation Opening Rule */
+            final_confirmation_opening_rule: string;
+            /**
+             * Final Confirmation Start Utc
+             * Format: date-time
+             */
+            final_confirmation_start_utc: string;
+            /** Inner Fold Count */
+            inner_fold_count: number;
+            /** Inner Test Observations */
+            inner_test_observations: number;
+            /** Minimum Train Observations */
+            minimum_train_observations: number;
+            /** Outer Fold Count */
+            outer_fold_count: number;
+            /** Outer Test Observations */
+            outer_test_observations: number;
+            /**
+             * Purge Rule
+             * @default label_interval_intersection_v1
+             * @constant
+             */
+            purge_rule: "label_interval_intersection_v1";
+            /** Rolling Train Observations */
+            rolling_train_observations?: number | null;
+            train_mode: components["schemas"]["TrainMode"];
         };
     };
     responses: never;
@@ -2499,6 +3975,259 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SnapshotBundle"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_evaluation_outcomes_v1_evaluation_outcomes_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedEvaluationOutcome"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_evaluation_outcome_v1_evaluation_outcomes__outcome_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedEvaluationOutcome"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_evaluation_policies_v1_evaluation_policies_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrozenEvaluationPolicy"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_evaluation_policy_v1_evaluation_policies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluationPolicyCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrozenEvaluationPolicy"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationBlockedResult"] | components["schemas"]["EvaluationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_evaluation_policy_v1_evaluation_policies__policy_id__versions__policy_version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                policy_id: string;
+                policy_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrozenEvaluationPolicy"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_evaluation_reports_v1_evaluation_reports_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReportSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_evaluation_report_v1_evaluation_reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluationRunCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReport"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockedEvaluationOutcome"] | components["schemas"]["EvaluationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_evaluation_report_v1_evaluation_reports__artifact_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReport"];
                 };
             };
             /** @description Validation Error */

@@ -449,6 +449,529 @@ h1 {
   text-underline-offset: 0.2rem;
 }
 
+.evaluationSection {
+  margin-top: 3rem;
+}
+
+.evaluationBoundary,
+.evaluationLoadState,
+.evaluationStatePanel,
+.evaluationPanel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.evaluationBoundary {
+  border-left: 5px solid var(--amber);
+  padding: 1.8rem;
+}
+
+.evaluationBoundary h2 {
+  font: 500 1.8rem/1.2 Georgia, serif;
+  margin: 0 0 0.8rem;
+}
+
+.evaluationBoundary > p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.evaluationBoundaryFlags {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.evaluationBoundaryFlags strong {
+  background: var(--amber-soft);
+  border-radius: 10px;
+  color: #74420f;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.8rem;
+}
+
+.evaluationLoadState {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 1rem 0 0;
+  padding: 1.2rem 1.4rem;
+}
+
+.evaluationLoadError {
+  border-left: 5px solid var(--red);
+}
+
+.evaluationReport {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.evaluationStatePanel {
+  align-items: center;
+  border-left: 5px solid var(--green);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 1.6rem;
+}
+
+.evaluationStatePanel span,
+.evaluationSectionHeading > span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.evaluationStatePanel h3,
+.evaluationSectionHeading h3 {
+  font: 500 1.55rem/1.2 Georgia, serif;
+  margin: 0.35rem 0 0;
+}
+
+.evaluationStatePanel p {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  grid-column: 1 / -1;
+  line-height: 1.6;
+  margin: 0;
+  padding-top: 1rem;
+}
+
+.evaluationPromotionState,
+.evaluationGateCard > header code,
+.evaluationSnapshotCard > header code {
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.55rem 0.8rem;
+}
+
+.evaluationPanel {
+  padding: 1.6rem;
+}
+
+.evaluationSectionHeading {
+  align-items: end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.evaluationSectionHeading .eyebrow {
+  margin-bottom: 0.45rem;
+}
+
+.evaluationCountGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.5rem 0 0;
+}
+
+.evaluationCountGrid > div {
+  background: #f7f6f0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.evaluationCountGrid dt,
+.evaluationAuditGrid dt,
+.evaluationGateAudit dt,
+.evaluationMetricCard dt,
+.evaluationSnapshotCard dt,
+.evaluationDetailGrid dt,
+.evaluationKeyValue dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.evaluationCountGrid dd {
+  font: 500 1.7rem/1 Georgia, serif;
+  margin: 0.65rem 0 0;
+}
+
+.evaluationMethod {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 1rem 0 0;
+}
+
+.evaluationMethod code {
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.evaluationGateList {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+}
+
+.evaluationGateCard {
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--amber);
+  border-radius: 14px;
+  padding: 1.3rem;
+}
+
+.evaluationGateCard[data-outcome="pass"] {
+  border-left-color: var(--green);
+}
+
+.evaluationGateCard[data-outcome="fail"],
+.evaluationGateCard[data-outcome="blocked_missing_policy"],
+.evaluationGateCard[data-outcome="blocked_uncomputable"] {
+  border-left-color: var(--red);
+}
+
+.evaluationGateCard > header,
+.evaluationMetricCard > header,
+.evaluationSnapshotCard > header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.evaluationGateCard > header span {
+  color: var(--green);
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.evaluationGateCard > header h3 {
+  font: 500 1.25rem/1.2 Georgia, serif;
+  margin: 0.25rem 0 0;
+}
+
+.evaluationGateEvidence {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.3rem;
+}
+
+.evaluationKeyValue {
+  background: #f7f6f0;
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+.evaluationKeyValue h4,
+.evaluationGateMessages h4,
+.evaluationEvidenceColumns h4,
+.evaluationMetricExclusions h5 {
+  font-size: 0.75rem;
+  margin: 0 0 0.7rem;
+}
+
+.evaluationKeyValue dl,
+.evaluationMetricCard dl,
+.evaluationSnapshotCard dl,
+.evaluationGateAudit,
+.evaluationAuditGrid {
+  margin: 0;
+}
+
+.evaluationKeyValue dl > div {
+  border-top: 1px solid var(--line);
+  padding: 0.65rem 0;
+}
+
+.evaluationKeyValue dl > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.evaluationKeyValue dd,
+.evaluationGateAudit dd,
+.evaluationAuditGrid dd,
+.evaluationMetricCard dd,
+.evaluationDetailGrid dd,
+.evaluationSnapshotCard dd {
+  color: var(--ink);
+  font-family: monospace;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.evaluationGateMessages,
+.evaluationEvidenceColumns {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.evaluationGateMessages section,
+.evaluationEvidenceColumns section {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.evaluationGateMessages ul,
+.evaluationEvidenceColumns ul,
+.evaluationMetricExclusions ul {
+  color: var(--muted);
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.evaluationEmptyValue {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.evaluationGateAudit {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.evaluationMetricList,
+.evaluationSnapshotList {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.evaluationMetricCard,
+.evaluationSnapshotCard {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.evaluationMetricCard > header h4,
+.evaluationSnapshotCard > header h4 {
+  font: 500 1.2rem/1.2 Georgia, serif;
+  margin: 0;
+}
+
+.evaluationMetricCard > header strong {
+  color: var(--green);
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.evaluationMetricCard > dl,
+.evaluationSnapshotCard > dl {
+  display: grid;
+  gap: 0.8rem 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.2rem;
+}
+
+.evaluationMetricCard .evaluationKeyValue,
+.evaluationMetricExclusions {
+  margin-top: 1rem;
+}
+
+.evaluationAuditGrid {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.evaluationAuditGrid > div {
+  border-top: 1px solid var(--line);
+  min-width: 0;
+  padding: 0.8rem 1rem 0.8rem 0;
+}
+
+.evaluationEvidenceCardGrid,
+.evaluationEvidenceList {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.evaluationEvidenceCardGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.evaluationEvidenceCard {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.evaluationEvidenceCard > header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.evaluationEvidenceCard > header span {
+  color: var(--green);
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evaluationEvidenceCard > header h4 {
+  font: 500 1.2rem/1.2 Georgia, serif;
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.evaluationEvidenceCard > header code {
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green);
+  font-size: 0.7rem;
+  font-weight: 800;
+  max-width: 45%;
+  overflow-wrap: anywhere;
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+}
+
+.evaluationDetailGrid {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.2rem 0 0;
+}
+
+.evaluationDetailGrid > div {
+  border-top: 1px solid var(--line);
+  min-width: 0;
+  padding: 0.75rem 1rem 0.75rem 0;
+}
+
+.evaluationEvidenceCard > .evaluationKeyValue,
+.evaluationEvidenceCard > .evaluationEvidenceGroup,
+.evaluationCanonicalEvidence {
+  margin-top: 1rem;
+}
+
+.evaluationEvidenceGroup h4,
+.evaluationCanonicalEvidence h4 {
+  font-size: 0.75rem;
+  margin: 0 0 0.7rem;
+}
+
+.evaluationEvidenceGroup ul,
+.evaluationCalendarList {
+  color: var(--muted);
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.evaluationSampleGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.evaluationSampleGrid .evaluationEvidenceGroup,
+.evaluationCanonicalEvidence {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.evaluationCalendarList li {
+  align-items: baseline;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.evaluationCalendarList code {
+  color: var(--ink);
+}
+
+.evaluationCanonicalEvidence pre {
+  background: #f7f6f0;
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  margin: 0;
+  overflow: auto;
+  padding: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.evaluationTableScroll {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+}
+
+.evaluationDataTable {
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  min-width: 980px;
+  width: 100%;
+}
+
+.evaluationDataTable th,
+.evaluationDataTable td {
+  border: 1px solid var(--line);
+  padding: 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.evaluationDataTable th {
+  background: #f7f6f0;
+  color: var(--muted);
+  font-size: 0.67rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.evaluationDataTable td strong,
+.evaluationDataTable td span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.evaluationDataTable td strong {
+  color: var(--green);
+  margin-bottom: 0.45rem;
+}
+
+.evaluationDataTable td span + span {
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 900px) {
   .primaryNavigation {
     align-items: flex-start;
@@ -475,6 +998,13 @@ h1 {
   .modeGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .evaluationBoundaryFlags,
+  .evaluationGateEvidence,
+  .evaluationCountGrid,
+  .evaluationEvidenceCardGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -495,7 +1025,29 @@ h1 {
 
   .modeGrid,
   .gateStrip,
-  .mappingEvidence {
+  .mappingEvidence,
+  .evaluationGateMessages,
+  .evaluationGateAudit,
+  .evaluationMetricCard > dl,
+  .evaluationSnapshotCard > dl,
+  .evaluationAuditGrid,
+  .evaluationEvidenceColumns,
+  .evaluationDetailGrid,
+  .evaluationSampleGrid {
     grid-template-columns: 1fr;
+  }
+
+  .evaluationStatePanel {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .evaluationStatePanel p {
+    grid-column: auto;
+  }
+
+  .evaluationSectionHeading {
+    align-items: start;
+    flex-direction: column;
   }
 }

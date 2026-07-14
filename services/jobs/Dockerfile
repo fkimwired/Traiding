@@ -8,6 +8,7 @@ WORKDIR /app
 
 COPY pyproject.toml requirements.lock README.md ./
 COPY services/api ./services/api
+COPY services/backtester ./services/backtester
 COPY services/data ./services/data
 COPY services/extraction ./services/extraction
 COPY services/jobs ./services/jobs

@@ -21,7 +21,9 @@ contract-check:
 	npm run contracts:check
 
 check: lint typecheck contract-check test
-	python scripts/verify_phase1.py --static-only --phase 4
+	@phase="$${FABLE5_VERIFY_PHASE:-5}"; \
+	case "$$phase" in 1|2|3|4|5) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, or 5." >&2; exit 2 ;; esac; \
+	python scripts/verify_phase1.py --static-only --phase "$$phase"
 
 up:
 	docker compose up --build --wait
@@ -30,4 +32,6 @@ down:
 	docker compose down
 
 smoke:
-	python scripts/verify_phase1.py --phase 4
+	@phase="$${FABLE5_VERIFY_PHASE:-5}"; \
+	case "$$phase" in 1|2|3|4|5) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, or 5." >&2; exit 2 ;; esac; \
+	python scripts/verify_phase1.py --phase "$$phase"

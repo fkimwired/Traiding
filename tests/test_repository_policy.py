@@ -131,15 +131,20 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase4_entrypoints_and_images_select_the_active_phase() -> None:
-    assert "--phase 4" in normalized(ROOT / "scripts/check.ps1")
-    assert "--phase 4" in normalized(ROOT / "scripts/check.sh")
-    assert "--phase 4" in normalized(ROOT / "Makefile")
+def test_phase5_entrypoints_and_images_select_the_active_phase() -> None:
+    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+        source = normalized(ROOT / entrypoint)
+        assert "FABLE5_VERIFY_PHASE" in source
+        assert "--phase" in source
+        assert "1, 2, 3, 4, or 5" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.count("--phase 4") >= 2
+    assert workflow.startswith("name: phase-5-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "5"' in workflow
+    assert workflow.count("--phase 5") >= 2
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
         assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)
+        assert "COPY services/backtester ./services/backtester" in normalized(ROOT / dockerfile)
     assert "COPY services/mapping ./services/mapping" in normalized(
         ROOT / "services/api/Dockerfile"
     )
@@ -165,10 +170,8 @@ def test_phase2_openapi_has_no_later_phase_or_execution_surface() -> None:
     dependencies = normalized(ROOT / "pyproject.toml").lower()
     for forbidden_dependency in ("alpaca-py", "ib_insync", "ibapi", "ccxt"):
         assert forbidden_dependency not in dependencies
-    assert list((ROOT / "services/backtester").iterdir()) == [
-        ROOT / "services/backtester/README.md"
-    ]
     assert list((ROOT / "services/risk").iterdir()) == [ROOT / "services/risk/README.md"]
+    assert list((ROOT / "strategy_specs").iterdir()) == [ROOT / "strategy_specs/README.md"]
 
 
 def test_phase3_handoff_has_closed_verdicts_and_all_required_sections() -> None:
@@ -475,7 +478,7 @@ def test_phase4_verifier_has_static_contract_isolation_live_gate_and_preserving_
         "PHASE_4_CAPABILITIES",
         "PHASE_4_RECORD_TYPES",
         "PHASE_4_SCHEMA_VERSIONS",
-        "PHASE_1_3_MIGRATION_SHA256",
+        "PHASE_1_4_MIGRATION_SHA256",
         "FORBIDDEN_VENDOR_SDK_MODULES",
         "FORBIDDEN_PHASE_4_NETWORK_MODULES",
         "PHASE_5_SYMBOL_PREFIXES",
@@ -493,6 +496,7 @@ def test_phase4_verifier_has_static_contract_isolation_live_gate_and_preserving_
         "verify_phase4_migration_cycle(project, environment)",
     ):
         assert compose_gate in compose_branch
+    assert "if phase == 4:\n                        verify_phase4_migration_cycle" in compose_branch
     for full_gate in (
         "tests/test_phase4_postgres.py",
         "Phase 4 authorized A/B/C create/read/list",
@@ -501,7 +505,7 @@ def test_phase4_verifier_has_static_contract_isolation_live_gate_and_preserving_
         assert full_gate in verifier
 
     phase4_cycle = verifier.split("def verify_phase4_migration_cycle", 1)[1].split(
-        "def wait_for_frontend", 1
+        "def verify_phase5_migration_cycle", 1
     )[0]
     for preservation_evidence in (
         'earlier_tables = ("research_audit_events", *PHASE_2_TABLES, *PHASE_3_TABLES)',
@@ -515,3 +519,58 @@ def test_phase4_verifier_has_static_contract_isolation_live_gate_and_preserving_
         "preserved all 12 Phase 1-3 tables",
     ):
         assert preservation_evidence in phase4_cycle
+
+
+def test_phase5_verifier_has_fail_closed_hooks_append_only_and_preserving_cycle() -> None:
+    verifier = normalized(ROOT / "scripts/verify_phase1.py")
+
+    for static_evidence in (
+        "PHASE_5_REQUIRED_PATHS",
+        "PHASE_5_TABLES",
+        "PHASE_5_APPEND_ONLY_ERROR",
+        "0005_phase5_evaluation.py",
+        'down_revision: str | None = "0004_phase4"',
+        "Phase 5 evaluation API paths are missing",
+        "Phase 7 approval state leaked into Phase 5",
+        "COPY services/backtester ./services/backtester",
+        "78c52c613358708940d88cbd47069bdde9bc857046bf646d7461bd13b57b3008",
+    ):
+        assert static_evidence in verifier
+
+    for hook in (
+        "def verify_phase5_api",
+        "def verify_phase5_postgres_acceptance",
+        "def verify_phase5_append_only",
+        "def verify_phase5_migration_cycle",
+        "verify_phase5_api(api_url, phase4_snapshot_id)",
+        "verify_phase5_postgres_acceptance(environment)",
+        "verify_phase5_append_only(project, environment)",
+        "verify_phase5_migration_cycle(project, environment)",
+    ):
+        assert hook in verifier
+    assert "Phase 5 API acceptance hook is not implemented yet" not in verifier
+    for api_evidence in (
+        "/v1/evaluation-policies",
+        "/v1/evaluation-reports",
+        "pass_research_is_not_paper_approval",
+        "client authority without typed validation evidence",
+        "raw trial count omitted failed/abandoned variants",
+    ):
+        assert api_evidence in verifier
+    assert "acceptance_environment(phase)" in verifier
+    assert 'environment["FABLE5_CODE_VERSION_GIT_SHA"] = git_sha' in verifier
+
+    phase5_cycle = verifier.split("def verify_phase5_migration_cycle", 1)[1].split(
+        "def wait_for_frontend", 1
+    )[0]
+    for preservation_evidence in (
+        "*PHASE_4_TABLES",
+        "phase5_migration_preservation_fixture",
+        "len(before) != 19",
+        '"downgrade",\n            "0004_phase4"',
+        '"upgrade",\n            "0005_phase5"',
+        "assert_snapshots_equal(before, after_downgrade",
+        "assert_snapshots_equal(before, after_reupgrade",
+        "preserved all 19 Phase 1-4 tables",
+    ):
+        assert preservation_evidence in phase5_cycle

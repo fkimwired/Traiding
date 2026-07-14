@@ -196,6 +196,36 @@ PHASE_4_TABLES = (
     "data_quality_findings",
     "data_snapshot_manifests",
 )
+PHASE_5_REQUIRED_PATHS = (
+    "services/api/migrations/versions/0005_phase5_evaluation.py",
+    "services/api/src/fable5_api/evaluations.py",
+    "services/api/tests/test_phase5_routes.py",
+    "services/api/tests/test_phase5_openapi_contract.py",
+    "services/backtester/src/fable5_backtester/__init__.py",
+    "services/backtester/src/fable5_backtester/outcomes.py",
+    "services/backtester/src/fable5_backtester/source_lineage.py",
+    "services/backtester/tests",
+    "services/frontend/src/app/research/EvaluationReports.tsx",
+    "services/frontend/src/tests/EvaluationReports.test.tsx",
+    "packages/contracts/src/phase5-contract.type-test.ts",
+    "tests/test_phase5_migration.py",
+    "tests/test_phase5_postgres.py",
+)
+PHASE_5_TABLES = (
+    "evaluation_policies",
+    "evaluation_feature_specs",
+    "evaluation_label_specs",
+    "evaluation_blocked_outcomes",
+    "evaluation_reports",
+    "evaluation_report_snapshots",
+    "evaluation_trials",
+    "evaluation_folds",
+    "evaluation_preprocessing_fits",
+    "evaluation_oos_ledger",
+    "evaluation_cost_ledger",
+    "evaluation_gate_results",
+)
+PHASE_5_APPEND_ONLY_ERROR = "Phase 5 evaluation records are append-only"
 PHASE_4_CAPABILITIES = {
     "security_master",
     "universe_membership",
@@ -232,7 +262,7 @@ PHASE_4_SCHEMA_VERSIONS = {
     "phase4-synthetic-pit-fixtures-v1",
     "phase4-synthetic-test-fixture-rights-v1",
 }
-PHASE_1_3_MIGRATION_SHA256 = {
+PHASE_1_4_MIGRATION_SHA256 = {
     "services/api/migrations/versions/0001_phase1_audit_spine.py": (
         "5cd27e1bde6b03720f54fe5e1260cf5f9085e16a4eebed957aeeba1a3a7d17f8"
     ),
@@ -241,6 +271,9 @@ PHASE_1_3_MIGRATION_SHA256 = {
     ),
     "services/api/migrations/versions/0003_phase3_canon_mapping.py": (
         "6859c63723dc31d6ede4cdd5528a42640f16e3c6103567b5d900a46741edf07d"
+    ),
+    "services/api/migrations/versions/0004_phase4_point_in_time_data.py": (
+        "78c52c613358708940d88cbd47069bdde9bc857046bf646d7461bd13b57b3008"
     ),
 }
 FORBIDDEN_VENDOR_SDK_MODULES = {
@@ -312,9 +345,9 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, or 4") from exc
-    if phase not in {1, 2, 3, 4}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, or 4")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, or 5") from exc
+    if phase not in {1, 2, 3, 4, 5}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, or 5")
     return phase
 
 
@@ -419,6 +452,10 @@ def verify_static(phase: int = 1) -> None:
         missing_phase4 = [path for path in PHASE_4_REQUIRED_PATHS if not (ROOT / path).exists()]
         if missing_phase4:
             raise AssertionError(f"Missing Phase 4 paths: {', '.join(missing_phase4)}")
+    if phase >= 5:
+        missing_phase5 = [path for path in PHASE_5_REQUIRED_PATHS if not (ROOT / path).exists()]
+        if missing_phase5:
+            raise AssertionError(f"Missing Phase 5 paths: {', '.join(missing_phase5)}")
 
     gates = canonical_gates()
     for filename in ("AGENTS.md", "CLAUDE.md"):
@@ -594,16 +631,13 @@ def verify_static(phase: int = 1) -> None:
             raise AssertionError("services/api/Dockerfile does not package the mapping domain")
 
         for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
-            selected_phases = {
-                int(value)
-                for value in re.findall(r"--phase\s+([1-4])", normalized(ROOT / entrypoint))
-            }
-            if not selected_phases or max(selected_phases) < phase:
+            entrypoint_source = normalized(ROOT / entrypoint)
+            if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
                 raise AssertionError(
-                    f"{entrypoint} selects no verifier at or beyond required Phase {phase}"
+                    f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-4])", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-5])", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -656,10 +690,15 @@ def verify_static(phase: int = 1) -> None:
         for path in domain_paths:
             if any(term in path.lower() for term in forbidden_path_terms):
                 raise AssertionError(f"Forbidden Phase 3 API path: {path}")
-        for dormant_directory in ("services/backtester", "services/risk", "strategy_specs"):
+        dormant_directories = ["services/risk", "strategy_specs"]
+        if phase < 5:
+            dormant_directories.append("services/backtester")
+        for dormant_directory in dormant_directories:
             entries = sorted(path.name for path in (ROOT / dormant_directory).iterdir())
             if entries != ["README.md"]:
-                raise AssertionError(f"Phase 3 created a forbidden scaffold in {dormant_directory}")
+                raise AssertionError(
+                    f"Phase {phase} created a forbidden scaffold in {dormant_directory}"
+                )
 
         for component in (
             "CanonicalFamily",
@@ -739,10 +778,13 @@ def verify_static(phase: int = 1) -> None:
             raise AssertionError("Phase 3 decisions do not freeze the canonical rule-set hash")
 
     if phase >= 4:
-        for relative_path, expected_sha256 in PHASE_1_3_MIGRATION_SHA256.items():
-            actual_sha256 = hashlib.sha256(
-                normalized(ROOT / relative_path).encode("utf-8")
-            ).hexdigest()
+        immutable_migrations = {
+            path: digest
+            for path, digest in PHASE_1_4_MIGRATION_SHA256.items()
+            if phase >= 5 or "0004_phase4" not in path
+        }
+        for relative_path, expected_sha256 in immutable_migrations.items():
+            actual_sha256 = hashlib.sha256((ROOT / relative_path).read_bytes()).hexdigest()
             if actual_sha256 != expected_sha256:
                 raise AssertionError(
                     f"Immutable earlier migration changed: {relative_path} ({actual_sha256})"
@@ -967,6 +1009,129 @@ def verify_static(phase: int = 1) -> None:
                     f"Credential-shaped content leaked into {path.relative_to(ROOT)}"
                 )
 
+    if phase >= 5:
+        migration = normalized(ROOT / "services/api/migrations/versions/0005_phase5_evaluation.py")
+        if 'down_revision: str | None = "0004_phase4"' not in migration:
+            raise AssertionError("Phase 5 migration must directly revise immutable Phase 4")
+        for table in PHASE_5_TABLES:
+            if table not in migration:
+                raise AssertionError(f"Phase 5 migration is missing {table}")
+        for required_append_only_evidence in (
+            "CREATE TRIGGER {table}_immutable",
+            "CREATE TRIGGER {table}_no_truncate",
+            PHASE_5_APPEND_ONLY_ERROR,
+        ):
+            if required_append_only_evidence not in migration:
+                raise AssertionError(
+                    "Phase 5 migration is missing append-only evidence "
+                    f"{required_append_only_evidence}"
+                )
+
+        for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
+            if "COPY services/backtester ./services/backtester" not in normalized(
+                ROOT / dockerfile
+            ):
+                raise AssertionError(f"{dockerfile} does not package the Phase 5 evaluator")
+
+        compose = normalized(ROOT / "compose.yaml")
+        if "FABLE5_CODE_VERSION_GIT_SHA: ${FABLE5_CODE_VERSION_GIT_SHA:-}" not in compose:
+            raise AssertionError("Compose does not pass through the optional server-owned git SHA")
+        api_config = normalized(ROOT / "services/api/src/fable5_api/config.py")
+        if 'pattern=r"^[0-9a-f]{40}$"' not in api_config:
+            raise AssertionError("API configuration does not strictly validate the Phase 5 git SHA")
+
+        backtester_root = ROOT / "services/backtester/src/fable5_backtester"
+        for path in backtester_root.rglob("*.py"):
+            forbidden = imported_module_roots(path) & (
+                FORBIDDEN_VENDOR_SDK_MODULES | FORBIDDEN_PHASE_4_NETWORK_MODULES
+            )
+            if forbidden:
+                raise AssertionError(
+                    "Phase 5 evaluator imports a provider SDK or network client: "
+                    f"{path.relative_to(ROOT)} {sorted(forbidden)}"
+                )
+
+        openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+        evaluation_paths = {
+            path: {
+                method
+                for method in operations
+                if method in {"get", "post", "put", "patch", "delete"}
+            }
+            for path, operations in openapi["paths"].items()
+            if path.startswith("/v1/evaluation")
+        }
+        if not evaluation_paths:
+            raise AssertionError("Phase 5 evaluation API paths are missing")
+        for path, methods in evaluation_paths.items():
+            if not methods or methods - {"get", "post"}:
+                raise AssertionError(
+                    f"Phase 5 evaluation API is not create/read/list only: {path} {methods}"
+                )
+        forbidden_later_phase_paths = (
+            "signal",
+            "strategy",
+            "portfolio",
+            "position",
+            "broker",
+            "order",
+            "execution",
+            "approval",
+            "paper",
+            "live",
+        )
+        for path in openapi["paths"]:
+            if any(term in path.casefold() for term in forbidden_later_phase_paths):
+                raise AssertionError(f"Phase 6/7 capability leaked into the Phase 5 API: {path}")
+
+        phase5_surfaces: tuple[Path, ...] = (
+            ROOT / "services/api/src/fable5_api/evaluations.py",
+            ROOT / "services/api/migrations/versions/0005_phase5_evaluation.py",
+            ROOT / "packages/contracts/openapi.json",
+            ROOT / "packages/contracts/src/api.generated.ts",
+        )
+        phase5_surfaces += tuple(backtester_root.rglob("*.py"))
+        for path in phase5_surfaces:
+            if "APPROVED_PAPER" in path.read_text(encoding="utf-8"):
+                raise AssertionError(
+                    f"Phase 7 approval state leaked into Phase 5: {path.relative_to(ROOT)}"
+                )
+        forbidden_later_phase_modules = {
+            "signal",
+            "strategy",
+            "signals",
+            "strategies",
+            "portfolio",
+            "positions",
+            "brokers",
+            "orders",
+            "execution",
+            "approvals",
+            "paper",
+            "live",
+        }
+        for path in backtester_root.rglob("*.py"):
+            module_name = path.stem.casefold()
+            if (
+                module_name in forbidden_later_phase_modules
+                or "strategy" in module_name
+                or module_name.endswith("_pipeline")
+            ):
+                raise AssertionError(
+                    f"Phase 6/7 module leaked into Phase 5: {path.relative_to(ROOT)}"
+                )
+        generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+        if '"/v1/evaluation' not in generated:
+            raise AssertionError("Generated TypeScript Phase 5 evaluation contracts are missing")
+        for schema in (
+            "BlockedEvaluationOutcome",
+            "ResearchReturnStatus",
+            "ResolvedSourceObservation",
+            "SampleSourceLineage",
+        ):
+            if schema not in generated:
+                raise AssertionError(f"Generated TypeScript contract is missing {schema}")
+
     print(f"Static repository policy checks passed for Phase {phase}.")
 
 
@@ -982,7 +1147,7 @@ def run(
     return subprocess.run(command, cwd=ROOT, check=True, text=True, env=env)
 
 
-def acceptance_environment() -> tuple[dict[str, str], str, str]:
+def acceptance_environment(phase: int = 1) -> tuple[dict[str, str], str, str]:
     sockets: list[socket.socket] = []
     try:
         for _ in range(4):
@@ -1023,6 +1188,17 @@ def acceptance_environment() -> tuple[dict[str, str], str, str]:
             "NEXT_PUBLIC_API_URL": api_url,
         }
     )
+    if phase >= 5:
+        git_sha = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
+            raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
+        environment["FABLE5_CODE_VERSION_GIT_SHA"] = git_sha
     return environment, api_url, frontend_url
 
 
@@ -1622,6 +1798,513 @@ def verify_phase4_api(api_url: str) -> str:
     return snapshot_id
 
 
+def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
+    if not re.fullmatch(r"[0-9a-f-]{36}", phase4_snapshot_id):
+        raise AssertionError("Phase 5 did not receive a valid preserved Phase 4 snapshot identity")
+    preserved_ohlcv = request_json(f"{api_url}/v1/data-snapshots/{phase4_snapshot_id}")
+    if not isinstance(preserved_ohlcv, dict) or not isinstance(
+        preserved_ohlcv.get("snapshot"), dict
+    ):
+        raise AssertionError("Phase 5 could not reload the preserved Phase 4 OHLCV snapshot")
+    preserved_snapshot = preserved_ohlcv["snapshot"]
+    manifest = preserved_snapshot.get("manifest")
+    if not isinstance(manifest, dict) or not isinstance(manifest.get("payload"), dict):
+        raise AssertionError("Preserved Phase 4 OHLCV snapshot omitted its immutable manifest")
+    manifest_payload = manifest["payload"]
+    mapping = manifest_payload.get("mapping")
+    snapshot_request = manifest_payload.get("request")
+    if not isinstance(mapping, dict) or not isinstance(snapshot_request, dict):
+        raise AssertionError("Preserved Phase 4 OHLCV snapshot lost request/mapping lineage")
+    if (
+        mapping.get("canonical_family") != "A_CROSS_SECTIONAL_EQUITY_RANKING"
+        or mapping.get("verdict") != "BUILD_RESEARCH"
+        or snapshot_request.get("capability") != "ohlcv"
+        or preserved_snapshot.get("snapshot_id") != phase4_snapshot_id
+    ):
+        raise AssertionError("Phase 5 did not reuse the authorized Family A OHLCV snapshot")
+    mapping_id = mapping.get("mapping_id")
+    as_of_text = snapshot_request.get("as_of_utc")
+    if not isinstance(mapping_id, str) or not isinstance(as_of_text, str):
+        raise AssertionError("Preserved Family A snapshot omitted mapping/as-of identity")
+
+    membership_created = request_json(
+        f"{api_url}/v1/data-snapshots",
+        method="POST",
+        payload={
+            "mapping_id": mapping_id,
+            "as_of_utc": as_of_text,
+            "capability": "universe_membership",
+            "mock_configuration_id": "phase4-synthetic-default-v1",
+        },
+    )
+    if not isinstance(membership_created, dict) or not isinstance(
+        membership_created.get("snapshot"), dict
+    ):
+        raise AssertionError("Phase 5 could not resolve an immutable membership snapshot")
+    membership_snapshot = membership_created["snapshot"]
+    membership_snapshot_id = membership_snapshot.get("snapshot_id")
+    membership_manifest = membership_snapshot.get("manifest")
+    if not isinstance(membership_snapshot_id, str) or not isinstance(membership_manifest, dict):
+        raise AssertionError("Phase 5 membership snapshot omitted its identity/manifest")
+    membership_manifest_payload = membership_manifest.get("payload")
+    if not isinstance(membership_manifest_payload, dict) or not isinstance(
+        membership_manifest_payload.get("request"), dict
+    ):
+        raise AssertionError("Phase 5 membership snapshot lost request lineage")
+    membership_request = membership_manifest_payload["request"]
+    if (
+        membership_manifest_payload.get("mapping") != mapping
+        or membership_request.get("mapping") != mapping
+        or membership_request.get("as_of_utc") != as_of_text
+        or membership_request.get("capability") != "universe_membership"
+        or membership_snapshot_id == phase4_snapshot_id
+    ):
+        raise AssertionError("Phase 5 membership snapshot did not preserve mapping/as-of lineage")
+
+    policy_request = {
+        "policy_id": "b4e2146e-f1da-5c15-ada2-01bfd61ead9e",
+        "policy_version": 1,
+    }
+    policy = request_json(
+        f"{api_url}/v1/evaluation-policies",
+        method="POST",
+        payload=policy_request,
+    )
+    repeated_policy = request_json(
+        f"{api_url}/v1/evaluation-policies",
+        method="POST",
+        payload=policy_request,
+    )
+    if not isinstance(policy, dict) or policy != repeated_policy:
+        raise AssertionError("Frozen Phase 5 policy creation was not deterministic/idempotent")
+    policy_hash = policy.get("policy_sha256")
+    if not isinstance(policy_hash, str) or re.fullmatch(r"[0-9a-f]{64}", policy_hash) is None:
+        raise AssertionError("Frozen Phase 5 policy omitted its canonical SHA-256")
+    if policy.get("synthetic_fixture_policy") is not True:
+        raise AssertionError("Phase 5 registered a policy outside its synthetic fixture boundary")
+    if policy.get("strategy_family") != "A_CROSS_SECTIONAL_EQUITY_RANKING" or policy.get(
+        "required_snapshot_capabilities"
+    ) != ["ohlcv", "universe_membership"]:
+        raise AssertionError(
+            "Phase 5 registered policy lost its exact Family A two-capability contract"
+        )
+    policy_detail = request_json(
+        f"{api_url}/v1/evaluation-policies/{policy_request['policy_id']}/versions/1"
+    )
+    policies = request_json(f"{api_url}/v1/evaluation-policies?limit=100")
+    if policy_detail != policy or not isinstance(policies, list) or policy not in policies:
+        raise AssertionError("Phase 5 policy create/read/list contract is incomplete")
+
+    run_request = {
+        **policy_request,
+        "mapping_id": mapping_id,
+        "snapshot_ids": [phase4_snapshot_id, membership_snapshot_id],
+        "fixture_id": "phase5-deterministic-research-ledger-v1",
+    }
+    report = request_json(
+        f"{api_url}/v1/evaluation-reports",
+        method="POST",
+        payload=run_request,
+    )
+    repeated_report = request_json(
+        f"{api_url}/v1/evaluation-reports",
+        method="POST",
+        payload=run_request,
+    )
+    if not isinstance(report, dict) or report != repeated_report:
+        raise AssertionError("Phase 5 identical run creation was not deterministic/idempotent")
+    artifact_id = report.get("artifact_id")
+    artifact_hash = report.get("artifact_sha256")
+    if not isinstance(artifact_id, str) or not isinstance(artifact_hash, str):
+        raise AssertionError("Phase 5 report omitted its immutable identity/hash")
+    if re.fullmatch(r"[0-9a-f]{64}", artifact_hash) is None:
+        raise AssertionError("Phase 5 report returned an invalid artifact SHA-256")
+    if (
+        report.get("promotion_state") != "PASS_RESEARCH"
+        or report.get("synthetic") is not True
+        or report.get("no_real_performance_claimed") is not True
+        or report.get("pass_research_is_not_paper_approval") is not True
+    ):
+        raise AssertionError("Phase 5 report violated its synthetic research-only state boundary")
+    if report.get("evaluation_policy_sha256") != policy_hash:
+        raise AssertionError("Phase 5 report lost its frozen policy hash")
+    if report.get("mapping_id") != mapping_id or report.get("raw_trial_count") != 6:
+        raise AssertionError("Phase 5 report lost mapping or complete trial-count lineage")
+    data_snapshots = report.get("data_snapshots")
+    if not isinstance(data_snapshots, list) or len(data_snapshots) != 2:
+        raise AssertionError("Phase 5 report omitted immutable snapshot evidence")
+    snapshots_by_capability = {
+        item.get("capability"): item for item in data_snapshots if isinstance(item, dict)
+    }
+    if (
+        set(snapshots_by_capability) != {"ohlcv", "universe_membership"}
+        or snapshots_by_capability["ohlcv"].get("snapshot_id") != phase4_snapshot_id
+        or snapshots_by_capability["universe_membership"].get("snapshot_id")
+        != membership_snapshot_id
+        or any(item.get("as_of_utc") != as_of_text for item in snapshots_by_capability.values())
+    ):
+        raise AssertionError("Phase 5 report did not bind both exact Family A snapshots")
+
+    source_observations = report.get("source_observations")
+    sample_lineage = report.get("sample_lineage")
+    sample_lineage_sha256 = report.get("sample_lineage_sha256")
+    if (
+        not isinstance(source_observations, list)
+        or len(source_observations) != 2
+        or not isinstance(sample_lineage, list)
+        or len(sample_lineage) != 20
+        or not isinstance(sample_lineage_sha256, str)
+        or re.fullmatch(r"[0-9a-f]{64}", sample_lineage_sha256) is None
+    ):
+        raise AssertionError("Phase 5 report omitted exact Phase 4 source/sample lineage")
+    sources_by_capability = {
+        item.get("key", {}).get("capability"): item
+        for item in source_observations
+        if isinstance(item, dict) and isinstance(item.get("key"), dict)
+    }
+    if set(sources_by_capability) != {"ohlcv", "universe_membership"}:
+        raise AssertionError("Phase 5 source lineage omitted a required capability")
+    source_ref_fields = (
+        "capability",
+        "snapshot_id",
+        "snapshot_sha256",
+        "raw_observation_id",
+        "observation_revision_id",
+        "normalized_observation_id",
+        "raw_payload_sha256",
+        "normalized_content_sha256",
+    )
+    source_timing_by_ref: dict[tuple[object, ...], tuple[datetime, datetime]] = {}
+    for capability, resolved_source in sources_by_capability.items():
+        normalized_source = resolved_source.get("normalized_observation")
+        if not isinstance(normalized_source, dict):
+            raise AssertionError("Phase 5 source lineage omitted normalized source evidence")
+        source_ref = {
+            "capability": capability,
+            "snapshot_id": normalized_source.get("snapshot_id"),
+            "snapshot_sha256": normalized_source.get("snapshot_sha256"),
+            "raw_observation_id": normalized_source.get("raw_observation_id"),
+            "observation_revision_id": normalized_source.get("observation_revision_id"),
+            "normalized_observation_id": normalized_source.get("normalized_observation_id"),
+            "raw_payload_sha256": normalized_source.get("raw_payload_sha256"),
+            "normalized_content_sha256": normalized_source.get("normalized_content_sha256"),
+        }
+        source_event_text = normalized_source.get("event_time")
+        source_available_text = normalized_source.get("available_at")
+        if (
+            any(value is None for value in source_ref.values())
+            or not isinstance(source_event_text, str)
+            or not isinstance(source_available_text, str)
+        ):
+            raise AssertionError("Phase 5 source lineage omitted exact PIT reference fields")
+        source_ref_key = tuple(source_ref[field] for field in source_ref_fields)
+        if source_ref_key in source_timing_by_ref:
+            raise AssertionError("Phase 5 source lineage contains an ambiguous exact reference")
+        source_timing_by_ref[source_ref_key] = (
+            datetime.fromisoformat(source_event_text.replace("Z", "+00:00")),
+            datetime.fromisoformat(source_available_text.replace("Z", "+00:00")),
+        )
+    resolved_ohlcv_source = sources_by_capability["ohlcv"]
+    normalized_ohlcv = resolved_ohlcv_source.get("normalized_observation")
+    if (
+        not isinstance(normalized_ohlcv, dict)
+        or normalized_ohlcv.get("snapshot_id") != phase4_snapshot_id
+        or resolved_ohlcv_source.get("disposition") != "included_as_of"
+        or not isinstance(normalized_ohlcv.get("payload"), dict)
+    ):
+        raise AssertionError("Phase 5 OHLCV evidence is not bound to the preserved snapshot row")
+    expected_membership_observation_id = "62b27683-7bac-5713-81db-6ea3a0aeb40e"
+    expected_membership_key = {
+        "capability": "universe_membership",
+        "normalized_observation_id": expected_membership_observation_id,
+    }
+    resolved_membership_source = sources_by_capability["universe_membership"]
+    normalized_membership = resolved_membership_source.get("normalized_observation")
+    if not isinstance(normalized_membership, dict):
+        raise AssertionError("Phase 5 membership source lineage is not structured evidence")
+    if (
+        resolved_membership_source.get("key") != expected_membership_key
+        or resolved_membership_source.get("disposition") != "included_as_of"
+        or normalized_membership.get("snapshot_id") != membership_snapshot_id
+        or normalized_membership.get("normalized_observation_id")
+        != expected_membership_observation_id
+        or normalized_membership.get("source_record_id") != "synthetic-membership-2019"
+        or normalized_membership.get("instrument_id") != "11111111-1111-5111-8111-111111111111"
+        or normalized_membership.get("listing_id") != "22222222-2222-5222-8222-222222222222"
+        or normalized_membership.get("payload")
+        != {
+            "record_type": "universe_membership",
+            "universe_id": "synthetic-us-equity",
+            "status": "included",
+        }
+    ):
+        raise AssertionError("Phase 5 membership status or immutable identity drifted")
+    expected_membership_ref = {
+        "capability": "universe_membership",
+        "snapshot_id": membership_snapshot_id,
+        "snapshot_sha256": normalized_membership.get("snapshot_sha256"),
+        "raw_observation_id": normalized_membership.get("raw_observation_id"),
+        "observation_revision_id": normalized_membership.get("observation_revision_id"),
+        "normalized_observation_id": expected_membership_observation_id,
+        "raw_payload_sha256": normalized_membership.get("raw_payload_sha256"),
+        "normalized_content_sha256": normalized_membership.get("normalized_content_sha256"),
+    }
+    if any(value is None for value in expected_membership_ref.values()):
+        raise AssertionError("Phase 5 membership source omitted immutable reference fields")
+    membership_event = normalized_membership.get("event_time")
+    membership_available = normalized_membership.get("available_at")
+    membership_valid_from = normalized_membership.get("valid_from")
+    membership_valid_to = normalized_membership.get("valid_to")
+    if (
+        membership_event != "2019-01-01T00:00:00Z"
+        or membership_available != "2019-01-02T05:00:00Z"
+        or membership_valid_from != "2019-01-01T00:00:00Z"
+        or membership_valid_to != "2022-01-01T00:00:00Z"
+    ):
+        raise AssertionError("Phase 5 membership PIT interval drifted from frozen evidence")
+    membership_event_utc = datetime.fromisoformat(membership_event.replace("Z", "+00:00"))
+    membership_available_utc = datetime.fromisoformat(membership_available.replace("Z", "+00:00"))
+    membership_valid_from_utc = datetime.fromisoformat(membership_valid_from.replace("Z", "+00:00"))
+    membership_valid_to_utc = datetime.fromisoformat(membership_valid_to.replace("Z", "+00:00"))
+    lineage_by_sample = {
+        item.get("sample_id"): item for item in sample_lineage if isinstance(item, dict)
+    }
+    if len(lineage_by_sample) != len(sample_lineage) or any(
+        not isinstance(item.get("sample_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", item["sample_sha256"]) is None
+        or not isinstance(item.get("source_observation_refs"), list)
+        or len(item["source_observation_refs"]) != 2
+        or not isinstance(item.get("feature_available_at_utc"), str)
+        or {ref.get("capability") for ref in item["source_observation_refs"]}
+        != {"ohlcv", "universe_membership"}
+        or item.get("membership_source_observation_key") != expected_membership_key
+        or not isinstance(item.get("feature_derivation"), dict)
+        or item["feature_derivation"].get("formula_id")
+        != "source-decimal-times-frozen-multiplier-v1"
+        or not isinstance(item["feature_derivation"].get("derived_feature_value"), str)
+        or item.get("synthetic_ledger_value_rule")
+        != "deterministic-synthetic-research-ledger-input-v1"
+        for item in lineage_by_sample.values()
+    ):
+        raise AssertionError(
+            "Phase 5 sample lineage is incomplete, non-unique, or not source-derived"
+        )
+    for lineage in lineage_by_sample.values():
+        decision_text = lineage.get("decision_time_utc")
+        feature_available_text = lineage.get("feature_available_at_utc")
+        if not isinstance(decision_text, str) or not isinstance(feature_available_text, str):
+            raise AssertionError("Phase 5 sample lineage omitted its information interval")
+        decision_time_utc = datetime.fromisoformat(decision_text.replace("Z", "+00:00"))
+        feature_available_at_utc = datetime.fromisoformat(
+            feature_available_text.replace("Z", "+00:00")
+        )
+        if feature_available_at_utc > decision_time_utc:
+            raise AssertionError("Phase 5 feature availability follows its decision time")
+        for source_ref in lineage["source_observation_refs"]:
+            source_ref_key = tuple(source_ref.get(field) for field in source_ref_fields)
+            source_timing = source_timing_by_ref.get(source_ref_key)
+            if source_timing is None:
+                raise AssertionError(
+                    "Phase 5 sample references unknown or mismatched source evidence"
+                )
+            source_event_utc, source_available_utc = source_timing
+            if (
+                source_event_utc > feature_available_at_utc
+                or source_available_utc > feature_available_at_utc
+            ):
+                raise AssertionError(
+                    "Phase 5 sample feature timestamp predates exact source information"
+                )
+        membership_refs = [
+            ref
+            for ref in lineage["source_observation_refs"]
+            if ref.get("capability") == "universe_membership"
+        ]
+        if (
+            len(membership_refs) != 1
+            or membership_refs[0] != expected_membership_ref
+            or membership_event_utc > decision_time_utc
+            or membership_available_utc > decision_time_utc
+            or membership_valid_from_utc > decision_time_utc
+            or decision_time_utc >= membership_valid_to_utc
+        ):
+            raise AssertionError(
+                "Phase 5 sample membership identity or point-in-time interval is invalid"
+            )
+    trials = report.get("trials")
+    if not isinstance(trials, list) or len(trials) != 6:
+        raise AssertionError("Phase 5 report omitted raw trials")
+    statuses = [item.get("status") for item in trials if isinstance(item, dict)]
+    if statuses.count("failed") != 1 or statuses.count("abandoned") != 1:
+        raise AssertionError("Phase 5 raw trial count omitted failed/abandoned variants")
+    for trial in trials:
+        if not isinstance(trial, dict):
+            raise AssertionError("Phase 5 trial registry contains malformed evidence")
+        returns = trial.get("net_returns")
+        return_statuses = trial.get("return_statuses")
+        timestamps = trial.get("return_timestamps_utc")
+        if (
+            not isinstance(returns, list)
+            or not isinstance(return_statuses, list)
+            or not isinstance(timestamps, list)
+            or len(returns) != len(return_statuses)
+            or len(returns) != len(timestamps)
+        ):
+            raise AssertionError("Phase 5 trial return values/statuses/calendar are not aligned")
+        if any(
+            value not in {"observed", "no_trade", "delisted", "missing"}
+            for value in return_statuses
+        ):
+            raise AssertionError("Phase 5 trial registry contains an unknown return status")
+    gates = report.get("gates")
+    expected_gates = {
+        "DATA_PIT",
+        "CV_CHRONOLOGY",
+        "PREPROCESSING",
+        "TRIAL_REGISTRY",
+        "DSR",
+        "PBO",
+        "COST_STRESS",
+        "LEAKAGE",
+        "SAMPLE_ADEQUACY",
+        "REGIME",
+        "RISK_LIMITS",
+        "REPRODUCIBILITY",
+    }
+    if (
+        not isinstance(gates, list)
+        or {item.get("gate_code") for item in gates if isinstance(item, dict)} != expected_gates
+    ):
+        raise AssertionError("Phase 5 report omitted one or more mandatory gates")
+    for gate in gates:
+        if not isinstance(gate, dict) or not all(
+            field in gate
+            for field in ("inputs", "thresholds", "results", "warnings", "reason_codes")
+        ):
+            raise AssertionError("Phase 5 gate omitted numeric/audit evidence fields")
+    for field in (
+        "config_hash",
+        "snapshot_bundle_sha256",
+        "code_version_git_sha",
+        "random_seed",
+        "effective_trial_count",
+        "created_at_utc",
+        "decision_time_utc",
+        "warnings",
+        "reason_codes",
+        "metrics",
+        "folds",
+        "preprocessing_fits",
+        "source_observations",
+        "sample_lineage_sha256",
+        "sample_lineage",
+        "oos_ledger",
+        "cost_ledger",
+    ):
+        if field not in report:
+            raise AssertionError(f"Phase 5 report omitted required audit artifact {field}")
+
+    oos_ledger = report.get("oos_ledger")
+    cost_ledger = report.get("cost_ledger")
+    if not isinstance(oos_ledger, list) or len(oos_ledger) != 8:
+        raise AssertionError("Phase 5 report omitted the deterministic OOS ledger")
+    if not isinstance(cost_ledger, list) or len(cost_ledger) != len(oos_ledger) * 3:
+        raise AssertionError("Phase 5 report omitted one or more required cost reruns")
+    oos_status_by_sample: dict[str, str] = {}
+    for entry in oos_ledger:
+        if not isinstance(entry, dict) or not isinstance(entry.get("sample_id"), str):
+            raise AssertionError("Phase 5 OOS ledger contains malformed evidence")
+        sample_id = entry["sample_id"]
+        lineage = lineage_by_sample.get(sample_id)
+        if (
+            lineage is None
+            or entry.get("sample_sha256") != lineage.get("sample_sha256")
+            or entry.get("source_observation_refs") != lineage.get("source_observation_refs")
+            or entry.get("decision_time_utc") != lineage.get("decision_time_utc")
+            or entry.get("return_status") not in {"observed", "no_trade", "delisted", "missing"}
+        ):
+            raise AssertionError("Phase 5 OOS row lost exact sample or return-status lineage")
+        oos_status_by_sample[sample_id] = entry["return_status"]
+    scenario_counts: dict[str, int] = {}
+    for entry in cost_ledger:
+        if not isinstance(entry, dict) or not isinstance(entry.get("sample_id"), str):
+            raise AssertionError("Phase 5 cost ledger contains malformed evidence")
+        sample_id = entry["sample_id"]
+        if entry.get("return_status") != oos_status_by_sample.get(sample_id):
+            raise AssertionError("Phase 5 cost row lost OOS return-status lineage")
+        scenario_counts[sample_id] = scenario_counts.get(sample_id, 0) + 1
+    if set(scenario_counts.values()) != {3}:
+        raise AssertionError("Phase 5 cost scenarios do not preserve exact sample coverage")
+
+    report_detail = request_json(f"{api_url}/v1/evaluation-reports/{artifact_id}")
+    summaries = request_json(f"{api_url}/v1/evaluation-reports?limit=100")
+    if (
+        report_detail != report
+        or not isinstance(summaries, list)
+        or artifact_id
+        not in {item.get("artifact_id") for item in summaries if isinstance(item, dict)}
+    ):
+        raise AssertionError("Phase 5 report create/read/list contract is incomplete")
+
+    forbidden = dict(run_request)
+    forbidden.update(
+        {
+            "metrics": {"sharpe": "99"},
+            "artifact_sha256": "0" * 64,
+            "thresholds": {"dsr": "0"},
+            "promotion_state": "PASS_RESEARCH",
+            "positions": [],
+        }
+    )
+    validation = request_error_json(
+        f"{api_url}/v1/evaluation-reports",
+        expected_status=422,
+        payload=forbidden,
+    )
+    if not isinstance(validation.get("detail"), list):
+        raise AssertionError("Phase 5 rejected client authority without typed validation evidence")
+    missing_policy = request_error_json(
+        f"{api_url}/v1/evaluation-reports",
+        expected_status=422,
+        payload={**run_request, "policy_version": 999},
+    )
+    if (
+        missing_policy.get("status") != "blocked"
+        or missing_policy.get("promotion_state") != "BLOCKED_MISSING_POLICY"
+        or missing_policy.get("artifact_type") != "blocked_synthetic_research_evaluation"
+        or missing_policy.get("synthetic") is not True
+        or missing_policy.get("no_real_performance_claimed") is not True
+        or not isinstance(missing_policy.get("outcome_id"), str)
+        or not isinstance(missing_policy.get("outcome_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", missing_policy["outcome_sha256"]) is None
+        or "detail" in missing_policy
+    ):
+        raise AssertionError(
+            "Phase 5 missing policy did not return a persisted sanitized blocked artifact"
+        )
+    outcome_id = missing_policy["outcome_id"]
+    outcome_detail = request_json(f"{api_url}/v1/evaluation-outcomes/{outcome_id}")
+    outcomes = request_json(f"{api_url}/v1/evaluation-outcomes?limit=100")
+    if (
+        outcome_detail != missing_policy
+        or not isinstance(outcomes, list)
+        or outcome_id not in {item.get("outcome_id") for item in outcomes if isinstance(item, dict)}
+    ):
+        raise AssertionError("Phase 5 blocked-outcome create/read/list contract is incomplete")
+
+    print(
+        "Phase 5 policy/report/blocked-outcome create-read-list, complete source lineage, "
+        "return-status/cost evidence, deterministic retry, "
+        "and server-authority proof passed "
+        f"(report_id={artifact_id}, report_sha256={artifact_hash}, "
+        f"policy_sha256={policy_hash}, config_hash={report['config_hash']}, "
+        f"fixture_sha256={report['fixture_sha256']}, "
+        f"snapshot_bundle_sha256={report['snapshot_bundle_sha256']}, "
+        f"sample_lineage_sha256={sample_lineage_sha256})."
+    )
+    return artifact_id
+
+
 def compose_exec(
     project: str,
     environment: dict[str, str],
@@ -1762,6 +2445,33 @@ def verify_phase4_postgres_acceptance(environment: dict[str, str]) -> None:
     print(
         "Phase 4 lineage, as-of, exact corroboration, concurrent idempotency, rollback, and "
         "all-seven-table append-only PostgreSQL tests passed."
+    )
+
+
+def verify_phase5_postgres_acceptance(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    test_environment["FABLE5_TEST_DATABASE_URL"] = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/test_phase5_postgres.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 5 isolated PostgreSQL acceptance tests failed")
+    print(
+        "Phase 5 concurrent idempotency, lineage, rollback, complete trial accounting, and "
+        "append-only PostgreSQL tests passed."
     )
 
 
@@ -1966,6 +2676,101 @@ def verify_phase3_append_only(project: str, environment: dict[str, str]) -> None
                     f"{statement} Output: {diagnostic.strip()}"
                 )
     print(f"Phase 3 append-only trigger proof passed for {len(PHASE_3_TABLES)} tables.")
+
+
+def verify_phase5_append_only(project: str, environment: dict[str, str]) -> None:
+    expected_trigger_names = sorted(
+        trigger_name
+        for table in PHASE_5_TABLES
+        for trigger_name in (f"{table}_immutable", f"{table}_no_truncate")
+    )
+    expected_triggers = ",".join(
+        sorted(
+            trigger
+            for table in PHASE_5_TABLES
+            for trigger in (f"{table}:{table}_immutable", f"{table}:{table}_no_truncate")
+        )
+    )
+    trigger_query = (
+        "SELECT string_agg(c.relname || ':' || t.tgname, ',' "
+        "ORDER BY c.relname, t.tgname) "
+        "FROM pg_trigger AS t "
+        "JOIN pg_class AS c ON c.oid = t.tgrelid "
+        "JOIN pg_namespace AS n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = 'public' AND NOT t.tgisinternal "
+        "AND t.tgenabled IN ('O','A') "
+        "AND c.relname IN ("
+        + ",".join(f"'{table}'" for table in PHASE_5_TABLES)
+        + ") AND t.tgname IN ("
+        + ",".join(f"'{trigger_name}'" for trigger_name in expected_trigger_names)
+        + ");"
+    )
+    installed_triggers = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", trigger_query],
+    ).stdout.strip()
+    if installed_triggers != expected_triggers:
+        raise AssertionError(
+            f"Phase 5 append-only trigger catalog did not match the migration: {installed_triggers}"
+        )
+
+    for table in PHASE_5_TABLES:
+        row_count = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                f"SELECT count(*) FROM public.{table};",
+            ],
+        ).stdout.strip()
+        if not row_count.isdigit() or int(row_count) < 1:
+            raise AssertionError(f"Phase 5 append-only proof has no persisted row in {table}")
+        column = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                "SELECT column_name FROM information_schema.columns "
+                f"WHERE table_schema = 'public' AND table_name = '{table}' "
+                "ORDER BY ordinal_position LIMIT 1;",
+            ],
+        ).stdout.strip()
+        if not column:
+            raise AssertionError(f"Phase 5 append-only proof found no column in {table}")
+        statements = (
+            f'UPDATE public.{table} SET "{column}" = "{column}";',
+            f"DELETE FROM public.{table};",
+            f"TRUNCATE public.{table} CASCADE;",
+        )
+        for statement in statements:
+            result = compose_exec(
+                project,
+                environment,
+                "postgres",
+                ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", statement],
+                check=False,
+            )
+            diagnostic = f"{result.stdout}\n{result.stderr}"
+            if result.returncode == 0 or PHASE_5_APPEND_ONLY_ERROR not in diagnostic:
+                raise AssertionError(
+                    "Phase 5 mutation was not rejected by its append-only trigger: "
+                    f"{statement} Output: {diagnostic.strip()}"
+                )
+    print(f"Phase 5 append-only trigger proof passed for {len(PHASE_5_TABLES)} tables.")
 
 
 def snapshot_tables(
@@ -2250,6 +3055,118 @@ def verify_phase4_migration_cycle(project: str, environment: dict[str, str]) -> 
     )
 
 
+def verify_phase5_migration_cycle(project: str, environment: dict[str, str]) -> None:
+    earlier_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+    )
+    git_sha = environment.get("FABLE5_CODE_VERSION_GIT_SHA")
+    if git_sha is None or re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
+        raise AssertionError("Phase 5 migration proof requires the validated host git SHA")
+    audit_fixture_id = "00000000-0000-5000-8000-000000000005"
+    audit_insert = (
+        "INSERT INTO research_audit_events "
+        "(id,event_type,config_hash,data_snapshot_id,git_sha,random_seed,trial_count,payload) "
+        f"VALUES ('{audit_fixture_id}'::uuid,'phase5_migration_preservation_fixture',"
+        f"'{'5' * 64}','phase5-synthetic-preservation','{git_sha}',5,1,"
+        '\'{"fixture":"phase5_migration_preservation","synthetic":true}\'::jsonb) '
+        "ON CONFLICT (id) DO NOTHING;"
+    )
+    compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-v", "ON_ERROR_STOP=1", "-c", audit_insert],
+    )
+    before = snapshot_tables(project, environment, earlier_tables)
+    if len(before) != 19:
+        raise AssertionError("Phase 5 migration proof did not cover all 19 Phase 1-4 tables")
+    empty_earlier_tables = sorted(table for table, (count, _) in before.items() if count < 1)
+    if empty_earlier_tables:
+        raise AssertionError(
+            "Phase 5 migration proof requires preserved evidence in every earlier table: "
+            + ", ".join(empty_earlier_tables)
+        )
+    print(
+        "Phase 5 earlier-table snapshots: "
+        + json.dumps(
+            {
+                table: {"row_count": count, "sha256": digest}
+                for table, (count, digest) in before.items()
+            },
+            sort_keys=True,
+        )
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "downgrade",
+            "0004_phase4",
+        ],
+        project=project,
+        env=environment,
+    )
+    absent_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NULL" for table in PHASE_5_TABLES)
+        + " FROM alembic_version;"
+    )
+    downgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", absent_query],
+    ).stdout.strip()
+    expected_downgraded = "0004_phase4|" + "|".join("t" for _ in PHASE_5_TABLES)
+    if downgraded != expected_downgraded:
+        raise AssertionError(f"Phase 5 downgrade did not remove only Phase 5 tables: {downgraded}")
+    after_downgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_downgrade, "during downgrade to 0004_phase4")
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0005_phase5",
+        ],
+        project=project,
+        env=environment,
+    )
+    restored_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NOT NULL" for table in PHASE_5_TABLES)
+        + " FROM alembic_version;"
+    )
+    restored = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", restored_query],
+    ).stdout.strip()
+    expected_restored = "0005_phase5|" + "|".join("t" for _ in PHASE_5_TABLES)
+    if restored != expected_restored:
+        raise AssertionError(f"Phase 5 re-upgrade did not restore revision 0005: {restored}")
+    after_reupgrade = snapshot_tables(project, environment, earlier_tables)
+    assert_snapshots_equal(before, after_reupgrade, "during re-upgrade to 0005_phase5")
+    print(
+        "Phase 5 0005->0004->0005 migration cycle preserved all 19 Phase 1-4 tables "
+        "byte-identically."
+    )
+
+
 def wait_for_frontend(url: str, timeout: int = 60) -> str:
     deadline = time.monotonic() + timeout
     last_error: Exception | None = None
@@ -2269,7 +3186,7 @@ def verify_compose(phase: int = 1) -> None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
 
     project = f"fable5_acceptance_{uuid.uuid4().hex[:8]}"
-    environment, api_url, frontend_url = acceptance_environment()
+    environment, api_url, frontend_url = acceptance_environment(phase)
     try:
         run(["config", "--quiet"], project=project, env=environment)
         run(
@@ -2333,10 +3250,17 @@ def verify_compose(phase: int = 1) -> None:
                     verify_phase3_migration_cycle(project, environment)
                     print("Full Compose Phase 3 verification passed.")
                 else:
-                    verify_phase4_api(api_url)
+                    phase4_snapshot_id = verify_phase4_api(api_url)
                     verify_phase4_postgres_acceptance(environment)
-                    verify_phase4_migration_cycle(project, environment)
-                    print("Full Compose Phase 4 verification passed.")
+                    if phase == 4:
+                        verify_phase4_migration_cycle(project, environment)
+                        print("Full Compose Phase 4 verification passed.")
+                    else:
+                        verify_phase5_api(api_url, phase4_snapshot_id)
+                        verify_phase5_postgres_acceptance(environment)
+                        verify_phase5_append_only(project, environment)
+                        verify_phase5_migration_cycle(project, environment)
+                        print("Full Compose Phase 5 verification passed.")
         else:
             run(
                 [
@@ -2385,10 +3309,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "1"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "5"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, or 4 "
-            "(default: FABLE5_VERIFY_PHASE or 1)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, or 5 "
+            "(default: FABLE5_VERIFY_PHASE or 5)."
         ),
     )
     args = parser.parse_args()

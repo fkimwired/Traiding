@@ -45,6 +45,7 @@ services:
       FABLE5_EXECUTION_MODE: paper
       FABLE5_DATABASE_URL: postgresql+psycopg://fable5:fable5_dev_only@postgres:5432/fable5
       FABLE5_REDIS_URL: ${FABLE5_REDIS_URL:-redis://redis:6379/0}
+      FABLE5_CODE_VERSION_GIT_SHA: ${FABLE5_CODE_VERSION_GIT_SHA:-}
       FABLE5_CORS_ORIGINS: '${FABLE5_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000"]}'
     command: ["alembic", "-c", "services/api/alembic.ini", "upgrade", "head"]
     depends_on:

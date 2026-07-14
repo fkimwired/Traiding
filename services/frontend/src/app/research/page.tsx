@@ -1,3 +1,5 @@
+import { EvaluationReports } from "./EvaluationReports";
+
 export default function ResearchLabPage() {
   return (
     <div className="pageShell narrowPage">
@@ -11,7 +13,7 @@ export default function ResearchLabPage() {
           cost stress will block promotion regardless of headline Sharpe.
         </p>
       </div>
+      <EvaluationReports />
     </div>
   );
 }
-
