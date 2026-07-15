@@ -17,6 +17,8 @@ import { useEvidenceRetryFocus } from "../../lib/use-evidence-retry-focus";
 import { TradingIdeaCardView } from "./TradingIdeaCardView";
 
 type ExtractionRequestRecord = components["schemas"]["ExtractionRequestRecord"];
+type SourceCreateResponse = components["schemas"]["SourceCreateResponse"];
+type SourceVersion = components["schemas"]["SourceVersion"];
 type TradingIdeaCard = components["schemas"]["TradingIdeaCard"];
 type MappingWithRationale = components["schemas"]["MappingWithRationale"];
 type SourceAuthority = components["schemas"]["SourceAuthority"];
@@ -39,6 +41,115 @@ function failed<T>(error: ApiFailure): ApiResult<T> {
 
 function workflowFailure(message: string, retrySafe: boolean): ApiFailure {
   return { kind: "unavailable", message, retrySafe };
+}
+
+function lineageConflict(artifactLabel: string): ApiFailure {
+  return {
+    kind: "conflict",
+    message: `The returned ${artifactLabel} conflicts with the exact submitted source or immutable provenance chain. No downstream evidence was inferred.`,
+    retrySafe: false,
+  };
+}
+
+function sameNullableValue(
+  left: string | null | undefined,
+  right: string | null | undefined,
+) {
+  return (left ?? null) === (right ?? null);
+}
+
+function sameOrderedValues(left: readonly string[] = [], right: readonly string[] = []) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function sourceResponseMatchesRequest(
+  response: SourceCreateResponse,
+  request: SourceIntakeRequest,
+) {
+  const sourceVersion = response.source_version;
+  const expectedContentState =
+    request.raw_text === undefined
+      ? "url_only_unretrieved"
+      : request.retrieved_at_utc == null
+        ? "supplied_text"
+        : "retrieved_text";
+
+  return (
+    response.source.source_id === sourceVersion.source_id &&
+    sourceVersion.source_type === request.source_type &&
+    sourceVersion.source_authority === request.source_authority &&
+    sourceVersion.raw_text === (request.raw_text ?? null) &&
+    sourceVersion.source_url === (request.source_url ?? null) &&
+    sourceVersion.content_state === expectedContentState &&
+    sourceVersion.retrieved_at_utc === (request.retrieved_at_utc ?? null) &&
+    sourceVersion.authority_verification_method ===
+      (request.authority_verification_method ?? null) &&
+    sameOrderedValues(
+      sourceVersion.official_corroboration_source_version_ids,
+      request.official_corroboration_source_version_ids,
+    )
+  );
+}
+
+function extractionMatchesSourceVersion(
+  extraction: ExtractionRequestRecord,
+  sourceVersion: SourceVersion,
+) {
+  return extraction.source_version_id === sourceVersion.source_version_id;
+}
+
+function extractionMatchesInitial(
+  candidate: ExtractionRequestRecord,
+  initial: ExtractionRequestRecord,
+) {
+  return (
+    candidate.extraction_request_id === initial.extraction_request_id &&
+    candidate.source_version_id === initial.source_version_id &&
+    candidate.request_fingerprint === initial.request_fingerprint &&
+    candidate.rq_job_id === initial.rq_job_id &&
+    candidate.requested_at_utc === initial.requested_at_utc &&
+    candidate.extraction_config_sha256 === initial.extraction_config_sha256 &&
+    candidate.extraction_schema_version === initial.extraction_schema_version &&
+    candidate.extractor_kind === initial.extractor_kind &&
+    candidate.extractor_id === initial.extractor_id &&
+    candidate.extractor_version === initial.extractor_version &&
+    sameNullableValue(candidate.extraction_model_id, initial.extraction_model_id) &&
+    sameNullableValue(candidate.extraction_model_revision, initial.extraction_model_revision) &&
+    sameNullableValue(candidate.extraction_prompt_sha256, initial.extraction_prompt_sha256) &&
+    sameNullableValue(candidate.extraction_prompt_version, initial.extraction_prompt_version)
+  );
+}
+
+function cardMatchesProvenanceChain(
+  card: TradingIdeaCard,
+  response: SourceCreateResponse,
+  extraction: ExtractionRequestRecord,
+) {
+  const sourceVersion = response.source_version;
+  return (
+    card.source_id === response.source.source_id &&
+    card.source_version_id === sourceVersion.source_version_id &&
+    card.source_version === sourceVersion.source_version &&
+    card.source_authority === sourceVersion.source_authority &&
+    card.source_url === sourceVersion.source_url &&
+    card.raw_text === sourceVersion.raw_text &&
+    card.synthetic_fixture === (sourceVersion.source_type === "synthetic_fixture") &&
+    sameOrderedValues(
+      card.official_corroboration_source_version_ids,
+      sourceVersion.official_corroboration_source_version_ids,
+    ) &&
+    card.extraction_request_id === extraction.extraction_request_id &&
+    card.source_version_id === extraction.source_version_id &&
+    card.extraction_config_sha256 === extraction.extraction_config_sha256 &&
+    card.extraction_schema_version === extraction.extraction_schema_version &&
+    card.extractor_kind === extraction.extractor_kind &&
+    card.extractor_id === extraction.extractor_id &&
+    card.extractor_version === extraction.extractor_version &&
+    sameNullableValue(card.extraction_model_id, extraction.extraction_model_id) &&
+    sameNullableValue(card.extraction_model_revision, extraction.extraction_model_revision) &&
+    sameNullableValue(card.extraction_prompt_sha256, extraction.extraction_prompt_sha256) &&
+    sameNullableValue(card.extraction_prompt_version, extraction.extraction_prompt_version)
+  );
 }
 
 function waitFor(delayMs: number, signal: AbortSignal) {
@@ -89,6 +200,9 @@ async function pollExtraction(
 
     const next = await fable5Api.getExtraction(record.extraction_request_id, signal);
     if (!next.ok) return next;
+    if (!extractionMatchesInitial(next.data, initial)) {
+      return failed(lineageConflict("extraction record"));
+    }
     record = next.data;
   }
 
@@ -172,6 +286,15 @@ export function IdeaIntakeWorkspace({
         return;
       }
 
+      if (!sourceResponseMatchesRequest(sourceResult.data, request)) {
+        setSubmission({
+          error: lineageConflict("source record"),
+          request,
+          status: "error",
+        });
+        return;
+      }
+
       let extraction = sourceResult.data.extraction;
       if (!extraction) {
         announce("Requesting extraction from the persisted source version...");
@@ -186,6 +309,15 @@ export function IdeaIntakeWorkspace({
           return;
         }
         extraction = extractionResult.data;
+      }
+
+      if (!extractionMatchesSourceVersion(extraction, sourceResult.data.source_version)) {
+        setSubmission({
+          error: lineageConflict("extraction record"),
+          request,
+          status: "error",
+        });
+        return;
       }
 
       const completedExtraction = await pollExtraction(
@@ -214,12 +346,42 @@ export function IdeaIntakeWorkspace({
         return;
       }
 
+      if (
+        !cardMatchesProvenanceChain(
+          cardResult.data,
+          sourceResult.data,
+          completedExtraction.data,
+        )
+      ) {
+        setSubmission({
+          error: lineageConflict("TradingIdeaCard"),
+          request,
+          status: "error",
+        });
+        return;
+      }
+
       announce("Applying the existing deterministic canon mapping...");
       const mappingResult = await fable5Api.createMapping(cardResult.data.card_id, controller.signal);
       if (!mappingResult.ok) {
         if (mappingResult.error.kind !== "aborted") {
           setSubmission({ error: mappingResult.error, request, status: "error" });
         }
+        return;
+      }
+
+      if (
+        !mappingMatchesCard(mappingResult.data, cardResult.data) ||
+        mappingResult.data.mapping.extraction_request_fingerprint !==
+          completedExtraction.data.request_fingerprint ||
+        mappingResult.data.mapping.source_content_sha256 !==
+          sourceResult.data.source_version.content_sha256
+      ) {
+        setSubmission({
+          error: lineageConflict("mapping record"),
+          request,
+          status: "error",
+        });
         return;
       }
 

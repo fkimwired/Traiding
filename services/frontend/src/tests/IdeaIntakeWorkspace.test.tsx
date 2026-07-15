@@ -366,6 +366,22 @@ function isListPath(url: string) {
   ].some((path) => url.includes(path));
 }
 
+async function submitManualIdea(
+  user: ReturnType<typeof userEvent.setup>,
+  rawText = "Rank a synthetic universe using lagged evidence.",
+) {
+  await user.type(screen.getByRole("textbox", { name: "Exact source text" }), rawText);
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Source type" }),
+    "manual_notes",
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Source authority" }),
+    "unknown",
+  );
+  await user.click(screen.getByRole("button", { name: "Normalize idea" }));
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -526,6 +542,251 @@ describe("Idea Intake workspace", () => {
       expect(mappingCall?.[1]?.body).toBeUndefined();
     },
   );
+
+  it.each([
+    {
+      label: "source identity",
+      response: {
+        ...sourceResponse,
+        source: {
+          ...sourceResponse.source,
+          source_id: "11000000-0000-4000-8000-000000000001",
+        },
+      } satisfies SourceCreateResponse,
+    },
+    {
+      label: "submitted text provenance",
+      response: {
+        ...sourceResponse,
+        source_version: {
+          ...sourceResponse.source_version,
+          raw_text: "A different shape-valid source payload.",
+        },
+      } satisfies SourceCreateResponse,
+    },
+  ])("fails closed when source creation swaps $label", async ({ response }) => {
+    const fetchMock = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/v1/sources") && init?.method === "POST") {
+        return jsonResponse(201, response);
+      }
+      if (url.includes("/v1/cards") || isListPath(url)) return jsonResponse(200, []);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(<IdeaIntakeWorkspace idempotencyKeyFactory={() => "source-conflict"} pollDelayMs={0} />);
+    await screen.findByText("No persisted Phase 2-7 evidence is available.");
+    await submitManualIdea(user);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("conflict")).toBeVisible();
+    expect(within(alert).getByText(/returned source record conflicts/i)).toBeVisible();
+    expect(within(alert).queryByRole("button", { name: "Retry exact request" })).toBeNull();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([input, init]) =>
+          String(input).includes("/mappings") && init?.method === "POST",
+      ),
+    ).toHaveLength(0);
+  });
+
+  it("fails closed when extraction creation returns another source-version identity", async () => {
+    const responseWithoutExtraction: SourceCreateResponse = {
+      ...sourceResponse,
+      extraction: null,
+    };
+    const swappedExtraction = {
+      ...sourceResponse.extraction!,
+      source_version_id: "12000000-0000-4000-8000-000000000001",
+    };
+    const fetchMock = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/v1/sources") && init?.method === "POST") {
+        return jsonResponse(201, responseWithoutExtraction);
+      }
+      if (url.includes(`/v1/source-versions/${sourceVersionId}/extractions`)) {
+        return jsonResponse(202, swappedExtraction);
+      }
+      if (url.includes("/v1/cards") || isListPath(url)) return jsonResponse(200, []);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(
+      <IdeaIntakeWorkspace idempotencyKeyFactory={() => "extraction-create-conflict"} pollDelayMs={0} />,
+    );
+    await screen.findByText("No persisted Phase 2-7 evidence is available.");
+    await submitManualIdea(user);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("conflict")).toBeVisible();
+    expect(within(alert).getByText(/returned extraction record conflicts/i)).toBeVisible();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([input, init]) =>
+          String(input).includes("/mappings") && init?.method === "POST",
+      ),
+    ).toHaveLength(0);
+  });
+
+  it("fails closed when a polled extraction swaps immutable request provenance", async () => {
+    const queuedResponse: SourceCreateResponse = {
+      ...sourceResponse,
+      extraction: { ...sourceResponse.extraction!, latest_event: "queued" },
+    };
+    const swappedExtraction = {
+      ...sourceResponse.extraction!,
+      latest_event: "succeeded" as const,
+      request_fingerprint: "b".repeat(64),
+    };
+    const fetchMock = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/v1/sources") && init?.method === "POST") {
+        return jsonResponse(201, queuedResponse);
+      }
+      if (url.includes(`/v1/extractions/${extractionId}`)) {
+        return jsonResponse(200, swappedExtraction);
+      }
+      if (url.includes("/v1/cards") || isListPath(url)) return jsonResponse(200, []);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(
+      <IdeaIntakeWorkspace idempotencyKeyFactory={() => "extraction-poll-conflict"} pollDelayMs={0} />,
+    );
+    await screen.findByText("No persisted Phase 2-7 evidence is available.");
+    await submitManualIdea(user);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("conflict")).toBeVisible();
+    expect(within(alert).getByText(/returned extraction record conflicts/i)).toBeVisible();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([input, init]) =>
+          String(input).includes("/mappings") && init?.method === "POST",
+      ),
+    ).toHaveLength(0);
+  });
+
+  it.each([
+    {
+      label: "source identity",
+      response: {
+        ...card,
+        source_id: "13000000-0000-4000-8000-000000000001",
+      } satisfies TradingIdeaCard,
+    },
+    {
+      label: "extraction configuration",
+      response: {
+        ...card,
+        extraction_config_sha256: "b".repeat(64),
+      } satisfies TradingIdeaCard,
+    },
+  ])("fails closed when card lookup swaps $label lineage", async ({ response }) => {
+    let sourceCreated = false;
+    const fetchMock = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/v1/sources") && init?.method === "POST") {
+        sourceCreated = true;
+        return jsonResponse(201, sourceResponse);
+      }
+      if (url.includes("/v1/cards")) {
+        return jsonResponse(200, sourceCreated ? [response] : []);
+      }
+      if (isListPath(url)) return jsonResponse(200, []);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(<IdeaIntakeWorkspace idempotencyKeyFactory={() => "card-conflict"} pollDelayMs={0} />);
+    await screen.findByText("No persisted Phase 2-7 evidence is available.");
+    await submitManualIdea(user);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("conflict")).toBeVisible();
+    expect(within(alert).getByText(/returned TradingIdeaCard conflicts/i)).toBeVisible();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([input, init]) =>
+          String(input).includes("/mappings") && init?.method === "POST",
+      ),
+    ).toHaveLength(0);
+  });
+
+  it.each([
+    {
+      label: "card lineage",
+      response: {
+        ...mapping,
+        mapping: {
+          ...mapping.mapping,
+          source_version_id: "14000000-0000-4000-8000-000000000001",
+        },
+      } satisfies MappingWithRationale,
+    },
+    {
+      label: "extraction fingerprint",
+      response: {
+        ...mapping,
+        mapping: {
+          ...mapping.mapping,
+          extraction_request_fingerprint: "b".repeat(64),
+        },
+      } satisfies MappingWithRationale,
+    },
+    {
+      label: "source content hash",
+      response: {
+        ...mapping,
+        mapping: {
+          ...mapping.mapping,
+          source_content_sha256: "c".repeat(64),
+        },
+      } satisfies MappingWithRationale,
+    },
+  ])("does not accept a mapping response with conflicting $label", async ({ response }) => {
+    let sourceCreated = false;
+    const fetchMock = vi.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/v1/sources") && init?.method === "POST") {
+        sourceCreated = true;
+        return jsonResponse(201, sourceResponse);
+      }
+      if (url.includes(`/v1/cards/${cardId}/mappings`) && init?.method === "POST") {
+        return jsonResponse(201, response);
+      }
+      if (url.includes("/v1/cards")) {
+        return jsonResponse(200, sourceCreated ? [card] : []);
+      }
+      if (isListPath(url)) return jsonResponse(200, []);
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(<IdeaIntakeWorkspace idempotencyKeyFactory={() => "mapping-conflict"} pollDelayMs={0} />);
+    await screen.findByText("No persisted Phase 2-7 evidence is available.");
+    await submitManualIdea(user);
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText("conflict")).toBeVisible();
+    expect(within(alert).getByText(/returned mapping record conflicts/i)).toBeVisible();
+    expect(within(alert).queryByRole("button", { name: "Retry exact request" })).toBeNull();
+    expect(screen.queryByText("Source preserved, extraction completed")).toBeNull();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([input, init]) =>
+          String(input).includes(`/v1/cards/${cardId}/mappings`) && init?.method === "POST",
+      ),
+    ).toHaveLength(1);
+  });
 
   it("makes a server-owned non-testable card visibly and structurally blocking", () => {
     const nonTestableCard: TradingIdeaCard = {

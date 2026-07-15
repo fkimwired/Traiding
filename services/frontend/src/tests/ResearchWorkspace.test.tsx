@@ -1,7 +1,8 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ResearchRunCard } from "../app/research/ResearchWorkspace";
+import { ResearchRunCard, ResearchRunForm } from "../app/research/ResearchWorkspace";
+import { fable5Api } from "../lib/api";
 import type { EvidenceIndex } from "../lib/evidence-index";
 
 const sha = "a".repeat(64);
@@ -10,6 +11,10 @@ const mappingId = "20000000-0000-4000-8000-000000000001";
 const snapshotId = "25000000-0000-4000-8000-000000000001";
 const reportId = "30000000-0000-4000-8000-000000000001";
 const policyId = "35000000-0000-4000-8000-000000000001";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function fixtureIndex() {
   const run = {
@@ -86,6 +91,54 @@ function fixtureIndex() {
     status: "completed",
     trial_economics: [{}],
   };
+  const mapping = {
+    mapping: {
+      canonical_family: "A_CROSS_SECTIONAL_EQUITY_RANKING",
+      card_id: "21000000-0000-4000-8000-000000000001",
+      card_sha256: sha,
+      created_at_utc: "2026-07-14T11:59:00Z",
+      extraction_config_sha256: sha,
+      extraction_request_fingerprint: sha,
+      extraction_request_id: "21000000-0000-4000-8000-000000000002",
+      extraction_schema_version: "phase2-trading-idea-card-v2",
+      extractor_id: "phase2-deterministic-extractor",
+      extractor_kind: "deterministic_mock",
+      extractor_version: "phase2-v1",
+      mapper_rule_set_sha256: sha,
+      mapper_rule_set_version: "phase3-canon-v1",
+      mapping_id: mappingId,
+      mapping_input_sha256: sha,
+      mapping_version: 1,
+      matched_rule_ids: ["P3-CANON-A"],
+      official_corroboration_source_version_ids: [],
+      rationale_template_version: "phase3-rationale-v1",
+      reason_codes: ["CANON_A_RULE_MATCHED", "READ_ONLY_ANALYTICS_ONLY"],
+      source_content_sha256: sha,
+      source_evidence: [],
+      source_id: "21000000-0000-4000-8000-000000000003",
+      source_version: 1,
+      source_version_id: "21000000-0000-4000-8000-000000000004",
+      verdict: "BUILD_RESEARCH",
+    },
+    rationale: {
+      content_sha256: sha,
+      created_at_utc: "2026-07-14T11:59:00Z",
+      mapping_id: mappingId,
+      markdown: "Build only an auditable research specification.",
+      rationale_id: "21000000-0000-4000-8000-000000000005",
+      template_version: "phase3-rationale-v1",
+    },
+  };
+  const snapshotMapping = {
+    canonical_family: mapping.mapping.canonical_family,
+    mapper_rule_set_sha256: mapping.mapping.mapper_rule_set_sha256,
+    mapper_rule_set_version: mapping.mapping.mapper_rule_set_version,
+    mapping_id: mappingId,
+    mapping_input_sha256: sha,
+    mapping_version: 1,
+    official_corroboration_source_version_ids: [],
+    verdict: mapping.mapping.verdict,
+  };
   const index = {
     assessmentTimelines: {},
     assessments: [],
@@ -156,7 +209,7 @@ function fixtureIndex() {
         ],
       },
     ],
-    mappings: [],
+    mappings: [mapping],
     researchRunSummaries: [],
     researchRuns: [run],
     revocations: [],
@@ -165,19 +218,13 @@ function fixtureIndex() {
         manifest: {
           payload: {
             mapping: {
-              canonical_family: "A_CROSS_SECTIONAL_EQUITY_RANKING",
-              mapping_id: mappingId,
-              mapping_input_sha256: sha,
-              mapping_version: 1,
+              ...snapshotMapping,
             },
             request: {
               as_of_utc: "2026-07-14T00:00:00Z",
               capability: "ohlcv",
               mapping: {
-                canonical_family: "A_CROSS_SECTIONAL_EQUITY_RANKING",
-                mapping_id: mappingId,
-                mapping_input_sha256: sha,
-                mapping_version: 1,
+                ...snapshotMapping,
               },
             },
           },
@@ -322,5 +369,59 @@ describe("ResearchRunCard", () => {
     expect(screen.getByText(/exact evaluation or snapshot reference is missing/i)).toBeVisible();
     expect(screen.getByText(/No mapping-level snapshot was substituted/i)).toBeVisible();
     expect(screen.queryByText("Prerequisite only")).not.toBeInTheDocument();
+  });
+});
+
+describe("ResearchRunForm", () => {
+  it("fails closed when a same-ID snapshot conflicts with immutable mapping lineage", () => {
+    const { index } = fixtureIndex();
+    const conflictingHash = "f".repeat(64);
+    const snapshotMapping = index.snapshots[0].manifest.payload.mapping;
+    const requestMapping = index.snapshots[0].manifest.payload.request.mapping;
+    snapshotMapping.mapping_input_sha256 = conflictingHash;
+    snapshotMapping.mapping_version = 2;
+    requestMapping.mapping_input_sha256 = conflictingHash;
+    requestMapping.mapping_version = 2;
+    const createResearchRun = vi.spyOn(fable5Api, "createResearchRun");
+
+    render(<ResearchRunForm index={index} reload={vi.fn()} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Snapshot lineage conflict.");
+    expect(screen.getByRole("alert")).toHaveAttribute("data-tone", "critical");
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    const submit = screen.getByRole("button", { name: "Run mock research" });
+    expect(submit).toBeDisabled();
+
+    fireEvent.submit(submit.closest("form")!);
+
+    expect(createResearchRun).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when only the embedded request mapping retains the selected ID", () => {
+    const { index } = fixtureIndex();
+    const conflictingSnapshot = structuredClone(index.snapshots[0]);
+    const conflictingSnapshotId = "25000000-0000-4000-8000-000000000002";
+    const conflictingSnapshotSha = "b".repeat(64);
+    conflictingSnapshot.snapshot_id = conflictingSnapshotId;
+    conflictingSnapshot.snapshot_sha256 = conflictingSnapshotSha;
+    conflictingSnapshot.manifest.snapshot_id = conflictingSnapshotId;
+    conflictingSnapshot.manifest.snapshot_sha256 = conflictingSnapshotSha;
+    conflictingSnapshot.manifest.payload.mapping.mapping_id =
+      "20000000-0000-4000-8000-000000000002";
+    index.snapshots.push(conflictingSnapshot);
+    const createResearchRun = vi.spyOn(fable5Api, "createResearchRun");
+
+    render(<ResearchRunForm index={index} reload={vi.fn()} />);
+
+    expect(index.snapshots[0].manifest.payload.mapping.mapping_id).toBe(mappingId);
+    expect(conflictingSnapshot.manifest.payload.request.mapping.mapping_id).toBe(mappingId);
+    expect(screen.getByRole("alert")).toHaveTextContent("Snapshot lineage conflict.");
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    const submit = screen.getByRole("button", { name: "Run mock research" });
+    expect(submit).toBeDisabled();
+
+    fireEvent.submit(submit.closest("form")!);
+
+    expect(createResearchRun).not.toHaveBeenCalled();
   });
 });

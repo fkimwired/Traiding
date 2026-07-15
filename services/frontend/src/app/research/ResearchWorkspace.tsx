@@ -8,6 +8,7 @@ import { fable5Api, type ApiFailure } from "../../lib/api";
 import {
   evaluationEvidenceForResearchRun,
   type EvidenceIndex,
+  snapshotMatchesMapping,
   snapshotsForResearchRun,
   useEvidenceIndex,
 } from "../../lib/evidence-index";
@@ -362,9 +363,14 @@ type SubmissionState =
   | { status: "success"; runId: string }
   | { status: "error"; error: ApiFailure };
 
-function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () => void }) {
-  const initialMappingId = index.mappings[0]?.mapping.mapping_id ?? "";
+export function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () => void }) {
+  const initialMapping = index.mappings[0];
+  const initialMappingId = initialMapping?.mapping.mapping_id ?? "";
   const [mappingId, setMappingId] = useState(initialMappingId);
+  const selectedMapping = useMemo(
+    () => index.mappings.find(({ mapping }) => mapping.mapping_id === mappingId),
+    [index.mappings, mappingId],
+  );
   const researchConfigurations = useMemo(
     () => [...new Set(index.researchRuns.map((run) => run.configuration_id))],
     [index.researchRuns],
@@ -374,24 +380,58 @@ function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () =
   );
   const eligibleSnapshots = useMemo(
     () =>
-      index.snapshots.filter(
-        (snapshot) => snapshot.manifest.payload.mapping.mapping_id === mappingId,
+      selectedMapping
+        ? index.snapshots.filter((snapshot) =>
+            snapshotMatchesMapping(snapshot, selectedMapping),
+          )
+        : [],
+    [index.snapshots, selectedMapping],
+  );
+  const snapshotLineageConflict = useMemo(
+    () =>
+      Boolean(
+        selectedMapping &&
+          index.snapshots.some(
+            (snapshot) => {
+              const payload = snapshot.manifest.payload;
+              const selectedMappingId = selectedMapping.mapping.mapping_id;
+              return (
+                (payload.mapping.mapping_id === selectedMappingId ||
+                  payload.request?.mapping.mapping_id === selectedMappingId) &&
+                !snapshotMatchesMapping(snapshot, selectedMapping)
+              );
+            },
+          ),
       ),
-    [index.snapshots, mappingId],
+    [index.snapshots, selectedMapping],
   );
   const [snapshotIds, setSnapshotIds] = useState<string[]>(() =>
-    index.snapshots
-      .filter((snapshot) => snapshot.manifest.payload.mapping.mapping_id === initialMappingId)
-      .map((snapshot) => snapshot.snapshot_id),
+    initialMapping
+      ? index.snapshots
+          .filter((snapshot) => snapshotMatchesMapping(snapshot, initialMapping))
+          .map((snapshot) => snapshot.snapshot_id)
+      : [],
   );
   const [submission, setSubmission] = useState<SubmissionState>({ status: "idle" });
+  const selectedSnapshotsAreEligible =
+    snapshotIds.length > 0 &&
+    snapshotIds.every((snapshotId) =>
+      eligibleSnapshots.some((snapshot) => snapshot.snapshot_id === snapshotId),
+    );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!mappingId || !configurationId || snapshotIds.length === 0) return;
+    if (
+      !selectedMapping ||
+      !configurationId ||
+      snapshotLineageConflict ||
+      !selectedSnapshotsAreEligible
+    ) {
+      return;
+    }
     setSubmission({ status: "submitting" });
     const result = await fable5Api.createResearchRun({
-      mapping_id: mappingId,
+      mapping_id: selectedMapping.mapping.mapping_id,
       research_configuration_id: configurationId,
       snapshot_ids: snapshotIds,
     });
@@ -422,14 +462,18 @@ function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () =
               value={mappingId}
               onChange={(event) => {
                 const nextMappingId = event.target.value;
+                const nextMapping = index.mappings.find(
+                  ({ mapping }) => mapping.mapping_id === nextMappingId,
+                );
                 setMappingId(nextMappingId);
                 setSnapshotIds(
-                  index.snapshots
-                    .filter(
-                      (snapshot) =>
-                        snapshot.manifest.payload.mapping.mapping_id === nextMappingId,
-                    )
-                    .map((snapshot) => snapshot.snapshot_id),
+                  nextMapping
+                    ? index.snapshots
+                        .filter((snapshot) =>
+                          snapshotMatchesMapping(snapshot, nextMapping),
+                        )
+                        .map((snapshot) => snapshot.snapshot_id)
+                    : [],
                 );
               }}
               required
@@ -460,7 +504,13 @@ function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () =
           </div>
           <fieldset className="fieldGroup" data-span="full">
             <legend className="fieldLabel">Point-in-time snapshots</legend>
-            {eligibleSnapshots.length > 0 ? (
+            {snapshotLineageConflict ? (
+              <p className="statePanel" data-tone="critical" role="alert">
+                Snapshot lineage conflict. A persisted snapshot shares this mapping ID but its
+                immutable mapping hash, version, or identity conflicts with the selected mapping.
+                No snapshot is eligible and the reference-only request remains unavailable.
+              </p>
+            ) : eligibleSnapshots.length > 0 ? (
               <div className="chipList">
                 {eligibleSnapshots.map((snapshot) => (
                   <label className="evidenceChip" key={snapshot.snapshot_id}>
@@ -491,9 +541,10 @@ function ResearchRunForm({ index, reload }: { index: EvidenceIndex; reload: () =
               className="buttonPrimary"
               disabled={
                 submission.status === "submitting" ||
-                !mappingId ||
+                !selectedMapping ||
                 !configurationId ||
-                snapshotIds.length === 0
+                snapshotLineageConflict ||
+                !selectedSnapshotsAreEligible
               }
               type="submit"
             >
