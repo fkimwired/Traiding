@@ -3,14 +3,14 @@
 import type { components } from "@fable5/contracts";
 import { useEffect, useState } from "react";
 
+import { apiHref, fable5Api } from "../../lib/api";
+
 type MappingWithRationale = components["schemas"]["MappingWithRationale"];
 
 type MappingState =
   | { status: "loading" }
   | { status: "loaded"; mappings: MappingWithRationale[] }
   | { status: "error" };
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export function IdeaMappings() {
   const [state, setState] = useState<MappingState>({ status: "loading" });
@@ -19,19 +19,15 @@ export function IdeaMappings() {
     const controller = new AbortController();
 
     async function loadMappings() {
-      try {
-        const response = await fetch(`${apiUrl}/v1/mappings`, { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error("Mapping endpoint returned a non-success status.");
-        }
-
-        const mappings = (await response.json()) as MappingWithRationale[];
-        setState({ status: "loaded", mappings });
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
+      const result = await fable5Api.listMappings(controller.signal);
+      if (!result.ok) {
+        if (result.error.kind !== "aborted") {
           setState({ status: "error" });
         }
+        return;
       }
+
+      setState({ status: "loaded", mappings: result.data });
     }
 
     void loadMappings();
@@ -106,12 +102,12 @@ export function IdeaMappings() {
 
               <nav className="mappingLineage" aria-label={`Lineage for ${mapping.mapping_id}`}>
                 <span>API lineage</span>
-                <a href={`${apiUrl}/v1/sources/${mapping.source_id}`}>Source</a>
-                <a href={`${apiUrl}/v1/source-versions/${mapping.source_version_id}`}>
+                <a href={apiHref(`/v1/sources/${mapping.source_id}`)}>Source</a>
+                <a href={apiHref(`/v1/source-versions/${mapping.source_version_id}`)}>
                   Source version
                 </a>
-                <a href={`${apiUrl}/v1/cards/${mapping.card_id}`}>Card</a>
-                <a href={`${apiUrl}/v1/extractions/${mapping.extraction_request_id}`}>
+                <a href={apiHref(`/v1/cards/${mapping.card_id}`)}>Card</a>
+                <a href={apiHref(`/v1/extractions/${mapping.extraction_request_id}`)}>
                   Extraction
                 </a>
               </nav>

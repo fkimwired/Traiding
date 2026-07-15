@@ -1,4 +1,5 @@
 import type { components, paths } from "./api.generated";
+import type { SuccessfulJsonResponseByOperation } from "./runtime.generated";
 
 type ApprovalAssessmentCreateRequest =
   components["schemas"]["ApprovalAssessmentCreateRequest"];
@@ -6,6 +7,8 @@ type ApprovalRevocationCreateRequest =
   components["schemas"]["ApprovalRevocationCreateRequest"];
 type ApprovalAssessmentArtifact =
   components["schemas"]["ApprovalAssessmentArtifact"];
+type ApprovalAssessmentEvidenceTimeline =
+  components["schemas"]["ApprovalAssessmentEvidenceTimeline"];
 type ApprovalAssessmentSummary =
   components["schemas"]["ApprovalAssessmentSummary"];
 type AuthorizationRevocationArtifact =
@@ -17,9 +20,26 @@ type ApprovalValidationErrorResponse =
 type ApprovalAssessmentOutcome =
   components["schemas"]["ApprovalAssessmentOutcome"];
 
+type CardListOperationBinding = Expect<
+  Equal<
+    SuccessfulJsonResponseByOperation["GET /v1/cards"],
+    paths["/v1/cards"]["get"]["responses"][200]["content"]["application/json"]
+  >
+>;
+type TimelineOperationBinding = Expect<
+  Equal<
+    SuccessfulJsonResponseByOperation[
+      "GET /v1/approval-assessments/{assessment_id}/evidence-timeline"
+    ],
+    ApprovalAssessmentEvidenceTimeline
+  >
+>;
+
 type CreateAssessment = paths["/v1/approval-assessments"]["post"];
 type ListAssessments = paths["/v1/approval-assessments"]["get"];
 type GetAssessment = paths["/v1/approval-assessments/{assessment_id}"]["get"];
+type GetAssessmentEvidenceTimeline =
+  paths["/v1/approval-assessments/{assessment_id}/evidence-timeline"]["get"];
 type CreateRevocation = paths["/v1/approval-revocations"]["post"];
 type ListRevocations = paths["/v1/approval-revocations"]["get"];
 type GetRevocation = paths["/v1/approval-revocations/{revocation_id}"]["get"];
@@ -130,6 +150,10 @@ type AssessmentGet200 =
   GetAssessment["responses"][200]["content"]["application/json"];
 type AssessmentGet422 =
   GetAssessment["responses"][422]["content"]["application/json"];
+type AssessmentEvidenceTimelineGet200 =
+  GetAssessmentEvidenceTimeline["responses"][200]["content"]["application/json"];
+type AssessmentEvidenceTimelineGet422 =
+  GetAssessmentEvidenceTimeline["responses"][422]["content"]["application/json"];
 type RevocationBody =
   NonNullable<CreateRevocation["requestBody"]>["content"]["application/json"];
 type Revocation201 = CreateRevocation["responses"][201]["content"]["application/json"];
@@ -161,6 +185,12 @@ type AssessmentGetReturnsArtifact = Expect<
 >;
 type AssessmentGetValidationIsTyped = Expect<
   Equal<AssessmentGet422, ApprovalValidationErrorResponse>
+>;
+type AssessmentEvidenceTimelineGetReturnsTypedEvidence = Expect<
+  Equal<AssessmentEvidenceTimelineGet200, ApprovalAssessmentEvidenceTimeline>
+>;
+type AssessmentEvidenceTimelineGetValidationIsTyped = Expect<
+  Equal<AssessmentEvidenceTimelineGet422, ApprovalValidationErrorResponse>
 >;
 type RevocationBodyIsReferenceOnly = Expect<
   Equal<RevocationBody, ApprovalRevocationCreateRequest>
@@ -211,6 +241,24 @@ type NoAssessmentPatch = Expect<
 type NoAssessmentDelete = Expect<
   Equal<paths["/v1/approval-assessments/{assessment_id}"]["delete"], undefined>
 >;
+type NoAssessmentEvidenceTimelineUpdate = Expect<
+  Equal<
+    paths["/v1/approval-assessments/{assessment_id}/evidence-timeline"]["put"],
+    undefined
+  >
+>;
+type NoAssessmentEvidenceTimelinePatch = Expect<
+  Equal<
+    paths["/v1/approval-assessments/{assessment_id}/evidence-timeline"]["patch"],
+    undefined
+  >
+>;
+type NoAssessmentEvidenceTimelineDelete = Expect<
+  Equal<
+    paths["/v1/approval-assessments/{assessment_id}/evidence-timeline"]["delete"],
+    undefined
+  >
+>;
 type NoRevocationUpdate = Expect<
   Equal<paths["/v1/approval-revocations/{revocation_id}"]["put"], undefined>
 >;
@@ -258,6 +306,7 @@ export type {
   AssessmentRequestFieldsAreReferencesOnly,
   AssessmentReturnsArtifact,
   AssessmentValidationIsTyped,
+  CardListOperationBinding,
   ExactAssessmentOutcome,
   NoAssessmentDelete,
   NoAssessmentPatch,
@@ -273,4 +322,5 @@ export type {
   RevocationRequestFieldsAreReferencesOnly,
   RevocationReturnsArtifact,
   RevocationValidationIsTyped,
+  TimelineOperationBinding,
 };

@@ -1,0 +1,25 @@
+*,
+*::before,
+*::after {
+  animation: none !important;
+  caret-color: transparent !important;
+  transition: none !important;
+}
+
+/* Raw source and canonical payload bytes never enter committed screenshots. */
+blockquote,
+pre {
+  background: #e4e7e2 !important;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Dynamic identities remain asserted semantically; preserve layout while omitting raster edges. */
+.visualMask {
+  visibility: hidden !important;
+}
+
+::-webkit-scrollbar {
+  height: 0 !important;
+  width: 0 !important;
+}

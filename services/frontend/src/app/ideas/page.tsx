@@ -1,4 +1,4 @@
-import { IdeaMappings } from "./IdeaMappings";
+import { IdeaIntakeWorkspace } from "./IdeaIntakeWorkspace";
 
 export default function IdeaIntakePage() {
   return (
@@ -6,15 +6,15 @@ export default function IdeaIntakePage() {
       <p className="eyebrow">Mode 01</p>
       <h1>Idea Intake</h1>
       <div className="phasePlaceholder">
-        <span>Phase 2 evidence boundary</span>
-        <h2>Source first. Interpretation second.</h2>
+        <span>Source first - server authority preserved</span>
+        <h2>Exact text in. Auditable evidence out.</h2>
         <p>
-          The source API preserves exact text, ambiguity, versions, and provenance before producing
-          an extraction-only research card. An interactive intake workflow remains a later UI task;
-          this surface provides no strategy, recommendation, or order control.
+          Source provenance and ambiguity remain visible from intake through extraction, mapping,
+          deterministic mock research, and simulated governance status. This workflow produces no
+          recommendation, allocation, or executable instruction.
         </p>
       </div>
-      <IdeaMappings />
+      <IdeaIntakeWorkspace />
     </div>
   );
 }

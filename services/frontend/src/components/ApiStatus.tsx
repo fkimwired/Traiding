@@ -1,12 +1,10 @@
 "use client";
 
-import type { components } from "@fable5/contracts";
 import { useEffect, useState } from "react";
 
-type HealthResponse = components["schemas"]["HealthResponse"];
-type ConnectionState = "checking" | "online" | "offline";
+import { fable5Api } from "../lib/api";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+type ConnectionState = "checking" | "online" | "offline";
 
 export function ApiStatus() {
   const [connectionState, setConnectionState] = useState<ConnectionState>("checking");
@@ -15,18 +13,15 @@ export function ApiStatus() {
     const controller = new AbortController();
 
     async function checkHealth() {
-      try {
-        const response = await fetch(`${apiUrl}/health`, { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error("Health endpoint returned a non-success status.");
-        }
-        const body = (await response.json()) as HealthResponse;
-        setConnectionState(body.status === "ok" ? "online" : "offline");
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
+      const result = await fable5Api.getHealth(controller.signal);
+      if (!result.ok) {
+        if (result.error.kind !== "aborted") {
           setConnectionState("offline");
         }
+        return;
       }
+
+      setConnectionState(result.data.status === "ok" ? "online" : "offline");
     }
 
     void checkHealth();
@@ -39,4 +34,3 @@ export function ApiStatus() {
     </span>
   );
 }
-

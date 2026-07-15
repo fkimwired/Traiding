@@ -1,3 +1,4 @@
+import type { components } from "@fable5/contracts";
 import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -9,15 +10,32 @@ const mappingResponse = [
       mapping_id: "30000000-0000-0000-0000-000000000001",
       mapping_version: 1,
       card_id: "30000000-0000-0000-0000-000000000002",
+      card_sha256: "c".repeat(64),
+      mapping_input_sha256: "d".repeat(64),
       extraction_request_id: "30000000-0000-0000-0000-000000000003",
+      extraction_request_fingerprint: "e".repeat(64),
       source_id: "30000000-0000-0000-0000-000000000004",
       source_version_id: "30000000-0000-0000-0000-000000000005",
-      canonical_family: "official_event_text_overlay",
+      source_version: 1,
+      source_content_sha256: "f".repeat(64),
+      extractor_kind: "deterministic_mock",
+      extractor_id: "phase2-deterministic-extractor",
+      extractor_version: "phase2-v1",
+      extraction_schema_version: "phase2-trading-idea-card-v2",
+      extraction_config_sha256: "0".repeat(64),
+      official_corroboration_source_version_ids: [],
+      canonical_family: "C_OFFICIAL_EVENT_TEXT_OVERLAY",
       verdict: "DEFER",
-      matched_rule_ids: ["CANON_C", "RULE_03_SOCIAL_BLOCKED"],
-      reason_codes: ["FIRST_REASON", "OFFICIAL_CORROBORATION_REQUIRED", "THIRD_REASON"],
+      matched_rule_ids: ["P3-CANON-C", "P3-003-SOCIAL-CORROBORATION"],
+      reason_codes: [
+        "CANON_C_RULE_MATCHED",
+        "OFFICIAL_CORROBORATION_REQUIRED",
+        "READ_ONLY_ANALYTICS_ONLY",
+      ],
       mapper_rule_set_version: "phase3-canon-v1",
       mapper_rule_set_sha256: "a".repeat(64),
+      source_evidence: [],
+      rationale_template_version: "phase3-rationale-v1",
       created_at_utc: "2026-07-13T12:00:00Z",
     },
     rationale: {
@@ -29,7 +47,7 @@ const mappingResponse = [
       created_at_utc: "2026-07-13T12:00:00Z",
     },
   },
-];
+] satisfies components["schemas"]["MappingWithRationale"][];
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -40,13 +58,14 @@ describe("deterministic idea mappings", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mappingResponse,
+      status: 200,
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const { container } = render(<IdeaMappings />);
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading deterministic mappings");
-    expect(await screen.findByText("official_event_text_overlay")).toBeVisible();
+    expect(await screen.findByText("C_OFFICIAL_EVENT_TEXT_OVERLAY")).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/v1/mappings", {
       signal: expect.any(AbortSignal),
     });
@@ -55,9 +74,9 @@ describe("deterministic idea mappings", () => {
       .getAllByRole("listitem")
       .map((item) => item.textContent);
     expect(reasons).toEqual([
-      "FIRST_REASON",
+      "CANON_C_RULE_MATCHED",
       "OFFICIAL_CORROBORATION_REQUIRED",
-      "THIRD_REASON",
+      "READ_ONLY_ANALYTICS_ONLY",
     ]);
     expect(within(screen.getByLabelText("Matched rule IDs")).getAllByRole("listitem")).toHaveLength(
       2,
@@ -99,8 +118,8 @@ describe("deterministic idea mappings", () => {
   it("renders empty and error states without adding actions", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => [] })
-      .mockResolvedValueOnce({ ok: false });
+      .mockResolvedValueOnce({ ok: true, json: async () => [], status: 200 })
+      .mockResolvedValueOnce({ ok: false, status: 503 });
     vi.stubGlobal("fetch", fetchMock);
 
     const empty = render(<IdeaMappings />);

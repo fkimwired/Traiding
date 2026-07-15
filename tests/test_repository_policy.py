@@ -131,16 +131,19 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase7_entrypoints_and_images_select_the_active_phase() -> None:
+def test_phase8_entrypoints_and_images_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, 6, or 7" in source
+        assert "1, 2, 3, 4, 5, 6, 7, or 8" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-7-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "7"' in workflow
-    assert workflow.count("--phase 7") >= 2
+    assert workflow.startswith("name: phase-8-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "8"' in workflow
+    assert workflow.count("--phase 8") >= 2
+    assert "actions/setup-node@v4" in workflow
+    assert "npm ci" in workflow
+    assert "npx playwright install --with-deps chromium" in workflow
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
         assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)

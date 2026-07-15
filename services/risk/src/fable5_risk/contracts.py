@@ -161,6 +161,68 @@ class ApprovalRevocationCreateRequest(StrictModel):
     revocation_evidence_id: UUID
 
 
+class ApprovalPolicyTimelineEvidence(StrictModel):
+    approval_policy_version_id: UUID
+    policy_sha256: SHA256
+    valid_from_utc: datetime
+    expires_at_utc: datetime
+
+    @field_validator("valid_from_utc", "expires_at_utc")
+    @classmethod
+    def normalize_times(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "policy timeline time"))
+
+
+class ApprovalScopeTimelineEvidence(StrictModel):
+    approval_scope_version_id: UUID
+    scope_sha256: SHA256
+    valid_from_utc: datetime
+    expires_at_utc: datetime
+
+    @field_validator("valid_from_utc", "expires_at_utc")
+    @classmethod
+    def normalize_times(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "scope timeline time"))
+
+
+class HumanAuthorizationTimelineEvidence(StrictModel):
+    human_authorization_evidence_id: UUID
+    authorization_sha256: SHA256
+    authorized_at_utc: datetime
+    review_at_utc: datetime
+    expires_at_utc: datetime
+
+    @field_validator("authorized_at_utc", "review_at_utc", "expires_at_utc")
+    @classmethod
+    def normalize_times(cls, value: datetime, info: object) -> datetime:
+        return _utc(value, getattr(info, "field_name", "authorization timeline time"))
+
+
+class ApprovalRiskInputTimelineEvidence(StrictModel):
+    risk_input_id: UUID
+    risk_input_sha256: SHA256
+    observed_at_utc: datetime
+
+    @field_validator("observed_at_utc")
+    @classmethod
+    def normalize_observed_at(cls, value: datetime) -> datetime:
+        return _utc(value, "observed_at_utc")
+
+
+class ApprovalAssessmentEvidenceTimeline(StrictModel):
+    assessment_id: UUID
+    assessment_created_at_utc: datetime
+    policy: ApprovalPolicyTimelineEvidence
+    scope: ApprovalScopeTimelineEvidence
+    authorization: HumanAuthorizationTimelineEvidence
+    risk_input: ApprovalRiskInputTimelineEvidence
+
+    @field_validator("assessment_created_at_utc")
+    @classmethod
+    def normalize_assessment_created_at(cls, value: datetime) -> datetime:
+        return _utc(value, "assessment_created_at_utc")
+
+
 class ApprovalPolicy(StrictModel):
     approval_policy_version_id: UUID
     schema_version: Literal["phase7-approval-policy-v1"] = PHASE7_APPROVAL_POLICY_SCHEMA_VERSION

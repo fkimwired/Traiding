@@ -431,6 +431,43 @@
         "title": "ApprovalAssessmentCreateRequest",
         "type": "object"
       },
+      "ApprovalAssessmentEvidenceTimeline": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_created_at_utc": {
+            "format": "date-time",
+            "title": "Assessment Created At Utc",
+            "type": "string"
+          },
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "authorization": {
+            "$ref": "#/components/schemas/HumanAuthorizationTimelineEvidence"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/ApprovalPolicyTimelineEvidence"
+          },
+          "risk_input": {
+            "$ref": "#/components/schemas/ApprovalRiskInputTimelineEvidence"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/ApprovalScopeTimelineEvidence"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "assessment_created_at_utc",
+          "policy",
+          "scope",
+          "authorization",
+          "risk_input"
+        ],
+        "title": "ApprovalAssessmentEvidenceTimeline",
+        "type": "object"
+      },
       "ApprovalAssessmentOutcome": {
         "enum": [
           "APPROVED_PAPER",
@@ -627,6 +664,39 @@
         "title": "ApprovalCheckResult",
         "type": "object"
       },
+      "ApprovalPolicyTimelineEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_policy_version_id": {
+            "format": "uuid",
+            "title": "Approval Policy Version Id",
+            "type": "string"
+          },
+          "expires_at_utc": {
+            "format": "date-time",
+            "title": "Expires At Utc",
+            "type": "string"
+          },
+          "policy_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Policy Sha256",
+            "type": "string"
+          },
+          "valid_from_utc": {
+            "format": "date-time",
+            "title": "Valid From Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_policy_version_id",
+          "policy_sha256",
+          "valid_from_utc",
+          "expires_at_utc"
+        ],
+        "title": "ApprovalPolicyTimelineEvidence",
+        "type": "object"
+      },
       "ApprovalRevocationCreateRequest": {
         "additionalProperties": false,
         "properties": {
@@ -646,6 +716,66 @@
           "revocation_evidence_id"
         ],
         "title": "ApprovalRevocationCreateRequest",
+        "type": "object"
+      },
+      "ApprovalRiskInputTimelineEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "observed_at_utc": {
+            "format": "date-time",
+            "title": "Observed At Utc",
+            "type": "string"
+          },
+          "risk_input_id": {
+            "format": "uuid",
+            "title": "Risk Input Id",
+            "type": "string"
+          },
+          "risk_input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Risk Input Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "risk_input_id",
+          "risk_input_sha256",
+          "observed_at_utc"
+        ],
+        "title": "ApprovalRiskInputTimelineEvidence",
+        "type": "object"
+      },
+      "ApprovalScopeTimelineEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_scope_version_id": {
+            "format": "uuid",
+            "title": "Approval Scope Version Id",
+            "type": "string"
+          },
+          "expires_at_utc": {
+            "format": "date-time",
+            "title": "Expires At Utc",
+            "type": "string"
+          },
+          "scope_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Scope Sha256",
+            "type": "string"
+          },
+          "valid_from_utc": {
+            "format": "date-time",
+            "title": "Valid From Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_scope_version_id",
+          "scope_sha256",
+          "valid_from_utc",
+          "expires_at_utc"
+        ],
+        "title": "ApprovalScopeTimelineEvidence",
         "type": "object"
       },
       "ApprovalValidationErrorResponse": {
@@ -4513,6 +4643,45 @@
           }
         },
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "HumanAuthorizationTimelineEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "authorization_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Authorization Sha256",
+            "type": "string"
+          },
+          "authorized_at_utc": {
+            "format": "date-time",
+            "title": "Authorized At Utc",
+            "type": "string"
+          },
+          "expires_at_utc": {
+            "format": "date-time",
+            "title": "Expires At Utc",
+            "type": "string"
+          },
+          "human_authorization_evidence_id": {
+            "format": "uuid",
+            "title": "Human Authorization Evidence Id",
+            "type": "string"
+          },
+          "review_at_utc": {
+            "format": "date-time",
+            "title": "Review At Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "human_authorization_evidence_id",
+          "authorization_sha256",
+          "authorized_at_utc",
+          "review_at_utc",
+          "expires_at_utc"
+        ],
+        "title": "HumanAuthorizationTimelineEvidence",
         "type": "object"
       },
       "InfraRisk": {
@@ -13844,6 +14013,49 @@
           }
         },
         "summary": "Get Approval Assessment",
+        "tags": [
+          "approval-governance"
+        ]
+      }
+    },
+    "/v1/approval-assessments/{assessment_id}/evidence-timeline": {
+      "get": {
+        "operationId": "get_approval_assessment_evidence_timeline_v1_approval_assessments__assessment_id__evidence_timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalAssessmentEvidenceTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Approval Assessment Evidence Timeline",
         "tags": [
           "approval-governance"
         ]

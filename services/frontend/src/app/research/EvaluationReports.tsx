@@ -3,6 +3,8 @@
 import type { components } from "@fable5/contracts";
 import { useEffect, useState } from "react";
 
+import { fable5Api } from "../../lib/api";
+
 type EvaluationReport = components["schemas"]["EvaluationReport"];
 type EvaluationReportSummary = components["schemas"]["EvaluationReportSummary"];
 type BlockedEvaluationOutcome = components["schemas"]["BlockedEvaluationOutcome"];
@@ -30,8 +32,6 @@ type OutcomeState =
       outcome: BlockedEvaluationOutcome;
       outcomes: BlockedEvaluationOutcome[];
     };
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const gateLabels: Record<GateCode, string> = {
   DATA_PIT: "Point-in-time data",
@@ -284,67 +284,61 @@ export function EvaluationReports() {
     const controller = new AbortController();
 
     async function loadReports() {
-      try {
-        const summariesResponse = await fetch(`${apiUrl}/v1/evaluation-reports`, {
-          signal: controller.signal,
-        });
-        if (!summariesResponse.ok) {
-          throw new Error("Evaluation report list returned a non-success status.");
-        }
-
-        const summaries = (await summariesResponse.json()) as EvaluationReportSummary[];
-        if (summaries.length === 0) {
-          setReportState({ status: "empty" });
-          return;
-        }
-
-        const artifactId = encodeURIComponent(summaries[0].artifact_id);
-        const reportResponse = await fetch(`${apiUrl}/v1/evaluation-reports/${artifactId}`, {
-          signal: controller.signal,
-        });
-        if (!reportResponse.ok) {
-          throw new Error("Evaluation report detail returned a non-success status.");
-        }
-
-        const report = (await reportResponse.json()) as EvaluationReport;
-        setReportState({ status: "loaded", report, summaries });
-      } catch (error) {
-        if (!(error instanceof Error) || error.name !== "AbortError") {
+      const summariesResult = await fable5Api.listEvaluationReports(controller.signal);
+      if (!summariesResult.ok) {
+        if (summariesResult.error.kind !== "aborted") {
           setReportState({ status: "error" });
         }
+        return;
       }
+
+      const summaries = summariesResult.data;
+      if (summaries.length === 0) {
+        setReportState({ status: "empty" });
+        return;
+      }
+
+      const reportResult = await fable5Api.getEvaluationReport(
+        summaries[0].artifact_id,
+        controller.signal,
+      );
+      if (!reportResult.ok) {
+        if (reportResult.error.kind !== "aborted") {
+          setReportState({ status: "error" });
+        }
+        return;
+      }
+
+      setReportState({ status: "loaded", report: reportResult.data, summaries });
     }
 
     async function loadOutcomes() {
-      try {
-        const outcomesResponse = await fetch(`${apiUrl}/v1/evaluation-outcomes`, {
-          signal: controller.signal,
-        });
-        if (!outcomesResponse.ok) {
-          throw new Error("Blocked evaluation outcome list returned a non-success status.");
-        }
-
-        const outcomes = (await outcomesResponse.json()) as BlockedEvaluationOutcome[];
-        if (outcomes.length === 0) {
-          setOutcomeState({ status: "empty" });
-          return;
-        }
-
-        const outcomeId = encodeURIComponent(outcomes[0].outcome_id);
-        const outcomeResponse = await fetch(`${apiUrl}/v1/evaluation-outcomes/${outcomeId}`, {
-          signal: controller.signal,
-        });
-        if (!outcomeResponse.ok) {
-          throw new Error("Blocked evaluation outcome detail returned a non-success status.");
-        }
-
-        const outcome = (await outcomeResponse.json()) as BlockedEvaluationOutcome;
-        setOutcomeState({ status: "loaded", outcome, outcomes });
-      } catch (error) {
-        if (!(error instanceof Error) || error.name !== "AbortError") {
+      const outcomesResult = await fable5Api.listEvaluationOutcomes(controller.signal);
+      if (!outcomesResult.ok) {
+        if (outcomesResult.error.kind !== "aborted") {
           setOutcomeState({ status: "error" });
         }
+        return;
       }
+
+      const outcomes = outcomesResult.data;
+      if (outcomes.length === 0) {
+        setOutcomeState({ status: "empty" });
+        return;
+      }
+
+      const outcomeResult = await fable5Api.getEvaluationOutcome(
+        outcomes[0].outcome_id,
+        controller.signal,
+      );
+      if (!outcomeResult.ok) {
+        if (outcomeResult.error.kind !== "aborted") {
+          setOutcomeState({ status: "error" });
+        }
+        return;
+      }
+
+      setOutcomeState({ status: "loaded", outcome: outcomeResult.data, outcomes });
     }
 
     void loadReports();
@@ -627,7 +621,7 @@ function EvaluationReportDetail({
                 <KeyValueEvidence heading="Configuration" values={trial.configuration} />
                 <section className="evaluationCanonicalEvidence">
                   <h4>Configuration hash preimage</h4>
-                  <pre>{JSON.stringify(trial.config_preimage, null, 2)}</pre>
+                  <pre tabIndex={0}>{JSON.stringify(trial.config_preimage, null, 2)}</pre>
                 </section>
                 <div className="evaluationEvidenceColumns">
                   <EvidenceGroup heading="Parent trial IDs" values={trial.parent_trial_ids} />
@@ -748,7 +742,12 @@ function EvaluationReportDetail({
           </div>
           <span>{report.oos_ledger.length} append-only row(s)</span>
         </div>
-        <div className="evaluationTableScroll">
+        <div
+          aria-label="Scrollable OOS prediction and return ledger"
+          className="evaluationTableScroll"
+          role="region"
+          tabIndex={0}
+        >
           <table className="evaluationDataTable" aria-label="OOS prediction and return ledger">
             <thead>
               <tr>
@@ -810,7 +809,12 @@ function EvaluationReportDetail({
           </div>
           <span>{report.cost_ledger.length} append-only row(s)</span>
         </div>
-        <div className="evaluationTableScroll">
+        <div
+          aria-label="Scrollable component cost ledger"
+          className="evaluationTableScroll"
+          role="region"
+          tabIndex={0}
+        >
           <table className="evaluationDataTable" aria-label="Component cost ledger">
             <thead>
               <tr>
@@ -1087,7 +1091,7 @@ function EvaluationReportDetail({
                 />
                 <section className="evaluationCanonicalEvidence">
                   <h4>Exact persisted source observation</h4>
-                  <pre>{JSON.stringify(source, null, 2)}</pre>
+                  <pre tabIndex={0}>{JSON.stringify(source, null, 2)}</pre>
                 </section>
               </article>
             );
@@ -1138,7 +1142,7 @@ function EvaluationReportDetail({
               <SourceObservationReferences references={lineage.source_observation_refs} />
               <section className="evaluationCanonicalEvidence">
                 <h4>Exact sample lineage record</h4>
-                <pre>{JSON.stringify(lineage, null, 2)}</pre>
+                <pre tabIndex={0}>{JSON.stringify(lineage, null, 2)}</pre>
               </section>
             </article>
           ))}

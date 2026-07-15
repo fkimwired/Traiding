@@ -22,6 +22,7 @@ PHASE7_PATH_TERMS = (
 EXPECTED_PHASE7_SURFACE = {
     "/v1/approval-assessments": {"get", "post"},
     "/v1/approval-assessments/{assessment_id}": {"get"},
+    "/v1/approval-assessments/{assessment_id}/evidence-timeline": {"get"},
     "/v1/approval-revocations": {"get", "post"},
     "/v1/approval-revocations/{revocation_id}": {"get"},
 }
@@ -69,6 +70,7 @@ def test_phase7_openapi_surface_is_exact_create_read_list() -> None:
     assert _phase7_surface(full_app.openapi()) == EXPECTED_PHASE7_SURFACE
     assessment_collection = paths["/v1/approval-assessments"]
     assessment_detail = paths["/v1/approval-assessments/{assessment_id}"]
+    assessment_timeline = paths["/v1/approval-assessments/{assessment_id}/evidence-timeline"]
     revocation_collection = paths["/v1/approval-revocations"]
     revocation_detail = paths["/v1/approval-revocations/{revocation_id}"]
 
@@ -87,6 +89,25 @@ def test_phase7_openapi_surface_is_exact_create_read_list() -> None:
     assert _response_schema(assessment_detail["get"], "422") == {
         "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
     }
+    assert _response_schema(assessment_timeline["get"], "200") == {
+        "$ref": "#/components/schemas/ApprovalAssessmentEvidenceTimeline"
+    }
+    assert _response_schema(assessment_timeline["get"], "422") == {
+        "$ref": "#/components/schemas/ApprovalValidationErrorResponse"
+    }
+    assert "requestBody" not in assessment_timeline["get"]
+    assert assessment_timeline["get"]["parameters"] == [
+        {
+            "in": "path",
+            "name": "assessment_id",
+            "required": True,
+            "schema": {
+                "format": "uuid",
+                "title": "Assessment Id",
+                "type": "string",
+            },
+        }
+    ]
     assert _response_schema(assessment_collection["get"], "200")["items"] == {
         "$ref": "#/components/schemas/ApprovalAssessmentSummary"
     }
@@ -224,6 +245,77 @@ def test_phase7_response_contracts_are_synthetic_governance_only_and_non_executa
     assert assessment["properties"]["phase6_lineage"] == {
         "$ref": "#/components/schemas/Phase6ApprovalLineage"
     }
+
+
+def test_assessment_evidence_timeline_is_strict_hash_bound_timestamp_evidence() -> None:
+    components = _openapi()["components"]["schemas"]
+    expected_fields = {
+        "ApprovalAssessmentEvidenceTimeline": {
+            "assessment_id",
+            "assessment_created_at_utc",
+            "policy",
+            "scope",
+            "authorization",
+            "risk_input",
+        },
+        "ApprovalPolicyTimelineEvidence": {
+            "approval_policy_version_id",
+            "policy_sha256",
+            "valid_from_utc",
+            "expires_at_utc",
+        },
+        "ApprovalScopeTimelineEvidence": {
+            "approval_scope_version_id",
+            "scope_sha256",
+            "valid_from_utc",
+            "expires_at_utc",
+        },
+        "HumanAuthorizationTimelineEvidence": {
+            "human_authorization_evidence_id",
+            "authorization_sha256",
+            "authorized_at_utc",
+            "review_at_utc",
+            "expires_at_utc",
+        },
+        "ApprovalRiskInputTimelineEvidence": {
+            "risk_input_id",
+            "risk_input_sha256",
+            "observed_at_utc",
+        },
+    }
+
+    for name, fields in expected_fields.items():
+        component = components[name]
+        assert component["additionalProperties"] is False
+        assert set(component["properties"]) == fields
+        assert set(component["required"]) == fields
+
+    timeline = components["ApprovalAssessmentEvidenceTimeline"]
+    assert timeline["properties"]["policy"] == {
+        "$ref": "#/components/schemas/ApprovalPolicyTimelineEvidence"
+    }
+    assert timeline["properties"]["scope"] == {
+        "$ref": "#/components/schemas/ApprovalScopeTimelineEvidence"
+    }
+    assert timeline["properties"]["authorization"] == {
+        "$ref": "#/components/schemas/HumanAuthorizationTimelineEvidence"
+    }
+    assert timeline["properties"]["risk_input"] == {
+        "$ref": "#/components/schemas/ApprovalRiskInputTimelineEvidence"
+    }
+
+    forbidden_authority = {
+        "rationale",
+        "reviewer_identity",
+        "thresholds",
+        "risk_values",
+        "verdict",
+        "authorization_state",
+        "execution_authorized",
+        "execution_ready",
+    }
+    exposed_fields = set().union(*expected_fields.values())
+    assert not forbidden_authority.intersection(exposed_fields)
 
 
 def test_phase7_schema_contains_no_broker_or_execution_resource_type() -> None:

@@ -73,6 +73,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/approval-assessments/{assessment_id}/evidence-timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Approval Assessment Evidence Timeline */
+        get: operations["get_approval_assessment_evidence_timeline_v1_approval_assessments__assessment_id__evidence_timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/approval-revocations": {
         parameters: {
             query?: never;
@@ -716,6 +733,23 @@ export interface components {
              */
             risk_input_id: string;
         };
+        /** ApprovalAssessmentEvidenceTimeline */
+        ApprovalAssessmentEvidenceTimeline: {
+            /**
+             * Assessment Created At Utc
+             * Format: date-time
+             */
+            assessment_created_at_utc: string;
+            /**
+             * Assessment Id
+             * Format: uuid
+             */
+            assessment_id: string;
+            authorization: components["schemas"]["HumanAuthorizationTimelineEvidence"];
+            policy: components["schemas"]["ApprovalPolicyTimelineEvidence"];
+            risk_input: components["schemas"]["ApprovalRiskInputTimelineEvidence"];
+            scope: components["schemas"]["ApprovalScopeTimelineEvidence"];
+        };
         /**
          * ApprovalAssessmentOutcome
          * @enum {string}
@@ -804,6 +838,26 @@ export interface components {
             /** Threshold Value */
             threshold_value?: string | null;
         };
+        /** ApprovalPolicyTimelineEvidence */
+        ApprovalPolicyTimelineEvidence: {
+            /**
+             * Approval Policy Version Id
+             * Format: uuid
+             */
+            approval_policy_version_id: string;
+            /**
+             * Expires At Utc
+             * Format: date-time
+             */
+            expires_at_utc: string;
+            /** Policy Sha256 */
+            policy_sha256: string;
+            /**
+             * Valid From Utc
+             * Format: date-time
+             */
+            valid_from_utc: string;
+        };
         /** ApprovalRevocationCreateRequest */
         ApprovalRevocationCreateRequest: {
             /**
@@ -816,6 +870,41 @@ export interface components {
              * Format: uuid
              */
             revocation_evidence_id: string;
+        };
+        /** ApprovalRiskInputTimelineEvidence */
+        ApprovalRiskInputTimelineEvidence: {
+            /**
+             * Observed At Utc
+             * Format: date-time
+             */
+            observed_at_utc: string;
+            /**
+             * Risk Input Id
+             * Format: uuid
+             */
+            risk_input_id: string;
+            /** Risk Input Sha256 */
+            risk_input_sha256: string;
+        };
+        /** ApprovalScopeTimelineEvidence */
+        ApprovalScopeTimelineEvidence: {
+            /**
+             * Approval Scope Version Id
+             * Format: uuid
+             */
+            approval_scope_version_id: string;
+            /**
+             * Expires At Utc
+             * Format: date-time
+             */
+            expires_at_utc: string;
+            /** Scope Sha256 */
+            scope_sha256: string;
+            /**
+             * Valid From Utc
+             * Format: date-time
+             */
+            valid_from_utc: string;
         };
         /** ApprovalValidationErrorResponse */
         ApprovalValidationErrorResponse: {
@@ -2406,6 +2495,31 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** HumanAuthorizationTimelineEvidence */
+        HumanAuthorizationTimelineEvidence: {
+            /** Authorization Sha256 */
+            authorization_sha256: string;
+            /**
+             * Authorized At Utc
+             * Format: date-time
+             */
+            authorized_at_utc: string;
+            /**
+             * Expires At Utc
+             * Format: date-time
+             */
+            expires_at_utc: string;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /**
+             * Review At Utc
+             * Format: date-time
+             */
+            review_at_utc: string;
         };
         /**
          * InfraRisk
@@ -6132,6 +6246,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApprovalAssessmentArtifact"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_approval_assessment_evidence_timeline_v1_approval_assessments__assessment_id__evidence_timeline_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assessment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalAssessmentEvidenceTimeline"];
                 };
             };
             /** @description Unprocessable Entity */

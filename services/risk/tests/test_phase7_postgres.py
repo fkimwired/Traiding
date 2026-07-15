@@ -217,7 +217,8 @@ def test_postgres_provisioning_and_positive_roundtrip_preserve_exact_children() 
             )
         )
 
-        artifact = _workflow(repository).create_assessment(_request(lineage, bundle))
+        workflow = _workflow(repository)
+        artifact = workflow.create_assessment(_request(lineage, bundle))
         assert artifact.outcome is ApprovalAssessmentOutcome.APPROVED_PAPER
         assert artifact.execution_authorized is False
         assert artifact.execution_ready is False
@@ -226,6 +227,32 @@ def test_postgres_provisioning_and_positive_roundtrip_preserve_exact_children() 
         assert artifact.assessment_id in {
             item.assessment_id for item in repository.list_assessments(limit=100)
         }
+        timeline = workflow.get_assessment_evidence_timeline(artifact.assessment_id)
+        assert timeline.assessment_id == artifact.assessment_id
+        assert timeline.assessment_created_at_utc == artifact.created_at_utc
+        assert (
+            timeline.policy.approval_policy_version_id == bundle.policy.approval_policy_version_id
+        )
+        assert timeline.policy.policy_sha256 == bundle.policy.policy_sha256
+        assert timeline.policy.valid_from_utc == bundle.policy.valid_from_utc
+        assert timeline.policy.expires_at_utc == bundle.policy.expires_at_utc
+        assert timeline.scope.approval_scope_version_id == bundle.scope.approval_scope_version_id
+        assert timeline.scope.scope_sha256 == bundle.scope.scope_sha256
+        assert timeline.scope.valid_from_utc == bundle.scope.valid_from_utc
+        assert timeline.scope.expires_at_utc == bundle.scope.expires_at_utc
+        assert (
+            timeline.authorization.human_authorization_evidence_id
+            == bundle.authorization.human_authorization_evidence_id
+        )
+        assert (
+            timeline.authorization.authorization_sha256 == bundle.authorization.authorization_sha256
+        )
+        assert timeline.authorization.authorized_at_utc == bundle.authorization.authorized_at_utc
+        assert timeline.authorization.review_at_utc == bundle.authorization.review_at_utc
+        assert timeline.authorization.expires_at_utc == bundle.authorization.expires_at_utc
+        assert timeline.risk_input.risk_input_id == bundle.risk_input.risk_input_id
+        assert timeline.risk_input.risk_input_sha256 == bundle.risk_input.risk_input_sha256
+        assert timeline.risk_input.observed_at_utc == bundle.risk_input.observed_at_utc
 
         with repository.engine.connect() as connection:
             persisted = connection.execute(

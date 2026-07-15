@@ -1,11 +1,11 @@
-name: phase-7-ci
+name: phase-8-ci
 
 on:
   push:
   pull_request:
 
 env:
-  FABLE5_VERIFY_PHASE: "7"
+  FABLE5_VERIFY_PHASE: "8"
 
 jobs:
   quality:
@@ -31,7 +31,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only --phase 7
+      - run: python scripts/verify_phase1.py --static-only --phase 8
       - run: docker compose config --quiet
 
   compose-smoke:
@@ -43,5 +43,11 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
       - run: python -m pip install --constraint requirements.lock -e ".[dev]"
-      - run: python scripts/verify_phase1.py --phase 7
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: python scripts/verify_phase1.py --phase 8

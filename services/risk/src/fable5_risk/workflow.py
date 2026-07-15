@@ -30,18 +30,23 @@ from fable5_risk.contracts import (
     PHASE7_REVOCATION_SCHEMA_VERSION,
     ApprovalAssessmentArtifact,
     ApprovalAssessmentCreateRequest,
+    ApprovalAssessmentEvidenceTimeline,
     ApprovalAssessmentOutcome,
     ApprovalAssessmentSummary,
     ApprovalCheckCode,
     ApprovalCheckResult,
     ApprovalPolicy,
+    ApprovalPolicyTimelineEvidence,
     ApprovalRevocationCreateRequest,
     ApprovalRiskInput,
+    ApprovalRiskInputTimelineEvidence,
     ApprovalScope,
+    ApprovalScopeTimelineEvidence,
     AuthorizationRevocationArtifact,
     AuthorizationRevocationSummary,
     CheckStatus,
     HumanAuthorizationEvidence,
+    HumanAuthorizationTimelineEvidence,
     Phase6ApprovalLineage,
     assessment_request_fingerprint,
     revocation_request_fingerprint,
@@ -722,6 +727,100 @@ class ApprovalWorkflow:
 
     def get_assessment(self, assessment_id: UUID) -> ApprovalAssessmentArtifact:
         return self.risk_store.get_assessment(assessment_id)
+
+    def get_assessment_evidence_timeline(
+        self,
+        assessment_id: UUID,
+    ) -> ApprovalAssessmentEvidenceTimeline:
+        try:
+            assessment = self.risk_store.get_assessment(assessment_id)
+            policy = self.risk_store.get_approval_policy(assessment.approval_policy_version_id)
+            scope = self.risk_store.get_approval_scope(assessment.approval_scope_version_id)
+            authorization = self.risk_store.get_human_authorization_evidence(
+                assessment.human_authorization_evidence_id
+            )
+            risk_input = self.risk_store.get_risk_input(assessment.risk_input_id)
+        except ApprovalEvidenceNotFound:
+            raise
+        except LookupError as exc:
+            raise ApprovalEvidenceNotFound(
+                "required Phase 7 assessment timeline evidence is missing"
+            ) from exc
+
+        try:
+            assessment = ApprovalAssessmentArtifact.model_validate(
+                assessment.model_dump(mode="python")
+            )
+            policy = ApprovalPolicy.model_validate(policy.model_dump(mode="python"))
+            scope = ApprovalScope.model_validate(scope.model_dump(mode="python"))
+            authorization = HumanAuthorizationEvidence.model_validate(
+                authorization.model_dump(mode="python")
+            )
+            risk_input = ApprovalRiskInput.model_validate(risk_input.model_dump(mode="python"))
+        except (AttributeError, TypeError, ValueError, ValidationError) as exc:
+            raise ApprovalWorkflowConflict(
+                "persisted Phase 7 assessment timeline evidence is invalid"
+            ) from exc
+
+        exact_references_match = (
+            assessment.assessment_id == assessment_id
+            and assessment.research_run_id == assessment.phase6_lineage.research_run_id
+            and policy.approval_policy_version_id == assessment.approval_policy_version_id
+            and policy.policy_sha256 == assessment.approval_policy_sha256
+            and scope.approval_scope_version_id == assessment.approval_scope_version_id
+            and scope.scope_sha256 == assessment.approval_scope_sha256
+            and scope.research_run_id == assessment.research_run_id
+            and scope.research_artifact_sha256 == assessment.phase6_lineage.research_artifact_sha256
+            and scope.approval_policy_version_id == assessment.approval_policy_version_id
+            and authorization.human_authorization_evidence_id
+            == assessment.human_authorization_evidence_id
+            and authorization.authorization_sha256 == assessment.authorization_sha256
+            and authorization.research_run_id == assessment.research_run_id
+            and authorization.research_artifact_sha256
+            == assessment.phase6_lineage.research_artifact_sha256
+            and authorization.approval_policy_version_id == assessment.approval_policy_version_id
+            and authorization.approval_scope_version_id == assessment.approval_scope_version_id
+            and risk_input.risk_input_id == assessment.risk_input_id
+            and risk_input.risk_input_sha256 == assessment.risk_input_sha256
+            and risk_input.research_run_id == assessment.research_run_id
+            and risk_input.research_artifact_sha256
+            == assessment.phase6_lineage.research_artifact_sha256
+            and risk_input.approval_policy_version_id == assessment.approval_policy_version_id
+            and risk_input.approval_scope_version_id == assessment.approval_scope_version_id
+        )
+        if not exact_references_match:
+            raise ApprovalWorkflowConflict(
+                "assessment timeline evidence conflicts with persisted references"
+            )
+
+        return ApprovalAssessmentEvidenceTimeline(
+            assessment_id=assessment.assessment_id,
+            assessment_created_at_utc=assessment.created_at_utc,
+            policy=ApprovalPolicyTimelineEvidence(
+                approval_policy_version_id=policy.approval_policy_version_id,
+                policy_sha256=policy.policy_sha256,
+                valid_from_utc=policy.valid_from_utc,
+                expires_at_utc=policy.expires_at_utc,
+            ),
+            scope=ApprovalScopeTimelineEvidence(
+                approval_scope_version_id=scope.approval_scope_version_id,
+                scope_sha256=scope.scope_sha256,
+                valid_from_utc=scope.valid_from_utc,
+                expires_at_utc=scope.expires_at_utc,
+            ),
+            authorization=HumanAuthorizationTimelineEvidence(
+                human_authorization_evidence_id=authorization.human_authorization_evidence_id,
+                authorization_sha256=authorization.authorization_sha256,
+                authorized_at_utc=authorization.authorized_at_utc,
+                review_at_utc=authorization.review_at_utc,
+                expires_at_utc=authorization.expires_at_utc,
+            ),
+            risk_input=ApprovalRiskInputTimelineEvidence(
+                risk_input_id=risk_input.risk_input_id,
+                risk_input_sha256=risk_input.risk_input_sha256,
+                observed_at_utc=risk_input.observed_at_utc,
+            ),
+        )
 
     def list_assessments(self, *, limit: int) -> list[ApprovalAssessmentSummary]:
         return self.risk_store.list_assessments(limit=limit)

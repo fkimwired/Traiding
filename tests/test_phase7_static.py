@@ -145,6 +145,7 @@ def test_phase7_openapi_is_exact_create_read_list_and_non_executable() -> None:
     expected_phase7_paths = {
         "/v1/approval-assessments": {"get", "post"},
         "/v1/approval-assessments/{assessment_id}": {"get"},
+        "/v1/approval-assessments/{assessment_id}/evidence-timeline": {"get"},
         "/v1/approval-revocations": {"get", "post"},
         "/v1/approval-revocations/{revocation_id}": {"get"},
     }

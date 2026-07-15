@@ -685,15 +685,15 @@ describe("read-only evaluation reports", () => {
   it("renders the complete synthetic report evidence from generated-contract endpoints", async () => {
     const fetchMock = vi.fn().mockImplementation(async (input: string) => {
       if (input.endsWith(`/v1/evaluation-reports/${artifactId}`)) {
-        return { ok: true, json: async () => reportResponse };
+        return { ok: true, json: async () => reportResponse, status: 200 };
       }
       if (input.endsWith("/v1/evaluation-reports")) {
-        return { ok: true, json: async () => summariesResponse };
+        return { ok: true, json: async () => summariesResponse, status: 200 };
       }
       if (input.endsWith(`/v1/evaluation-outcomes/${outcomeId}`)) {
-        return { ok: true, json: async () => blockedOutcomeResponse };
+        return { ok: true, json: async () => blockedOutcomeResponse, status: 200 };
       }
-      return { ok: true, json: async () => outcomesResponse };
+      return { ok: true, json: async () => outcomesResponse, status: 200 };
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -866,6 +866,9 @@ describe("read-only evaluation reports", () => {
     const oosLedger = within(
       screen.getByRole("table", { name: "OOS prediction and return ledger" }),
     );
+    expect(
+      screen.getByRole("region", { name: "Scrollable OOS prediction and return ledger" }),
+    ).toHaveAttribute("tabindex", "0");
     expect(oosLedger.getByText("synthetic-oos-01")).toBeVisible();
     expect(oosLedger.getByText(`Ledger ID: ${oosEntryId}`)).toBeVisible();
     expect(oosLedger.getByText(`Trial ID: ${selectedTrialId}`)).toBeVisible();
@@ -879,6 +882,9 @@ describe("read-only evaluation reports", () => {
     expect(oosLedger.getByText(new RegExp(`raw observation ${rawObservationId}`))).toBeVisible();
 
     const costLedger = within(screen.getByRole("table", { name: "Component cost ledger" }));
+    expect(
+      screen.getByRole("region", { name: "Scrollable component cost ledger" }),
+    ).toHaveAttribute("tabindex", "0");
     expect(costLedger.getByText("baseline")).toBeVisible();
     expect(costLedger.getByText("all_cost_stress")).toBeVisible();
     expect(costLedger.getByText("liquidity_stress")).toBeVisible();
@@ -898,6 +904,11 @@ describe("read-only evaluation reports", () => {
     expect(baselineRow.getByText("Unfilled quantity: 0")).toBeVisible();
     expect(baselineRow.getByText("Capacity breached: false")).toBeVisible();
     expect(baselineRow.getByText("Hard-to-borrow available: true")).toBeVisible();
+    const scrollablePre = container.querySelectorAll(".evaluationCanonicalEvidence pre");
+    expect(scrollablePre.length).toBeGreaterThan(0);
+    for (const pre of scrollablePre) {
+      expect(pre).toHaveAttribute("tabindex", "0");
+    }
 
     expect(screen.getByRole("heading", { name: "dsr_probability" })).toBeVisible();
     expect(screen.getByText("bailey-lopez-de-prado-dsr-2014-eq2-v1")).toBeVisible();
@@ -956,12 +967,12 @@ describe("read-only evaluation reports", () => {
   it("shows a persisted blocked outcome when no completed report exists", async () => {
     const fetchMock = vi.fn().mockImplementation(async (input: string) => {
       if (input.endsWith("/v1/evaluation-reports")) {
-        return { ok: true, json: async () => [] };
+        return { ok: true, json: async () => [], status: 200 };
       }
       if (input.endsWith(`/v1/evaluation-outcomes/${outcomeId}`)) {
-        return { ok: true, json: async () => blockedOutcomeResponse };
+        return { ok: true, json: async () => blockedOutcomeResponse, status: 200 };
       }
-      return { ok: true, json: async () => outcomesResponse };
+      return { ok: true, json: async () => outcomesResponse, status: 200 };
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -975,7 +986,9 @@ describe("read-only evaluation reports", () => {
   });
 
   it("renders empty and failure states without controls", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => [], status: 200 });
     vi.stubGlobal("fetch", fetchMock);
 
     const empty = render(<EvaluationReports />);
@@ -988,8 +1001,8 @@ describe("read-only evaluation reports", () => {
 
     fetchMock.mockImplementation(async (input: string) =>
       input.endsWith("/v1/evaluation-reports")
-        ? { ok: false }
-        : { ok: true, json: async () => [] },
+        ? { ok: false, status: 503 }
+        : { ok: true, json: async () => [], status: 200 },
     );
     const failed = render(<EvaluationReports />);
     expect(await screen.findByRole("alert")).toHaveTextContent(

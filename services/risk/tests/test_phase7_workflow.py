@@ -12,6 +12,7 @@ from fable5_risk.contracts import (
     APPROVAL_CHECK_ORDER,
     ApprovalAssessmentArtifact,
     ApprovalAssessmentCreateRequest,
+    ApprovalAssessmentEvidenceTimeline,
     ApprovalAssessmentOutcome,
     ApprovalAssessmentSummary,
     ApprovalCheckCode,
@@ -42,6 +43,7 @@ from fable5_risk.fixtures import (
 from fable5_risk.workflow import (
     ApprovalEvidenceNotFound,
     ApprovalWorkflow,
+    ApprovalWorkflowConflict,
 )
 from pydantic import ValidationError
 
@@ -359,6 +361,198 @@ def test_missing_phase6_or_independent_evidence_fails_closed() -> None:
     )
     with pytest.raises(ApprovalEvidenceNotFound):
         workflow.create_assessment(_request(lineage, bundle))
+
+
+def test_assessment_evidence_timeline_resolves_exact_hash_bound_timestamps() -> None:
+    lineage = build_synthetic_phase6_lineage()
+    bundle = build_nominal_evidence_bundle(lineage)
+    workflow, store = _workflow(lineage, bundle)
+    assessment = workflow.create_assessment(_request(lineage, bundle))
+
+    def unexpected_clock() -> datetime:
+        raise AssertionError("timeline reads must not reassess currentness")
+
+    read_workflow = ApprovalWorkflow(
+        research_store=MemoryResearchStore(lineage),
+        risk_store=store,
+        clock=unexpected_clock,
+        phase7_code_version_git_sha=SYNTHETIC_PHASE7_CODE_VERSION_GIT_SHA,
+    )
+    timeline = read_workflow.get_assessment_evidence_timeline(assessment.assessment_id)
+
+    assert isinstance(timeline, ApprovalAssessmentEvidenceTimeline)
+    assert timeline.assessment_id == assessment.assessment_id
+    assert timeline.assessment_created_at_utc == assessment.created_at_utc
+    assert timeline.policy.approval_policy_version_id == assessment.approval_policy_version_id
+    assert timeline.policy.policy_sha256 == assessment.approval_policy_sha256
+    assert timeline.policy.valid_from_utc == bundle.policy.valid_from_utc
+    assert timeline.policy.expires_at_utc == bundle.policy.expires_at_utc
+    assert timeline.scope.approval_scope_version_id == assessment.approval_scope_version_id
+    assert timeline.scope.scope_sha256 == assessment.approval_scope_sha256
+    assert timeline.scope.valid_from_utc == bundle.scope.valid_from_utc
+    assert timeline.scope.expires_at_utc == bundle.scope.expires_at_utc
+    assert (
+        timeline.authorization.human_authorization_evidence_id
+        == assessment.human_authorization_evidence_id
+    )
+    assert timeline.authorization.authorization_sha256 == assessment.authorization_sha256
+    assert timeline.authorization.authorized_at_utc == bundle.authorization.authorized_at_utc
+    assert timeline.authorization.review_at_utc == bundle.authorization.review_at_utc
+    assert timeline.authorization.expires_at_utc == bundle.authorization.expires_at_utc
+    assert timeline.risk_input.risk_input_id == assessment.risk_input_id
+    assert timeline.risk_input.risk_input_sha256 == assessment.risk_input_sha256
+    assert timeline.risk_input.observed_at_utc == bundle.risk_input.observed_at_utc
+
+
+@pytest.mark.parametrize(
+    ("store_attribute", "bundle_attribute", "assessment_id_attribute"),
+    (
+        ("policies", "policy", "approval_policy_version_id"),
+        ("scopes", "scope", "approval_scope_version_id"),
+        ("authorizations", "authorization", "human_authorization_evidence_id"),
+        ("risk_inputs", "risk_input", "risk_input_id"),
+    ),
+)
+def test_assessment_evidence_timeline_fails_closed_on_each_missing_reference(
+    store_attribute: str,
+    bundle_attribute: str,
+    assessment_id_attribute: str,
+) -> None:
+    lineage = build_synthetic_phase6_lineage()
+    bundle = build_nominal_evidence_bundle(lineage)
+    workflow, store = _workflow(lineage, bundle)
+    assessment = workflow.create_assessment(_request(lineage, bundle))
+
+    evidence = getattr(bundle, bundle_attribute)
+    evidence_id = getattr(assessment, assessment_id_attribute)
+    assert getattr(evidence, assessment_id_attribute) == evidence_id
+    del getattr(store, store_attribute)[evidence_id]
+
+    with pytest.raises(ApprovalEvidenceNotFound):
+        workflow.get_assessment_evidence_timeline(assessment.assessment_id)
+
+
+@pytest.mark.parametrize(
+    (
+        "store_attribute",
+        "bundle_attribute",
+        "assessment_id_attribute",
+        "hash_attribute",
+    ),
+    (
+        ("policies", "policy", "approval_policy_version_id", "policy_sha256"),
+        ("scopes", "scope", "approval_scope_version_id", "scope_sha256"),
+        (
+            "authorizations",
+            "authorization",
+            "human_authorization_evidence_id",
+            "authorization_sha256",
+        ),
+        ("risk_inputs", "risk_input", "risk_input_id", "risk_input_sha256"),
+    ),
+)
+def test_assessment_evidence_timeline_rejects_each_invalid_canonical_hash(
+    store_attribute: str,
+    bundle_attribute: str,
+    assessment_id_attribute: str,
+    hash_attribute: str,
+) -> None:
+    lineage = build_synthetic_phase6_lineage()
+    bundle = build_nominal_evidence_bundle(lineage)
+    workflow, store = _workflow(lineage, bundle)
+    assessment = workflow.create_assessment(_request(lineage, bundle))
+
+    evidence = getattr(bundle, bundle_attribute)
+    evidence_id = getattr(assessment, assessment_id_attribute)
+    invalid_payload = evidence.model_dump(mode="python")
+    invalid_payload[hash_attribute] = "0" * 64
+    getattr(store, store_attribute)[evidence_id] = type(evidence).model_construct(**invalid_payload)
+
+    with pytest.raises(ApprovalWorkflowConflict, match="timeline evidence is invalid"):
+        workflow.get_assessment_evidence_timeline(assessment.assessment_id)
+
+
+@pytest.mark.parametrize("evidence_kind", ("policy", "scope", "authorization", "risk_input"))
+def test_assessment_evidence_timeline_rejects_each_wrong_identity_and_hash(
+    evidence_kind: str,
+) -> None:
+    lineage = build_synthetic_phase6_lineage()
+    bundle = build_nominal_evidence_bundle(lineage)
+    workflow, store = _workflow(lineage, bundle)
+    assessment = workflow.create_assessment(_request(lineage, bundle))
+
+    if evidence_kind == "policy":
+        store.policies[assessment.approval_policy_version_id] = build_approval_policy(
+            policy_id="phase7-conflicting-timeline-policy"
+        )
+    elif evidence_kind == "scope":
+        store.scopes[assessment.approval_scope_version_id] = build_approval_scope(
+            lineage,
+            bundle.policy,
+            scope_id="phase7-conflicting-timeline-scope",
+        )
+    elif evidence_kind == "authorization":
+        store.authorizations[assessment.human_authorization_evidence_id] = (
+            build_human_authorization(
+                lineage,
+                bundle.policy,
+                bundle.scope,
+                authorized_at_utc=bundle.authorization.authorized_at_utc - timedelta(minutes=1),
+            )
+        )
+    else:
+        store.risk_inputs[assessment.risk_input_id] = build_approval_risk_input(
+            lineage,
+            bundle.policy,
+            bundle.scope,
+            observed_at_utc=bundle.risk_input.observed_at_utc - timedelta(minutes=1),
+        )
+
+    with pytest.raises(
+        ApprovalWorkflowConflict,
+        match="timeline evidence conflicts with persisted references",
+    ):
+        workflow.get_assessment_evidence_timeline(assessment.assessment_id)
+
+
+@pytest.mark.parametrize("evidence_kind", ("scope", "authorization", "risk_input"))
+def test_assessment_evidence_timeline_rejects_each_cross_lineage_reference(
+    evidence_kind: str,
+) -> None:
+    lineage = build_synthetic_phase6_lineage()
+    other_lineage = build_synthetic_phase6_lineage(
+        configuration_id="phase6-cross-lineage-timeline-evidence"
+    )
+    bundle = build_nominal_evidence_bundle(lineage)
+    workflow, store = _workflow(lineage, bundle)
+    assessment = workflow.create_assessment(_request(lineage, bundle))
+
+    if evidence_kind == "scope":
+        store.scopes[assessment.approval_scope_version_id] = build_approval_scope(
+            other_lineage,
+            bundle.policy,
+            scope_id="phase7-cross-lineage-timeline-scope",
+        )
+    elif evidence_kind == "authorization":
+        store.authorizations[assessment.human_authorization_evidence_id] = (
+            build_human_authorization(
+                other_lineage,
+                bundle.policy,
+                bundle.scope,
+            )
+        )
+    else:
+        store.risk_inputs[assessment.risk_input_id] = build_approval_risk_input(
+            other_lineage,
+            bundle.policy,
+            bundle.scope,
+        )
+
+    with pytest.raises(
+        ApprovalWorkflowConflict,
+        match="timeline evidence conflicts with persisted references",
+    ):
+        workflow.get_assessment_evidence_timeline(assessment.assessment_id)
 
 
 def test_missing_server_git_sha_fails_closed_without_persisting() -> None:

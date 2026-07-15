@@ -34,21 +34,27 @@ const exported = spawnSync(python, exportArguments, { cwd: root, encoding: "utf8
 if (exported.status !== 0) process.exit(exported.status ?? 1);
 
 const contractRoot = join(root, "packages", "contracts");
-const command =
+const commands =
   mode === "check"
-    ? [join(contractRoot, "scripts", "check-generated.mjs")]
+    ? [[join(contractRoot, "scripts", "check-generated.mjs")]]
     : [
-        join(root, "node_modules", "openapi-typescript", "bin", "cli.js"),
-        "openapi.json",
-        "--output",
-        "src/api.generated.ts",
+        [
+          join(root, "node_modules", "openapi-typescript", "bin", "cli.js"),
+          "openapi.json",
+          "--output",
+          "src/api.generated.ts",
+        ],
+        [join(contractRoot, "scripts", "generate-runtime.mjs")],
       ];
-const generated = spawnSync(process.execPath, command, {
-  cwd: contractRoot,
-  encoding: "utf8",
-  stdio: "inherit",
-});
-if (generated.error) {
-  process.stderr.write(`${generated.error.message}\n`);
+
+for (const command of commands) {
+  const generated = spawnSync(process.execPath, command, {
+    cwd: contractRoot,
+    encoding: "utf8",
+    stdio: "inherit",
+  });
+  if (generated.error) {
+    process.stderr.write(`${generated.error.message}\n`);
+  }
+  if (generated.status !== 0) process.exit(generated.status ?? 1);
 }
-process.exit(generated.status ?? 1);

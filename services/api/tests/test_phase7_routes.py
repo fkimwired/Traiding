@@ -15,6 +15,7 @@ from fable5_api.config import Settings
 from fable5_risk.contracts import (
     ApprovalAssessmentArtifact,
     ApprovalAssessmentCreateRequest,
+    ApprovalAssessmentEvidenceTimeline,
     ApprovalAssessmentSummary,
     ApprovalRevocationCreateRequest,
     ApprovalRiskInput,
@@ -270,6 +271,39 @@ def test_read_and_list_routes_delegate_typed_identities_and_filters(
     ],
 ) -> None:
     _, assessment, _, revocation = phase7_artifacts
+    bundle = build_nominal_evidence_bundle(assessment.phase6_lineage)
+    timeline = ApprovalAssessmentEvidenceTimeline.model_validate(
+        {
+            "assessment_id": assessment.assessment_id,
+            "assessment_created_at_utc": assessment.created_at_utc,
+            "policy": {
+                "approval_policy_version_id": bundle.policy.approval_policy_version_id,
+                "policy_sha256": bundle.policy.policy_sha256,
+                "valid_from_utc": bundle.policy.valid_from_utc,
+                "expires_at_utc": bundle.policy.expires_at_utc,
+            },
+            "scope": {
+                "approval_scope_version_id": bundle.scope.approval_scope_version_id,
+                "scope_sha256": bundle.scope.scope_sha256,
+                "valid_from_utc": bundle.scope.valid_from_utc,
+                "expires_at_utc": bundle.scope.expires_at_utc,
+            },
+            "authorization": {
+                "human_authorization_evidence_id": (
+                    bundle.authorization.human_authorization_evidence_id
+                ),
+                "authorization_sha256": bundle.authorization.authorization_sha256,
+                "authorized_at_utc": bundle.authorization.authorized_at_utc,
+                "review_at_utc": bundle.authorization.review_at_utc,
+                "expires_at_utc": bundle.authorization.expires_at_utc,
+            },
+            "risk_input": {
+                "risk_input_id": bundle.risk_input.risk_input_id,
+                "risk_input_sha256": bundle.risk_input.risk_input_sha256,
+                "observed_at_utc": bundle.risk_input.observed_at_utc,
+            },
+        }
+    )
     assessment_summary = ApprovalAssessmentSummary(
         assessment_id=assessment.assessment_id,
         artifact_sha256=assessment.artifact_sha256,
@@ -289,12 +323,16 @@ def test_read_and_list_routes_delegate_typed_identities_and_filters(
     )
     workflow = MagicMock(spec=ApprovalWorkflow)
     workflow.get_assessment.return_value = assessment
+    workflow.get_assessment_evidence_timeline.return_value = timeline
     workflow.list_assessments.return_value = [assessment_summary]
     workflow.get_revocation.return_value = revocation
     workflow.list_revocations.return_value = [revocation_summary]
     client = _client(workflow)
 
     assessment_detail = client.get(f"/v1/approval-assessments/{assessment.assessment_id}")
+    assessment_timeline = client.get(
+        f"/v1/approval-assessments/{assessment.assessment_id}/evidence-timeline"
+    )
     assessment_list = client.get("/v1/approval-assessments?limit=7")
     revocation_detail = client.get(f"/v1/approval-revocations/{revocation.revocation_id}")
     revocation_list = client.get(
@@ -306,12 +344,15 @@ def test_read_and_list_routes_delegate_typed_identities_and_filters(
     )
 
     assert assessment_detail.status_code == 200
+    assert assessment_timeline.status_code == 200
     assert assessment_list.status_code == 200
     assert revocation_detail.status_code == 200
     assert revocation_list.status_code == 200
     assert assessment_list.json()[0]["execution_authorized"] is False
+    assert assessment_timeline.json() == timeline.model_dump(mode="json")
     assert revocation_list.json()[0]["execution_ready"] is False
     workflow.get_assessment.assert_called_once_with(assessment.assessment_id)
+    workflow.get_assessment_evidence_timeline.assert_called_once_with(assessment.assessment_id)
     workflow.list_assessments.assert_called_once_with(limit=7)
     workflow.get_revocation.assert_called_once_with(revocation.revocation_id)
     workflow.list_revocations.assert_called_once_with(
@@ -419,12 +460,20 @@ def test_missing_conflicting_and_malformed_requests_are_sanitized(
     workflow.get_assessment.side_effect = ApprovalEvidenceNotFound(
         "secret missing evidence identity"
     )
+    workflow.get_assessment_evidence_timeline.side_effect = ApprovalEvidenceNotFound(
+        "secret missing timeline evidence identity"
+    )
     workflow.create_revocation.side_effect = ApprovalWorkflowConflict(
         "secret persisted hash conflict"
     )
     client = _client(workflow)
 
     missing = client.get(f"/v1/approval-assessments/{MISSING_ID}")
+    missing_timeline = client.get(f"/v1/approval-assessments/{MISSING_ID}/evidence-timeline")
+    workflow.get_assessment_evidence_timeline.side_effect = ApprovalWorkflowConflict(
+        "secret timeline hash conflict"
+    )
+    conflicting_timeline = client.get(f"/v1/approval-assessments/{MISSING_ID}/evidence-timeline")
     conflict = client.post(
         "/v1/approval-revocations",
         json=revocation_request.model_dump(mode="json"),
@@ -435,16 +484,64 @@ def test_missing_conflicting_and_malformed_requests_are_sanitized(
     assert missing.json() == {
         "detail": "The requested immutable Phase 7 approval evidence was not found."
     }
+    assert missing_timeline.status_code == 404
+    assert missing_timeline.json() == missing.json()
+    assert conflicting_timeline.status_code == 409
+    assert conflicting_timeline.json() == {
+        "detail": "Immutable Phase 7 approval evidence conflicts with persisted lineage."
+    }
     assert conflict.status_code == 409
     assert conflict.json() == {
         "detail": "Immutable Phase 7 approval evidence conflicts with persisted lineage."
     }
     assert malformed.status_code == 422
     assert all(set(issue) == {"loc", "msg", "type"} for issue in malformed.json()["detail"])
-    combined = missing.text + conflict.text + malformed.text
+    combined = (
+        missing.text
+        + missing_timeline.text
+        + conflicting_timeline.text
+        + conflict.text
+        + malformed.text
+    )
     assert "secret missing evidence identity" not in combined
+    assert "secret missing timeline evidence identity" not in combined
+    assert "secret timeline hash conflict" not in combined
     assert "secret persisted hash conflict" not in combined
     assert "not-a-uuid" not in malformed.text
+
+
+@pytest.mark.parametrize(
+    ("error_type", "status_code", "public_detail"),
+    (
+        (
+            ApprovalEvidenceNotFound,
+            404,
+            "The requested immutable Phase 7 approval evidence was not found.",
+        ),
+        (
+            ApprovalWorkflowConflict,
+            409,
+            "Immutable Phase 7 approval evidence conflicts with persisted lineage.",
+        ),
+    ),
+)
+@pytest.mark.parametrize("evidence_name", ("policy", "scope", "authorization", "risk input"))
+def test_each_timeline_evidence_reference_failure_is_sanitized(
+    error_type: type[ApprovalEvidenceNotFound] | type[ApprovalWorkflowConflict],
+    status_code: int,
+    public_detail: str,
+    evidence_name: str,
+) -> None:
+    workflow = MagicMock(spec=ApprovalWorkflow)
+    workflow.get_assessment_evidence_timeline.side_effect = error_type(
+        f"secret {evidence_name} identity, hash, or lineage conflict"
+    )
+
+    response = _client(workflow).get(f"/v1/approval-assessments/{MISSING_ID}/evidence-timeline")
+
+    assert response.status_code == status_code
+    assert response.json() == {"detail": public_detail}
+    assert "secret" not in response.text
 
 
 def test_every_get_validation_error_uses_the_sanitized_phase7_contract() -> None:
@@ -454,6 +551,7 @@ def test_every_get_validation_error_uses_the_sanitized_phase7_contract() -> None
     responses = (
         client.get("/v1/approval-assessments?limit=0"),
         client.get("/v1/approval-assessments/not-a-uuid"),
+        client.get("/v1/approval-assessments/not-a-uuid/evidence-timeline"),
         client.get("/v1/approval-revocations?limit=101"),
         client.get(
             "/v1/approval-revocations",
@@ -471,6 +569,7 @@ def test_every_get_validation_error_uses_the_sanitized_phase7_contract() -> None
         assert "not-a-uuid" not in response.text
     workflow.list_assessments.assert_not_called()
     workflow.get_assessment.assert_not_called()
+    workflow.get_assessment_evidence_timeline.assert_not_called()
     workflow.list_revocations.assert_not_called()
     workflow.get_revocation.assert_not_called()
 
@@ -481,6 +580,7 @@ def test_phase7_api_exposes_no_update_or_delete_method() -> None:
     paths = (
         "/v1/approval-assessments",
         f"/v1/approval-assessments/{MISSING_ID}",
+        f"/v1/approval-assessments/{MISSING_ID}/evidence-timeline",
         "/v1/approval-revocations",
         f"/v1/approval-revocations/{MISSING_ID}",
     )

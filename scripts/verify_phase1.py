@@ -291,6 +291,44 @@ PHASE_7_TABLES = (
     "approval_checks",
 )
 PHASE_7_APPEND_ONLY_ERROR = "Phase 7 approval and risk artifacts are append-only"
+PHASE_8_REQUIRED_PATHS = (
+    "docs/PHASE_08_UI_DECISIONS.md",
+    "packages/contracts/scripts/generate-runtime.mjs",
+    "packages/contracts/src/runtime.generated.ts",
+    "packages/contracts/src/validate-response.ts",
+    "services/frontend/playwright.config.ts",
+    "services/frontend/e2e/phase8.accessibility.spec.ts",
+    "services/frontend/e2e/phase8.visual.spec.ts",
+    "services/frontend/e2e/visual-stability.css",
+    "services/frontend/src/app/ideas/IdeaIntakeWorkspace.tsx",
+    "services/frontend/src/app/ideas/TradingIdeaCardView.tsx",
+    "services/frontend/src/app/lineage/LineageExplorer.tsx",
+    "services/frontend/src/app/lineage/page.tsx",
+    "services/frontend/src/app/paper/PaperStatusWorkspace.tsx",
+    "services/frontend/src/app/research/ResearchWorkspace.tsx",
+    "services/frontend/src/app/risk/RiskComplianceWorkspace.tsx",
+    "services/frontend/src/lib/api.ts",
+    "services/frontend/src/lib/evidence-index.ts",
+    "services/frontend/src/lib/navigation.ts",
+)
+PHASE_8_VISUAL_SNAPSHOT_DIRECTORY = "services/frontend/e2e/__screenshots__/phase8.visual.spec.ts"
+PHASE_8_VISUAL_MODE_SLUGS = (
+    "idea-intake",
+    "research-lab",
+    "simulated-paper-status",
+    "risk-compliance",
+)
+PHASE_8_VISUAL_STATES = ("mode", "negative")
+PHASE_8_VISUAL_PROJECTS = ("mobile", "tablet", "desktop")
+PHASE_8_VISUAL_PLATFORMS = ("win32", "linux")
+PHASE_8_VISUAL_BASELINES = frozenset(
+    f"{mode}-{state}-{project}-{platform}.png"
+    for mode in PHASE_8_VISUAL_MODE_SLUGS
+    for state in PHASE_8_VISUAL_STATES
+    for project in PHASE_8_VISUAL_PROJECTS
+    for platform in PHASE_8_VISUAL_PLATFORMS
+)
+PHASE_8_TIMELINE_PATH = "/v1/approval-assessments/{assessment_id}/evidence-timeline"
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -422,6 +460,12 @@ PHASE_1_6_MIGRATION_SHA256 = {
         "7f4ab516a31208b7c5f5400b1b593d7675c75570fa839f524bfddea3152d7070"
     ),
 }
+PHASE_1_7_MIGRATION_SHA256 = {
+    **PHASE_1_6_MIGRATION_SHA256,
+    "services/api/migrations/versions/0007_phase7_approval_risk.py": (
+        "4ef4e6301f205fb9a18f478ac3fa6d6920dbe0af462b6f371e83dd2d622a8090"
+    ),
+}
 PHASE_5_GATE_IMPLEMENTATION_SHA256 = {
     "canonical.py": "095c174b94778d22feef4a0444279f0fea63d1d6b53b678aac571221faf4a4c0",
     "chronology.py": "dd6418352b96089306ecfc8a026d1be4c217ef220fe818a05c92dc5aa813fa76",
@@ -527,9 +571,9 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, or 7") from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, or 7")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, or 8") from exc
+    if phase not in {1, 2, 3, 4, 5, 6, 7, 8}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, or 8")
     return phase
 
 
@@ -670,6 +714,10 @@ def verify_static(phase: int = 1) -> None:
         missing_phase7 = [path for path in PHASE_7_REQUIRED_PATHS if not (ROOT / path).exists()]
         if missing_phase7:
             raise AssertionError(f"Missing Phase 7 paths: {', '.join(missing_phase7)}")
+    if phase >= 8:
+        missing_phase8 = [path for path in PHASE_8_REQUIRED_PATHS if not (ROOT / path).exists()]
+        if missing_phase8:
+            raise AssertionError(f"Missing Phase 8 paths: {', '.join(missing_phase8)}")
 
     gates = canonical_gates()
     for filename in ("AGENTS.md", "CLAUDE.md"):
@@ -851,7 +899,7 @@ def verify_static(phase: int = 1) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-7])", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-8])", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -995,7 +1043,9 @@ def verify_static(phase: int = 1) -> None:
 
     if phase >= 4:
         migration_authority = (
-            PHASE_1_6_MIGRATION_SHA256
+            PHASE_1_7_MIGRATION_SHA256
+            if phase >= 8
+            else PHASE_1_6_MIGRATION_SHA256
             if phase >= 7
             else PHASE_1_5_MIGRATION_SHA256
             if phase >= 6
@@ -1810,6 +1860,7 @@ def verify_static(phase: int = 1) -> None:
         expected_phase7_paths = {
             "/v1/approval-assessments": {"get", "post"},
             "/v1/approval-assessments/{assessment_id}": {"get"},
+            PHASE_8_TIMELINE_PATH: {"get"},
             "/v1/approval-revocations": {"get", "post"},
             "/v1/approval-revocations/{revocation_id}": {"get"},
         }
@@ -1835,11 +1886,16 @@ def verify_static(phase: int = 1) -> None:
         expected_components = {
             "ApprovalAssessmentArtifact",
             "ApprovalAssessmentCreateRequest",
+            "ApprovalAssessmentEvidenceTimeline",
             "ApprovalAssessmentSummary",
+            "ApprovalPolicyTimelineEvidence",
+            "ApprovalRiskInputTimelineEvidence",
+            "ApprovalScopeTimelineEvidence",
             "ApprovalRevocationCreateRequest",
             "ApprovalValidationErrorResponse",
             "AuthorizationRevocationArtifact",
             "AuthorizationRevocationSummary",
+            "HumanAuthorizationTimelineEvidence",
         }
         missing_components = expected_components - set(components)
         if missing_components:
@@ -1908,17 +1964,465 @@ def verify_static(phase: int = 1) -> None:
         for generated_contract in (
             "ApprovalAssessmentArtifact:",
             "ApprovalAssessmentCreateRequest:",
+            "ApprovalAssessmentEvidenceTimeline:",
             "ApprovalAssessmentSummary:",
             "ApprovalRevocationCreateRequest:",
             "AuthorizationRevocationArtifact:",
             "AuthorizationRevocationSummary:",
             '"/v1/approval-assessments"',
+            f'"{PHASE_8_TIMELINE_PATH}"',
             '"/v1/approval-revocations"',
         ):
             if generated_contract not in generated:
                 raise AssertionError(
                     f"Generated TypeScript Phase 7 contract is missing {generated_contract}"
                 )
+
+    if phase >= 8:
+        migration_root = ROOT / "services/api/migrations/versions"
+        forbidden_migrations = sorted(path.name for path in migration_root.glob("0008*.py"))
+        if forbidden_migrations:
+            raise AssertionError(
+                "Phase 8 must not add a database migration: " + ", ".join(forbidden_migrations)
+            )
+
+        openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+        paths = openapi["paths"]
+        components = openapi["components"]["schemas"]
+        if PHASE_8_TIMELINE_PATH not in paths:
+            raise AssertionError("Phase 8 evidence-timeline GET is missing")
+        timeline_operations = paths[PHASE_8_TIMELINE_PATH]
+        if set(timeline_operations) != {"get"}:
+            raise AssertionError(
+                f"Phase 8 evidence timeline must be GET-only: {sorted(timeline_operations)}"
+            )
+        timeline_get = timeline_operations["get"]
+        if "requestBody" in timeline_get:
+            raise AssertionError("Phase 8 evidence timeline must not accept a request body")
+        if timeline_get.get("parameters") != [
+            {
+                "in": "path",
+                "name": "assessment_id",
+                "required": True,
+                "schema": {
+                    "format": "uuid",
+                    "title": "Assessment Id",
+                    "type": "string",
+                },
+            }
+        ]:
+            raise AssertionError(
+                "Phase 8 evidence timeline accepts presentation authority beyond assessment_id"
+            )
+        response_schema = (
+            timeline_get.get("responses", {})
+            .get("200", {})
+            .get("content", {})
+            .get("application/json", {})
+            .get("schema")
+        )
+        if response_schema != {"$ref": "#/components/schemas/ApprovalAssessmentEvidenceTimeline"}:
+            raise AssertionError("Phase 8 evidence timeline response is not server-owned")
+
+        expected_timeline_fields = {
+            "ApprovalAssessmentEvidenceTimeline": {
+                "assessment_id",
+                "assessment_created_at_utc",
+                "policy",
+                "scope",
+                "authorization",
+                "risk_input",
+            },
+            "ApprovalPolicyTimelineEvidence": {
+                "approval_policy_version_id",
+                "policy_sha256",
+                "valid_from_utc",
+                "expires_at_utc",
+            },
+            "ApprovalScopeTimelineEvidence": {
+                "approval_scope_version_id",
+                "scope_sha256",
+                "valid_from_utc",
+                "expires_at_utc",
+            },
+            "HumanAuthorizationTimelineEvidence": {
+                "human_authorization_evidence_id",
+                "authorization_sha256",
+                "authorized_at_utc",
+                "review_at_utc",
+                "expires_at_utc",
+            },
+            "ApprovalRiskInputTimelineEvidence": {
+                "risk_input_id",
+                "risk_input_sha256",
+                "observed_at_utc",
+            },
+        }
+        for schema_name, expected_fields in expected_timeline_fields.items():
+            schema = components.get(schema_name, {})
+            if (
+                set(schema.get("properties", {})) != expected_fields
+                or set(schema.get("required", [])) != expected_fields
+                or schema.get("additionalProperties") is not False
+            ):
+                raise AssertionError(
+                    f"{schema_name} exposes fields beyond existing identifier/hash/time evidence"
+                )
+        nested_refs = {
+            "policy": "ApprovalPolicyTimelineEvidence",
+            "scope": "ApprovalScopeTimelineEvidence",
+            "authorization": "HumanAuthorizationTimelineEvidence",
+            "risk_input": "ApprovalRiskInputTimelineEvidence",
+        }
+        timeline_properties = components["ApprovalAssessmentEvidenceTimeline"]["properties"]
+        for field, schema_name in nested_refs.items():
+            if timeline_properties[field] != {"$ref": f"#/components/schemas/{schema_name}"}:
+                raise AssertionError(f"Phase 8 timeline {field} is not a generated strict model")
+
+        api_paths = {path.casefold() for path in paths if path.startswith("/v1/")}
+        if any(
+            "research-audit" in path
+            or "research_audit" in path
+            or "audit-events" in path
+            or "audit_events" in path
+            for path in api_paths
+        ):
+            raise AssertionError("Phase 8 exposed the unrelated research_audit_events table")
+        forbidden_execution_terms = (
+            "broker",
+            "submission",
+            "fill",
+            "position",
+            "order",
+            "executable-paper",
+            "executable_paper",
+            "paper-execution",
+            "paper_execution",
+            "live",
+        )
+        for path in api_paths:
+            if any(term in path for term in forbidden_execution_terms):
+                raise AssertionError(f"Execution-shaped API leaked into Phase 8: {path}")
+
+        generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+        for contract in (
+            "ApprovalAssessmentEvidenceTimeline:",
+            "ApprovalPolicyTimelineEvidence:",
+            "ApprovalRiskInputTimelineEvidence:",
+            "ApprovalScopeTimelineEvidence:",
+            "HumanAuthorizationTimelineEvidence:",
+            f'"{PHASE_8_TIMELINE_PATH}"',
+        ):
+            if contract not in generated:
+                raise AssertionError(f"Generated Phase 8 TypeScript contract is missing {contract}")
+
+        api_client = normalized(ROOT / "services/frontend/src/lib/api.ts")
+        if (
+            'from "@fable5/contracts"' not in api_client
+            or 'components["schemas"]' not in api_client
+            or "paths[" not in api_client
+            or "getApprovalAssessmentEvidenceTimeline" not in api_client
+            or "validateOpenApiResponse(operation, response.status, body)" not in api_client
+            or "SuccessfulJsonOperation" not in api_client
+            or "SuccessfulJsonResponseByOperation[Operation]" not in api_client
+            or "operationRequest(operation, options.pathParameters)" not in api_client
+            or re.search(
+                r"(?:getJson|postJson)<",
+                api_client.split("export const fable5Api =", maxsplit=1)[-1],
+            )
+            or "expectArray" in api_client
+            or "validate?:" in api_client
+        ):
+            raise AssertionError("Phase 8 client is not derived from generated contracts")
+
+        runtime_generated = normalized(ROOT / "packages/contracts/src/runtime.generated.ts")
+        runtime_values: dict[str, list[str]] = {}
+        for constant_name, schema_name in (
+            ("sourceTypes", "SourceType"),
+            ("sourceAuthorities", "SourceAuthority"),
+        ):
+            match = re.search(
+                rf"export const {constant_name} = (\[.*?\]) as const;",
+                runtime_generated,
+                flags=re.DOTALL,
+            )
+            if match is None:
+                raise AssertionError(f"Generated runtime contract is missing {constant_name}")
+            values = json.loads(match.group(1))
+            if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+                raise AssertionError(f"Generated runtime contract {constant_name} is malformed")
+            if values != components[schema_name].get("enum"):
+                raise AssertionError(
+                    f"Generated runtime contract {constant_name} drifted from {schema_name}"
+                )
+            runtime_values[constant_name] = values
+        user_intake_match = re.search(
+            r"export const userIntakeSourceTypes = (\[.*?\]) as const;",
+            runtime_generated,
+            flags=re.DOTALL,
+        )
+        if user_intake_match is None:
+            raise AssertionError("Generated runtime contract is missing userIntakeSourceTypes")
+        user_intake_source_types = json.loads(user_intake_match.group(1))
+        source_types = runtime_values["sourceTypes"]
+        if source_types.count("synthetic_fixture") != 1:
+            raise AssertionError(
+                "OpenAPI SourceType must contain exactly one reserved synthetic_fixture value"
+            )
+        expected_user_intake_source_types = [
+            value for value in source_types if value != "synthetic_fixture"
+        ]
+        if (
+            user_intake_source_types != expected_user_intake_source_types
+            or "synthetic_fixture" in user_intake_source_types
+        ):
+            raise AssertionError(
+                "Generated user intake source types did not preserve full OpenAPI parity while "
+                "excluding synthetic_fixture"
+            )
+        operations_match = re.search(
+            r"export const successfulJsonOperations = (\[.*?\]) as const;",
+            runtime_generated,
+            flags=re.DOTALL,
+        )
+        if operations_match is None:
+            raise AssertionError("Generated runtime response operations are missing")
+        runtime_operations = json.loads(operations_match.group(1))
+        expected_runtime_operations = []
+        for path, path_item in sorted(paths.items()):
+            for method, operation in sorted(path_item.items()):
+                if method not in {"delete", "get", "patch", "post", "put"}:
+                    continue
+                responses = operation.get("responses", {})
+                if any(
+                    re.fullmatch(r"2\d\d", status)
+                    and response.get("content", {}).get("application/json", {}).get("schema")
+                    for status, response in responses.items()
+                ):
+                    expected_runtime_operations.append(f"{method.upper()} {path}")
+        if runtime_operations != expected_runtime_operations:
+            raise AssertionError(
+                "Generated runtime response operations drifted from successful OpenAPI responses"
+            )
+        if (
+            'import type { paths } from "./api.generated";' not in runtime_generated
+            or "export type SuccessfulJsonResponseByOperation = {" not in runtime_generated
+        ):
+            raise AssertionError(
+                "Generated operation keys are not type-bound to their OpenAPI success responses"
+            )
+        client_operations = set(re.findall(r'"((?:GET|POST) /[^"\r\n]+)"', api_client))
+        expected_client_operations = set(runtime_operations) - {"GET /ready"}
+        if client_operations != expected_client_operations:
+            raise AssertionError(
+                "Typed client runtime validation does not cover every generated API operation"
+            )
+        contracts_index = normalized(ROOT / "packages/contracts/src/index.ts")
+        runtime_export = re.search(
+            r'export\s*\{(?P<names>.*?)\}\s*from\s*"\./runtime\.generated";',
+            contracts_index,
+            flags=re.DOTALL,
+        )
+        exported_runtime_names = (
+            {name.strip() for name in runtime_export.group("names").split(",") if name.strip()}
+            if runtime_export
+            else set()
+        )
+        if exported_runtime_names != {
+            "sourceAuthorities",
+            "sourceTypes",
+            "userIntakeSourceTypes",
+        }:
+            raise AssertionError("Generated runtime enum values are not exported by contracts")
+        if (
+            'export type { SuccessfulJsonResponseByOperation } from "./runtime.generated";'
+            not in contracts_index
+        ):
+            raise AssertionError("Generated operation response bindings are not exported")
+        runtime_generator = normalized(ROOT / "packages/contracts/scripts/generate-runtime.mjs")
+        runtime_validator = normalized(ROOT / "packages/contracts/src/validate-response.ts")
+        generated_check = normalized(ROOT / "packages/contracts/scripts/check-generated.mjs")
+        if (
+            'enumValues("SourceType")' not in runtime_generator
+            or 'enumValues("SourceAuthority")' not in runtime_generator
+            or 'value !== "synthetic_fixture"' not in runtime_generator
+            or "sourceTypes.length - 1" not in runtime_generator
+            or "successfulJsonResponseSchemas" not in runtime_generator
+            or "successfulJsonResponseTypeEntries" not in runtime_generator
+            or "runtimeComponentSchemas" not in runtime_generator
+            or "runtime.generated.ts" not in generated_check
+            or "generate-runtime.mjs" not in generated_check
+            or "validateOpenApiResponse" not in runtime_validator
+            or "successfulJsonResponseSchemas" not in runtime_validator
+            or "runtimeComponentSchemas" not in runtime_validator
+            or "isValidCalendarDate" not in runtime_validator
+            or "Array.from(value).length" not in runtime_validator
+            or 'from "./validate-response"' not in contracts_index
+        ):
+            raise AssertionError(
+                "Runtime enum/response generation is not covered by contract parity checks"
+            )
+        api_client_tests = normalized(ROOT / "services/frontend/src/tests/ApiClient.test.ts")
+        if (
+            "malformed collection members, detail artifacts, and evidence timelines"
+            not in api_client_tests
+            or "malformedMember" not in api_client_tests
+            or "malformedDetail" not in api_client_tests
+            or "malformedTimeline" not in api_client_tests
+        ):
+            raise AssertionError("Generated runtime response validation tests are incomplete")
+        intake = normalized(ROOT / "services/frontend/src/app/ideas/IdeaIntakeWorkspace.tsx")
+        contract_import = re.search(
+            r'import\s*\{(?P<names>.*?)\}\s*from\s*"@fable5/contracts";',
+            intake,
+            flags=re.DOTALL,
+        )
+        imported_contract_names = (
+            {
+                name.removeprefix("type ").strip()
+                for name in contract_import.group("names").split(",")
+                if name.strip()
+            }
+            if contract_import
+            else set()
+        )
+        if (
+            not {"sourceAuthorities", "userIntakeSourceTypes"}.issubset(imported_contract_names)
+            or "sourceTypes" in imported_contract_names
+            or re.search(r"const\s+source(?:Types|Authorities)\s*=", intake) is not None
+            or re.search(r"[\"']synthetic_fixture[\"']", intake) is not None
+        ):
+            raise AssertionError(
+                "Idea Intake duplicates or bypasses the generated server-owned runtime enum"
+            )
+        frontend_production = tuple(
+            path
+            for path in (ROOT / "services/frontend/src").rglob("*.ts*")
+            if "tests" not in path.parts
+        )
+        clock_authority_patterns = ("Date.now(", "new Date(", "performance.now(")
+        for path in frontend_production:
+            body = path.read_text(encoding="utf-8")
+            if any(pattern in body for pattern in clock_authority_patterns):
+                raise AssertionError(
+                    "Phase 8 client compares historical governance evidence with a client clock: "
+                    f"{path.relative_to(ROOT)}"
+                )
+
+        layout = normalized(ROOT / "services/frontend/src/app/layout.tsx")
+        styles = normalized(ROOT / "services/frontend/src/app/phase8.css")
+        if (
+            'href="#main-content"' not in layout
+            or 'id="main-content"' not in layout
+            or ":focus-visible" not in styles
+            or "prefers-reduced-motion: reduce" not in styles
+        ):
+            raise AssertionError(
+                "Phase 8 keyboard, focus, landmark, or reduced-motion hooks are missing"
+            )
+        playwright = normalized(ROOT / "services/frontend/playwright.config.ts")
+        for viewport in (
+            "width: 390, height: 844",
+            "width: 820, height: 1_180",
+            "width: 1_440, height: 1_000",
+        ):
+            if viewport not in playwright:
+                raise AssertionError(f"Phase 8 pinned visual viewport is missing: {viewport}")
+        visual_spec = normalized(ROOT / "services/frontend/e2e/phase8.visual.spec.ts")
+        accessibility_spec = normalized(ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts")
+        paper_workspace = normalized(
+            ROOT / "services/frontend/src/app/paper/PaperStatusWorkspace.tsx"
+        )
+        if re.search(r"<(?:form|input|select|textarea)\b|type=\"submit\"", paper_workspace):
+            raise AssertionError("Simulated Paper Status exposed an executable-shaped control")
+        for forbidden_paper_token in (
+            "execution_authorized",
+            "execution_ready",
+            "order ticket",
+            "paper execution",
+            "paper_execution",
+        ):
+            if forbidden_paper_token in paper_workspace.casefold():
+                raise AssertionError(
+                    "Simulated Paper Status exposed an execution-readiness token: "
+                    f"{forbidden_paper_token}"
+                )
+        if (
+            "stylePath: stabilityStyles" not in visual_spec
+            or 'page.locator("pre")' not in visual_spec
+            or 'page.locator("blockquote")' not in visual_spec
+            or "fullPage: false" not in visual_spec
+            or "${mode.slug}-mode.png" not in visual_spec
+            or "${mode.slug}-negative.png" not in visual_spec
+            or 'block: "center"' not in visual_spec
+            or "request timed out before deterministic evidence was available|could not be reached"
+            not in visual_spec
+            or "request timed out before deterministic evidence was available|could not be reached"
+            not in accessibility_spec
+            or "data-visual-corpus='synthetic'" not in visual_spec
+            or "new AxeBuilder" not in accessibility_spec
+            or "Skip to main content" not in accessibility_spec
+            or "a[href^='/lineage?']" not in accessibility_spec
+            or "Loading immutable evidence" not in accessibility_spec
+            or "Referenced result was not found" not in accessibility_spec
+            or "syntheticFixtureArchetypes" not in accessibility_spec
+        ):
+            raise AssertionError(
+                "Phase 8 visual secrecy, accessibility, keyboard, or lineage QA is incomplete"
+            )
+        visual_snapshot_directory = ROOT / PHASE_8_VISUAL_SNAPSHOT_DIRECTORY
+        actual_visual_baselines = (
+            {path.name for path in visual_snapshot_directory.glob("*.png")}
+            if visual_snapshot_directory.is_dir()
+            else set()
+        )
+        missing_visual_baselines = sorted(PHASE_8_VISUAL_BASELINES - actual_visual_baselines)
+        unexpected_visual_baselines = sorted(actual_visual_baselines - PHASE_8_VISUAL_BASELINES)
+        if missing_visual_baselines or unexpected_visual_baselines:
+            details = []
+            if missing_visual_baselines:
+                details.append(f"missing: {', '.join(missing_visual_baselines)}")
+            if unexpected_visual_baselines:
+                details.append(f"unexpected: {', '.join(unexpected_visual_baselines)}")
+            raise AssertionError(
+                "Phase 8 visual baselines are not the exact deterministic 48-file matrix ("
+                + "; ".join(details)
+                + ")"
+            )
+        for browser_guard in (
+            'trace: "off"',
+            "workers: 1",
+            "FABLE5_UPDATE_SNAPSHOTS",
+            "FABLE5_VISUAL_CORPUS",
+            "127.0.0.1",
+            "localhost",
+            "host.docker.internal",
+            "./.next/playwright-results",
+        ):
+            if browser_guard not in playwright:
+                raise AssertionError(
+                    f"Phase 8 browser safety configuration is missing {browser_guard}"
+                )
+
+        workflow_tests = normalized(ROOT / "services/risk/tests/test_phase7_workflow.py")
+        route_tests = normalized(ROOT / "services/api/tests/test_phase7_routes.py")
+        phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
+        if '"8": "0007_phase7"' not in phase5_postgres_tests:
+            raise AssertionError(
+                "Phase 8 isolated PostgreSQL acceptance does not preserve the Phase 7 head"
+            )
+        if (
+            "test_assessment_evidence_timeline_fails_closed_on_each_missing_reference"
+            not in workflow_tests
+            or "test_assessment_evidence_timeline_rejects_each_invalid_canonical_hash"
+            not in workflow_tests
+            or "test_assessment_evidence_timeline_rejects_each_wrong_identity_and_hash"
+            not in workflow_tests
+            or "conflicting_timeline.status_code == 409" not in route_tests
+            or "missing_timeline.status_code == 404" not in route_tests
+            or "test_each_timeline_evidence_reference_failure_is_sanitized" not in route_tests
+        ):
+            raise AssertionError("Phase 8 timeline 404/409 fail-closed tests are missing")
 
     print(f"Static repository policy checks passed for Phase {phase}.")
 
@@ -4080,7 +4584,17 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
                 f"Phase 6 {configuration_id} confirmation/boundary evidence is incomplete"
             )
         reports[configuration_id] = report
-        if request_json(f"{api_url}/v1/research-runs/{run_id}") != artifact:
+        # Complete Phase 6 artifacts intentionally include the full deterministic
+        # sample/trial lineage.  Phase 8 exercises every one of these GET-by-id
+        # responses, so allow the immutable byte-stability read to finish on
+        # slower local container filesystems without changing the assertion.
+        if (
+            request_json(
+                f"{api_url}/v1/research-runs/{run_id}",
+                timeout_seconds=60,
+            )
+            != artifact
+        ):
             raise AssertionError(f"Phase 6 {configuration_id} detail is not byte-stable")
         run_ids[configuration_id] = run_id
 
@@ -4584,7 +5098,7 @@ def verify_phase7_api(
     environment: dict[str, str],
     api_url: str,
     phase6_run_ids: dict[str, str],
-) -> None:
+) -> dict[str, str]:
     expected_run_ids = {
         "phase6-a-pass-v2",
         "phase6-a-fail-cost-v2",
@@ -4928,6 +5442,181 @@ def verify_phase7_api(
         "risk, revocation, historical-byte preservation, and non-execution proof passed "
         f"(assessment_id={assessment_id}, artifact_sha256={artifact_sha256}, "
         f"revocation_id={revocation_id}, rejected_assessments={len(rejection_ids)})."
+    )
+    return {
+        "positive_assessment_id": assessment_id,
+        "positive_artifact_sha256": artifact_sha256,
+        "revocation_id": revocation_id,
+    }
+
+
+def verify_phase8_evidence_timeline_api(api_url: str) -> None:
+    summaries = request_json(f"{api_url}/v1/approval-assessments?limit=100")
+    if not isinstance(summaries, list) or not summaries:
+        raise AssertionError("Phase 8 timeline verification requires persisted assessments")
+
+    resolved = 0
+    conflicted = 0
+    first_assessment_id: str | None = None
+    for summary in summaries:
+        if not isinstance(summary, dict) or not isinstance(summary.get("assessment_id"), str):
+            raise AssertionError("Phase 8 assessment summary identity is malformed")
+        assessment_id = summary["assessment_id"]
+        if first_assessment_id is None:
+            first_assessment_id = assessment_id
+        assessment = request_json(f"{api_url}/v1/approval-assessments/{assessment_id}")
+        try:
+            timeline = request_json(
+                f"{api_url}/v1/approval-assessments/{assessment_id}/evidence-timeline"
+            )
+        except urllib.error.HTTPError as exc:
+            if exc.code != 409:
+                raise
+            try:
+                conflict = json.loads(exc.read().decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as parse_exc:
+                raise AssertionError(
+                    "Phase 8 conflicting timeline did not return deterministic JSON"
+                ) from parse_exc
+            if conflict != {
+                "detail": "Immutable Phase 7 approval evidence conflicts with persisted lineage."
+            }:
+                raise AssertionError(
+                    "Phase 8 conflicting timeline did not use the existing "
+                    "fail-closed 409 semantics"
+                ) from exc
+            conflicted += 1
+            continue
+        if not isinstance(assessment, dict) or not isinstance(timeline, dict):
+            raise AssertionError("Phase 8 complete assessment or timeline artifact is malformed")
+        if set(timeline) != {
+            "assessment_id",
+            "assessment_created_at_utc",
+            "policy",
+            "scope",
+            "authorization",
+            "risk_input",
+        }:
+            raise AssertionError(
+                "Phase 8 timeline exposed evidence beyond identifiers, hashes, times"
+            )
+        if timeline.get("assessment_id") != assessment_id or timeline.get(
+            "assessment_created_at_utc"
+        ) != assessment.get("created_at_utc"):
+            raise AssertionError("Phase 8 timeline lost its exact immutable assessment reference")
+
+        expected_evidence = {
+            "policy": (
+                "approval_policy_version_id",
+                "approval_policy_sha256",
+                "policy_sha256",
+                {"valid_from_utc", "expires_at_utc"},
+            ),
+            "scope": (
+                "approval_scope_version_id",
+                "approval_scope_sha256",
+                "scope_sha256",
+                {"valid_from_utc", "expires_at_utc"},
+            ),
+            "authorization": (
+                "human_authorization_evidence_id",
+                "authorization_sha256",
+                "authorization_sha256",
+                {"authorized_at_utc", "review_at_utc", "expires_at_utc"},
+            ),
+            "risk_input": (
+                "risk_input_id",
+                "risk_input_sha256",
+                "risk_input_sha256",
+                {"observed_at_utc"},
+            ),
+        }
+        for evidence_name, (
+            id_field,
+            assessment_hash_field,
+            timeline_hash_field,
+            timestamp_fields,
+        ) in expected_evidence.items():
+            evidence = timeline.get(evidence_name)
+            if not isinstance(evidence, dict):
+                raise AssertionError(f"Phase 8 timeline omitted {evidence_name} evidence")
+            expected_fields = {id_field, timeline_hash_field, *timestamp_fields}
+            if set(evidence) != expected_fields:
+                raise AssertionError(
+                    f"Phase 8 {evidence_name} timeline fields are not exact: {sorted(evidence)}"
+                )
+            if (
+                evidence.get(id_field) != assessment.get(id_field)
+                or evidence.get(timeline_hash_field) != assessment.get(assessment_hash_field)
+                or re.fullmatch(r"[0-9a-f]{64}", str(evidence.get(timeline_hash_field))) is None
+                or any(
+                    not isinstance(evidence.get(field), str) or not evidence[field]
+                    for field in timestamp_fields
+                )
+            ):
+                raise AssertionError(
+                    f"Phase 8 {evidence_name} timeline did not revalidate exact references"
+                )
+        resolved += 1
+
+    missing = request_error_json(
+        f"{api_url}/v1/approval-assessments/00000000-0000-5000-8000-000000000808/evidence-timeline",
+        expected_status=404,
+        method="GET",
+    )
+    if missing != {"detail": "The requested immutable Phase 7 approval evidence was not found."}:
+        raise AssertionError("Phase 8 missing timeline evidence did not fail closed")
+    if first_assessment_id is None or resolved == 0:
+        raise AssertionError("Phase 8 did not resolve an assessment timeline identity")
+    if conflicted == 0:
+        raise AssertionError(
+            "Phase 8 acceptance corpus did not prove a conflicting timeline fails closed"
+        )
+    request_error_json(
+        f"{api_url}/v1/approval-assessments/{first_assessment_id}/evidence-timeline",
+        expected_status=405,
+        method="POST",
+        payload={},
+    )
+    print(
+        "Phase 8 GET-only evidence timeline resolved and hash-revalidated "
+        f"{resolved} immutable assessment artifacts; {conflicted} conflicting artifacts and "
+        "unknown evidence failed closed."
+    )
+
+
+def verify_phase8_browser(
+    project: str,
+    environment: dict[str, str],
+    frontend_url: str,
+) -> None:
+    npm = shutil.which("npm")
+    if npm is None:
+        raise RuntimeError("npm is required for Phase 8 browser verification")
+
+    all_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+    )
+    before = snapshot_tables(project, environment, all_tables)
+    browser_environment = environment.copy()
+    browser_environment["PLAYWRIGHT_BASE_URL"] = frontend_url
+    command = [npm, "--workspace", "@fable5/frontend", "run", "test:e2e"]
+    run(command, env=browser_environment)
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, all_tables),
+        "during Phase 8 GET-only browser QA",
+    )
+    print(
+        "Phase 8 browser QA passed accessibility, keyboard, reduced-motion, responsive, "
+        "visual-regression, and at-most-two-interaction lineage checks without changing any "
+        "Phase 1-7 table."
     )
 
 
@@ -6438,7 +7127,7 @@ def verify_compose(phase: int = 1) -> None:
                                 print("Full Compose Phase 6 verification passed.")
                             else:
                                 prior_rows = verify_phase7_migration_cycle(project, environment)
-                                verify_phase7_api(
+                                phase7_evidence = verify_phase7_api(
                                     project,
                                     environment,
                                     api_url,
@@ -6451,7 +7140,21 @@ def verify_compose(phase: int = 1) -> None:
                                     environment,
                                     prior_rows,
                                 )
-                                print("Full Compose Phase 7 verification passed.")
+                                if phase == 7:
+                                    print("Full Compose Phase 7 verification passed.")
+                                else:
+                                    if set(phase7_evidence) != {
+                                        "positive_assessment_id",
+                                        "positive_artifact_sha256",
+                                        "revocation_id",
+                                    }:
+                                        raise AssertionError(
+                                            "Phase 8 did not receive complete Phase 7 "
+                                            "artifact identities"
+                                        )
+                                    verify_phase8_evidence_timeline_api(api_url)
+                                    verify_phase8_browser(project, environment, frontend_url)
+                                    print("Full Compose Phase 8 verification passed.")
         else:
             run(
                 [
@@ -6500,10 +7203,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "7"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "8"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, or 7 "
-            "(default: FABLE5_VERIFY_PHASE or 7)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, or 8 "
+            "(default: FABLE5_VERIFY_PHASE or 8)."
         ),
     )
     args = parser.parse_args()

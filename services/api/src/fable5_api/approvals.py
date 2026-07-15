@@ -10,6 +10,7 @@ from fable5_research.repository import ResearchRepository, ResearchRepositoryCon
 from fable5_risk.contracts import (
     ApprovalAssessmentArtifact,
     ApprovalAssessmentCreateRequest,
+    ApprovalAssessmentEvidenceTimeline,
     ApprovalAssessmentSummary,
     ApprovalRevocationCreateRequest,
     AuthorizationRevocationArtifact,
@@ -173,6 +174,31 @@ def get_approval_assessment(
 ) -> ApprovalAssessmentArtifact:
     try:
         return workflow.get_assessment(assessment_id)
+    except (
+        ApprovalEvidenceNotFound,
+        ApprovalWorkflowConflict,
+        ResearchRepositoryConflict,
+        RiskArtifactNotFound,
+        RiskRepositoryConflict,
+    ) as exc:
+        raise _domain_error(exc) from exc
+
+
+@assessment_router.get(
+    "/{assessment_id}/evidence-timeline",
+    response_model=ApprovalAssessmentEvidenceTimeline,
+    responses={
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
+            "model": ApprovalValidationErrorResponse,
+        },
+    },
+)
+def get_approval_assessment_evidence_timeline(
+    assessment_id: UUID,
+    workflow: ApprovalWorkflowDependency,
+) -> ApprovalAssessmentEvidenceTimeline:
+    try:
+        return workflow.get_assessment_evidence_timeline(assessment_id)
     except (
         ApprovalEvidenceNotFound,
         ApprovalWorkflowConflict,
