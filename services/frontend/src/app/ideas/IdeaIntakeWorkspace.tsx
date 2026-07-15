@@ -133,7 +133,8 @@ function cardMatchesProvenanceChain(
     card.source_authority === sourceVersion.source_authority &&
     card.source_url === sourceVersion.source_url &&
     card.raw_text === sourceVersion.raw_text &&
-    card.synthetic_fixture === (sourceVersion.source_type === "synthetic_fixture") &&
+    card.synthetic_fixture ===
+      !userIntakeSourceTypes.some((sourceType) => sourceType === sourceVersion.source_type) &&
     sameOrderedValues(
       card.official_corroboration_source_version_ids,
       sourceVersion.official_corroboration_source_version_ids,
