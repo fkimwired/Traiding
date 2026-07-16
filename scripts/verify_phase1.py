@@ -14,8 +14,10 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from contextlib import contextmanager
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from threading import Barrier
@@ -329,6 +331,65 @@ PHASE_8_VISUAL_BASELINES = frozenset(
     for platform in PHASE_8_VISUAL_PLATFORMS
 )
 PHASE_8_TIMELINE_PATH = "/v1/approval-assessments/{assessment_id}/evidence-timeline"
+PHASE_8_BASELINE_SHA = "94bcfaabf9de457aec47e49e332865a8dcc74f30"
+EXPECTED_PHASE_8_TREE = "56d2cf38ba0ff3d5427fbf5f20aefa13d5224581"
+PHASE_9_REQUIRED_PATHS = (
+    "docs/PHASE_09_RELEASE_ACCEPTANCE_DECISIONS.md",
+    "docs/handoffs/PHASE_09.md",
+    "scripts/run_phase_gate.py",
+    "tests/test_phase9_gate_runner.py",
+    "tests/test_phase9_static.py",
+)
+PHASE_9_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "README.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/PHASE_09_RELEASE_ACCEPTANCE_DECISIONS.md",
+        "docs/handoffs/PHASE_09.md",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        "scripts/run_phase_gate.py",
+        "scripts/verify_phase1.py",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_gate_runner.py",
+        "tests/test_phase9_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_9_CONTRACT_SHA256 = {
+    "packages/contracts/openapi.json": (
+        "d89a72e31778ed7d6edcaaf5611e99506aecdc49c640df336e2a622023a0bb25"
+    ),
+    "packages/contracts/src/api.generated.ts": (
+        "5fa0ce5d903529705709dc2dc0f4c86d71830fc634548551d145cf3bb7a0003e"
+    ),
+    "packages/contracts/src/runtime.generated.ts": (
+        "905810491adf9f52090ff8af109137df76c76367293a21cd39a71dc643a4b964"
+    ),
+    "packages/contracts/src/validate-response.ts": (
+        "57f74259a7d8f00bd739099a01eebd25d4fa7fed01d2e12320d28d67620e3503"
+    ),
+}
+PHASE_9_IMMUTABLE_PREFIXES = (
+    "services/extraction/tests/fixtures/",
+    "services/data/src/fable5_data/fixtures/",
+    f"{PHASE_8_VISUAL_SNAPSHOT_DIRECTORY}/",
+)
+PHASE_9_IMMUTABLE_ARTIFACTS = (
+    "docs/PHASE_02_SCHEMA_DECISIONS.md",
+    "docs/PHASE_03_MAPPING_DECISIONS.md",
+    "docs/PHASE_04_DATA_DECISIONS.md",
+    "docs/PHASE_06_RESEARCH_DECISIONS.md",
+    "docs/PHASE_07_APPROVAL_DECISIONS.md",
+    "docs/PHASE_08_UI_DECISIONS.md",
+    "docs/handoffs/PHASE_02.md",
+    "docs/handoffs/PHASE_03.md",
+    "docs/handoffs/PHASE_04.md",
+    "docs/handoffs/PHASE_07.md",
+    "docs/handoffs/PHASE_08.md",
+)
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -571,10 +632,42 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, or 8") from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7, 8}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, or 8")
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, or 9") from exc
+    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, or 9")
     return phase
+
+
+def utc_now() -> str:
+    return datetime.now(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+@contextmanager
+def phase9_stage(phase: int, stage: str) -> Iterator[None]:
+    if phase != 9:
+        yield
+        return
+    started_at = utc_now()
+    started = time.monotonic()
+    result = "pass"
+    try:
+        yield
+    except BaseException:
+        result = "fail"
+        raise
+    finally:
+        marker = {
+            "elapsed_seconds": round(time.monotonic() - started, 6),
+            "end_utc": utc_now(),
+            "result": result,
+            "stage": stage,
+            "start_utc": started_at,
+        }
+        print(
+            "FABLE5_PHASE9_STAGE "
+            + json.dumps(marker, ensure_ascii=True, separators=(",", ":"), sort_keys=True),
+            flush=True,
+        )
 
 
 def normalized(path: Path) -> str:
@@ -680,7 +773,7 @@ def canonical_gates() -> str:
     return gates
 
 
-def verify_static(phase: int = 1) -> None:
+def verify_static_inherited(phase: int = 1) -> None:
     missing = [path for path in REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 1 paths: {', '.join(missing)}")
@@ -899,7 +992,7 @@ def verify_static(phase: int = 1) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-8])", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+([1-9])", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -2425,6 +2518,142 @@ def verify_static(phase: int = 1) -> None:
             raise AssertionError("Phase 8 timeline 404/409 fail-closed tests are missing")
 
     print(f"Static repository policy checks passed for Phase {phase}.")
+
+
+def git_text(*arguments: str) -> str:
+    try:
+        return subprocess.run(
+            ["git", *arguments],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError(f"Git command failed: git {' '.join(arguments)}") from exc
+
+
+def git_blob(revision: str, path: str) -> bytes:
+    try:
+        return subprocess.run(
+            ["git", "show", f"{revision}:{path}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError(f"Missing immutable baseline blob: {revision}:{path}") from exc
+
+
+def verify_phase9_static() -> None:
+    missing = [path for path in PHASE_9_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 9 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_8_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact Phase 8 baseline is unavailable in local history") from exc
+    if git_text("show", "-s", "--format=%T", PHASE_8_BASELINE_SHA) != EXPECTED_PHASE_8_TREE:
+        raise AssertionError("The authorized Phase 8 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_8_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 9 HEAD is not descended from the exact Phase 8 baseline")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_8_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_9_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 9 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    migration_paths = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if migration_paths != set(PHASE_1_7_MIGRATION_SHA256):
+        raise AssertionError(
+            "Phase 9 must retain exactly migrations 0001 through 0007 with head 0007_phase7"
+        )
+    if any(path.name.startswith("0008") for path in migration_root.glob("*.py")):
+        raise AssertionError("Phase 9 must not add migration 0008")
+
+    baseline_paths = set(
+        git_text("ls-tree", "-r", "--name-only", PHASE_8_BASELINE_SHA).splitlines()
+    )
+    immutable_paths = (
+        set(PHASE_9_CONTRACT_SHA256)
+        | set(PHASE_1_7_MIGRATION_SHA256)
+        | set(PHASE_9_IMMUTABLE_ARTIFACTS)
+    )
+    immutable_paths.update(
+        path for path in baseline_paths if path.startswith(PHASE_9_IMMUTABLE_PREFIXES)
+    )
+    for path in sorted(immutable_paths):
+        current = (ROOT / path).read_bytes()
+        if current != git_blob(PHASE_8_BASELINE_SHA, path):
+            raise AssertionError(f"Phase 9 immutable artifact drifted from Phase 8: {path}")
+
+    for path, expected_sha256 in PHASE_9_CONTRACT_SHA256.items():
+        actual_sha256 = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise AssertionError(f"Phase 9 contract hash changed for {path}: {actual_sha256}")
+    for path, expected_sha256 in PHASE_1_7_MIGRATION_SHA256.items():
+        actual_sha256 = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise AssertionError(f"Phase 9 migration hash changed for {path}: {actual_sha256}")
+
+    visual_snapshot_directory = ROOT / PHASE_8_VISUAL_SNAPSHOT_DIRECTORY
+    actual_visual_baselines = {path.name for path in visual_snapshot_directory.glob("*.png")}
+    if actual_visual_baselines != PHASE_8_VISUAL_BASELINES:
+        raise AssertionError("Phase 9 must retain the exact 48-file Phase 8 snapshot matrix")
+    for target_platform in PHASE_8_VISUAL_PLATFORMS:
+        platform_snapshots = {
+            name for name in actual_visual_baselines if name.endswith(f"-{target_platform}.png")
+        }
+        if len(platform_snapshots) != 24:
+            raise AssertionError(f"Phase 9 requires exactly 24 {target_platform} visual baselines")
+
+    playwright = normalized(ROOT / "services/frontend/playwright.config.ts")
+    for serial_guard in ("fullyParallel: false", "retries: 0", "workers: 1"):
+        if serial_guard not in playwright:
+            raise AssertionError(f"Phase 9 browser serialization drifted: {serial_guard}")
+    phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
+    if '"9": "0007_phase7"' not in phase5_postgres_tests:
+        raise AssertionError("Phase 9 PostgreSQL acceptance does not preserve head 0007_phase7")
+
+
+def verify_static(phase: int = 1) -> None:
+    if phase == 9:
+        with phase9_stage(phase, "phase1_8_static"):
+            verify_static_inherited(8)
+        with phase9_stage(phase, "phase9_static"):
+            verify_phase9_static()
+        print("Static repository policy checks passed for Phase 9.")
+        return
+    verify_static_inherited(phase)
 
 
 def run(
@@ -7020,6 +7249,60 @@ def wait_for_frontend(url: str, timeout: int = 60) -> str:
     raise AssertionError(f"Frontend did not become ready: {last_error}")
 
 
+def verify_phase9_compose_cleanup(project: str, environment: dict[str, str]) -> None:
+    commands = (
+        (
+            "containers",
+            [
+                "docker",
+                "ps",
+                "--all",
+                "--filter",
+                f"label=com.docker.compose.project={project}",
+                "--format",
+                "{{.Names}}",
+            ],
+        ),
+        (
+            "networks",
+            [
+                "docker",
+                "network",
+                "ls",
+                "--filter",
+                f"label=com.docker.compose.project={project}",
+                "--format",
+                "{{.Name}}",
+            ],
+        ),
+        (
+            "volumes",
+            [
+                "docker",
+                "volume",
+                "ls",
+                "--filter",
+                f"label=com.docker.compose.project={project}",
+                "--format",
+                "{{.Name}}",
+            ],
+        ),
+    )
+    remaining: list[str] = []
+    for kind, command in commands:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=environment,
+        )
+        remaining.extend(f"{kind}:{name}" for name in result.stdout.splitlines() if name)
+    if remaining:
+        raise AssertionError("Phase 9 verifier cleanup left resources: " + ", ".join(remaining))
+
+
 def verify_compose(phase: int = 1) -> None:
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
@@ -7027,134 +7310,142 @@ def verify_compose(phase: int = 1) -> None:
     project = f"fable5_acceptance_{uuid.uuid4().hex[:8]}"
     environment, api_url, frontend_url = acceptance_environment(phase)
     try:
-        run(["config", "--quiet"], project=project, env=environment)
-        run(
-            ["up", "--detach", "--build", "--wait", "--wait-timeout", "240"],
-            project=project,
-            env=environment,
-        )
+        with phase9_stage(phase, "compose_startup"):
+            run(["config", "--quiet"], project=project, env=environment)
+            run(
+                ["up", "--detach", "--build", "--wait", "--wait-timeout", "240"],
+                project=project,
+                env=environment,
+            )
 
-        health = fetch_json(f"{api_url}/health")
-        expected_health = {
-            "status": "ok",
-            "service": "api",
-            "mode": "research-paper-only",
-        }
-        if health != expected_health:
-            raise AssertionError(f"Unexpected health response: {health}")
+            health = fetch_json(f"{api_url}/health")
+            expected_health = {
+                "status": "ok",
+                "service": "api",
+                "mode": "research-paper-only",
+            }
+            if health != expected_health:
+                raise AssertionError(f"Unexpected health response: {health}")
 
-        ready = fetch_json(f"{api_url}/ready")
-        if ready.get("status") != "ready":
-            raise AssertionError(f"Unexpected readiness response: {ready}")
+            ready = fetch_json(f"{api_url}/ready")
+            if ready.get("status") != "ready":
+                raise AssertionError(f"Unexpected readiness response: {ready}")
 
-        html = wait_for_frontend(frontend_url)
-        for label in ("Idea Intake", "Research Lab", "Paper Trading", "Risk / Compliance"):
-            if label not in html:
-                raise AssertionError(f"Frontend HTML is missing navigation label: {label}")
+            html = wait_for_frontend(frontend_url)
+            for label in ("Idea Intake", "Research Lab", "Paper Trading", "Risk / Compliance"):
+                if label not in html:
+                    raise AssertionError(f"Frontend HTML is missing navigation label: {label}")
 
-        pong = subprocess.run(
-            [
-                "docker",
-                "compose",
-                "--project-name",
-                project,
-                "exec",
-                "-T",
-                "redis",
-                "redis-cli",
-                "ping",
-            ],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-            env=environment,
-        ).stdout.strip()
-        if pong != "PONG":
-            raise AssertionError(f"Redis health check returned {pong!r}")
+            pong = subprocess.run(
+                [
+                    "docker",
+                    "compose",
+                    "--project-name",
+                    project,
+                    "exec",
+                    "-T",
+                    "redis",
+                    "redis-cli",
+                    "ping",
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+                env=environment,
+            ).stdout.strip()
+            if pong != "PONG":
+                raise AssertionError(f"Redis health check returned {pong!r}")
 
         if phase >= 2:
-            queue_evidence = verify_phase2_api(api_url)
-            verify_phase2_queue_processing(project, environment, queue_evidence)
-            verify_phase2_append_only(project, environment)
+            with phase9_stage(phase, "phase2_acceptance"):
+                queue_evidence = verify_phase2_api(api_url)
+                verify_phase2_queue_processing(project, environment, queue_evidence)
+                verify_phase2_append_only(project, environment)
             if phase == 2:
                 verify_phase2_migration_cycle(project, environment)
                 print("Full Compose Phase 2 verification passed.")
             else:
-                phase3_card_id = verify_phase3_api(api_url)
-                verify_phase3_changed_rule_version(project, environment, phase3_card_id)
-                verify_phase3_postgres_acceptance(environment)
-                verify_phase3_append_only(project, environment)
+                with phase9_stage(phase, "phase3_acceptance"):
+                    phase3_card_id = verify_phase3_api(api_url)
+                    verify_phase3_changed_rule_version(project, environment, phase3_card_id)
+                    verify_phase3_postgres_acceptance(environment)
+                    verify_phase3_append_only(project, environment)
                 if phase == 3:
                     verify_phase3_migration_cycle(project, environment)
                     print("Full Compose Phase 3 verification passed.")
                 else:
-                    phase4_snapshot_id = verify_phase4_api(api_url)
-                    verify_phase4_postgres_acceptance(environment)
+                    with phase9_stage(phase, "phase4_acceptance"):
+                        phase4_snapshot_id = verify_phase4_api(api_url)
+                        verify_phase4_postgres_acceptance(environment)
                     if phase == 4:
                         verify_phase4_migration_cycle(project, environment)
                         print("Full Compose Phase 4 verification passed.")
                     else:
-                        verify_phase5_api(api_url, phase4_snapshot_id)
-                        verify_phase5_postgres_acceptance(environment)
-                        verify_phase5_append_only(project, environment)
+                        with phase9_stage(phase, "phase5_acceptance"):
+                            verify_phase5_api(api_url, phase4_snapshot_id)
+                            verify_phase5_postgres_acceptance(environment)
+                            verify_phase5_append_only(project, environment)
                         if phase == 5:
                             verify_phase5_migration_cycle(project, environment)
                             print("Full Compose Phase 5 verification passed.")
                         else:
-                            # Run the reversible cycle before Phase 6 creates additive Phase 4
-                            # record types, whose downgrade guard intentionally fails closed.
-                            verify_phase6_migration_cycle(project, environment)
-                            if phase >= 7:
-                                run(
-                                    [
-                                        "exec",
-                                        "-T",
-                                        "api",
-                                        "alembic",
-                                        "-c",
-                                        "services/api/alembic.ini",
-                                        "upgrade",
-                                        "0007_phase7",
-                                    ],
-                                    project=project,
-                                    env=environment,
-                                )
-                            phase6_run_ids = verify_phase6_api(api_url)
-                            verify_phase6_postgres_acceptance(environment)
-                            verify_phase6_append_only(project, environment)
+                            with phase9_stage(phase, "phase6_acceptance"):
+                                # Run the reversible cycle before Phase 6 creates additive Phase 4
+                                # record types, whose downgrade guard intentionally fails closed.
+                                verify_phase6_migration_cycle(project, environment)
+                                if phase >= 7:
+                                    run(
+                                        [
+                                            "exec",
+                                            "-T",
+                                            "api",
+                                            "alembic",
+                                            "-c",
+                                            "services/api/alembic.ini",
+                                            "upgrade",
+                                            "0007_phase7",
+                                        ],
+                                        project=project,
+                                        env=environment,
+                                    )
+                                phase6_run_ids = verify_phase6_api(api_url)
+                                verify_phase6_postgres_acceptance(environment)
+                                verify_phase6_append_only(project, environment)
                             if phase == 6:
                                 print("Full Compose Phase 6 verification passed.")
                             else:
-                                prior_rows = verify_phase7_migration_cycle(project, environment)
-                                phase7_evidence = verify_phase7_api(
-                                    project,
-                                    environment,
-                                    api_url,
-                                    phase6_run_ids,
-                                )
-                                verify_phase7_postgres_acceptance(environment)
-                                verify_phase7_append_only(project, environment)
-                                verify_phase7_prior_rows_unchanged(
-                                    project,
-                                    environment,
-                                    prior_rows,
-                                )
+                                with phase9_stage(phase, "phase7_acceptance"):
+                                    prior_rows = verify_phase7_migration_cycle(project, environment)
+                                    phase7_evidence = verify_phase7_api(
+                                        project,
+                                        environment,
+                                        api_url,
+                                        phase6_run_ids,
+                                    )
+                                    verify_phase7_postgres_acceptance(environment)
+                                    verify_phase7_append_only(project, environment)
+                                    verify_phase7_prior_rows_unchanged(
+                                        project,
+                                        environment,
+                                        prior_rows,
+                                    )
                                 if phase == 7:
                                     print("Full Compose Phase 7 verification passed.")
                                 else:
-                                    if set(phase7_evidence) != {
-                                        "positive_assessment_id",
-                                        "positive_artifact_sha256",
-                                        "revocation_id",
-                                    }:
-                                        raise AssertionError(
-                                            "Phase 8 did not receive complete Phase 7 "
-                                            "artifact identities"
-                                        )
-                                    verify_phase8_evidence_timeline_api(api_url)
-                                    verify_phase8_browser(project, environment, frontend_url)
-                                    print("Full Compose Phase 8 verification passed.")
+                                    with phase9_stage(phase, "phase8_acceptance"):
+                                        if set(phase7_evidence) != {
+                                            "positive_assessment_id",
+                                            "positive_artifact_sha256",
+                                            "revocation_id",
+                                        }:
+                                            raise AssertionError(
+                                                "Phase 8 did not receive complete Phase 7 "
+                                                "artifact identities"
+                                            )
+                                        verify_phase8_evidence_timeline_api(api_url)
+                                        verify_phase8_browser(project, environment, frontend_url)
+                                        print("Full Compose Phase 8 verification passed.")
         else:
             run(
                 [
@@ -7186,13 +7477,23 @@ def verify_compose(phase: int = 1) -> None:
             )
             print("Full Compose Phase 1 verification passed.")
     finally:
-        subprocess.run(
-            ["docker", "compose", "--project-name", project, "down", "--volumes"],
-            cwd=ROOT,
-            check=False,
-            text=True,
-            env=environment,
-        )
+        with phase9_stage(phase, "compose_cleanup"):
+            cleanup = subprocess.run(
+                ["docker", "compose", "--project-name", project, "down", "--volumes"],
+                cwd=ROOT,
+                check=False,
+                text=True,
+                env=environment,
+            )
+            if phase == 9:
+                if cleanup.returncode != 0:
+                    raise AssertionError(
+                        f"Phase 9 inherited Compose cleanup exited {cleanup.returncode}"
+                    )
+                verify_phase9_compose_cleanup(project, environment)
+
+    if phase == 9:
+        print("Full Compose Phase 9 verification passed.")
 
 
 def main() -> int:
@@ -7203,10 +7504,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "8"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "9"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, or 8 "
-            "(default: FABLE5_VERIFY_PHASE or 8)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, or 9 "
+            "(default: FABLE5_VERIFY_PHASE or 9)."
         ),
     )
     args = parser.parse_args()

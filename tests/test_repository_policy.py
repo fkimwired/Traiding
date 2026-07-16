@@ -131,19 +131,27 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase8_entrypoints_and_images_select_the_active_phase() -> None:
+def test_phase9_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, 6, 7, or 8" in source
+        assert "1, 2, 3, 4, 5, 6, 7, 8, or 9" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-8-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "8"' in workflow
-    assert workflow.count("--phase 8") >= 2
-    assert "actions/setup-node@v4" in workflow
+    assert workflow.startswith("name: phase-9-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "9"' in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "preflight:" in workflow
+    assert "unit:" in workflow
+    assert "phase9-compose:" in workflow
+    assert "run_phase_gate.py run --phase 9" in workflow
+    assert "run_phase_gate.py verify-evidence" in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" in workflow
+    runner = normalized(ROOT / "scripts/run_phase_gate.py")
+    assert "PHASE_8_BASELINE_SHA" in runner
+    assert "acquire_repo_lock" in runner
+    assert "phase-gate.sanitized.log" in runner
     for dockerfile in ("services/api/Dockerfile", "services/jobs/Dockerfile"):
         assert "COPY services/extraction ./services/extraction" in normalized(ROOT / dockerfile)
         assert "COPY services/data ./services/data" in normalized(ROOT / dockerfile)

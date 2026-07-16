@@ -18,6 +18,7 @@ Phase 1 control plane
   -> Phase 6 A/B/C research strategies on mock/approved data
   -> Phase 7 fail-closed approval and pre-order risk assessment
   -> Phase 8 complete product workflows and visual QA
+  -> Phase 9 single-flight release-acceptance evidence
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -35,6 +36,7 @@ do not receive executable scaffolds.
 | 6 | research-only A/B/C pipelines and explainable outputs | mock runs pass/failed reports; no paper approval or live path |
 | 7 | versioned policy, human authorization, revocation, immutable approval and pre-order risk decisions | fail-closed eligibility, currentness, revocation, lineage, and risk-rule tests; no adapter or execution path |
 | 8 | full four-mode workflows and traceability | source-to-audit route in ≤2 clicks; visible gate precedence; accessibility/visual tests |
+| 9 | assertion-preserving release-gate orchestration and evidence | single-flight Windows/Ubuntu runner; verified sanitized manifests at one SHA/tree |
 
 ## Required handoff template
 
@@ -52,4 +54,5 @@ Every implementer task must include:
 9. **Handoff report.** Files changed, commands/results, known limitations, and the next phase prompt.
 10. **Stop condition.** Stop immediately after the named phase; do not anticipate later behavior.
 
-The ready-to-run next-phase handoff is in `docs/handoffs/PHASE_08.md`.
+The Phase 9 closure and cross-platform acceptance boundary is in `docs/handoffs/PHASE_09.md`. It does
+not authorize a later phase, repository publication, or deployment.
