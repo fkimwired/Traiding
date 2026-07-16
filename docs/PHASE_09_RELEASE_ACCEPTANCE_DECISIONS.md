@@ -7,11 +7,12 @@ Phase 9 hardens release acceptance for the accepted Phase 8 repository. Its sour
 `56d2cf38ba0ff3d5427fbf5f20aefa13d5224581`. The baseline must be present in full Git history and
 must be an ancestor of the Phase 9 commit.
 
-This phase changes orchestration and evidence only. It adds no application behavior, data, migration,
-API, contract, dependency, provider, credential, identity system, strategy, research family, or
-execution capability. Live trading, broker integration, order submission, and paper execution remain
-absent. `PASS_RESEARCH` remains a research prerequisite only. `APPROVED_PAPER` remains historical
-synthetic governance evidence only. Neither is an execution authorization.
+This phase changes acceptance orchestration, evidence, and one exact browser-test timeout expression
+only. It adds no application behavior, data, migration, API, contract, dependency, provider,
+credential, identity system, strategy, research family, or execution capability. Live trading,
+broker integration, order submission, and paper execution remain absent. `PASS_RESEARCH` remains a
+research prerequisite only. `APPROVED_PAPER` remains historical synthetic governance evidence only.
+Neither is an execution authorization.
 
 Phase 9 is not accepted on Windows evidence alone. Acceptance requires a verified Ubuntu CI bundle
 from the exact same final commit SHA and tree. Publishing a branch or creating a pull request requires
@@ -26,11 +27,14 @@ marker only after cleanup succeeds and the project has no remaining container, n
 No Phase 9 database work exists.
 
 The only permitted Phase 9 writes are the files named by the implementation authorization. A diff
-from the exact Phase 8 baseline containing any other path fails. Therefore every Phase 1-8 decision,
-handoff, source artifact, fixture, application file, frontend file, test asset, visual baseline, and
-persistence artifact outside that allowlist remains a baseline byte. The verifier also compares the
-contract files, migrations 0001-0007, synthetic fixture files, and all 48 visual PNGs directly with
-their Phase 8 Git blobs.
+from the exact Phase 8 baseline containing any other path fails. Every production application and
+frontend file, Phase 1-8 decision, handoff, source artifact, fixture, visual baseline, and persistence
+artifact outside that allowlist remains a baseline byte. The sole inherited-test exception is
+`services/frontend/e2e/phase8.accessibility.spec.ts`: the verifier reconstructs its expected bytes
+from the Phase 8 Git blob by replacing exactly one 20-minute exhaustive-lineage timeout expression
+with the Phase 9-profile conditional. Any other byte in that file fails static verification. The
+verifier also compares the contract files, migrations 0001-0007, synthetic fixture files, and all 48
+visual PNGs directly with their Phase 8 Git blobs.
 
 There is no migration 0008. The Alembic head remains `0007_phase7`; Phase 9 maps isolated PostgreSQL
 acceptance to that existing revision. The browser remains serial with `workers: 1`,
@@ -59,22 +63,28 @@ with exactly these fields:
 The required stages are inherited static checks, Phase 9 static checks, Compose startup, Phase 2
 through Phase 8 acceptance, and Compose cleanup. Phase 6 additionally requires sanitized nested
 records for its schema cycle, API verification, isolated PostgreSQL tests, and append-only proof.
-These records localize an inherited-gate failure without exposing raw verifier output. The stage
-stream cannot contain environment values, credentials, source payloads, licensed data, arbitrary
-exception text, or command output.
+Phase 8 additionally requires nested records for the evidence-timeline API, browser pre-snapshot,
+Playwright suite, and browser post-snapshot immutability proof. These records localize an
+inherited-gate failure without exposing raw verifier output. The stage stream cannot contain
+environment values, credentials, source payloads, licensed data, arbitrary exception text, or
+command output.
 
 The inherited Phase 6 transport deadlines remain 240 seconds for research creation, 60 seconds for
 large immutable-detail reads, and 10 seconds for validation reads in Phases 6 through 8. Only the
 Phase 9 full verifier uses 480, 180, and 30 seconds respectively to tolerate constrained CI compute.
-This changes no assertion, request payload, concurrency proof, retry policy, application behavior, or
-outer 5,100-second single-flight deadline.
+The verifier also removes any caller-provided `FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE` value and sets
+it to exactly `1` only for the Phase 9 browser child. That profile changes the single exhaustive
+lineage test from its inherited 20-minute deadline to 25 minutes. It changes no assertion, coverage,
+request payload, test order, concurrency proof, retry policy, worker count, global Playwright
+timeout, or application behavior. The outer single-flight deadline is 6,300 seconds so the bounded
+browser allowance does not race the runner deadline.
 
 ## Single-flight runner
 
 `scripts/run_phase_gate.py` is a standard-library-only runner with three commands:
 
 ```text
-run --phase 9 --evidence-dir ABSOLUTE_PATH --timeout-seconds 5100
+run --phase 9 --evidence-dir ABSOLUTE_PATH --timeout-seconds 6300
 follow --evidence-dir ABSOLUTE_PATH
 verify-evidence --evidence-dir ABSOLUTE_PATH
 ```
@@ -124,7 +134,7 @@ cross-platform lock contains only the Windows Rolldown binary record, the Ubuntu
 exact Linux binary version after `npm ci` with scripts and persistence disabled, then proves that no
 package manifest or lockfile changed before running the unchanged frontend tests.
 
-The Compose job has a 90-minute timeout and invokes exactly one runner. It always attempts to upload
+The Compose job has a 120-minute timeout and invokes exactly one runner. It always attempts to upload
 only the sanitized manifest and log for 14 days with missing files treated as an error. The runner and
 evidence-verifier exit codes are retained and enforced after artifact upload, so upload cannot hide a
 verification failure. Only superseded pull-request runs share a cancellable concurrency group; main

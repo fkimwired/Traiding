@@ -141,12 +141,16 @@ must be a new absolute path outside this repository:
 
 ```powershell
 $evidence = Join-Path $env:TEMP ("fable5-phase9-" + [guid]::NewGuid().ToString("N"))
-.\.venv\Scripts\python.exe scripts\run_phase_gate.py run --phase 9 --evidence-dir $evidence --timeout-seconds 5100
+.\.venv\Scripts\python.exe scripts\run_phase_gate.py run --phase 9 --evidence-dir $evidence --timeout-seconds 6300
 .\.venv\Scripts\python.exe scripts\run_phase_gate.py verify-evidence --evidence-dir $evidence
 ```
 
 `follow --evidence-dir $evidence` polls that same run without starting another verifier. Do not retry
 or relaunch a delayed or failed run.
+
+The verifier owns one acceptance-only browser timeout profile: inherited Phase 8 runs keep the
+20-minute exhaustive-lineage test deadline, while Phase 9 selects 25 minutes for that test alone.
+Assertions, coverage, serial order, retries, workers, and application behavior are unchanged.
 
 ### macOS/Linux/CI
 

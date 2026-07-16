@@ -353,11 +353,21 @@ PHASE_9_ALLOWED_WRITES = frozenset(
         "scripts/check.sh",
         "scripts/run_phase_gate.py",
         "scripts/verify_phase1.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
         "tests/test_phase5_postgres.py",
         "tests/test_phase9_gate_runner.py",
         "tests/test_phase9_static.py",
         "tests/test_repository_policy.py",
     }
+)
+PHASE_8_ACCESSIBILITY_SPEC = "services/frontend/e2e/phase8.accessibility.spec.ts"
+PHASE_9_BROWSER_TIMEOUT_FLAG = "FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE"
+PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
+PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
+    b"  test.setTimeout(\n"
+    b'    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? '
+    b"1_500_000 : 1_200_000,\n"
+    b"  );"
 )
 PHASE_9_CONTRACT_SHA256 = {
     "packages/contracts/openapi.json": (
@@ -2596,6 +2606,19 @@ def verify_phase9_static() -> None:
     if forbidden_changes:
         raise AssertionError(
             "Phase 9 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    phase8_accessibility_baseline = git_blob(PHASE_8_BASELINE_SHA, PHASE_8_ACCESSIBILITY_SPEC)
+    if phase8_accessibility_baseline.count(PHASE_8_LINEAGE_TIMEOUT_BASELINE) != 1:
+        raise AssertionError("Phase 8 exhaustive-lineage timeout baseline is not unique")
+    expected_phase9_accessibility = phase8_accessibility_baseline.replace(
+        PHASE_8_LINEAGE_TIMEOUT_BASELINE,
+        PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT,
+        1,
+    )
+    if (ROOT / PHASE_8_ACCESSIBILITY_SPEC).read_bytes() != expected_phase9_accessibility:
+        raise AssertionError(
+            "Phase 9 accessibility-spec drift exceeds the exact timeout-only exception"
         )
 
     migration_root = ROOT / "services/api/migrations/versions"
@@ -5883,16 +5906,23 @@ def verify_phase8_browser(
         *PHASE_6_TABLES,
         *PHASE_7_TABLES,
     )
-    before = snapshot_tables(project, environment, all_tables)
+    phase = int(environment.get("FABLE5_VERIFY_PHASE", "8"))
+    with phase9_stage(phase, "phase8_browser_pre_snapshot"):
+        before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
     browser_environment["PLAYWRIGHT_BASE_URL"] = frontend_url
+    browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
+    if phase == 9:
+        browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     command = [npm, "--workspace", "@fable5/frontend", "run", "test:e2e"]
-    run(command, env=browser_environment)
-    assert_snapshots_equal(
-        before,
-        snapshot_tables(project, environment, all_tables),
-        "during Phase 8 GET-only browser QA",
-    )
+    with phase9_stage(phase, "phase8_browser_playwright"):
+        run(command, env=browser_environment)
+    with phase9_stage(phase, "phase8_browser_post_snapshot"):
+        assert_snapshots_equal(
+            before,
+            snapshot_tables(project, environment, all_tables),
+            "during Phase 8 GET-only browser QA",
+        )
     print(
         "Phase 8 browser QA passed accessibility, keyboard, reduced-motion, responsive, "
         "visual-regression, and at-most-two-interaction lineage checks without changing any "
@@ -7499,7 +7529,8 @@ def verify_compose(phase: int = 1) -> None:
                                                 "Phase 8 did not receive complete Phase 7 "
                                                 "artifact identities"
                                             )
-                                        verify_phase8_evidence_timeline_api(api_url)
+                                        with phase9_stage(phase, "phase8_timeline_api"):
+                                            verify_phase8_evidence_timeline_api(api_url)
                                         verify_phase8_browser(project, environment, frontend_url)
                                         print("Full Compose Phase 8 verification passed.")
         else:

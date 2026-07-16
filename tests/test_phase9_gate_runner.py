@@ -89,6 +89,10 @@ def valid_bundle(runner):
 def test_parser_accepts_only_phase9_for_run(tmp_path: Path) -> None:
     runner = load_runner()
     parser = runner.build_parser()
+    defaulted = parser.parse_args(
+        ["run", "--phase", "9", "--evidence-dir", str(tmp_path / "default-evidence")]
+    )
+    assert defaulted.timeout_seconds == 6300
     parsed = parser.parse_args(
         [
             "run",
@@ -172,13 +176,17 @@ def test_sanitizer_allows_only_structured_stages_and_exact_final_markers() -> No
         assert runner.sanitize_child_line(unsafe) is None
 
 
-def test_phase6_substages_are_required_without_weakening_stage_validation() -> None:
+def test_nested_substages_are_required_without_weakening_stage_validation() -> None:
     runner = load_runner()
     expected = {
         "phase6_schema_cycle",
         "phase6_api",
         "phase6_postgres_tests",
         "phase6_append_only",
+        "phase8_timeline_api",
+        "phase8_browser_pre_snapshot",
+        "phase8_browser_playwright",
+        "phase8_browser_post_snapshot",
     }
     assert expected <= set(runner.REQUIRED_PHASE9_STAGES)
 
@@ -195,7 +203,7 @@ def test_phase6_substages_are_required_without_weakening_stage_validation() -> N
         runner.validate_bundle(manifest, sanitized_log, required_context)
 
     failed_stage = dict(manifest["stage_durations"][0])
-    failed_stage["stage"] = "phase6_api"
+    failed_stage["stage"] = "phase8_browser_playwright"
     failed_stage["result"] = "fail"
     start, _, marker8, marker9, end = sanitized_log.decode("utf-8").splitlines()
     failed_line = (

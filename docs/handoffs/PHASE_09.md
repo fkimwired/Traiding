@@ -9,10 +9,12 @@ it does not authorize Phase 10, publication, deployment, real providers, credent
 additional research, simulated execution, live trading, broker integration, order submission, or
 paper execution.
 
-The only Phase 9 outcome is reproducible release-acceptance evidence. Application, frontend, API,
-contract, migration, fixture, snapshot, and Phase 1-8 artifact bytes remain unchanged. The Alembic
-head is still `0007_phase7`, and no migration 0008 exists. `PASS_RESEARCH` is not approval and
-`APPROVED_PAPER` is not execution readiness.
+The only Phase 9 outcome is reproducible release-acceptance evidence. Production application,
+frontend, API, contract, migration, fixture, snapshot, and Phase 1-8 artifact bytes remain unchanged.
+The sole test-only exception is an exact baseline-derived timeout expression in
+`services/frontend/e2e/phase8.accessibility.spec.ts`; any other byte drift in that file fails static
+verification. The Alembic head is still `0007_phase7`, and no migration 0008 exists. `PASS_RESEARCH`
+is not approval and `APPROVED_PAPER` is not execution readiness.
 
 ## Local closure gate
 
@@ -30,7 +32,7 @@ Create a unique absolute evidence directory beneath `$env:TEMP`, outside the rep
 the full verifier once:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\run_phase_gate.py run --phase 9 --evidence-dir <ABSOLUTE_TEMP_DIR> --timeout-seconds 5100
+.\.venv\Scripts\python.exe scripts\run_phase_gate.py run --phase 9 --evidence-dir <ABSOLUTE_TEMP_DIR> --timeout-seconds 6300
 ```
 
 If observation is needed, poll only the same directory:
@@ -59,8 +61,11 @@ environment values, and source payloads are not artifacts.
 
 The Ubuntu unit job may hydrate only the exact frozen Linux Rolldown binary after `npm ci` and must
 prove that package manifests and the lockfile remain unchanged. The Phase 9 full verifier alone uses
-wider Phase 6 transport deadlines and emits required nested Phase 6 stage records; inherited Phase
-6-8 behavior, assertions, concurrency, retry-free execution, and the outer deadline remain unchanged.
+wider Phase 6 transport deadlines and emits required nested Phase 6 and Phase 8 stage records. It
+owns the browser timeout flag, scrubs arbitrary caller values, and selects 25 minutes only for the
+exhaustive-lineage test; inherited Phase 8 remains at 20 minutes. Assertions, coverage, test order,
+concurrency, retries, workers, and application behavior remain unchanged. The outer runner deadline
+is 6,300 seconds and the Ubuntu Compose job deadline is 120 minutes.
 
 Until that Ubuntu job and its evidence verifier pass at the same final identity, Phase 9 is not accepted.
 If repository publication authority is absent, stop after local implementation and report

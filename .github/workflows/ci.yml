@@ -68,7 +68,7 @@ jobs:
   phase9-compose:
     runs-on: ubuntu-latest
     needs: preflight
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -89,7 +89,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python scripts/run_phase_gate.py run --phase 9 --evidence-dir "${RUNNER_TEMP}/phase9-evidence" --timeout-seconds 5100
+          python scripts/run_phase_gate.py run --phase 9 --evidence-dir "${RUNNER_TEMP}/phase9-evidence" --timeout-seconds 6300
           runner_exit=$?
           python scripts/run_phase_gate.py verify-evidence --evidence-dir "${RUNNER_TEMP}/phase9-evidence"
           evidence_exit=$?

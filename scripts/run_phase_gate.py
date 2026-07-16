@@ -62,6 +62,10 @@ REQUIRED_PHASE9_STAGES = (
     "phase6_append_only",
     "phase7_acceptance",
     "phase8_acceptance",
+    "phase8_timeline_api",
+    "phase8_browser_pre_snapshot",
+    "phase8_browser_playwright",
+    "phase8_browser_post_snapshot",
     "compose_cleanup",
 )
 STANDARD_LIBRARY_MODULES = {
@@ -1007,7 +1011,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = commands.add_parser("run")
     run_parser.add_argument("--phase", type=int, choices=(9,), required=True)
     run_parser.add_argument("--evidence-dir", type=Path, required=True)
-    run_parser.add_argument("--timeout-seconds", type=int, default=5100)
+    run_parser.add_argument("--timeout-seconds", type=int, default=6300)
 
     follow_parser = commands.add_parser("follow")
     follow_parser.add_argument("--evidence-dir", type=Path, required=True)

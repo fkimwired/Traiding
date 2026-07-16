@@ -7,9 +7,19 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 PHASE_8_BASELINE_SHA = "94bcfaabf9de457aec47e49e332865a8dcc74f30"
 EXPECTED_PHASE_8_TREE = "56d2cf38ba0ff3d5427fbf5f20aefa13d5224581"
+PHASE_8_ACCESSIBILITY_SPEC = "services/frontend/e2e/phase8.accessibility.spec.ts"
+PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
+PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
+    b"  test.setTimeout(\n"
+    b'    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? '
+    b"1_500_000 : 1_200_000,\n"
+    b"  );"
+)
 PHASE_9_ALLOWED_WRITES = {
     ".github/workflows/ci.yml",
     "Makefile",
@@ -21,6 +31,7 @@ PHASE_9_ALLOWED_WRITES = {
     "scripts/check.sh",
     "scripts/run_phase_gate.py",
     "scripts/verify_phase1.py",
+    PHASE_8_ACCESSIBILITY_SPEC,
     "tests/test_phase5_postgres.py",
     "tests/test_phase9_gate_runner.py",
     "tests/test_phase9_static.py",
@@ -151,6 +162,69 @@ def test_phase9_fixtures_artifacts_and_all_48_snapshots_are_phase8_bytes() -> No
     assert sum(path.endswith("-linux.png") for path in snapshots) == 24
 
 
+def test_phase9_phase8_timeout_exception_is_exact_and_verifier_owned(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    baseline = baseline_bytes(PHASE_8_ACCESSIBILITY_SPEC)
+    assert baseline.count(PHASE_8_LINEAGE_TIMEOUT_BASELINE) == 1
+    assert (ROOT / PHASE_8_ACCESSIBILITY_SPEC).read_bytes() == baseline.replace(
+        PHASE_8_LINEAGE_TIMEOUT_BASELINE,
+        PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT,
+        1,
+    )
+
+    verifier_path = ROOT / "scripts/verify_phase1.py"
+    spec = importlib.util.spec_from_file_location("phase9_browser_verifier", verifier_path)
+    assert spec is not None and spec.loader is not None
+    verifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(verifier)
+
+    browser_environments: list[dict[str, str]] = []
+    monkeypatch.setattr(verifier.shutil, "which", lambda command: "npm.CMD")
+    monkeypatch.setattr(
+        verifier,
+        "snapshot_tables",
+        lambda project, environment, tables: {"stable": [{"id": 1}]},
+    )
+
+    def capture_run(command: list[str], *, env: dict[str, str]) -> None:
+        assert command == ["npm.CMD", "--workspace", "@fable5/frontend", "run", "test:e2e"]
+        browser_environments.append(env.copy())
+
+    monkeypatch.setattr(verifier, "run", capture_run)
+
+    inherited_environment = {
+        "FABLE5_VERIFY_PHASE": "8",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    verifier.verify_phase8_browser("project", inherited_environment, "http://frontend")
+    assert inherited_environment[verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "ambient-value"
+    assert verifier.PHASE_9_BROWSER_TIMEOUT_FLAG not in browser_environments[-1]
+    assert "FABLE5_PHASE9_STAGE " not in capsys.readouterr().out
+
+    phase9_environment = {
+        "FABLE5_VERIFY_PHASE": "9",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    verifier.verify_phase8_browser("project", phase9_environment, "http://frontend")
+    assert phase9_environment[verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "ambient-value"
+    assert browser_environments[-1][verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "1"
+    stage_names = [
+        json.loads(line.removeprefix("FABLE5_PHASE9_STAGE "))["stage"]
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("FABLE5_PHASE9_STAGE ")
+    ]
+    assert stage_names == [
+        "phase8_browser_pre_snapshot",
+        "phase8_browser_playwright",
+        "phase8_browser_post_snapshot",
+    ]
+
+    source = verifier_path.read_text(encoding="utf-8")
+    assert 'with phase9_stage(phase, "phase8_timeline_api"):' in source
+
+
 def test_phase9_verifier_runs_inherited_static_first_and_full_cleanup_last() -> None:
     source = (ROOT / "scripts/verify_phase1.py").read_text(encoding="utf-8")
     assert "PHASE_8_BASELINE_SHA" in source
@@ -236,8 +310,11 @@ def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() 
     assert "preflight:" in workflow
     assert "unit:" in workflow and "needs: preflight" in workflow
     assert "phase9-compose:" in workflow
-    assert "timeout-minutes: 90" in workflow
+    assert "timeout-minutes: 120" in workflow
+    assert "timeout-minutes: 90" not in workflow
     assert "run_phase_gate.py run --phase 9" in workflow
+    assert workflow.count("--timeout-seconds 6300") == 1
+    assert "--timeout-seconds 5100" not in workflow
     assert "run_phase_gate.py verify-evidence" in workflow
     assert "retention-days: 14" in workflow
     assert "if-no-files-found: error" in workflow
@@ -313,6 +390,10 @@ def test_phase9_only_widens_phase6_transport_patience_and_records_substages() ->
         "phase6_api",
         "phase6_postgres_tests",
         "phase6_append_only",
+        "phase8_timeline_api",
+        "phase8_browser_pre_snapshot",
+        "phase8_browser_playwright",
+        "phase8_browser_post_snapshot",
     ):
         assert f'with phase9_stage(phase, "{stage}")' in source
         assert f'"{stage}",' in runner
