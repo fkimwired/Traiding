@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.util
 import json
 import subprocess
 from pathlib import Path
@@ -193,7 +194,11 @@ def test_phase9_full_verifier_preserves_the_inherited_phase1_8_call_sequence() -
     baseline = baseline_bytes("scripts/verify_phase1.py").decode("utf-8")
     current = (ROOT / "scripts/verify_phase1.py").read_text(encoding="utf-8")
     baseline_calls = verify_compose_named_calls(baseline)
-    phase9_only_calls = {"phase9_stage", "verify_phase9_compose_cleanup"}
+    phase9_only_calls = {
+        "phase9_stage",
+        "phase6_request_timeout_context",
+        "verify_phase9_compose_cleanup",
+    }
     current_inherited_calls = [
         name for name in verify_compose_named_calls(current) if name not in phase9_only_calls
     ]
@@ -249,6 +254,68 @@ def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() 
         assert len(revision) == 40
         int(revision, 16)
         assert "# v" in line
+
+
+def test_phase9_ci_hydrates_exact_frozen_linux_rolldown_binding_only_for_unit() -> None:
+    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+    binding_version = lock["packages"]["node_modules/rolldown"]["optionalDependencies"][
+        "@rolldown/binding-linux-x64-gnu"
+    ]
+    install = (
+        "npm install --no-save --ignore-scripts --no-audit --no-fund "
+        f"@rolldown/binding-linux-x64-gnu@{binding_version}"
+    )
+    metadata_check = (
+        "git diff --exit-code -- package.json package-lock.json "
+        "packages/contracts/package.json services/frontend/package.json"
+    )
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    preflight, remainder = workflow.split("\n  unit:\n", 1)
+    unit, compose = remainder.split("\n  phase9-compose:\n", 1)
+
+    assert binding_version == "1.1.5"
+    assert workflow.count(install) == 1
+    assert workflow.count(metadata_check) == 1
+    assert install not in preflight
+    assert install not in compose
+    assert unit.index("- run: npm ci") < unit.index(install) < unit.index("- run: npm test")
+    assert unit.index(install) < unit.index(metadata_check) < unit.index("- run: npm test")
+
+
+def test_phase9_only_widens_phase6_transport_patience_and_records_substages() -> None:
+    verifier_path = ROOT / "scripts/verify_phase1.py"
+    spec = importlib.util.spec_from_file_location("phase9_timeout_verifier", verifier_path)
+    assert spec is not None and spec.loader is not None
+    verifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(verifier)
+
+    for inherited_phase in (6, 7, 8):
+        assert verifier.phase6_request_timeout_profile(inherited_phase) == (240, 60, 10)
+    assert verifier.phase6_request_timeout_profile(9) == (480, 180, 30)
+    assert verifier.PHASE_6_TIMEOUT_PHASE.get() == 6
+    with verifier.phase6_request_timeout_context(9):
+        assert verifier.PHASE_6_TIMEOUT_PHASE.get() == 9
+    assert verifier.PHASE_6_TIMEOUT_PHASE.get() == 6
+
+    source = verifier_path.read_text(encoding="utf-8")
+    phase6_api = source.split("def verify_phase6_api", 1)[1].split("def compose_exec", 1)[0]
+    assert "timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS" not in phase6_api
+    assert "timeout_seconds=60" not in phase6_api
+    assert phase6_api.count("timeout_seconds=request_timeout_seconds") == 3
+    assert "timeout_seconds=detail_timeout_seconds" in phase6_api
+    assert "timeout_seconds=validation_timeout_seconds" in phase6_api
+    assert "with phase6_request_timeout_context(phase):" in source
+    assert "phase6_run_ids = verify_phase6_api(api_url)" in source
+
+    runner = (ROOT / "scripts/run_phase_gate.py").read_text(encoding="utf-8")
+    for stage in (
+        "phase6_schema_cycle",
+        "phase6_api",
+        "phase6_postgres_tests",
+        "phase6_append_only",
+    ):
+        assert f'with phase9_stage(phase, "{stage}")' in source
+        assert f'"{stage}",' in runner
 
 
 def test_phase9_decisions_and_handoff_keep_the_release_boundary_closed() -> None:

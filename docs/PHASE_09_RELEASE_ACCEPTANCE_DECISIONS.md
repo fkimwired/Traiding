@@ -57,8 +57,17 @@ with exactly these fields:
 - `result`: `pass` or `fail`.
 
 The required stages are inherited static checks, Phase 9 static checks, Compose startup, Phase 2
-through Phase 8 acceptance, and Compose cleanup. The stage stream cannot contain environment values,
-credentials, source payloads, licensed data, arbitrary exception text, or command output.
+through Phase 8 acceptance, and Compose cleanup. Phase 6 additionally requires sanitized nested
+records for its schema cycle, API verification, isolated PostgreSQL tests, and append-only proof.
+These records localize an inherited-gate failure without exposing raw verifier output. The stage
+stream cannot contain environment values, credentials, source payloads, licensed data, arbitrary
+exception text, or command output.
+
+The inherited Phase 6 transport deadlines remain 240 seconds for research creation, 60 seconds for
+large immutable-detail reads, and 10 seconds for validation reads in Phases 6 through 8. Only the
+Phase 9 full verifier uses 480, 180, and 30 seconds respectively to tolerate constrained CI compute.
+This changes no assertion, request payload, concurrency proof, retry policy, application behavior, or
+outer 5,100-second single-flight deadline.
 
 ## Single-flight runner
 
@@ -109,8 +118,11 @@ URLs, database output, and raw verifier lines cannot enter the sanitized artifac
 CI is named `phase-9-ci`, has read-only contents permission, and checks out full history. Every GitHub
 Action reference is an immutable full commit SHA with its major tag recorded as a comment. Preflight
 owns lint, formatting, type checks, generated-contract drift, frontend build, Phase 9 static
-verification, and Compose configuration. After preflight, the unchanged Python/frontend unit job and
-the full Ubuntu Phase 9 Compose job run concurrently and remain independently required.
+verification, and Compose configuration. After preflight, the Python/frontend unit job and the full
+Ubuntu Phase 9 Compose job run concurrently and remain independently required. Because the frozen
+cross-platform lock contains only the Windows Rolldown binary record, the Ubuntu unit job hydrates the
+exact Linux binary version after `npm ci` with scripts and persistence disabled, then proves that no
+package manifest or lockfile changed before running the unchanged frontend tests.
 
 The Compose job has a 90-minute timeout and invokes exactly one runner. It always attempts to upload
 only the sanitized manifest and log for 14 days with missing files treated as an error. The runner and

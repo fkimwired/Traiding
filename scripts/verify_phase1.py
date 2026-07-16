@@ -17,6 +17,7 @@ import uuid
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -451,6 +452,12 @@ PHASE_6_ADDITIVE_RECORD_TYPES = {
 PHASE_6_FIXTURE_SET_VERSION = "phase6-synthetic-pit-fixtures-v2"
 PHASE_6_FIXTURE_SET_SHA256 = "010c4edf621f5a75cbb1913a5a513e3c2472e8da9a53b143345b2fb91f6fed5d"
 PHASE_6_REQUEST_TIMEOUT_SECONDS = 240
+PHASE_6_DETAIL_TIMEOUT_SECONDS = 60
+PHASE_6_VALIDATION_TIMEOUT_SECONDS = 10
+PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS = 480
+PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS = 180
+PHASE_9_PHASE6_VALIDATION_TIMEOUT_SECONDS = 30
+PHASE_6_TIMEOUT_PHASE: ContextVar[int] = ContextVar("phase6_timeout_phase", default=6)
 PHASE_6_FAMILY_B_COST_VOLATILITY_PROJECTION_ID = "phase6-family-b-cost-volatility-1e-8-half-even-v1"
 PHASE_6_FAMILY_B_COST_VOLATILITY_QUANTUM = "0.00000001"
 PHASE_6_FAMILY_B_TRANSACTION_COST_MODEL_ID = (
@@ -2761,6 +2768,7 @@ def request_error_json(
     expected_status: int,
     method: str = "POST",
     payload: dict[str, object] | None = None,
+    timeout_seconds: float = 10,
 ) -> dict[str, object]:
     body = None if payload is None else json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
@@ -2770,7 +2778,7 @@ def request_error_json(
         headers={"Content-Type": "application/json"} if body is not None else {},
     )
     try:
-        urllib.request.urlopen(request, timeout=10)
+        urllib.request.urlopen(request, timeout=timeout_seconds)
     except urllib.error.HTTPError as exc:
         if exc.code != expected_status:
             raise AssertionError(
@@ -3828,7 +3836,35 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
     return artifact_id
 
 
+def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
+    if phase == 9:
+        return (
+            PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
+            PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
+            PHASE_9_PHASE6_VALIDATION_TIMEOUT_SECONDS,
+        )
+    return (
+        PHASE_6_REQUEST_TIMEOUT_SECONDS,
+        PHASE_6_DETAIL_TIMEOUT_SECONDS,
+        PHASE_6_VALIDATION_TIMEOUT_SECONDS,
+    )
+
+
+@contextmanager
+def phase6_request_timeout_context(phase: int) -> Iterator[None]:
+    token = PHASE_6_TIMEOUT_PHASE.set(phase)
+    try:
+        yield
+    finally:
+        PHASE_6_TIMEOUT_PHASE.reset(token)
+
+
 def verify_phase6_api(api_url: str) -> dict[str, str]:
+    (
+        request_timeout_seconds,
+        detail_timeout_seconds,
+        validation_timeout_seconds,
+    ) = phase6_request_timeout_profile(PHASE_6_TIMEOUT_PHASE.get())
     gate_codes = [
         "DATA_PIT",
         "CV_CHRONOLOGY",
@@ -3902,7 +3938,10 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         "phase6-c-pass-v2": "FAIL_REJECT",
     }
 
-    mapping_results = request_json(f"{api_url}/v1/mappings?limit=100")
+    mapping_results = request_json(
+        f"{api_url}/v1/mappings?limit=100",
+        timeout_seconds=validation_timeout_seconds,
+    )
     if not isinstance(mapping_results, list):
         raise AssertionError("Phase 6 could not list mapping authority")
     mappings: dict[str, dict[str, object]] = {}
@@ -3931,11 +3970,13 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
                 f"{api_url}/v1/data-snapshots",
                 method="POST",
                 payload=payload,
+                timeout_seconds=validation_timeout_seconds,
             )
             repeated = request_json(
                 f"{api_url}/v1/data-snapshots",
                 method="POST",
                 payload=payload,
+                timeout_seconds=validation_timeout_seconds,
             )
             if not isinstance(created, dict) or created != repeated:
                 raise AssertionError(f"Phase 6 {family}/{capability} snapshot was not idempotent")
@@ -3996,7 +4037,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             f"{api_url}/v1/research-runs",
             method="POST",
             payload=payload_for("phase6-a-pass-v2"),
-            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
+            timeout_seconds=request_timeout_seconds,
         )
 
     with ThreadPoolExecutor(max_workers=2) as executor:
@@ -4012,13 +4053,13 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
             f"{api_url}/v1/research-runs",
             method="POST",
             payload=payload_for(configuration_id),
-            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
+            timeout_seconds=request_timeout_seconds,
         )
         repeated = request_json(
             f"{api_url}/v1/research-runs",
             method="POST",
             payload=payload_for(configuration_id),
-            timeout_seconds=PHASE_6_REQUEST_TIMEOUT_SECONDS,
+            timeout_seconds=request_timeout_seconds,
         )
         if not isinstance(created, dict) or created != repeated:
             raise AssertionError(f"Phase 6 {configuration_id} run was not idempotent")
@@ -4028,11 +4069,13 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         f"{api_url}/v1/research-runs",
         expected_status=422,
         payload=payload_for("phase6-c-fail-corroboration-v2"),
+        timeout_seconds=validation_timeout_seconds,
     )
     repeated_blocked = request_error_json(
         f"{api_url}/v1/research-runs",
         expected_status=422,
         payload=payload_for("phase6-c-fail-corroboration-v2"),
+        timeout_seconds=validation_timeout_seconds,
     )
     if (
         blocked != repeated_blocked
@@ -4054,6 +4097,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         f"{api_url}/v1/research-runs",
         expected_status=422,
         payload=forbidden,
+        timeout_seconds=validation_timeout_seconds,
     )
 
     reports: dict[str, dict[str, object]] = {}
@@ -4240,7 +4284,10 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         report_id = phase5_link.get("evaluation_report_id")
         if not isinstance(report_id, str):
             raise AssertionError(f"Phase 6 {configuration_id} omitted its Phase 5 report")
-        report = request_json(f"{api_url}/v1/evaluation-reports/{report_id}")
+        report = request_json(
+            f"{api_url}/v1/evaluation-reports/{report_id}",
+            timeout_seconds=validation_timeout_seconds,
+        )
         if not isinstance(report, dict):
             raise AssertionError("Phase 6 linked Phase 5 report is unreadable")
         gates = report.get("gates")
@@ -4722,7 +4769,8 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
 
         policy = request_json(
             f"{api_url}/v1/evaluation-policies/{report['evaluation_policy_id']}"
-            f"/versions/{report['evaluation_policy_version']}"
+            f"/versions/{report['evaluation_policy_version']}",
+            timeout_seconds=validation_timeout_seconds,
         )
         walk_forward = policy.get("walk_forward") if isinstance(policy, dict) else None
         if not isinstance(walk_forward, dict):
@@ -4820,7 +4868,7 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
         if (
             request_json(
                 f"{api_url}/v1/research-runs/{run_id}",
-                timeout_seconds=60,
+                timeout_seconds=detail_timeout_seconds,
             )
             != artifact
         ):
@@ -5137,7 +5185,10 @@ def verify_phase6_api(api_url: str) -> dict[str, str]:
                     f"Phase 6 {configuration_id} special-cased unchanged {code} leakage logic"
                 )
 
-    listing = request_json(f"{api_url}/v1/research-runs?limit=100")
+    listing = request_json(
+        f"{api_url}/v1/research-runs?limit=100",
+        timeout_seconds=validation_timeout_seconds,
+    )
     if not isinstance(listing, list):
         raise AssertionError("Phase 6 research list is not an array")
     listed = {item.get("configuration_id"): item for item in listing if isinstance(item, dict)}
@@ -7393,25 +7444,30 @@ def verify_compose(phase: int = 1) -> None:
                             with phase9_stage(phase, "phase6_acceptance"):
                                 # Run the reversible cycle before Phase 6 creates additive Phase 4
                                 # record types, whose downgrade guard intentionally fails closed.
-                                verify_phase6_migration_cycle(project, environment)
-                                if phase >= 7:
-                                    run(
-                                        [
-                                            "exec",
-                                            "-T",
-                                            "api",
-                                            "alembic",
-                                            "-c",
-                                            "services/api/alembic.ini",
-                                            "upgrade",
-                                            "0007_phase7",
-                                        ],
-                                        project=project,
-                                        env=environment,
-                                    )
-                                phase6_run_ids = verify_phase6_api(api_url)
-                                verify_phase6_postgres_acceptance(environment)
-                                verify_phase6_append_only(project, environment)
+                                with phase9_stage(phase, "phase6_schema_cycle"):
+                                    verify_phase6_migration_cycle(project, environment)
+                                    if phase >= 7:
+                                        run(
+                                            [
+                                                "exec",
+                                                "-T",
+                                                "api",
+                                                "alembic",
+                                                "-c",
+                                                "services/api/alembic.ini",
+                                                "upgrade",
+                                                "0007_phase7",
+                                            ],
+                                            project=project,
+                                            env=environment,
+                                        )
+                                with phase9_stage(phase, "phase6_api"):
+                                    with phase6_request_timeout_context(phase):
+                                        phase6_run_ids = verify_phase6_api(api_url)
+                                with phase9_stage(phase, "phase6_postgres_tests"):
+                                    verify_phase6_postgres_acceptance(environment)
+                                with phase9_stage(phase, "phase6_append_only"):
+                                    verify_phase6_append_only(project, environment)
                             if phase == 6:
                                 print("Full Compose Phase 6 verification passed.")
                             else:

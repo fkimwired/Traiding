@@ -172,6 +172,44 @@ def test_sanitizer_allows_only_structured_stages_and_exact_final_markers() -> No
         assert runner.sanitize_child_line(unsafe) is None
 
 
+def test_phase6_substages_are_required_without_weakening_stage_validation() -> None:
+    runner = load_runner()
+    expected = {
+        "phase6_schema_cycle",
+        "phase6_api",
+        "phase6_postgres_tests",
+        "phase6_append_only",
+    }
+    assert expected <= set(runner.REQUIRED_PHASE9_STAGES)
+
+    manifest, sanitized_log, context = valid_bundle(runner)
+    required_context = runner.EvidenceContext(
+        current_sha=context.current_sha,
+        current_tree=context.current_tree,
+        platform=context.platform,
+        child_command=context.child_command,
+        snapshots=context.snapshots,
+        required_stages=tuple(sorted(expected)),
+    )
+    with pytest.raises(runner.GateRunnerError, match="Required Phase 9 stages are missing"):
+        runner.validate_bundle(manifest, sanitized_log, required_context)
+
+    failed_stage = dict(manifest["stage_durations"][0])
+    failed_stage["stage"] = "phase6_api"
+    failed_stage["result"] = "fail"
+    start, _, marker8, marker9, end = sanitized_log.decode("utf-8").splitlines()
+    failed_line = (
+        f"{runner.STAGE_PREFIX}{json.dumps(failed_stage, sort_keys=True, separators=(',', ':'))}"
+    )
+    failed_log = ("\n".join((start, failed_line, marker8, marker9, end)) + "\n").encode()
+    failed_manifest = dict(manifest)
+    failed_manifest["stage_durations"] = [failed_stage]
+    failed_manifest["sanitized_log_sha256"] = hashlib.sha256(failed_log).hexdigest()
+    failed_manifest["manifest_sha256"] = runner.manifest_digest(failed_manifest)
+    with pytest.raises(runner.GateRunnerError, match="stage did not pass"):
+        runner.validate_bundle(failed_manifest, failed_log, context)
+
+
 def test_bundle_detects_log_and_manifest_mutation_and_forged_identity() -> None:
     runner = load_runner()
     manifest, sanitized_log, context = valid_bundle(runner)

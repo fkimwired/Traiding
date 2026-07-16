@@ -57,6 +57,11 @@ baselines. Both manifests must bind that same identity. CI publishes only
 `phase-gate.manifest.json` and `phase-gate.sanitized.log`; the raw local log, heartbeat, secrets,
 environment values, and source payloads are not artifacts.
 
+The Ubuntu unit job may hydrate only the exact frozen Linux Rolldown binary after `npm ci` and must
+prove that package manifests and the lockfile remain unchanged. The Phase 9 full verifier alone uses
+wider Phase 6 transport deadlines and emits required nested Phase 6 stage records; inherited Phase
+6-8 behavior, assertions, concurrency, retry-free execution, and the outer deadline remain unchanged.
+
 Until that Ubuntu job and its evidence verifier pass at the same final identity, Phase 9 is not accepted.
 If repository publication authority is absent, stop after local implementation and report
 the remaining CI requirement. Do not push, open a pull request, merge, tag, publish, or deploy.
