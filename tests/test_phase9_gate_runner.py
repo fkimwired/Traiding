@@ -301,6 +301,41 @@ def test_dirty_preflight_fails_under_lock_without_evidence_or_child(
     assert not evidence.exists()
 
 
+def test_capture_resolves_windows_command_wrappers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = load_runner()
+    resolved_npm = r"C:\Program Files\nodejs\npm.CMD"
+    captured: dict[str, object] = {}
+
+    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return subprocess.CompletedProcess(command, 0, stdout="11.16.0\n", stderr="")
+
+    monkeypatch.setattr(runner.shutil, "which", lambda command: resolved_npm)
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+
+    assert runner._capture(["npm", "--version"]) == "11.16.0"
+    assert captured["command"] == [resolved_npm, "--version"]
+    assert captured["kwargs"] == {
+        "capture_output": True,
+        "check": True,
+        "cwd": ROOT,
+        "text": True,
+    }
+
+
+def test_capture_fails_closed_when_command_cannot_be_resolved(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = load_runner()
+    monkeypatch.setattr(runner.shutil, "which", lambda command: None)
+
+    with pytest.raises(runner.GateRunnerError, match="Required command failed: npm --version"):
+        runner._capture(["npm", "--version"])
+
+
 def test_runner_has_one_spawn_after_lock_and_follow_never_spawns() -> None:
     source = RUNNER_PATH.read_text(encoding="utf-8")
     assert source.count("subprocess.Popen(") == 1

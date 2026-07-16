@@ -11,6 +11,7 @@ import math
 import os
 import platform
 import re
+import shutil
 import signal
 import stat
 import subprocess
@@ -437,16 +438,20 @@ def _drain_raw_log(
 
 
 def _capture(command: Sequence[str], *, cwd: Path = ROOT) -> str:
+    logical_command = list(command)
+    executable = shutil.which(logical_command[0])
+    if executable is None:
+        raise GateRunnerError(f"Required command failed: {' '.join(logical_command)}")
     try:
         return subprocess.run(
-            list(command),
+            [executable, *logical_command[1:]],
             cwd=cwd,
             check=True,
             capture_output=True,
             text=True,
         ).stdout.strip()
     except (OSError, subprocess.CalledProcessError) as exc:
-        raise GateRunnerError(f"Required command failed: {' '.join(command)}") from exc
+        raise GateRunnerError(f"Required command failed: {' '.join(logical_command)}") from exc
 
 
 def git_status(repo_root: Path = ROOT) -> str:
