@@ -151,6 +151,12 @@ or relaunch a delayed or failed run.
 The verifier owns one acceptance-only browser timeout profile: inherited Phase 8 runs keep the
 20-minute exhaustive-lineage test deadline, while Phase 9 selects 25 minutes for that test alone.
 Assertions, coverage, serial order, retries, workers, and application behavior are unchanged.
+On Linux, Phase 9 runs Playwright 1.61.1 in the immutable
+`mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`
+image that matches the frozen Linux visual baselines. The repository mount is read-only, browser
+output stays in the container, and the verifier explicitly forwards only the base URL, Phase 9
+timeout flag, and `CI=true` as acceptance values. Inherited Phase 8 runs and Phase 9 on Windows
+continue to use the native npm command.
 
 ### macOS/Linux/CI
 

@@ -362,6 +362,13 @@ PHASE_9_ALLOWED_WRITES = frozenset(
 )
 PHASE_8_ACCESSIBILITY_SPEC = "services/frontend/e2e/phase8.accessibility.spec.ts"
 PHASE_9_BROWSER_TIMEOUT_FLAG = "FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE"
+PHASE_9_PLAYWRIGHT_VERSION = "1.61.1"
+PHASE_9_PLAYWRIGHT_IMAGE_SHA256 = "5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48"
+PHASE_9_LINUX_PLAYWRIGHT_IMAGE = (
+    f"mcr.microsoft.com/playwright:v{PHASE_9_PLAYWRIGHT_VERSION}-noble@"
+    f"sha256:{PHASE_9_PLAYWRIGHT_IMAGE_SHA256}"
+)
+PHASE_9_LINUX_PLAYWRIGHT_CONTAINER_SUFFIX = "_phase9_playwright"
 PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
 PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
     b"  test.setTimeout(\n"
@@ -2670,6 +2677,17 @@ def verify_phase9_static() -> None:
     for serial_guard in ("fullyParallel: false", "retries: 0", "workers: 1"):
         if serial_guard not in playwright:
             raise AssertionError(f"Phase 9 browser serialization drifted: {serial_guard}")
+    package_lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+    if (
+        package_lock["packages"]["node_modules/@playwright/test"]["version"]
+        != PHASE_9_PLAYWRIGHT_VERSION
+    ):
+        raise AssertionError("Phase 9 Linux browser image and Playwright package versions differ")
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if "npx playwright install --with-deps chromium" in workflow:
+        raise AssertionError(
+            "Phase 9 Linux acceptance must not use the mutable host browser runtime"
+        )
     phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
     if '"9": "0007_phase7"' not in phase5_postgres_tests:
         raise AssertionError("Phase 9 PostgreSQL acceptance does not preserve head 0007_phase7")
@@ -5888,6 +5906,64 @@ def verify_phase8_evidence_timeline_api(api_url: str) -> None:
     )
 
 
+def phase9_linux_playwright_container_name(project: str) -> str:
+    return f"{project}{PHASE_9_LINUX_PLAYWRIGHT_CONTAINER_SUFFIX}"
+
+
+def phase9_linux_playwright_command(project: str, frontend_url: str) -> list[str]:
+    return [
+        "docker",
+        "run",
+        "--rm",
+        "--init",
+        "--name",
+        phase9_linux_playwright_container_name(project),
+        "--label",
+        f"com.docker.compose.project={project}",
+        "--network",
+        "host",
+        "--ipc",
+        "host",
+        "--mount",
+        f"type=bind,source={ROOT.resolve()},target=/work,readonly",
+        "--workdir",
+        "/work/services/frontend",
+        "--env",
+        f"PLAYWRIGHT_BASE_URL={frontend_url}",
+        "--env",
+        f"{PHASE_9_BROWSER_TIMEOUT_FLAG}=1",
+        "--env",
+        "CI=true",
+        PHASE_9_LINUX_PLAYWRIGHT_IMAGE,
+        "node",
+        "../../node_modules/@playwright/test/cli.js",
+        "test",
+        "--reporter=list",
+        "--output=/tmp/playwright-results",
+    ]
+
+
+def cleanup_phase9_linux_playwright_container(
+    project: str,
+    environment: dict[str, str],
+) -> None:
+    subprocess.run(
+        [
+            "docker",
+            "container",
+            "rm",
+            "--force",
+            phase9_linux_playwright_container_name(project),
+        ],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        env=environment,
+    )
+
+
 def verify_phase8_browser(
     project: str,
     environment: dict[str, str],
@@ -5914,9 +5990,18 @@ def verify_phase8_browser(
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
     if phase == 9:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
-    command = [npm, "--workspace", "@fable5/frontend", "run", "test:e2e"]
+    linux_phase9 = phase == 9 and sys.platform.startswith("linux")
+    command = (
+        phase9_linux_playwright_command(project, frontend_url)
+        if linux_phase9
+        else [npm, "--workspace", "@fable5/frontend", "run", "test:e2e"]
+    )
     with phase9_stage(phase, "phase8_browser_playwright"):
-        run(command, env=browser_environment)
+        try:
+            run(command, env=browser_environment)
+        finally:
+            if linux_phase9:
+                cleanup_phase9_linux_playwright_container(project, browser_environment)
     with phase9_stage(phase, "phase8_browser_post_snapshot"):
         assert_snapshots_equal(
             before,

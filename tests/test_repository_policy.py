@@ -147,7 +147,7 @@ def test_phase9_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     assert "run_phase_gate.py run --phase 9" in workflow
     assert "run_phase_gate.py verify-evidence" in workflow
     assert "npm ci" in workflow
-    assert "npx playwright install --with-deps chromium" in workflow
+    assert "npx playwright install --with-deps chromium" not in workflow
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
     assert "PHASE_8_BASELINE_SHA" in runner
     assert "acquire_repo_lock" in runner

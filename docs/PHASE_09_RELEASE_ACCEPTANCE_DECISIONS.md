@@ -41,6 +41,17 @@ acceptance to that existing revision. The browser remains serial with `workers: 
 `fullyParallel: false`, and `retries: 0`. Each platform must have exactly 24 expected snapshot names:
 Windows checks the win32 files and Ubuntu checks the Linux files.
 
+To bind the Linux rendering environment as tightly as the PNGs, only the Phase 9 Linux browser
+stage runs in
+`mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
+That version equals the frozen `@playwright/test` 1.61.1 package. The verifier mounts the repository
+read-only, writes Playwright output only to container-local `/tmp`, invokes the installed CLI
+directly, and explicitly forwards only `PLAYWRIGHT_BASE_URL`, the exact Phase 9 timeout flag, and
+`CI=true` as acceptance values. The container has no Docker socket and has a project-scoped name and
+label so both normal and interrupted cleanup remain auditable. Phase 8 on Linux and Phase 9 on
+Windows retain the native npm path. CI therefore does not install or use a mutable native Ubuntu
+Chromium runtime for the Phase 9 Compose gate.
+
 The frozen generated-contract hashes are:
 
 | Path | SHA-256 |
@@ -76,8 +87,9 @@ The verifier also removes any caller-provided `FABLE5_PHASE9_BROWSER_TIMEOUT_PRO
 it to exactly `1` only for the Phase 9 browser child. That profile changes the single exhaustive
 lineage test from its inherited 20-minute deadline to 25 minutes. It changes no assertion, coverage,
 request payload, test order, concurrency proof, retry policy, worker count, global Playwright
-timeout, or application behavior. The outer single-flight deadline is 6,300 seconds so the bounded
-browser allowance does not race the runner deadline.
+timeout, visual baseline, or application behavior. The Linux runtime pin changes execution
+environment only. The outer single-flight deadline is 6,300 seconds so the bounded browser
+allowance does not race the runner deadline.
 
 ## Single-flight runner
 

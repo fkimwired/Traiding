@@ -64,8 +64,14 @@ prove that package manifests and the lockfile remain unchanged. The Phase 9 full
 wider Phase 6 transport deadlines and emits required nested Phase 6 and Phase 8 stage records. It
 owns the browser timeout flag, scrubs arbitrary caller values, and selects 25 minutes only for the
 exhaustive-lineage test; inherited Phase 8 remains at 20 minutes. Assertions, coverage, test order,
-concurrency, retries, workers, and application behavior remain unchanged. The outer runner deadline
-is 6,300 seconds and the Ubuntu Compose job deadline is 120 minutes.
+concurrency, retries, workers, visual baselines, and application behavior remain unchanged. On Linux
+only, the Phase 9 browser stage uses Playwright 1.61.1 from
+`mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
+It mounts the repository read-only, writes browser output inside the container, explicitly forwards
+only the local base URL, exact timeout flag, and `CI=true` as acceptance values, and uses a
+project-scoped container identity with best-effort interruption cleanup. Phase 8 and Windows remain
+native. The outer runner deadline is 6,300 seconds and the Ubuntu Compose job deadline is 120
+minutes.
 
 Until that Ubuntu job and its evidence verifier pass at the same final identity, Phase 9 is not accepted.
 If repository publication authority is absent, stop after local implementation and report

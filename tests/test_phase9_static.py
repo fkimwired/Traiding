@@ -181,6 +181,7 @@ def test_phase9_phase8_timeout_exception_is_exact_and_verifier_owned(
     spec.loader.exec_module(verifier)
 
     browser_environments: list[dict[str, str]] = []
+    monkeypatch.setattr(verifier.sys, "platform", "win32")
     monkeypatch.setattr(verifier.shutil, "which", lambda command: "npm.CMD")
     monkeypatch.setattr(
         verifier,
@@ -223,6 +224,141 @@ def test_phase9_phase8_timeout_exception_is_exact_and_verifier_owned(
 
     source = verifier_path.read_text(encoding="utf-8")
     assert 'with phase9_stage(phase, "phase8_timeline_api"):' in source
+
+
+def test_phase9_linux_browser_uses_the_exact_pinned_read_only_runtime_and_cleans(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    verifier_path = ROOT / "scripts/verify_phase1.py"
+    spec = importlib.util.spec_from_file_location("phase9_linux_browser_verifier", verifier_path)
+    assert spec is not None and spec.loader is not None
+    verifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(verifier)
+
+    captured_runs: list[tuple[list[str], dict[str, str]]] = []
+    cleanup_calls: list[tuple[list[str], dict[str, object]]] = []
+    monkeypatch.setattr(verifier.sys, "platform", "linux")
+    monkeypatch.setattr(verifier.shutil, "which", lambda command: "/usr/bin/npm")
+    monkeypatch.setattr(
+        verifier,
+        "snapshot_tables",
+        lambda project, environment, tables: {"stable": [{"id": 1}]},
+    )
+
+    def capture_run(command: list[str], *, env: dict[str, str]) -> None:
+        captured_runs.append((command, env.copy()))
+
+    def capture_cleanup(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        cleanup_calls.append((command, kwargs))
+        return subprocess.CompletedProcess(command, 1)
+
+    monkeypatch.setattr(verifier, "run", capture_run)
+    monkeypatch.setattr(verifier.subprocess, "run", capture_cleanup)
+
+    inherited_environment = {
+        "FABLE5_VERIFY_PHASE": "8",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    verifier.verify_phase8_browser("project", inherited_environment, "http://frontend")
+    assert captured_runs[-1][0] == [
+        "/usr/bin/npm",
+        "--workspace",
+        "@fable5/frontend",
+        "run",
+        "test:e2e",
+    ]
+    assert verifier.PHASE_9_BROWSER_TIMEOUT_FLAG not in captured_runs[-1][1]
+    assert cleanup_calls == []
+    assert "FABLE5_PHASE9_STAGE " not in capsys.readouterr().out
+
+    phase9_environment = {
+        "FABLE5_VERIFY_PHASE": "9",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+        "FABLE5_UPDATE_SNAPSHOTS": "1",
+        "FABLE5_VISUAL_CORPUS": "synthetic",
+        "SECRET_SENTINEL": "must-not-enter-container",
+    }
+    original_phase9_environment = phase9_environment.copy()
+    verifier.verify_phase8_browser("project", phase9_environment, "http://frontend")
+    assert phase9_environment == original_phase9_environment
+
+    expected_image = (
+        "mcr.microsoft.com/playwright:v1.61.1-noble@"
+        "sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48"
+    )
+    expected_command = [
+        "docker",
+        "run",
+        "--rm",
+        "--init",
+        "--name",
+        "project_phase9_playwright",
+        "--label",
+        "com.docker.compose.project=project",
+        "--network",
+        "host",
+        "--ipc",
+        "host",
+        "--mount",
+        f"type=bind,source={verifier.ROOT.resolve()},target=/work,readonly",
+        "--workdir",
+        "/work/services/frontend",
+        "--env",
+        "PLAYWRIGHT_BASE_URL=http://frontend",
+        "--env",
+        f"{verifier.PHASE_9_BROWSER_TIMEOUT_FLAG}=1",
+        "--env",
+        "CI=true",
+        expected_image,
+        "node",
+        "../../node_modules/@playwright/test/cli.js",
+        "test",
+        "--reporter=list",
+        "--output=/tmp/playwright-results",
+    ]
+    command, host_environment = captured_runs[-1]
+    assert command == expected_command
+    assert host_environment[verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "1"
+    assert [command[index + 1] for index, value in enumerate(command) if value == "--env"] == [
+        "PLAYWRIGHT_BASE_URL=http://frontend",
+        f"{verifier.PHASE_9_BROWSER_TIMEOUT_FLAG}=1",
+        "CI=true",
+    ]
+    assert "FABLE5_UPDATE_SNAPSHOTS" not in " ".join(command)
+    assert "FABLE5_VISUAL_CORPUS" not in " ".join(command)
+    assert "must-not-enter-container" not in " ".join(command)
+    assert verifier.PHASE_9_LINUX_PLAYWRIGHT_IMAGE == expected_image
+    assert cleanup_calls[-1][0] == [
+        "docker",
+        "container",
+        "rm",
+        "--force",
+        "project_phase9_playwright",
+    ]
+    assert cleanup_calls[-1][1]["cwd"] == verifier.ROOT
+    assert cleanup_calls[-1][1]["check"] is False
+    stage_names = [
+        json.loads(line.removeprefix("FABLE5_PHASE9_STAGE "))["stage"]
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("FABLE5_PHASE9_STAGE ")
+    ]
+    assert stage_names == [
+        "phase8_browser_pre_snapshot",
+        "phase8_browser_playwright",
+        "phase8_browser_post_snapshot",
+    ]
+
+    cleanup_calls.clear()
+
+    def fail_run(command: list[str], *, env: dict[str, str]) -> None:
+        raise subprocess.CalledProcessError(1, command)
+
+    monkeypatch.setattr(verifier, "run", fail_run)
+    with pytest.raises(subprocess.CalledProcessError):
+        verifier.verify_phase8_browser("project", phase9_environment, "http://frontend")
+    assert len(cleanup_calls) == 1
+    assert cleanup_calls[0][0][-1] == "project_phase9_playwright"
 
 
 def test_phase9_verifier_runs_inherited_static_first_and_full_cleanup_last() -> None:
@@ -323,6 +459,7 @@ def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() 
     assert "phase-gate.raw.log" not in workflow
     assert "runner_exit" in workflow and "evidence_exit" in workflow
     assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in workflow
+    assert "npx playwright install --with-deps chromium" not in workflow
 
     action_lines = [line.strip() for line in workflow.splitlines() if "uses:" in line]
     assert action_lines
