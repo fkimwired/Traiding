@@ -255,11 +255,28 @@ def test_phase10_repository_revalidates_hashes_children_and_serializes_writers()
         "simulation request fingerprint is bound to another idempotency key",
     ):
         assert required in repository
-    create = repository.split("def create_simulation", 1)[1].split("def get_simulation", 1)[0]
-    assert create.index("artifact.human_authorization_evidence_id") < create.index(
-        "artifact.simulation_idempotency_key"
+    create = repository.split("def _create_simulation(", 1)[1].split("@contextmanager", 1)[0]
+    workflow_lock = (
+        "_lock(connection, _workflow_lock_identity(artifact.simulation_idempotency_key))"
     )
-    assert create.index("_lock(connection") < create.index("_insert_simulation(connection")
+    authorization_lock = "_lock(connection, artifact.human_authorization_evidence_id)"
+    idempotency_lock = "_lock(connection, artifact.simulation_idempotency_key)"
+    assert (
+        create.index(workflow_lock)
+        < create.index(authorization_lock)
+        < create.index(idempotency_lock)
+    )
+    assert create.index(idempotency_lock) < create.index("_insert_simulation(connection")
+    serialized = repository.split("def serialized_creation", 1)[1].split(
+        "def create_simulation", 1
+    )[0]
+    assert serialized.index("_workflow_lock_identity(key)") < serialized.index("yield")
+
+
+def test_phase10_authority_trigger_uses_the_exact_phase6_snapshot_binding_relation() -> None:
+    migration = source()
+    assert "FROM research_pipeline_snapshot_bindings" in migration
+    assert "research_snapshot_bindings" not in migration
 
 
 def test_phase10_downgrade_removes_only_phase10_objects() -> None:

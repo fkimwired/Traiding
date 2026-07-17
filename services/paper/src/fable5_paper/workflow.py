@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from datetime import UTC, datetime
 from typing import Protocol
 from uuid import UUID
@@ -65,10 +66,17 @@ class PaperWorkflowConflict(RuntimeError):
     """Resolved or persisted simulation evidence is internally inconsistent."""
 
 
-class PaperSimulationStore(Protocol):
+class PaperSimulationCreation(Protocol):
     def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None: ...
 
     def create_simulation(self, artifact: PaperSimulationArtifact) -> PaperSimulationArtifact: ...
+
+
+class PaperSimulationStore(PaperSimulationCreation, Protocol):
+    def serialized_creation(
+        self,
+        key: str,
+    ) -> AbstractContextManager[PaperSimulationCreation]: ...
 
     def get_simulation(self, simulation_run_id: UUID) -> PaperSimulationArtifact: ...
 
@@ -497,8 +505,12 @@ class PaperSimulationWorkflow:
             )
         )
 
-    def create_simulation(self, request: PaperSimulationCreateRequest) -> PaperSimulationArtifact:
-        existing = self.simulations.find_by_idempotency_key(request.simulation_idempotency_key)
+    def _create_serialized(
+        self,
+        request: PaperSimulationCreateRequest,
+        simulations: PaperSimulationCreation,
+    ) -> PaperSimulationArtifact:
+        existing = simulations.find_by_idempotency_key(request.simulation_idempotency_key)
         if existing is not None:
             if existing.source_assessment_id != request.approval_assessment_id:
                 raise PaperWorkflowConflict(
@@ -656,7 +668,7 @@ class PaperSimulationWorkflow:
                 "created_at_utc": decision_time,
             }
         )
-        persisted = self.simulations.create_simulation(candidate)
+        persisted = simulations.create_simulation(candidate)
         if persisted.source_assessment_id != request.approval_assessment_id or (
             persisted.simulation_idempotency_key != request.simulation_idempotency_key
         ):
@@ -668,6 +680,12 @@ class PaperSimulationWorkflow:
         if same_identity_changed:
             raise PaperWorkflowConflict("persisted simulation changed immutable evidence")
         return persisted
+
+    def create_simulation(self, request: PaperSimulationCreateRequest) -> PaperSimulationArtifact:
+        with self.simulations.serialized_creation(
+            request.simulation_idempotency_key
+        ) as simulations:
+            return self._create_serialized(request, simulations)
 
     def get_simulation(self, simulation_run_id: UUID) -> PaperSimulationArtifact:
         return self.simulations.get_simulation(simulation_run_id)
@@ -687,6 +705,7 @@ class PaperSimulationWorkflow:
 __all__ = [
     "PaperEvidenceGateway",
     "PaperEvidenceNotFound",
+    "PaperSimulationCreation",
     "PaperSimulationStore",
     "PaperSimulationWorkflow",
     "PaperWorkflowConflict",

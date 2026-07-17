@@ -807,7 +807,7 @@ def _install_validation_functions() -> None:
                 ),
                 '[]'::jsonb
             ) INTO authoritative_snapshot_bindings
-            FROM research_snapshot_bindings
+            FROM research_pipeline_snapshot_bindings
             WHERE run_id = NEW.research_run_id;
             source_lineage := source_row.artifact_payload->'phase6_lineage';
             IF source_row.assessment_id IS NULL OR transition_row.assessment_id IS NULL THEN

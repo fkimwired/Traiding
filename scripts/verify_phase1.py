@@ -2936,10 +2936,13 @@ def verify_phase10_static() -> None:
         "paper_simulation_runs_25_authority_commit",
         "phase10_lock_authority_version()",
         "phase10-local-simulation-revalidation-v1",
+        "FROM research_pipeline_snapshot_bindings",
         "DEFERRABLE INITIALLY DEFERRED",
     ):
         if evidence not in migration:
             raise AssertionError(f"Phase 10 migration is missing evidence: {evidence}")
+    if "research_snapshot_bindings" in migration:
+        raise AssertionError("Phase 10 migration references a nonexistent Phase 6 binding relation")
     for table in PHASE_10_TABLES:
         if f'op.create_table(\n        "{table}"' not in migration:
             raise AssertionError(f"Phase 10 migration is missing table {table}")
@@ -6500,12 +6503,28 @@ def verify_phase10_api(
 
     def create_complete() -> dict[str, object] | list[object]:
         barrier.wait()
-        return request_json(
-            f"{api_url}/v1/local-simulations",
-            method="POST",
-            payload=complete_request,
-            timeout_seconds=30,
-        )
+        try:
+            return request_json(
+                f"{api_url}/v1/local-simulations",
+                method="POST",
+                payload=complete_request,
+                timeout_seconds=30,
+            )
+        except urllib.error.HTTPError as exc:
+            try:
+                error_payload = json.load(exc)
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                error_payload = {}
+            detail = error_payload.get("detail") if isinstance(error_payload, dict) else None
+            sanitized_detail = (
+                re.sub(r"[^A-Za-z0-9 .,:;_()/-]", "?", detail)[:300]
+                if isinstance(detail, str)
+                else "unavailable"
+            )
+            raise AssertionError(
+                "Phase 10 concurrent local simulation POST returned "
+                f"HTTP {exc.code}: {sanitized_detail}"
+            ) from exc
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         concurrent = tuple(executor.map(lambda _: create_complete(), range(2)))

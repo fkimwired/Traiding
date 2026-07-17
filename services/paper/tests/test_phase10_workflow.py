@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
 from decimal import Decimal
+from threading import Lock
 from types import SimpleNamespace
 from uuid import UUID, uuid4
 
@@ -233,6 +236,15 @@ class MemorySimulationStore:
     def __init__(self) -> None:
         self.by_id: dict[UUID, PaperSimulationArtifact] = {}
         self.by_key: dict[str, PaperSimulationArtifact] = {}
+        self._creation_locks: dict[str, Lock] = {}
+        self._creation_locks_guard = Lock()
+
+    @contextmanager
+    def serialized_creation(self, key: str) -> Iterator[MemorySimulationStore]:
+        with self._creation_locks_guard:
+            lock = self._creation_locks.setdefault(key, Lock())
+        with lock:
+            yield self
 
     def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None:
         return self.by_key.get(key)

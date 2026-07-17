@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from threading import Barrier
+from threading import Event
 from typing import Any, cast
 from uuid import UUID, uuid4
 
@@ -71,6 +73,11 @@ APPEND_ONLY_ERROR = "Phase 10 local paper simulation artifacts are append-only"
 class _CandidateStore:
     """Return the workflow candidate without persisting it."""
 
+    @contextmanager
+    def serialized_creation(self, key: str) -> Iterator[_CandidateStore]:
+        del key
+        yield self
+
     def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None:
         del key
         return None
@@ -96,6 +103,7 @@ def test_paper_repository_structurally_implements_the_workflow_store() -> None:
         store: PaperSimulationStore = repository
         assert store is repository
         for method in (
+            "serialized_creation",
             "find_by_idempotency_key",
             "create_simulation",
             "get_simulation",
@@ -104,6 +112,51 @@ def test_paper_repository_structurally_implements_the_workflow_store() -> None:
             assert callable(getattr(repository, method))
         with pytest.raises(ValueError, match="between 1 and 100"):
             repository.list_simulations(source_assessment_id=None, limit=0)
+    finally:
+        repository.dispose()
+
+
+def test_postgres_serialized_creation_rollback_releases_workflow_lock() -> None:
+    _require_postgres()
+    assert DATABASE_URL is not None
+    first_repository = PaperRepository(DATABASE_URL)
+    second_repository = PaperRepository(DATABASE_URL)
+    key = f"phase10-postgres-rollback-lock-{uuid4().hex}"
+    try:
+        with pytest.raises(RuntimeError, match="force serialized rollback"):
+            with first_repository.serialized_creation(key):
+                raise RuntimeError("force serialized rollback")
+
+        with first_repository.serialized_creation(key) as creation:
+            with pytest.raises(PaperRepositoryConflict, match="key changed during lookup"):
+                creation.find_by_idempotency_key(f"{key}-different")
+
+        def read_after_rollback() -> PaperSimulationArtifact | None:
+            with second_repository.serialized_creation(key) as creation:
+                return creation.find_by_idempotency_key(key)
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            assert executor.submit(read_after_rollback).result(timeout=10) is None
+    finally:
+        second_repository.dispose()
+        first_repository.dispose()
+
+
+def test_postgres_authority_function_uses_exact_phase6_snapshot_binding_relation() -> None:
+    _require_postgres()
+    assert DATABASE_URL is not None
+    repository = PaperRepository(DATABASE_URL)
+    try:
+        with repository.engine.connect() as connection:
+            definition = connection.scalar(
+                text(
+                    "SELECT pg_get_functiondef("
+                    "'validate_phase10_current_authority()'::regprocedure)"
+                )
+            )
+        assert isinstance(definition, str)
+        assert "FROM research_pipeline_snapshot_bindings" in definition
+        assert "research_snapshot_bindings" not in definition
     finally:
         repository.dispose()
 
@@ -185,11 +238,14 @@ def _workflow(
     research_repository: ResearchRepository,
     risk_repository: RiskRepository,
     simulations: PaperSimulationStore,
+    *,
+    clock: Callable[[], datetime] | None = None,
 ) -> PaperSimulationWorkflow:
     return PaperSimulationWorkflow(
         evidence=PostgresPaperEvidenceGateway(research_repository, risk_repository),
         simulations=simulations,
         phase10_code_version_git_sha=cast(str, CODE_VERSION_GIT_SHA),
+        clock=clock,
     )
 
 
@@ -356,49 +412,76 @@ def test_postgres_two_writers_are_idempotent_and_store_one_complete_bundle() -> 
     assert DATABASE_URL is not None
     research_repository = ResearchRepository(DATABASE_URL)
     risk_repository = RiskRepository(DATABASE_URL)
-    repository = PaperRepository(DATABASE_URL)
+    first_repository = PaperRepository(DATABASE_URL)
+    second_repository = PaperRepository(DATABASE_URL)
     try:
         source = _approved_source(research_repository, risk_repository, tag="concurrency")
         request = _request(source, "concurrency")
-        barrier = Barrier(2)
+        first_clock_entered = Event()
+        release_first_clock = Event()
+        second_clock_entered = Event()
+        second_revalidation_entered = Event()
+        first_decision_time = datetime.now(UTC)
 
-        class BarrierStore:
-            def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None:
-                existing = repository.find_by_idempotency_key(key)
-                barrier.wait(timeout=30)
-                return existing
+        def first_clock() -> datetime:
+            first_clock_entered.set()
+            if not release_first_clock.wait(timeout=30):
+                raise AssertionError("timed out holding the first serialized Phase 10 writer")
+            return first_decision_time
 
-            def create_simulation(
-                self, artifact: PaperSimulationArtifact
-            ) -> PaperSimulationArtifact:
-                return repository.create_simulation(artifact)
+        def second_clock() -> datetime:
+            second_clock_entered.set()
+            return first_decision_time + timedelta(microseconds=1)
 
-            def get_simulation(self, simulation_run_id: UUID) -> PaperSimulationArtifact:
-                return repository.get_simulation(simulation_run_id)
-
-            def list_simulations(
+        class SecondEvidenceGateway(PostgresPaperEvidenceGateway):
+            def revalidate_assessment(
                 self,
+                source: ApprovalAssessmentArtifact,
                 *,
-                source_assessment_id: UUID | None,
-                limit: int,
-            ) -> list[PaperSimulationSummary]:
-                return repository.list_simulations(
-                    source_assessment_id=source_assessment_id,
-                    limit=limit,
+                decision_time_utc: datetime,
+                code_version_git_sha: str,
+            ) -> ApprovalAssessmentArtifact:
+                second_revalidation_entered.set()
+                return super().revalidate_assessment(
+                    source,
+                    decision_time_utc=decision_time_utc,
+                    code_version_git_sha=code_version_git_sha,
                 )
 
         workflows = (
-            _workflow(research_repository, risk_repository, BarrierStore()),
-            _workflow(research_repository, risk_repository, BarrierStore()),
+            _workflow(
+                research_repository,
+                risk_repository,
+                first_repository,
+                clock=first_clock,
+            ),
+            PaperSimulationWorkflow(
+                evidence=SecondEvidenceGateway(research_repository, risk_repository),
+                simulations=second_repository,
+                phase10_code_version_git_sha=cast(str, CODE_VERSION_GIT_SHA),
+                clock=second_clock,
+            ),
         )
 
         def create(workflow: PaperSimulationWorkflow) -> PaperSimulationArtifact:
             return workflow.create_simulation(request)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            results = tuple(executor.map(create, workflows))
+            first_future = executor.submit(create, workflows[0])
+            assert first_clock_entered.wait(timeout=30)
+            second_future = executor.submit(create, workflows[1])
+            try:
+                with pytest.raises(TimeoutError):
+                    second_future.result(timeout=0.5)
+                assert not second_clock_entered.is_set()
+                assert not second_revalidation_entered.is_set()
+            finally:
+                release_first_clock.set()
+            results = (first_future.result(timeout=30), second_future.result(timeout=30))
         assert results[0] == results[1]
-        with repository.engine.connect() as connection:
+        assert not second_clock_entered.is_set()
+        assert not second_revalidation_entered.is_set()
+        with first_repository.engine.connect() as connection:
             assert (
                 connection.scalar(
                     text(
@@ -415,8 +498,19 @@ def test_postgres_two_writers_are_idempotent_and_store_one_complete_bundle() -> 
                 ),
                 {"run_id": results[0].simulation_run_id},
             ) == len(PAPER_CHECK_ORDER)
+            assert (
+                connection.scalar(
+                    text(
+                        "SELECT count(*) FROM paper_simulation_ledger_entries "
+                        "WHERE simulation_run_id = :run_id"
+                    ),
+                    {"run_id": results[0].simulation_run_id},
+                )
+                == 1
+            )
     finally:
-        repository.dispose()
+        first_repository.dispose()
+        second_repository.dispose()
         risk_repository.dispose()
         research_repository.dispose()
 

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from typing import Any, cast
 from uuid import UUID
 
@@ -33,6 +34,9 @@ class PaperArtifactNotFound(LookupError):
 
 class PaperRepositoryConflict(RuntimeError):
     """Persisted Phase 10 evidence conflicts with its canonical artifact."""
+
+
+_WORKFLOW_LOCK_PREFIX = "phase10-workflow:"
 
 
 def _json_statement(sql: str, *json_columns: str) -> Any:
@@ -83,6 +87,10 @@ def _lock(connection: Connection, value: UUID | str) -> None:
         text("SELECT pg_advisory_xact_lock(hashtextextended(:identity, 0))"),
         {"identity": str(value)},
     )
+
+
+def _workflow_lock_identity(key: str) -> str:
+    return f"{_WORKFLOW_LOCK_PREFIX}{key}"
 
 
 def _artifact_payload(artifact: PaperSimulationArtifact) -> dict[str, Any]:
@@ -224,6 +232,43 @@ def _validate_ledger_row(row: RowMapping) -> PaperSimulationLedgerEntry:
     return entry
 
 
+class _ConnectionBoundCreation:
+    """Find or create one simulation without leaving its serialized transaction."""
+
+    def __init__(
+        self,
+        repository: PaperRepository,
+        connection: Connection,
+        key: str,
+    ) -> None:
+        self._repository = repository
+        self._connection = connection
+        self._key = key
+
+    def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None:
+        _require(key == self._key, "serialized Phase 10 creation key changed during lookup")
+        try:
+            return self._repository._find_by_idempotency_key(self._connection, key)
+        except (PaperArtifactNotFound, PaperRepositoryConflict):
+            raise
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise PaperRepositoryConflict("persisted Phase 10 simulation is invalid") from exc
+
+    def create_simulation(self, artifact: PaperSimulationArtifact) -> PaperSimulationArtifact:
+        _require(
+            artifact.simulation_idempotency_key == self._key,
+            "serialized Phase 10 creation key changed before persistence",
+        )
+        try:
+            return self._repository._create_simulation(self._connection, artifact)
+        except (PaperArtifactNotFound, PaperRepositoryConflict):
+            raise
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise PaperRepositoryConflict(
+                "immutable Phase 10 simulation failed canonical validation"
+            ) from exc
+
+
 class PaperRepository:
     """Persist complete immutable local-simulation bundles."""
 
@@ -236,6 +281,21 @@ class PaperRepository:
     def dispose(self) -> None:
         if self._owns_engine:
             self.engine.dispose()
+
+    @classmethod
+    def _find_by_idempotency_key(
+        cls,
+        connection: Connection,
+        key: str,
+    ) -> PaperSimulationArtifact | None:
+        row = _row_by_identity(
+            connection,
+            column="simulation_idempotency_key",
+            value=key,
+        )
+        if row is None:
+            return None
+        return cls._load_simulation(connection, row["simulation_run_id"], root_row=row)
 
     @staticmethod
     def _load_simulation(
@@ -448,14 +508,7 @@ class PaperRepository:
     def find_by_idempotency_key(self, key: str) -> PaperSimulationArtifact | None:
         try:
             with self.engine.connect() as connection:
-                row = _row_by_identity(
-                    connection,
-                    column="simulation_idempotency_key",
-                    value=key,
-                )
-                if row is None:
-                    return None
-                return self._load_simulation(connection, row["simulation_run_id"], root_row=row)
+                return self._find_by_idempotency_key(connection, key)
         except (PaperArtifactNotFound, PaperRepositoryConflict):
             raise
         except (TypeError, ValueError, ValidationError) as exc:
@@ -463,95 +516,120 @@ class PaperRepository:
         except DBAPIError as exc:
             raise PaperRepositoryConflict("Phase 10 simulation could not be loaded") from exc
 
+    def _create_simulation(
+        self,
+        connection: Connection,
+        artifact: PaperSimulationArtifact,
+    ) -> PaperSimulationArtifact:
+        # Every creation path starts with the same workflow lock. A scoped
+        # session already owns it on this connection, so this is a safe
+        # reentrant acquisition and keeps the standalone path in the same
+        # WORKFLOW -> AUTH -> KEY -> POLICY -> SCOPE order.
+        _lock(connection, _workflow_lock_identity(artifact.simulation_idempotency_key))
+        _lock(connection, artifact.human_authorization_evidence_id)
+        _lock(connection, artifact.simulation_idempotency_key)
+        transition = (
+            connection.execute(
+                text(
+                    "SELECT revocation_ids FROM approval_assessments "
+                    "WHERE assessment_id = :assessment_id "
+                    "AND artifact_sha256 = :artifact_sha256"
+                ),
+                {
+                    "assessment_id": artifact.transition_assessment_id,
+                    "artifact_sha256": artifact.transition_assessment_artifact_sha256,
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if transition is None:
+            raise PaperArtifactNotFound("transition approval assessment was not found")
+        current_revocations = tuple(
+            str(row["revocation_id"])
+            for row in connection.execute(
+                text(
+                    "SELECT revocation_id FROM approval_revocations "
+                    "WHERE human_authorization_evidence_id = :authorization_id "
+                    "ORDER BY revocation_id::text"
+                ),
+                {"authorization_id": artifact.human_authorization_evidence_id},
+            ).mappings()
+        )
+        _require(
+            _same(transition["revocation_ids"], current_revocations),
+            "authorization revocation set changed before simulation persistence",
+        )
+        existing = _row_by_identity(
+            connection,
+            column="simulation_idempotency_key",
+            value=artifact.simulation_idempotency_key,
+        )
+        if existing is not None:
+            loaded = self._load_simulation(
+                connection,
+                existing["simulation_run_id"],
+                root_row=existing,
+            )
+            if loaded.source_assessment_id != artifact.source_assessment_id:
+                raise PaperRepositoryConflict(
+                    "simulation idempotency key is bound to different evidence"
+                )
+            return loaded
+        authority_dimensions = (
+            connection.execute(
+                text(
+                    "SELECT policy.policy_id, scope.scope_id "
+                    "FROM approval_policies AS policy "
+                    "JOIN approval_scopes AS scope ON "
+                    "scope.approval_scope_version_id = :scope_version_id "
+                    "AND scope.scope_sha256 = :scope_sha256 "
+                    "WHERE policy.approval_policy_version_id = :policy_version_id "
+                    "AND policy.policy_sha256 = :policy_sha256"
+                ),
+                {
+                    "policy_version_id": artifact.approval_policy_version_id,
+                    "policy_sha256": artifact.approval_policy_sha256,
+                    "scope_version_id": artifact.approval_scope_version_id,
+                    "scope_sha256": artifact.approval_scope_sha256,
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if authority_dimensions is None:
+            raise PaperArtifactNotFound("policy or scope authority evidence was not found")
+        _lock(connection, f"phase10-policy:{authority_dimensions['policy_id']}")
+        _lock(connection, f"phase10-scope:{authority_dimensions['scope_id']}")
+        fingerprint_row = _row_by_identity(
+            connection,
+            column="request_fingerprint_sha256",
+            value=artifact.request_fingerprint_sha256,
+        )
+        if fingerprint_row is not None:
+            raise PaperRepositoryConflict(
+                "simulation request fingerprint is bound to another idempotency key"
+            )
+        self._insert_simulation(connection, artifact)
+        return self._load_simulation(connection, artifact.simulation_run_id)
+
+    @contextmanager
+    def serialized_creation(self, key: str) -> Iterator[_ConnectionBoundCreation]:
+        try:
+            with self.engine.begin() as connection:
+                _lock(connection, _workflow_lock_identity(key))
+                yield _ConnectionBoundCreation(self, connection, key)
+        except (PaperArtifactNotFound, PaperRepositoryConflict):
+            raise
+        except DBAPIError as exc:
+            raise PaperRepositoryConflict(
+                "immutable Phase 10 serialized creation could not be stored"
+            ) from exc
+
     def create_simulation(self, artifact: PaperSimulationArtifact) -> PaperSimulationArtifact:
         try:
             with self.engine.begin() as connection:
-                _lock(connection, artifact.human_authorization_evidence_id)
-                _lock(connection, artifact.simulation_idempotency_key)
-                transition = (
-                    connection.execute(
-                        text(
-                            "SELECT revocation_ids FROM approval_assessments "
-                            "WHERE assessment_id = :assessment_id "
-                            "AND artifact_sha256 = :artifact_sha256"
-                        ),
-                        {
-                            "assessment_id": artifact.transition_assessment_id,
-                            "artifact_sha256": artifact.transition_assessment_artifact_sha256,
-                        },
-                    )
-                    .mappings()
-                    .one_or_none()
-                )
-                if transition is None:
-                    raise PaperArtifactNotFound("transition approval assessment was not found")
-                current_revocations = tuple(
-                    str(row["revocation_id"])
-                    for row in connection.execute(
-                        text(
-                            "SELECT revocation_id FROM approval_revocations "
-                            "WHERE human_authorization_evidence_id = :authorization_id "
-                            "ORDER BY revocation_id::text"
-                        ),
-                        {"authorization_id": artifact.human_authorization_evidence_id},
-                    ).mappings()
-                )
-                _require(
-                    _same(transition["revocation_ids"], current_revocations),
-                    "authorization revocation set changed before simulation persistence",
-                )
-                existing = _row_by_identity(
-                    connection,
-                    column="simulation_idempotency_key",
-                    value=artifact.simulation_idempotency_key,
-                )
-                if existing is not None:
-                    loaded = self._load_simulation(
-                        connection,
-                        existing["simulation_run_id"],
-                        root_row=existing,
-                    )
-                    if loaded.source_assessment_id != artifact.source_assessment_id:
-                        raise PaperRepositoryConflict(
-                            "simulation idempotency key is bound to different evidence"
-                        )
-                    return loaded
-                authority_dimensions = (
-                    connection.execute(
-                        text(
-                            "SELECT policy.policy_id, scope.scope_id "
-                            "FROM approval_policies AS policy "
-                            "JOIN approval_scopes AS scope ON "
-                            "scope.approval_scope_version_id = :scope_version_id "
-                            "AND scope.scope_sha256 = :scope_sha256 "
-                            "WHERE policy.approval_policy_version_id = :policy_version_id "
-                            "AND policy.policy_sha256 = :policy_sha256"
-                        ),
-                        {
-                            "policy_version_id": artifact.approval_policy_version_id,
-                            "policy_sha256": artifact.approval_policy_sha256,
-                            "scope_version_id": artifact.approval_scope_version_id,
-                            "scope_sha256": artifact.approval_scope_sha256,
-                        },
-                    )
-                    .mappings()
-                    .one_or_none()
-                )
-                if authority_dimensions is None:
-                    raise PaperArtifactNotFound("policy or scope authority evidence was not found")
-                _lock(connection, f"phase10-policy:{authority_dimensions['policy_id']}")
-                _lock(connection, f"phase10-scope:{authority_dimensions['scope_id']}")
-                fingerprint_row = _row_by_identity(
-                    connection,
-                    column="request_fingerprint_sha256",
-                    value=artifact.request_fingerprint_sha256,
-                )
-                if fingerprint_row is not None:
-                    raise PaperRepositoryConflict(
-                        "simulation request fingerprint is bound to another idempotency key"
-                    )
-                self._insert_simulation(connection, artifact)
-                return self._load_simulation(connection, artifact.simulation_run_id)
+                return self._create_simulation(connection, artifact)
         except (PaperArtifactNotFound, PaperRepositoryConflict):
             raise
         except (TypeError, ValueError, ValidationError) as exc:
