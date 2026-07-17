@@ -131,21 +131,23 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase10_entrypoints_ci_and_runner_select_the_active_phase() -> None:
+def test_phase11_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, 6, 7, 8, 9, or 10" in source
+        assert "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, or 11" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-10-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "10"' in workflow
+    assert workflow.startswith("name: phase-11-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "11"' in workflow
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase10-compose:" in workflow
-    assert "verify_phase1.py --phase 10" in workflow
-    assert "run_phase_gate.py run --phase 10" not in workflow
+    assert "phase11-compose:" in workflow
+    assert "timeout-minutes: 180" in workflow
+    assert "verify_phase1.py --static-only --phase 11" in workflow
+    assert "verify_phase1.py --phase 11" in workflow
+    assert "run_phase_gate.py run --phase 11" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
@@ -164,19 +166,26 @@ def test_phase10_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     )
     verifier = normalized(ROOT / "scripts/verify_phase1.py")
     for closure_control in (
-        'phase10_clean_git_identity("preflight")',
-        'phase10_clean_git_identity("post-cleanup", expected=phase10_identity)',
-        'verify_phase10_acceptance_resource_namespace("preflight"',
-        'verify_phase10_acceptance_resource_namespace("post-cleanup"',
+        'phase10_clean_git_identity("preflight", phase=phase)',
+        'verify_phase10_acceptance_resource_namespace(\n            "preflight"',
+        'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"',
         "name=fable5_acceptance_",
-        "changed_paths - PHASE_10_ALLOWED_WRITES",
-        "if phase in {8, 9, 10}:",
+        "changed_paths - PHASE_11_ALLOWED_WRITES",
+        "if phase in {8, 9, 10, 11}:",
+        "verify_phase11_api(",
+        "verify_phase11_browser(",
     ):
         assert closure_control in verifier
     assert (
         'allowed.update(path for path in changed_paths if path.startswith("services/paper/")'
         not in verifier
     )
+    immutable_pull = (
+        "docker pull mcr.microsoft.com/playwright:v1.61.1-noble@"
+        "sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48"
+    )
+    assert workflow.count(immutable_pull) == 1
+    assert "FABLE5_UPDATE_SNAPSHOTS" not in workflow
 
 
 def test_phase2_full_verifier_proves_enabled_triggers_before_cascade_mutations() -> None:

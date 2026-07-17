@@ -272,7 +272,7 @@ def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime
     assert cleaned == ["phase10-inherited"]
 
     future_environment = {
-        "FABLE5_VERIFY_PHASE": "11",
+        "FABLE5_VERIFY_PHASE": "12",
         verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
     }
     original_future_environment = future_environment.copy()
@@ -373,15 +373,22 @@ def test_phase10_resource_inventory_is_global_and_fail_closed(
 
 def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() -> None:
     source = normalized(ROOT / "scripts/verify_phase1.py")
-    assert 'phase10_clean_git_identity("preflight") if phase == 10 else None' in source
-    assert 'verify_phase10_acceptance_resource_namespace("preflight"' in source
-    assert 'verify_phase10_acceptance_resource_namespace("post-cleanup"' in source
-    assert 'phase10_clean_git_identity("post-cleanup", expected=phase10_identity)' in source
-    assert "if phase in {8, 9, 10}:" in source
+    assert 'phase10_clean_git_identity("preflight", phase=phase) if phase in {10, 11}' in source
+    assert 'verify_phase10_acceptance_resource_namespace(\n            "preflight"' in source
+    post_cleanup_resources = (
+        'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"'
+    )
+    assert post_cleanup_resources in source
+    post_cleanup_identity = (
+        '"post-cleanup",\n                        expected=acceptance_identity,\n'
+        "                        phase=phase,"
+    )
+    assert post_cleanup_identity in source
+    assert "if phase in {8, 9, 10, 11}:" in source
     assert "spec_paths=PHASE_8_BROWSER_SPECS" in source
 
     accessibility = normalized(ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts")
     visual = normalized(ROOT / "services/frontend/e2e/phase8.visual.spec.ts")
     for spec in (accessibility, visual):
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "10"' in spec
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "11"' in spec
         assert "inheritedModes" in spec

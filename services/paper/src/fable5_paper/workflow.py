@@ -31,6 +31,7 @@ from fable5_risk.workflow import (
     ApprovalWorkflowConflict,
     Phase6ResearchStoreAdapter,
 )
+from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
@@ -54,6 +55,10 @@ from fable5_paper.contracts import (
     paper_currentness_sha256,
     paper_request_fingerprint,
     validate_code_git_sha,
+)
+from fable5_paper.evidence import (
+    LocalSimulationEvidenceBundle,
+    build_local_simulation_evidence_bundle,
 )
 from fable5_paper.fixtures import build_simulation_configuration, build_simulation_ledger
 
@@ -689,6 +694,18 @@ class PaperSimulationWorkflow:
 
     def get_simulation(self, simulation_run_id: UUID) -> PaperSimulationArtifact:
         return self.simulations.get_simulation(simulation_run_id)
+
+    def get_simulation_evidence_bundle(
+        self,
+        simulation_run_id: UUID,
+    ) -> LocalSimulationEvidenceBundle:
+        simulation = self.simulations.get_simulation(simulation_run_id)
+        try:
+            return build_local_simulation_evidence_bundle(simulation)
+        except (AttributeError, TypeError, ValueError, ValidationError) as exc:
+            raise PaperWorkflowConflict(
+                "persisted Phase 10 simulation cannot be projected as Phase 11 evidence"
+            ) from exc
 
     def list_simulations(
         self,

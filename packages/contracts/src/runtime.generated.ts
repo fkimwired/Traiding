@@ -57,6 +57,7 @@ export const successfulJsonOperations = [
   "GET /v1/local-simulations",
   "POST /v1/local-simulations",
   "GET /v1/local-simulations/{simulation_run_id}",
+  "GET /v1/local-simulations/{simulation_run_id}/evidence-bundle",
   "GET /v1/mappings",
   "GET /v1/mappings/{mapping_id}",
   "GET /v1/research-runs",
@@ -100,6 +101,7 @@ export type SuccessfulJsonResponseByOperation = {
   "GET /v1/local-simulations": paths["/v1/local-simulations"]["get"]["responses"][200]["content"]["application/json"];
   "POST /v1/local-simulations": paths["/v1/local-simulations"]["post"]["responses"][201]["content"]["application/json"];
   "GET /v1/local-simulations/{simulation_run_id}": paths["/v1/local-simulations/{simulation_run_id}"]["get"]["responses"][200]["content"]["application/json"];
+  "GET /v1/local-simulations/{simulation_run_id}/evidence-bundle": paths["/v1/local-simulations/{simulation_run_id}/evidence-bundle"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings": paths["/v1/mappings"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings/{mapping_id}": paths["/v1/mappings/{mapping_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/research-runs": paths["/v1/research-runs"]["get"]["responses"][200]["content"]["application/json"];
@@ -296,6 +298,11 @@ export const successfulJsonResponseSchemas: Record<
   "GET /v1/local-simulations/{simulation_run_id}": {
     "200": {
       "$ref": "#/components/schemas/PaperSimulationArtifact"
+    }
+  },
+  "GET /v1/local-simulations/{simulation_run_id}/evidence-bundle": {
+    "200": {
+      "$ref": "#/components/schemas/LocalSimulationEvidenceBundle"
     }
   },
   "GET /v1/mappings": {
@@ -5124,6 +5131,44 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     ],
     "title": "ListingStatus",
     "type": "string"
+  },
+  "LocalSimulationEvidenceBundle": {
+    "additionalProperties": false,
+    "description": "Portable deterministic projection of one fully revalidated Phase 10 artifact.",
+    "properties": {
+      "bundle_schema_version": {
+        "const": "phase11-local-simulation-evidence-bundle-v1",
+        "title": "Bundle Schema Version",
+        "type": "string"
+      },
+      "bundle_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Bundle Sha256",
+        "type": "string"
+      },
+      "simulation": {
+        "$ref": "#/components/schemas/PaperSimulationArtifact"
+      },
+      "simulation_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Simulation Artifact Sha256",
+        "type": "string"
+      },
+      "simulation_run_id": {
+        "format": "uuid",
+        "title": "Simulation Run Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "bundle_schema_version",
+      "bundle_sha256",
+      "simulation_run_id",
+      "simulation_artifact_sha256",
+      "simulation"
+    ],
+    "title": "LocalSimulationEvidenceBundle",
+    "type": "object"
   },
   "MacroRateObservationPayload": {
     "additionalProperties": false,

@@ -625,17 +625,17 @@ def test_phase9_ci_hydrates_exact_frozen_linux_rolldown_binding_only_for_unit() 
     assert unit.index(install) < unit.index(metadata_check) < unit.index("- run: npm test")
 
 
-def test_phase9_and_phase10_only_widen_phase6_transport_patience_and_record_substages() -> None:
+def test_phase9_through_phase11_widen_phase6_transport_patience_and_record_substages() -> None:
     verifier_path = ROOT / "scripts/verify_phase1.py"
     spec = importlib.util.spec_from_file_location("phase9_timeout_verifier", verifier_path)
     assert spec is not None and spec.loader is not None
     verifier = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(verifier)
 
-    for inherited_phase in (6, 7, 8, 11):
+    for inherited_phase in (6, 7, 8, 12):
         assert verifier.phase6_request_timeout_profile(inherited_phase) == (240, 60, 10)
     assert verifier.PHASE_6_TIMEOUT_PHASE.get() == 6
-    for closure_phase in (9, 10):
+    for closure_phase in (9, 10, 11):
         assert verifier.phase6_request_timeout_profile(closure_phase) == (480, 180, 30)
         with verifier.phase6_request_timeout_context(closure_phase):
             assert verifier.PHASE_6_TIMEOUT_PHASE.get() == closure_phase

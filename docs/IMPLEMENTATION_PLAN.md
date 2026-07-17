@@ -20,6 +20,7 @@ Phase 1 control plane
   -> Phase 8 complete product workflows and visual QA
   -> Phase 9 single-flight release-acceptance evidence
   -> Phase 10 deterministic local mock-only paper simulation
+  -> Phase 11 portable deterministic local simulation evidence verification
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -39,6 +40,7 @@ do not receive executable scaffolds.
 | 8 | full four-mode workflows and traceability | source-to-audit route in ≤2 clicks; visible gate precedence; accessibility/visual tests |
 | 9 | assertion-preserving release-gate orchestration and evidence | single-flight Windows/Ubuntu runner; verified sanitized manifests at one SHA/tree |
 | 10 | deterministic local mock-only simulation with fresh governance and immutable ledger | direct Windows/Ubuntu verifier; reversible migration, exact completed/blocked artifacts, idempotency, append-only and browser proof |
+| 11 | deterministic read-only bundle, GET-only retrieval, local JSON download, and offline verification of existing Phase 10 artifacts | generated contracts; completed/blocked and tamper proof; zero writes; network denial; inherited browser and cross-platform cleanup proof |
 
 ## Required handoff template
 
@@ -56,6 +58,6 @@ Every implementer task must include:
 9. **Handoff report.** Files changed, commands/results, known limitations, and the next phase prompt.
 10. **Stop condition.** Stop immediately after the named phase; do not anticipate later behavior.
 
-The accepted Phase 9 boundary remains recorded in `docs/handoffs/PHASE_09.md`. The separately
-authorized Phase 10 boundary and direct cross-platform closure gate are in
-`docs/handoffs/PHASE_10.md`; they do not authorize Phase 11 implementation or deployment.
+The accepted Phase 10 boundary remains recorded in `docs/handoffs/PHASE_10.md`. The separately
+authorized Phase 11 read-only boundary and direct cross-platform closure gate are in
+`docs/handoffs/PHASE_11.md`; they authorize no Phase 12 implementation, publication, or deployment.

@@ -1,6 +1,7 @@
 import type { components } from "@fable5/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import completedSimulationFixture from "../../e2e/fixtures/phase10-completed.json";
 import { API_REQUEST_TIMEOUT_MS, fable5Api } from "../lib/api";
 
 function response(status: number, body: unknown = {}) {
@@ -292,6 +293,47 @@ describe("Phase 10 local simulation API client", () => {
     });
     expect(malformedDetailArtifact).toMatchObject({
       error: { kind: "malformed" },
+      ok: false,
+    });
+  });
+});
+
+describe("Phase 11 local simulation evidence API client", () => {
+  const simulation =
+    completedSimulationFixture as unknown as components["schemas"]["PaperSimulationArtifact"];
+  const bundle = {
+    bundle_schema_version: "phase11-local-simulation-evidence-bundle-v1",
+    bundle_sha256: "8ad868297ec060d00067a5e17e40df83123a306898bfd9eacd869d0af543647c",
+    simulation,
+    simulation_artifact_sha256: simulation.artifact_sha256,
+    simulation_run_id: simulation.simulation_run_id,
+  } satisfies components["schemas"]["LocalSimulationEvidenceBundle"];
+
+  it("uses the exact generated read-only evidence-bundle GET", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(200, bundle));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fable5Api.getLocalSimulationEvidenceBundle(simulation.simulation_run_id);
+
+    expect(result).toEqual({ data: bundle, ok: true, retrySafe: true, status: 200 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `http://localhost:8000/v1/local-simulations/${simulation.simulation_run_id}/evidence-bundle`,
+    );
+    expect(fetchMock.mock.calls[0]?.[1]).not.toHaveProperty("method");
+    expect(fetchMock.mock.calls[0]?.[1]).not.toHaveProperty("body");
+  });
+
+  it("rejects a malformed evidence bundle at the generated boundary", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response(200, { ...bundle, bundle_sha256: "not-a-sha" })),
+    );
+
+    const result = await fable5Api.getLocalSimulationEvidenceBundle(simulation.simulation_run_id);
+
+    expect(result).toMatchObject({
+      error: { kind: "malformed", retrySafe: true, status: 200 },
       ok: false,
     });
   });

@@ -22,6 +22,7 @@ import {
   timelineFailureForAssessment,
   timelineForAssessment,
 } from "../../components/GovernanceEvidence";
+import { LocalEvidenceBundleExport } from "../../components/LocalEvidenceBundleExport";
 import {
   type ApiFailure,
   fable5Api,
@@ -582,7 +583,10 @@ function SimulationArtifactCard({
 
       <details className="evidenceDisclosure simulationArtifactDisclosure">
         <summary>Inspect exact persisted simulation artifact JSON</summary>
-        <pre>{JSON.stringify(artifact, null, 2)}</pre>
+        <pre aria-label="Exact persisted simulation artifact JSON" tabIndex={0}>
+          {JSON.stringify(artifact, null, 2)}
+        </pre>
+        <LocalEvidenceBundleExport artifact={artifact} />
       </details>
 
       <p className="simulationDisclaimer">{artifact.disclaimer}</p>

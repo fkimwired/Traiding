@@ -10,6 +10,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -543,6 +544,80 @@ PHASE_10_ALLOWED_WRITES = frozenset(
         *PHASE_10_VISUAL_BASELINE_PATHS,
     }
 )
+PHASE_11_BASELINE_SHA = "3acd25f5bb4bcbeec684f672c3b816562d2366dc"
+EXPECTED_PHASE_11_BASELINE_TREE = "88929434b0e13ea2a7c3e4baf9c00d08c69fb276"
+PHASE_11_BUNDLE_SCHEMA_VERSION = "phase11-local-simulation-evidence-bundle-v1"
+PHASE_11_BUNDLE_PATH = "/v1/local-simulations/{simulation_run_id}/evidence-bundle"
+PHASE_11_BROWSER_SPECS = ("e2e/phase11.accessibility.spec.ts",)
+PHASE_11_PHASE10_MIGRATION_SHA256 = (
+    "947293ff5c6b471045479aee280904346a6ef03733ec2b8e92dc03b87a30e405"
+)
+PHASE_11_PAPER_REPOSITORY_SHA256 = (
+    "80c01c826bb4f6720fea332d0401a9896537de5f1bfec5b82607d68bdd953fe0"
+)
+PHASE_11_REQUIRED_PATHS = (
+    "docs/PHASE_11_PORTABLE_SIMULATION_EVIDENCE_DECISIONS.md",
+    "docs/handoffs/PHASE_11.md",
+    "packages/contracts/src/phase11-contract.type-test.ts",
+    "scripts/verify_local_simulation_evidence.py",
+    "services/api/tests/test_phase11_openapi_contract.py",
+    "services/api/tests/test_phase11_routes.py",
+    "services/frontend/e2e/phase11.accessibility.spec.ts",
+    "services/frontend/e2e/phase11.fixtures.ts",
+    "services/frontend/src/components/LocalEvidenceBundleExport.tsx",
+    "services/frontend/src/lib/local-evidence-download.ts",
+    "services/frontend/src/tests/LocalEvidenceBundleExport.test.tsx",
+    "services/frontend/src/tests/LocalEvidenceDownload.test.ts",
+    "services/paper/src/fable5_paper/evidence.py",
+    "services/paper/tests/test_phase11_evidence_bundle.py",
+    "tests/test_phase11_local_simulation_evidence.py",
+    "tests/test_phase11_static.py",
+)
+PHASE_11_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "README.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/PHASE_11_PORTABLE_SIMULATION_EVIDENCE_DECISIONS.md",
+        "docs/handoffs/PHASE_11.md",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/phase11-contract.type-test.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        "scripts/verify_local_simulation_evidence.py",
+        "scripts/verify_phase1.py",
+        "services/api/src/fable5_api/local_simulations.py",
+        "services/api/src/fable5_api/main.py",
+        "services/api/tests/test_phase11_openapi_contract.py",
+        "services/api/tests/test_phase11_routes.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
+        "services/frontend/e2e/phase8.visual.spec.ts",
+        "services/frontend/e2e/phase11.accessibility.spec.ts",
+        "services/frontend/e2e/phase11.fixtures.ts",
+        "services/frontend/src/app/paper/PaperStatusWorkspace.tsx",
+        "services/frontend/src/app/phase8.css",
+        "services/frontend/src/components/LocalEvidenceBundleExport.tsx",
+        "services/frontend/src/lib/api.ts",
+        "services/frontend/src/lib/local-evidence-download.ts",
+        "services/frontend/src/tests/ApiClient.test.ts",
+        "services/frontend/src/tests/LocalEvidenceBundleExport.test.tsx",
+        "services/frontend/src/tests/LocalEvidenceDownload.test.ts",
+        "services/frontend/src/tests/PaperStatusWorkspace.test.tsx",
+        "services/paper/README.md",
+        "services/paper/src/fable5_paper/evidence.py",
+        "services/paper/src/fable5_paper/workflow.py",
+        "services/paper/tests/test_phase11_evidence_bundle.py",
+        "tests/test_phase10_static.py",
+        "tests/test_phase11_local_simulation_evidence.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -791,9 +866,11 @@ def phase_number(value: str) -> int:
     try:
         phase = int(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10") from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10")
+        raise argparse.ArgumentTypeError(
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, or 11"
+        ) from exc
+    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}:
+        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, or 11")
     return phase
 
 
@@ -1151,7 +1228,7 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+(10|[1-9])\b", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+(11|10|[1-9])\b", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -2701,23 +2778,28 @@ def phase10_clean_git_identity(
     stage: str,
     *,
     expected: tuple[str, str] | None = None,
+    phase: int = 10,
 ) -> tuple[str, str]:
     status = git_text("status", "--porcelain=v1", "--untracked-files=all")
     if status:
-        raise AssertionError(f"Phase 10 {stage} requires a clean worktree and index: {status!r}")
+        raise AssertionError(
+            f"Phase {phase} {stage} requires a clean worktree and index: {status!r}"
+        )
     identity = (
         git_text("rev-parse", "--verify", "HEAD"),
         git_text("show", "-s", "--format=%T", "HEAD"),
     )
     sha, tree = identity
     if re.fullmatch(r"[0-9a-f]{40}", sha) is None or re.fullmatch(r"[0-9a-f]{40}", tree) is None:
-        raise AssertionError(f"Phase 10 {stage} returned an invalid Git identity: {identity!r}")
+        raise AssertionError(
+            f"Phase {phase} {stage} returned an invalid Git identity: {identity!r}"
+        )
     if expected is not None and identity != expected:
         raise AssertionError(
-            f"Phase 10 Git identity changed during acceptance: expected={expected!r}, "
+            f"Phase {phase} Git identity changed during acceptance: expected={expected!r}, "
             f"actual={identity!r}"
         )
-    print(f"Phase 10 acceptance identity ({stage}): sha={sha} tree={tree} clean=true")
+    print(f"Phase {phase} acceptance identity ({stage}): sha={sha} tree={tree} clean=true")
     return identity
 
 
@@ -2862,42 +2944,50 @@ def verify_phase9_static() -> None:
         raise AssertionError("Phase 9 PostgreSQL acceptance does not preserve head 0007_phase7")
 
 
-def verify_phase10_static() -> None:
+def verify_phase10_static(
+    *,
+    release_closure: bool = True,
+    active_phase: int = 10,
+) -> None:
     for relative_path in PHASE_10_REQUIRED_PATHS:
         if not (ROOT / relative_path).exists():
             raise AssertionError(f"Missing Phase 10 path: {relative_path}")
 
-    if git_text("show", "-s", "--format=%T", PHASE_9_BASELINE_SHA) != EXPECTED_PHASE_9_TREE:
-        raise AssertionError("The authorized Phase 9 baseline tree does not match")
-    ancestry = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", PHASE_9_BASELINE_SHA, "HEAD"],
-        cwd=ROOT,
-        check=False,
-        capture_output=True,
-    )
-    if ancestry.returncode != 0:
-        raise AssertionError("Phase 10 HEAD is not descended from the accepted Phase 9 baseline")
-
-    changed_paths = {
-        path.replace("\\", "/")
-        for path in git_text("diff", "--name-only", PHASE_9_BASELINE_SHA, "--").splitlines()
-        if path
-    }
-    changed_paths.update(
-        path.replace("\\", "/")
-        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
-        if path
-    )
-    changed_paths.update(
-        path.replace("\\", "/")
-        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
-        if path
-    )
-    forbidden_changes = sorted(changed_paths - PHASE_10_ALLOWED_WRITES)
-    if forbidden_changes:
-        raise AssertionError(
-            "Phase 10 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+    if release_closure:
+        if git_text("show", "-s", "--format=%T", PHASE_9_BASELINE_SHA) != EXPECTED_PHASE_9_TREE:
+            raise AssertionError("The authorized Phase 9 baseline tree does not match")
+        ancestry = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", PHASE_9_BASELINE_SHA, "HEAD"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
         )
+        if ancestry.returncode != 0:
+            raise AssertionError(
+                "Phase 10 HEAD is not descended from the accepted Phase 9 baseline"
+            )
+
+        changed_paths = {
+            path.replace("\\", "/")
+            for path in git_text("diff", "--name-only", PHASE_9_BASELINE_SHA, "--").splitlines()
+            if path
+        }
+        changed_paths.update(
+            path.replace("\\", "/")
+            for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+            if path
+        )
+        changed_paths.update(
+            path.replace("\\", "/")
+            for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+            if path
+        )
+        forbidden_changes = sorted(changed_paths - PHASE_10_ALLOWED_WRITES)
+        if forbidden_changes:
+            raise AssertionError(
+                "Phase 10 changed paths outside the exact allowlist: "
+                + ", ".join(forbidden_changes)
+            )
 
     snapshot_root = ROOT / PHASE_10_VISUAL_SNAPSHOT_DIRECTORY
     actual_baselines = {path.name for path in snapshot_root.glob("*.png")}
@@ -3084,12 +3174,13 @@ def verify_phase10_static() -> None:
         ("phase8.visual.spec.ts", inherited_visual),
     ):
         if (
-            'process.env.FABLE5_VERIFY_PHASE ?? "10"' not in source
+            f'process.env.FABLE5_VERIFY_PHASE ?? "{active_phase}"' not in source
             or "inheritedModes" not in source
             or 'mode.path !== "/paper"' not in source
         ):
             raise AssertionError(
-                f"Phase 10 does not preserve active inherited browser coverage in {spec_name}"
+                f"Phase {active_phase} does not preserve active inherited browser coverage "
+                f"in {spec_name}"
             )
 
     pyproject = normalized(ROOT / "pyproject.toml")
@@ -3109,17 +3200,258 @@ def verify_phase10_static() -> None:
         )
     if PHASE_10_LINUX_SNAPSHOT_FLAG in workflow or "FABLE5_UPDATE_SNAPSHOTS" in workflow:
         raise AssertionError("Phase 10 CI must compare, never regenerate, visual baselines")
-    if "python scripts/verify_phase1.py --phase 10" not in workflow:
-        raise AssertionError("Phase 10 CI does not run the full Compose verifier")
-    readme = normalized(ROOT / "README.md")
-    for required in (
-        "## Phase 10 implementation status",
-        "scripts\\verify_phase1.py --phase 10",
-        "binds and reports the same commit SHA/tree",
-        "fable5_acceptance_*",
+    if release_closure:
+        if "python scripts/verify_phase1.py --phase 10" not in workflow:
+            raise AssertionError("Phase 10 CI does not run the full Compose verifier")
+        readme = normalized(ROOT / "README.md")
+        for required in (
+            "## Phase 10 implementation status",
+            "scripts\\verify_phase1.py --phase 10",
+            "binds and reports the same commit SHA/tree",
+            "fable5_acceptance_*",
+        ):
+            if required not in readme:
+                raise AssertionError(f"Phase 10 README closure truth is missing: {required}")
+
+
+def verify_phase11_static() -> None:
+    missing = [path for path in PHASE_11_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 11 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_11_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 10 baseline is unavailable") from exc
+    if (
+        git_text("show", "-s", "--format=%T", PHASE_11_BASELINE_SHA)
+        != EXPECTED_PHASE_11_BASELINE_TREE
     ):
-        if required not in readme:
-            raise AssertionError(f"Phase 10 README closure truth is missing: {required}")
+        raise AssertionError("The authorized Phase 11 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_11_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 11 HEAD is not descended from the accepted Phase 10 baseline")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_11_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_11_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 11 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    expected_migrations = set(PHASE_1_7_MIGRATION_SHA256) | {
+        "services/api/migrations/versions/0008_phase10_local_paper.py"
+    }
+    actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if actual_migrations != expected_migrations or any(
+        path.name.startswith("0009") for path in migration_root.glob("*.py")
+    ):
+        raise AssertionError("Phase 11 must retain exactly migrations 0001 through 0008")
+    migration_sha256 = hashlib.sha256(
+        (migration_root / "0008_phase10_local_paper.py").read_bytes()
+    ).hexdigest()
+    if migration_sha256 != PHASE_11_PHASE10_MIGRATION_SHA256:
+        raise AssertionError("Phase 11 changed the accepted Phase 10 migration")
+    repository_sha256 = hashlib.sha256(
+        (ROOT / "services/paper/src/fable5_paper/repository.py").read_bytes()
+    ).hexdigest()
+    if repository_sha256 != PHASE_11_PAPER_REPOSITORY_SHA256:
+        raise AssertionError("Phase 11 changed the accepted Phase 10 persistence boundary")
+
+    openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+    path_item = openapi.get("paths", {}).get(PHASE_11_BUNDLE_PATH)
+    if not isinstance(path_item, dict):
+        raise AssertionError("Phase 11 evidence-bundle path is absent from generated OpenAPI")
+    methods = set(path_item) & {"get", "post", "put", "patch", "delete"}
+    if methods != {"get"}:
+        raise AssertionError(f"Phase 11 evidence endpoint is not GET-only: {methods}")
+    operation = path_item["get"]
+    if not isinstance(operation, dict) or "requestBody" in operation:
+        raise AssertionError("Phase 11 evidence GET accepts a request body")
+    parameters = operation.get("parameters", [])
+    if (
+        not isinstance(parameters, list)
+        or len(parameters) != 1
+        or not isinstance(parameters[0], dict)
+        or parameters[0].get("in") != "path"
+        or parameters[0].get("name") != "simulation_run_id"
+    ):
+        raise AssertionError("Phase 11 evidence GET must accept only its path identity")
+    if set(operation.get("responses", {})) != {"200", "404", "409", "422"}:
+        raise AssertionError("Phase 11 evidence GET does not expose exact typed outcomes")
+
+    components = openapi.get("components", {}).get("schemas", {})
+    bundle_schema = components.get("LocalSimulationEvidenceBundle")
+    if not isinstance(bundle_schema, dict):
+        raise AssertionError("Phase 11 evidence bundle schema is absent")
+    expected_fields = {
+        "bundle_schema_version",
+        "bundle_sha256",
+        "simulation_run_id",
+        "simulation_artifact_sha256",
+        "simulation",
+    }
+    properties = bundle_schema.get("properties", {})
+    if (
+        not isinstance(properties, dict)
+        or set(properties) != expected_fields
+        or set(bundle_schema.get("required", [])) != expected_fields
+        or bundle_schema.get("additionalProperties") is not False
+    ):
+        raise AssertionError("Phase 11 bundle is not the exact strict five-field contract")
+    if properties.get("bundle_schema_version", {}).get("const") != PHASE_11_BUNDLE_SCHEMA_VERSION:
+        raise AssertionError("Phase 11 bundle schema version is not a required literal")
+    if (
+        properties.get("simulation", {}).get("$ref")
+        != "#/components/schemas/PaperSimulationArtifact"
+    ):
+        raise AssertionError("Phase 11 bundle does not carry the full generated Phase 10 artifact")
+
+    evidence_path = ROOT / "services/paper/src/fable5_paper/evidence.py"
+    forbidden_evidence_imports = imported_module_roots(evidence_path) & (
+        FORBIDDEN_VENDOR_SDK_MODULES
+        | {"aiohttp", "asyncio", "httpx", "requests", "socket", "sqlalchemy", "urllib", "urllib3"}
+    )
+    if forbidden_evidence_imports:
+        raise AssertionError(
+            "Phase 11 evidence builder imports persistence, network, vendor, or async code: "
+            + ", ".join(sorted(forbidden_evidence_imports))
+        )
+    evidence = normalized(evidence_path)
+    for required in (
+        "LocalSimulationEvidenceBundle",
+        "build_local_simulation_evidence_bundle",
+        "bundle_sha256",
+        PHASE_11_BUNDLE_SCHEMA_VERSION,
+    ):
+        if required not in evidence:
+            raise AssertionError(f"Phase 11 evidence builder is missing {required}")
+
+    cli_path = ROOT / "scripts/verify_local_simulation_evidence.py"
+    cli = normalized(cli_path)
+    for required in (
+        "--bundle",
+        "--expected-bundle-sha256",
+        "sys.addaudithook",
+        "socket.",
+        "subprocess.Popen",
+        "os.system",
+        "MAX_BUNDLE_BYTES = 1024 * 1024",
+        "MAX_NUMERIC_COEFFICIENT_DIGITS = 256",
+        "MAX_NUMERIC_ABS_EXPONENT = 1_000",
+    ):
+        if required not in cli:
+            raise AssertionError(f"Phase 11 offline verifier is missing {required}")
+    forbidden_cli_imports = imported_module_roots(cli_path) & (
+        FORBIDDEN_VENDOR_SDK_MODULES
+        | {
+            "aiohttp",
+            "fastapi",
+            "fable5_api",
+            "httpx",
+            "psycopg",
+            "redis",
+            "requests",
+            "sqlalchemy",
+            "urllib3",
+        }
+    )
+    if forbidden_cli_imports or "FABLE5_DATABASE_URL" in cli:
+        raise AssertionError(
+            "Phase 11 offline verifier imports database, API, network, or vendor code: "
+            + ", ".join(sorted(forbidden_cli_imports))
+        )
+
+    generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+    runtime = normalized(ROOT / "packages/contracts/src/runtime.generated.ts")
+    type_test = normalized(ROOT / "packages/contracts/src/phase11-contract.type-test.ts")
+    frontend_api = normalized(ROOT / "services/frontend/src/lib/api.ts")
+    for required in (
+        "LocalSimulationEvidenceBundle:",
+        f'"{PHASE_11_BUNDLE_PATH}"',
+    ):
+        if required not in generated:
+            raise AssertionError(f"Generated Phase 11 contract is missing {required}")
+    if "LocalSimulationEvidenceBundle" not in runtime:
+        raise AssertionError("Generated Phase 11 runtime validator is missing")
+    for required in ("LocalSimulationEvidenceBundle", "@ts-expect-error", "bundle_sha256"):
+        if required not in type_test:
+            raise AssertionError(f"Phase 11 generated-contract type test is missing {required}")
+    for required in ("getLocalSimulationEvidenceBundle", "LocalSimulationEvidenceBundle"):
+        if required not in frontend_api:
+            raise AssertionError(f"Phase 11 typed frontend client is missing {required}")
+
+    export_ui = normalized(
+        ROOT / "services/frontend/src/components/LocalEvidenceBundleExport.tsx"
+    ).casefold()
+    for required in (
+        "simulated",
+        "local",
+        "no personalized investment advice",
+        "does not rerun or replay",
+        "download",
+    ):
+        if required not in export_ui:
+            raise AssertionError(f"Phase 11 export UI safety copy is missing: {required}")
+    if re.search(r"not\s+a\s+signature", export_ui) is None:
+        raise AssertionError("Phase 11 export UI safety copy is missing: not a signature")
+
+    phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
+    if '"11": "0008_phase10"' not in phase5_postgres_tests:
+        raise AssertionError("Phase 11 PostgreSQL acceptance must preserve head 0008_phase10")
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-11-ci\n")
+        or "phase11-compose:" not in workflow
+        or "python scripts/verify_phase1.py --phase 11" not in workflow
+    ):
+        raise AssertionError("Phase 11 Ubuntu CI does not run the full verifier")
+    immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
+    if workflow.count(immutable_pull) != 1:
+        raise AssertionError("Phase 11 CI must pre-pull the pinned browser image exactly once")
+    if PHASE_10_LINUX_SNAPSHOT_FLAG in workflow or "FABLE5_UPDATE_SNAPSHOTS" in workflow:
+        raise AssertionError("Phase 11 CI must compare, never regenerate, browser baselines")
+    runner = normalized(ROOT / "scripts/run_phase_gate.py")
+    if "choices=(9,)" not in runner:
+        raise AssertionError("Phase 11 changed the Phase 9-only release runner authority")
+
+    decisions = normalized(ROOT / "docs/PHASE_11_PORTABLE_SIMULATION_EVIDENCE_DECISIONS.md")
+    handoff = normalized(ROOT / "docs/handoffs/PHASE_11.md")
+    for required in (
+        PHASE_11_BASELINE_SHA,
+        EXPECTED_PHASE_11_BASELINE_TREE,
+        "GET-only",
+        "not a signature",
+        "no migration",
+        "Phase 12",
+    ):
+        if required not in decisions + handoff:
+            raise AssertionError(f"Phase 11 boundary documentation is missing {required}")
 
 
 def verify_static(phase: int = 1) -> None:
@@ -3134,6 +3466,12 @@ def verify_static(phase: int = 1) -> None:
         verify_static_inherited(10, announce=False)
         verify_phase10_static()
         print("Static repository policy checks passed for Phase 10.")
+        return
+    if phase == 11:
+        verify_static_inherited(11, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=11)
+        verify_phase11_static()
+        print("Static repository policy checks passed for Phase 11.")
         return
     verify_static_inherited(phase)
 
@@ -3208,7 +3546,7 @@ def acceptance_environment(
         ).stdout.strip()
         if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
             raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
-        if phase == 10 and expected_git_identity is not None:
+        if phase in {10, 11} and expected_git_identity is not None:
             git_tree = subprocess.run(
                 ["git", "show", "-s", "--format=%T", "HEAD"],
                 cwd=ROOT,
@@ -3218,7 +3556,7 @@ def acceptance_environment(
             ).stdout.strip()
             if (git_sha, git_tree) != expected_git_identity:
                 raise AssertionError(
-                    "Phase 10 source identity changed between clean preflight and "
+                    f"Phase {phase} source identity changed between clean preflight and "
                     "environment binding"
                 )
         environment["FABLE5_CODE_VERSION_GIT_SHA"] = git_sha
@@ -4331,7 +4669,7 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
 
 
 def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
-    if phase in {9, 10}:
+    if phase in {9, 10, 11}:
         return (
             PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
             PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
@@ -6612,6 +6950,232 @@ def verify_phase10_api(
     }
 
 
+def verify_phase11_api(
+    project: str,
+    environment: dict[str, str],
+    api_url: str,
+    phase10_evidence: dict[str, str],
+) -> None:
+    if set(phase10_evidence) != {
+        "completed_simulation_run_id",
+        "blocked_simulation_run_id",
+    }:
+        raise AssertionError("Phase 11 did not receive exact Phase 10 artifact identities")
+    all_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
+    )
+    before = snapshot_tables(project, environment, all_tables)
+    bundles: dict[str, dict[str, object]] = {}
+    for outcome, identity_key in (
+        ("SIMULATED_COMPLETE", "completed_simulation_run_id"),
+        ("BLOCKED", "blocked_simulation_run_id"),
+    ):
+        simulation_run_id = phase10_evidence[identity_key]
+        artifact = request_json(f"{api_url}/v1/local-simulations/{simulation_run_id}")
+        endpoint = f"{api_url}/v1/local-simulations/{simulation_run_id}/evidence-bundle"
+        bundle = request_json(endpoint)
+        repeated = request_json(endpoint)
+        expected_fields = {
+            "bundle_schema_version",
+            "bundle_sha256",
+            "simulation_run_id",
+            "simulation_artifact_sha256",
+            "simulation",
+        }
+        if (
+            not isinstance(artifact, dict)
+            or not isinstance(bundle, dict)
+            or bundle != repeated
+            or set(bundle) != expected_fields
+            or bundle.get("bundle_schema_version") != PHASE_11_BUNDLE_SCHEMA_VERSION
+            or bundle.get("simulation_run_id") != simulation_run_id
+            or bundle.get("simulation") != artifact
+            or bundle.get("simulation_artifact_sha256") != artifact.get("artifact_sha256")
+            or artifact.get("outcome") != outcome
+            or re.fullmatch(r"[0-9a-f]{64}", str(bundle.get("bundle_sha256"))) is None
+        ):
+            raise AssertionError(
+                f"Phase 11 {outcome} evidence bundle is not an exact repeatable projection"
+            )
+        bundles[outcome] = bundle
+
+    malformed = request_error_json(
+        f"{api_url}/v1/local-simulations/not-a-uuid/evidence-bundle",
+        expected_status=422,
+        method="GET",
+    )
+    if not isinstance(malformed.get("detail"), list):
+        raise AssertionError("Phase 11 malformed bundle identity did not return typed validation")
+    missing = request_error_json(
+        f"{api_url}/v1/local-simulations/00000000-0000-4000-8000-000000000011/evidence-bundle",
+        expected_status=404,
+        method="GET",
+    )
+    if "not found" not in str(missing.get("detail", "")).casefold():
+        raise AssertionError("Phase 11 unknown bundle identity did not fail closed")
+    request_error_json(
+        f"{api_url}/v1/local-simulations/{phase10_evidence['completed_simulation_run_id']}/"
+        "evidence-bundle",
+        expected_status=405,
+        method="POST",
+        payload={},
+    )
+
+    version = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT version_num FROM alembic_version;",
+        ],
+    ).stdout.strip()
+    if version != "0008_phase10":
+        raise AssertionError(f"Phase 11 unexpectedly changed the migration head: {version}")
+
+    cli_environment = {
+        name: value
+        for name, value in os.environ.items()
+        if name.upper()
+        in {
+            "COMSPEC",
+            "HOME",
+            "HOMEDRIVE",
+            "HOMEPATH",
+            "LOCALAPPDATA",
+            "PATH",
+            "PATHEXT",
+            "SYSTEMDRIVE",
+            "SYSTEMROOT",
+            "TEMP",
+            "TMP",
+            "USERPROFILE",
+            "WINDIR",
+        }
+    }
+    existing_pythonpath = os.environ.get("PYTHONPATH")
+    paper_source = str((ROOT / "services/paper/src").resolve())
+    cli_environment["PYTHONPATH"] = (
+        paper_source
+        if not existing_pythonpath
+        else os.pathsep.join((paper_source, existing_pythonpath))
+    )
+    cli_environment["PYTHONIOENCODING"] = "utf-8"
+    verifier = ROOT / "scripts/verify_local_simulation_evidence.py"
+
+    def run_offline(bundle_path: Path, expected_sha256: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(verifier),
+                "--bundle",
+                str(bundle_path),
+                "--expected-bundle-sha256",
+                expected_sha256,
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=cli_environment,
+        )
+
+    with tempfile.TemporaryDirectory(prefix="fable5-phase11-evidence-") as temporary:
+        temporary_root = Path(temporary)
+        for outcome, bundle in bundles.items():
+            bundle_path = temporary_root / f"{outcome.casefold()}.json"
+            bundle_path.write_text(
+                json.dumps(bundle, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            expected_sha256 = str(bundle["bundle_sha256"])
+            valid = run_offline(bundle_path, expected_sha256)
+            try:
+                valid_output = json.loads(valid.stdout)
+            except json.JSONDecodeError as exc:
+                raise AssertionError(
+                    "Phase 11 offline verifier did not emit sanitized JSON"
+                ) from exc
+            if (
+                valid.returncode != 0
+                or valid.stderr
+                or not isinstance(valid_output, dict)
+                or valid_output
+                != {
+                    "bundle_sha256": expected_sha256,
+                    "network": "disabled",
+                    "outcome": outcome,
+                    "schema": PHASE_11_BUNDLE_SCHEMA_VERSION,
+                    "simulation_artifact_sha256": bundle["simulation_artifact_sha256"],
+                    "simulation_run_id": bundle["simulation_run_id"],
+                    "status": "valid",
+                }
+            ):
+                raise AssertionError(f"Phase 11 offline verification failed for {outcome}")
+
+        completed = bundles["SIMULATED_COMPLETE"]
+        tamper_payloads: dict[str, dict[str, object]] = {}
+        nested_tamper = json.loads(json.dumps(completed))
+        nested_tamper["simulation"]["disclaimer"] += " tampered"
+        tamper_payloads["nested-field"] = nested_tamper
+        ledger_tamper = json.loads(json.dumps(completed))
+        ledger_tamper["simulation"]["ledger_entries"][0]["cash_after"] = "999999.00000000"
+        tamper_payloads["ledger"] = ledger_tamper
+        check_order_tamper = json.loads(json.dumps(completed))
+        check_order_tamper["simulation"]["checks"].reverse()
+        tamper_payloads["check-order"] = check_order_tamper
+        numeric_tamper = json.loads(json.dumps(completed))
+        numeric_tamper["simulation"]["configuration"]["approved_proposed_notional"] = "1E+999999"
+        tamper_payloads["numeric-amplification"] = numeric_tamper
+
+        tamper_results: list[tuple[str, subprocess.CompletedProcess[str]]] = []
+        for label, payload in tamper_payloads.items():
+            tampered_path = temporary_root / f"tampered-{label}.json"
+            tampered_path.write_text(
+                json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            tamper_results.append(
+                (label, run_offline(tampered_path, str(completed["bundle_sha256"])))
+            )
+        wrong_trust = run_offline(
+            temporary_root / "simulated_complete.json",
+            "0" * 64,
+        )
+        for label, result in [("separate-trust mismatch", wrong_trust), *tamper_results]:
+            if (
+                result.returncode != 2
+                or result.stdout
+                or result.stderr != "Local simulation evidence verification failed.\n"
+            ):
+                raise AssertionError(f"Phase 11 {label} did not fail with sanitized exit 2")
+
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, all_tables),
+        "during Phase 11 GET and database-free offline verification",
+    )
+    print(
+        "Phase 11 completed/blocked deterministic bundles, separate-trust offline verification, "
+        "adversarial tamper rejection, network denial, migration freeze, and zero database writes "
+        "passed."
+    )
+
+
 def verify_phase8_evidence_timeline_api(api_url: str) -> None:
     summaries = request_json(f"{api_url}/v1/approval-assessments?limit=100")
     if not isinstance(summaries, list) or not summaries:
@@ -6959,10 +7523,11 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase in {9, 10}:
+    if phase in {9, 10, 11}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
+    linux_phase11 = phase == 11 and sys.platform.startswith("linux")
     if linux_phase9:
         command = phase9_linux_playwright_command(project, frontend_url)
     elif linux_phase10:
@@ -6973,7 +7538,15 @@ def verify_phase8_browser(
             spec_paths=PHASE_8_BROWSER_SPECS,
             output_path="/tmp/phase10-inherited-playwright-results",
         )
-    elif phase == 10:
+    elif linux_phase11:
+        command = phase11_linux_playwright_command(
+            project,
+            browser_frontend_url,
+            inherited_phase8_timeout_profile=True,
+            spec_paths=PHASE_8_BROWSER_SPECS,
+            output_path="/tmp/phase11-inherited-playwright-results",
+        )
+    elif phase in {10, 11}:
         command = [
             npm,
             "--workspace",
@@ -6996,13 +7569,17 @@ def verify_phase8_browser(
                 cleanup_phase9_linux_playwright_container(project, browser_environment)
             elif linux_phase10:
                 cleanup_phase10_linux_playwright_container(project, browser_environment)
+            elif linux_phase11:
+                cleanup_phase11_linux_playwright_container(project, browser_environment)
     with phase9_stage(phase, "phase8_browser_post_snapshot"):
         assert_snapshots_equal(
             before,
             snapshot_tables(project, environment, all_tables),
             "during Phase 8 GET-only browser QA",
         )
-    coverage = "unaffected inherited modes and shared layout" if phase == 10 else "all four modes"
+    coverage = (
+        "unaffected inherited modes and shared layout" if phase in {10, 11} else "all four modes"
+    )
     print(
         f"Phase 8 browser QA passed {coverage}: accessibility, keyboard, reduced-motion, "
         "responsive, visual-regression, and at-most-two-interaction lineage checks without "
@@ -7105,6 +7682,79 @@ def phase10_linux_playwright_command(
     return command
 
 
+def phase11_linux_playwright_container_name(project: str) -> str:
+    return f"{project}_phase11_playwright"
+
+
+def cleanup_phase11_linux_playwright_container(
+    project: str,
+    environment: dict[str, str],
+) -> None:
+    subprocess.run(
+        [
+            "docker",
+            "container",
+            "rm",
+            "--force",
+            phase11_linux_playwright_container_name(project),
+        ],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        env=environment,
+    )
+
+
+def phase11_linux_playwright_command(
+    project: str,
+    frontend_url: str,
+    *,
+    inherited_phase8_timeout_profile: bool = False,
+    spec_paths: tuple[str, ...] = PHASE_11_BROWSER_SPECS,
+    output_path: str = "/tmp/phase11-playwright-results",
+) -> list[str]:
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "--init",
+        "--name",
+        phase11_linux_playwright_container_name(project),
+        "--label",
+        f"com.docker.compose.project={project}",
+        "--network",
+        "host",
+        "--ipc",
+        "host",
+        "--mount",
+        f"type=bind,source={ROOT.resolve()},target=/work,readonly",
+        "--workdir",
+        "/work/services/frontend",
+        "--env",
+        f"PLAYWRIGHT_BASE_URL={frontend_url}",
+        "--env",
+        "CI=true",
+        "--env",
+        "FABLE5_VERIFY_PHASE=11",
+    ]
+    if inherited_phase8_timeout_profile:
+        command.extend(["--env", f"{PHASE_9_BROWSER_TIMEOUT_FLAG}=1"])
+    command.extend(
+        [
+            PHASE_9_LINUX_PLAYWRIGHT_IMAGE,
+            "node",
+            "../../node_modules/@playwright/test/cli.js",
+            "test",
+            *spec_paths,
+            "--reporter=list",
+            f"--output={output_path}",
+        ]
+    )
+    return command
+
+
 def verify_phase10_browser(
     project: str,
     environment: dict[str, str],
@@ -7125,7 +7775,14 @@ def verify_phase10_browser(
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
-    generate_linux_snapshots = browser_environment.get(PHASE_10_LINUX_SNAPSHOT_FLAG) == "1"
+    phase = int(browser_environment.get("FABLE5_VERIFY_PHASE", "10"))
+    if phase == 11:
+        browser_environment.pop(PHASE_10_LINUX_SNAPSHOT_FLAG, None)
+        browser_environment.pop("FABLE5_UPDATE_SNAPSHOTS", None)
+        browser_environment.pop("FABLE5_VISUAL_CORPUS", None)
+    generate_linux_snapshots = (
+        phase == 10 and browser_environment.get(PHASE_10_LINUX_SNAPSHOT_FLAG) == "1"
+    )
     if generate_linux_snapshots and (
         browser_environment.get("FABLE5_UPDATE_SNAPSHOTS") != "1"
         or browser_environment.get("FABLE5_VISUAL_CORPUS") != "synthetic"
@@ -7140,14 +7797,21 @@ def verify_phase10_browser(
         else frontend_url
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
-    command = (
-        phase10_linux_playwright_command(
+    if phase == 11 and linux:
+        command = phase11_linux_playwright_command(
+            project,
+            browser_frontend_url,
+            spec_paths=("e2e/phase10.accessibility.spec.ts", "e2e/phase10.visual.spec.ts"),
+            output_path="/tmp/phase11-phase10-playwright-results",
+        )
+    elif linux:
+        command = phase10_linux_playwright_command(
             project,
             browser_frontend_url,
             generate_snapshots=generate_linux_snapshots,
         )
-        if linux
-        else [
+    else:
+        command = [
             npm,
             "--workspace",
             "@fable5/frontend",
@@ -7157,11 +7821,12 @@ def verify_phase10_browser(
             "e2e/phase10.accessibility.spec.ts",
             "e2e/phase10.visual.spec.ts",
         ]
-    )
     try:
         run(command, env=browser_environment)
     finally:
-        if linux:
+        if phase == 11 and linux:
+            cleanup_phase11_linux_playwright_container(project, browser_environment)
+        elif linux:
             cleanup_phase10_linux_playwright_container(project, browser_environment)
     assert_snapshots_equal(
         before,
@@ -7171,6 +7836,63 @@ def verify_phase10_browser(
     print(
         "Phase 10 targeted browser QA passed accessibility, keyboard, responsive, completed/"
         "blocked visual regression, and zero-database-write proof."
+    )
+
+
+def verify_phase11_browser(
+    project: str,
+    environment: dict[str, str],
+    frontend_url: str,
+) -> None:
+    npm = shutil.which("npm")
+    if npm is None:
+        raise RuntimeError("npm is required for Phase 11 browser verification")
+    all_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
+    )
+    before = snapshot_tables(project, environment, all_tables)
+    browser_environment = environment.copy()
+    for name in (
+        PHASE_10_LINUX_SNAPSHOT_FLAG,
+        "FABLE5_UPDATE_SNAPSHOTS",
+        "FABLE5_VISUAL_CORPUS",
+    ):
+        browser_environment.pop(name, None)
+    browser_environment["PLAYWRIGHT_BASE_URL"] = frontend_url
+    linux = sys.platform.startswith("linux")
+    command = (
+        phase11_linux_playwright_command(project, frontend_url)
+        if linux
+        else [
+            npm,
+            "--workspace",
+            "@fable5/frontend",
+            "run",
+            "test:e2e",
+            "--",
+            *PHASE_11_BROWSER_SPECS,
+        ]
+    )
+    try:
+        run(command, env=browser_environment)
+    finally:
+        if linux:
+            cleanup_phase11_linux_playwright_container(project, browser_environment)
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, all_tables),
+        "during Phase 11 read-only evidence export browser QA",
+    )
+    print(
+        "Phase 11 browser QA passed completed/blocked export, explicit local download, "
+        "keyboard/accessibility, inherited route isolation, and zero-database-write proof."
     )
 
 
@@ -8930,17 +9652,24 @@ def phase10_acceptance_resource_inventory(environment: dict[str, str]) -> list[s
 def verify_phase10_acceptance_resource_namespace(
     stage: str,
     environment: dict[str, str],
+    *,
+    phase: int = 10,
 ) -> None:
     resources = phase10_acceptance_resource_inventory(environment)
     if resources:
         raise AssertionError(
-            f"Phase 10 {stage} found verifier resources with ambiguous cleanup ownership: "
+            f"Phase {phase} {stage} found verifier resources with ambiguous cleanup ownership: "
             + ", ".join(resources)
         )
-    print(f"Phase 10 verifier resource namespace ({stage}) is empty.")
+    print(f"Phase {phase} verifier resource namespace ({stage}) is empty.")
 
 
-def verify_phase9_compose_cleanup(project: str, environment: dict[str, str]) -> None:
+def verify_phase9_compose_cleanup(
+    project: str,
+    environment: dict[str, str],
+    *,
+    phase: int = 9,
+) -> None:
     commands = (
         (
             "containers",
@@ -8991,23 +9720,31 @@ def verify_phase9_compose_cleanup(project: str, environment: dict[str, str]) -> 
         )
         remaining.extend(f"{kind}:{name}" for name in result.stdout.splitlines() if name)
     if remaining:
-        raise AssertionError("Phase 9 verifier cleanup left resources: " + ", ".join(remaining))
+        raise AssertionError(
+            f"Phase {phase} verifier cleanup left resources: " + ", ".join(remaining)
+        )
 
 
 def verify_compose(phase: int = 1) -> None:
-    phase10_identity = phase10_clean_git_identity("preflight") if phase == 10 else None
+    acceptance_identity = (
+        phase10_clean_git_identity("preflight", phase=phase) if phase in {10, 11} else None
+    )
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
-    if phase == 10:
-        verify_phase10_acceptance_resource_namespace("preflight", os.environ.copy())
+    if phase in {10, 11}:
+        verify_phase10_acceptance_resource_namespace(
+            "preflight",
+            os.environ.copy(),
+            phase=phase,
+        )
 
     project = f"fable5_acceptance_{uuid.uuid4().hex[:8]}"
-    if phase10_identity is None:
+    if acceptance_identity is None:
         environment, api_url, frontend_url = acceptance_environment(phase)
     else:
         environment, api_url, frontend_url = acceptance_environment(
             phase,
-            expected_git_identity=phase10_identity,
+            expected_git_identity=acceptance_identity,
         )
     try:
         with phase9_stage(phase, "compose_startup"):
@@ -9150,14 +9887,14 @@ def verify_compose(phase: int = 1) -> None:
                                             )
                                         with phase9_stage(phase, "phase8_timeline_api"):
                                             verify_phase8_evidence_timeline_api(api_url)
-                                        if phase in {8, 9, 10}:
+                                        if phase in {8, 9, 10, 11}:
                                             verify_phase8_browser(
                                                 project,
                                                 environment,
                                                 frontend_url,
                                             )
                                             print("Full Compose Phase 8 verification passed.")
-                                    if phase == 10:
+                                    if phase in {10, 11}:
                                         with phase9_stage(phase, "phase10_acceptance"):
                                             with phase9_stage(phase, "phase10_schema_cycle"):
                                                 verify_phase10_migration_cycle(
@@ -9165,7 +9902,7 @@ def verify_compose(phase: int = 1) -> None:
                                                     environment,
                                                 )
                                             with phase9_stage(phase, "phase10_api"):
-                                                verify_phase10_api(
+                                                phase10_evidence = verify_phase10_api(
                                                     project,
                                                     environment,
                                                     api_url,
@@ -9191,6 +9928,21 @@ def verify_compose(phase: int = 1) -> None:
                                                     environment,
                                                     frontend_url,
                                                 )
+                                        if phase == 11:
+                                            with phase9_stage(phase, "phase11_acceptance"):
+                                                with phase9_stage(phase, "phase11_api"):
+                                                    verify_phase11_api(
+                                                        project,
+                                                        environment,
+                                                        api_url,
+                                                        phase10_evidence,
+                                                    )
+                                                with phase9_stage(phase, "phase11_browser"):
+                                                    verify_phase11_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
         else:
             run(
                 [
@@ -9231,25 +9983,35 @@ def verify_compose(phase: int = 1) -> None:
                     text=True,
                     env=environment,
                 )
-                if phase in {9, 10}:
+                if phase in {9, 10, 11}:
                     if cleanup.returncode != 0:
                         raise AssertionError(
                             f"Phase {phase} inherited Compose cleanup exited {cleanup.returncode}"
                         )
-                    if phase == 9:
-                        verify_phase9_compose_cleanup(project, environment)
+                    if phase in {9, 11}:
+                        verify_phase9_compose_cleanup(project, environment, phase=phase)
         finally:
             try:
-                if phase == 10:
-                    verify_phase10_acceptance_resource_namespace("post-cleanup", environment)
+                if phase in {10, 11}:
+                    verify_phase10_acceptance_resource_namespace(
+                        "post-cleanup",
+                        environment,
+                        phase=phase,
+                    )
             finally:
-                if phase10_identity is not None:
-                    phase10_clean_git_identity("post-cleanup", expected=phase10_identity)
+                if acceptance_identity is not None:
+                    phase10_clean_git_identity(
+                        "post-cleanup",
+                        expected=acceptance_identity,
+                        phase=phase,
+                    )
 
     if phase == 9:
         print("Full Compose Phase 9 verification passed.")
     if phase == 10:
         print("Full Compose Phase 10 verification passed.")
+    if phase == 11:
+        print("Full Compose Phase 11 verification passed.")
 
 
 def main() -> int:
@@ -9260,10 +10022,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "10"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "11"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10 "
-            "(default: FABLE5_VERIFY_PHASE or 10)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, or 11 "
+            "(default: FABLE5_VERIFY_PHASE or 11)."
         ),
     )
     args = parser.parse_args()

@@ -469,6 +469,17 @@ describe("simulated paper status workspace", () => {
     expect(within(artifact).getByText(/Server ordinal 1: LOCAL_BOUNDARY_ENFORCED/)).toBeVisible();
     expect(within(artifact).getByRole("article", { name: ledgerEntryId })).toBeVisible();
     expect(within(artifact).getByText("0.50000000 / 0.15000000 / 0.20000000")).toBeVisible();
+    const disclosure = artifact.querySelector("details.simulationArtifactDisclosure");
+    expect(disclosure).not.toBeNull();
+    expect(disclosure).not.toHaveAttribute("open");
+    const persistedJson = disclosure?.querySelector("pre");
+    expect(persistedJson?.nextElementSibling).toHaveClass("localEvidenceExport");
+    expect(
+      within(disclosure as HTMLElement).getByRole("button", {
+        hidden: true,
+        name: "Prepare evidence bundle",
+      }),
+    ).toBeInTheDocument();
     expect(within(artifact).getByRole("link", { name: "Trace source to artifact" })).toHaveAttribute(
       "href",
       `/lineage?assessment_id=${approvedAssessmentId}&simulation_run_id=${simulationRunId}`,

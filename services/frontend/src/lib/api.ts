@@ -277,6 +277,7 @@ type EvaluationRunCreateRequest = components["schemas"]["EvaluationRunCreateRequ
 type ResearchRunCreateRequest = components["schemas"]["ResearchRunCreateRequest"];
 type ApprovalAssessmentCreateRequest = components["schemas"]["ApprovalAssessmentCreateRequest"];
 type ApprovalRevocationCreateRequest = components["schemas"]["ApprovalRevocationCreateRequest"];
+type LocalSimulationEvidenceBundle = components["schemas"]["LocalSimulationEvidenceBundle"];
 type PaperSimulationCreateRequest = components["schemas"]["PaperSimulationCreateRequest"];
 
 export const fable5Api = {
@@ -464,6 +465,16 @@ export const fable5Api = {
       pathParameters: { simulation_run_id: simulationRunId },
       signal,
     }),
+  getLocalSimulationEvidenceBundle: (simulationRunId: string, signal?: AbortSignal) =>
+    getJson("GET /v1/local-simulations/{simulation_run_id}/evidence-bundle", {
+      pathParameters: { simulation_run_id: simulationRunId },
+      signal,
+    }),
 };
 
-export type { PaperSimulationCreateRequest, RemoteValue, SourceIntakeRequest };
+export type {
+  LocalSimulationEvidenceBundle,
+  PaperSimulationCreateRequest,
+  RemoteValue,
+  SourceIntakeRequest,
+};

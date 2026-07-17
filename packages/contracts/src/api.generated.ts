@@ -401,6 +401,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/local-simulations/{simulation_run_id}/evidence-bundle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Local Simulation Evidence Bundle */
+        get: operations["get_local_simulation_evidence_bundle_v1_local_simulations__simulation_run_id__evidence_bundle_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/mappings": {
         parameters: {
             query?: never;
@@ -2753,6 +2770,27 @@ export interface components {
          * @enum {string}
          */
         ListingStatus: "active" | "inactive" | "delisted";
+        /**
+         * LocalSimulationEvidenceBundle
+         * @description Portable deterministic projection of one fully revalidated Phase 10 artifact.
+         */
+        LocalSimulationEvidenceBundle: {
+            /**
+             * Bundle Schema Version
+             * @constant
+             */
+            bundle_schema_version: "phase11-local-simulation-evidence-bundle-v1";
+            /** Bundle Sha256 */
+            bundle_sha256: string;
+            simulation: components["schemas"]["PaperSimulationArtifact"];
+            /** Simulation Artifact Sha256 */
+            simulation_artifact_sha256: string;
+            /**
+             * Simulation Run Id
+             * Format: uuid
+             */
+            simulation_run_id: string;
+        };
         /**
          * MacroRateObservationPayload
          * @description Vintage-aware synthetic policy-rate input, never a signal or model decision.
@@ -7804,6 +7842,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperSimulationArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_local_simulation_evidence_bundle_v1_local_simulations__simulation_run_id__evidence_bundle_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                simulation_run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalSimulationEvidenceBundle"];
                 };
             };
             /** @description Not Found */

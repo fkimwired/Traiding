@@ -5131,6 +5131,44 @@
         "title": "ListingStatus",
         "type": "string"
       },
+      "LocalSimulationEvidenceBundle": {
+        "additionalProperties": false,
+        "description": "Portable deterministic projection of one fully revalidated Phase 10 artifact.",
+        "properties": {
+          "bundle_schema_version": {
+            "const": "phase11-local-simulation-evidence-bundle-v1",
+            "title": "Bundle Schema Version",
+            "type": "string"
+          },
+          "bundle_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Bundle Sha256",
+            "type": "string"
+          },
+          "simulation": {
+            "$ref": "#/components/schemas/PaperSimulationArtifact"
+          },
+          "simulation_artifact_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Simulation Artifact Sha256",
+            "type": "string"
+          },
+          "simulation_run_id": {
+            "format": "uuid",
+            "title": "Simulation Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bundle_schema_version",
+          "bundle_sha256",
+          "simulation_run_id",
+          "simulation_artifact_sha256",
+          "simulation"
+        ],
+        "title": "LocalSimulationEvidenceBundle",
+        "type": "object"
+      },
       "MacroRateObservationPayload": {
         "additionalProperties": false,
         "description": "Vintage-aware synthetic policy-rate input, never a signal or model decision.",
@@ -16595,6 +16633,69 @@
         "summary": "Get Local Simulation",
         "tags": [
           "paper-simulation"
+        ]
+      }
+    },
+    "/v1/local-simulations/{simulation_run_id}/evidence-bundle": {
+      "get": {
+        "operationId": "get_local_simulation_evidence_bundle_v1_local_simulations__simulation_run_id__evidence_bundle_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "simulation_run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Simulation Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalSimulationEvidenceBundle"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperSimulationNotFoundErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperSimulationConflictErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaperSimulationValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Local Simulation Evidence Bundle",
+        "tags": [
+          "local-simulation-evidence"
         ]
       }
     },

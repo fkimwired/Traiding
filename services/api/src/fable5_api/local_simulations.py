@@ -11,6 +11,7 @@ from fable5_paper.contracts import (
     PaperSimulationCreateRequest,
     PaperSimulationSummary,
 )
+from fable5_paper.evidence import LocalSimulationEvidenceBundle
 from fable5_paper.repository import (
     PaperArtifactNotFound,
     PaperRepository,
@@ -55,6 +56,10 @@ Limit = Annotated[int, Query(ge=1, le=100)]
 ApprovalAssessmentFilter = Annotated[UUID | None, Query()]
 
 router = APIRouter(prefix="/v1/local-simulations", tags=["paper-simulation"])
+evidence_router = APIRouter(
+    prefix="/v1/local-simulations",
+    tags=["local-simulation-evidence"],
+)
 
 PAPER_SIMULATION_NOT_FOUND_DETAIL = (
     "The requested immutable Phase 10 simulation evidence was not found."
@@ -233,6 +238,35 @@ def get_local_simulation(
         raise _domain_error(exc) from exc
 
 
+@evidence_router.get(
+    "/{simulation_run_id}/evidence-bundle",
+    response_model=LocalSimulationEvidenceBundle,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": PaperSimulationNotFoundErrorResponse,
+        },
+        status.HTTP_409_CONFLICT: {
+            "model": PaperSimulationConflictErrorResponse,
+        },
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {
+            "model": PaperSimulationValidationErrorResponse,
+        },
+    },
+)
+def get_local_simulation_evidence_bundle(
+    simulation_run_id: UUID,
+    workflow: PaperSimulationWorkflowDependency,
+) -> LocalSimulationEvidenceBundle:
+    try:
+        return workflow.get_simulation_evidence_bundle(simulation_run_id)
+    except (
+        PaperArtifactNotFound,
+        PaperRepositoryConflict,
+        PaperWorkflowConflict,
+    ) as exc:
+        raise _domain_error(exc) from exc
+
+
 PaperSimulationWorkflowFactory = Callable[[Settings], PaperSimulationWorkflow]
 
 __all__ = [
@@ -240,6 +274,7 @@ __all__ = [
     "PaperSimulationNotFoundErrorResponse",
     "PaperSimulationWorkflowFactory",
     "default_paper_simulation_workflow_factory",
+    "evidence_router",
     "paper_simulation_validation_error_handler",
     "router",
 ]

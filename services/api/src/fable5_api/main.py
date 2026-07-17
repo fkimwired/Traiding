@@ -36,6 +36,7 @@ from fable5_api.local_simulations import (
     default_paper_simulation_workflow_factory,
     paper_simulation_validation_error_handler,
 )
+from fable5_api.local_simulations import evidence_router as local_simulation_evidence_router
 from fable5_api.local_simulations import router as local_simulation_router
 from fable5_api.mappings import (
     MappingWorkflowFactory,
@@ -97,6 +98,7 @@ def create_app(
     app.include_router(assessment_router)
     app.include_router(revocation_router)
     app.include_router(local_simulation_router)
+    app.include_router(local_simulation_evidence_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

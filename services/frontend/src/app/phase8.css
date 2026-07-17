@@ -660,7 +660,10 @@ textarea {
 
 .buttonPrimary:disabled,
 .buttonSecondary:disabled,
-.buttonQuiet:disabled {
+.buttonQuiet:disabled,
+.buttonPrimary[aria-disabled="true"],
+.buttonSecondary[aria-disabled="true"],
+.buttonQuiet[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -1005,6 +1008,111 @@ textarea {
 
 .simulationArtifactDisclosure pre {
   max-height: 520px;
+}
+
+.localEvidenceExport {
+  background: #f8f6ef;
+  border: 1px solid var(--p8-line-strong);
+  border-radius: 9px;
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+}
+
+.localEvidenceExport[aria-busy="true"] {
+  cursor: progress;
+}
+
+.localEvidenceExportHeader {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.localEvidenceExportHeader h3 {
+  font: 700 clamp(1.05rem, 2.4vw, 1.3rem)/1.2 Georgia, "Times New Roman", serif;
+  margin: 0.25rem 0 0;
+}
+
+.localEvidenceExport p {
+  line-height: 1.55;
+  margin: 0;
+}
+
+.localEvidenceBoundary,
+.localEvidenceBlocked {
+  border-left: 4px solid var(--p8-green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.65rem 0.8rem;
+}
+
+.localEvidenceBlocked {
+  background: var(--p8-amber-soft);
+  border-left-color: #a56316;
+  color: #684012;
+}
+
+.localEvidenceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.localEvidenceStatus,
+.localEvidenceError,
+.localEvidenceReady {
+  background: #eef0eb;
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+
+.localEvidenceError {
+  background: #fff0ea;
+  border: 1px solid #d79174;
+}
+
+.localEvidenceReady {
+  border: 1px solid #9db9a9;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.localEvidenceAuditGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.localEvidenceAuditGrid dd,
+.localEvidenceCommand {
+  overflow-wrap: anywhere;
+}
+
+.localEvidenceCommand {
+  background: #17241d;
+  border-radius: 7px;
+  color: #f6f3e8;
+  display: block;
+  font: 0.72rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  padding: 0.8rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .localEvidenceExportHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .localEvidenceAuditGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .localEvidenceActions > button {
+    width: 100%;
+  }
 }
 
 .simulationDisclaimer {
