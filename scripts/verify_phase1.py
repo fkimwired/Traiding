@@ -6959,7 +6959,7 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase == 9:
+    if phase in {9, 10}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
@@ -6969,6 +6969,7 @@ def verify_phase8_browser(
         command = phase10_linux_playwright_command(
             project,
             browser_frontend_url,
+            inherited_phase8_timeout_profile=True,
             spec_paths=PHASE_8_BROWSER_SPECS,
             output_path="/tmp/phase10-inherited-playwright-results",
         )
@@ -7039,6 +7040,7 @@ def phase10_linux_playwright_command(
     frontend_url: str,
     *,
     generate_snapshots: bool = False,
+    inherited_phase8_timeout_profile: bool = False,
     spec_paths: tuple[str, ...] = (
         "e2e/phase10.accessibility.spec.ts",
         "e2e/phase10.visual.spec.ts",
@@ -7078,6 +7080,8 @@ def phase10_linux_playwright_command(
             "FABLE5_VERIFY_PHASE=10",
         ]
     )
+    if inherited_phase8_timeout_profile:
+        command.extend(["--env", f"{PHASE_9_BROWSER_TIMEOUT_FLAG}=1"])
     if generate_snapshots:
         command.extend(
             [

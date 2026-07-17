@@ -206,6 +206,7 @@ def test_phase10_linux_acceptance_mount_is_read_only_and_immutable() -> None:
     assert verifier.PHASE_9_LINUX_PLAYWRIGHT_IMAGE in command
     assert "FABLE5_UPDATE_SNAPSHOTS=1" not in command
     assert "FABLE5_VISUAL_CORPUS=synthetic" not in command
+    assert f"{verifier.PHASE_9_BROWSER_TIMEOUT_FLAG}=1" not in command
 
 
 def test_phase10_linux_snapshot_generation_requires_an_explicit_writable_profile() -> None:
@@ -219,6 +220,7 @@ def test_phase10_linux_snapshot_generation_requires_an_explicit_writable_profile
     assert not mount.endswith(",readonly")
     assert "FABLE5_UPDATE_SNAPSHOTS=1" in command
     assert "FABLE5_VISUAL_CORPUS=synthetic" in command
+    assert f"{verifier.PHASE_9_BROWSER_TIMEOUT_FLAG}=1" not in command
 
 
 def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime(
@@ -245,19 +247,40 @@ def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime
         lambda project, environment: cleaned.append(project),
     )
 
+    phase10_environment = {
+        "FABLE5_VERIFY_PHASE": "10",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    original_phase10_environment = phase10_environment.copy()
     verifier.verify_phase8_browser(
         "phase10-inherited",
-        {"FABLE5_VERIFY_PHASE": "10"},
+        phase10_environment,
         "http://127.0.0.1:3000",
     )
 
     command, environment = captured[-1]
+    assert phase10_environment == original_phase10_environment
     assert "e2e/phase8.accessibility.spec.ts" in command
     assert "e2e/phase8.visual.spec.ts" in command
     assert "e2e/phase10.accessibility.spec.ts" not in command
     assert "FABLE5_VERIFY_PHASE=10" in command
+    timeout_flag = f"{verifier.PHASE_9_BROWSER_TIMEOUT_FLAG}=1"
+    assert command.count(timeout_flag) == 1
     assert command[command.index("--mount") + 1].endswith(",readonly")
     assert environment["FABLE5_VERIFY_PHASE"] == "10"
+    assert environment[verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "1"
+    assert cleaned == ["phase10-inherited"]
+
+    future_environment = {
+        "FABLE5_VERIFY_PHASE": "11",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    original_future_environment = future_environment.copy()
+    verifier.verify_phase8_browser("future", future_environment, "http://127.0.0.1:3000")
+    future_command, future_host_environment = captured[-1]
+    assert future_environment == original_future_environment
+    assert timeout_flag not in future_command
+    assert verifier.PHASE_9_BROWSER_TIMEOUT_FLAG not in future_host_environment
     assert cleaned == ["phase10-inherited"]
 
 
