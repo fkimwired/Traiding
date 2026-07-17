@@ -12,6 +12,12 @@ from fable5_api.approvals import (
     revocation_router,
 )
 from fable5_api.config import Settings, get_settings
+from fable5_api.data_qualifications import (
+    PointInTimeQualificationRepositoryFactory,
+    default_point_in_time_qualification_repository_factory,
+    point_in_time_qualification_validation_error_handler,
+)
+from fable5_api.data_qualifications import router as data_qualification_router
 from fable5_api.data_snapshots import (
     SnapshotWorkflowFactory,
     default_snapshot_workflow_factory,
@@ -47,7 +53,6 @@ from fable5_api.mappings import (
 from fable5_api.paper_shadow_readiness import (
     PaperShadowReadinessRepositoryFactory,
     default_paper_shadow_readiness_repository_factory,
-    paper_shadow_readiness_validation_error_handler,
 )
 from fable5_api.paper_shadow_readiness import router as paper_shadow_readiness_router
 from fable5_api.readiness import check_dependencies
@@ -74,6 +79,9 @@ def create_app(
     paper_shadow_readiness_repository_factory: PaperShadowReadinessRepositoryFactory = (
         default_paper_shadow_readiness_repository_factory
     ),
+    point_in_time_qualification_repository_factory: PointInTimeQualificationRepositoryFactory = (
+        default_point_in_time_qualification_repository_factory
+    ),
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -90,7 +98,7 @@ def create_app(
     )
     app.add_exception_handler(
         RequestValidationError,
-        paper_shadow_readiness_validation_error_handler,
+        point_in_time_qualification_validation_error_handler,
     )
     app.state.idea_intake_workflow = workflow_factory(settings)
     app.state.mapping_workflow = mapping_workflow_factory(settings)
@@ -101,6 +109,9 @@ def create_app(
     app.state.paper_simulation_workflow = paper_simulation_workflow_factory(settings)
     app.state.paper_shadow_readiness_repository = paper_shadow_readiness_repository_factory(
         settings
+    )
+    app.state.point_in_time_qualification_repository = (
+        point_in_time_qualification_repository_factory(settings)
     )
     app.include_router(router)
     app.include_router(mapping_router)
@@ -114,6 +125,7 @@ def create_app(
     app.include_router(local_simulation_router)
     app.include_router(local_simulation_evidence_router)
     app.include_router(paper_shadow_readiness_router)
+    app.include_router(data_qualification_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

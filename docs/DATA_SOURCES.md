@@ -105,6 +105,27 @@ in June 2026; procurement and delivery assumptions must be revalidated. Tiingo's
 `asReported`, release dates, delisted instruments, and stable identifiers, making it a candidate for a
 capability test—not proof that every field has complete point-in-time coverage.
 
+### Phase 13 qualification boundary
+
+Phase 13 freezes Tiingo as one qualification candidate, not an approved research provider. Its fixed
+sample plan uses header-only token authentication and bounded GETs against the documented EOD,
+fundamentals, distribution, and split surfaces. No URL, symbol, date, dataset, entitlement, or
+capability is supplied by the operator. Provider bodies are validated transiently, reduced to
+sanitized counts/ranges/hashes/findings, and discarded rather than stored or returned.
+
+The candidate is blocked unless independently reviewed current evidence proves storage,
+non-display, and derived-data rights. Tiingo's documented stable identity, active/delisted metadata,
+raw/adjusted EOD fields, release dates, and as-reported values are candidate capabilities only.
+Official documentation does not by itself prove historical universe reconstruction, delisting-return
+semantics, full revision coverage, account entitlement, or Fable5's permitted use. Missing or
+unproven capabilities remain explicit `BLOCKED`/`UNCOMPUTABLE` checks; current membership can never
+substitute for historical membership.
+
+Deterministic mock acceptance proves the local contract only and always leaves research-data
+eligibility, strategy promotion, execution, and order authority false. A separately authorized real
+sample could at most prove `EXTERNAL_SAMPLE_QUALIFIED`; it would remain qualification evidence, not a
+Phase 4 snapshot or performance result.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

@@ -490,6 +490,7 @@ def test_phase5_online_migration_reaches_expected_phase_head_and_creates_exact_t
                 "10": "0008_phase10",
                 "11": "0008_phase10",
                 "12": "0009_phase12",
+                "13": "0010_phase13",
             }.get(os.environ.get("FABLE5_VERIFY_PHASE"), "0005_phase5")
             assert revision == expected_revision
         tables = set(inspect(engine).get_table_names())

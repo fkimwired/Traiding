@@ -15,9 +15,10 @@ eligibility, pre-order risk, or order authority.
 - The only valid execution-mode value is `paper`.
 - There is no `live` enum member, broker production URL, arbitrary broker base URL, live credential,
   or live-order method.
-- The only external adapter is Phase 12's fixed six-method read-only paper inspection boundary. It has
-  no order-submission, replacement, cancellation, liquidation, fill, or position-mutation method.
-  Phase 10's ledger is a local synthetic calculation only.
+- External adapters are read-only and phase-isolated: Phase 12's fixed six-method paper inspection
+  boundary and Phase 13's fixed point-in-time qualification candidate. Neither has an
+  order-submission, replacement, cancellation, liquidation, fill, position-mutation, strategy, or
+  research-snapshot method. Phase 10's ledger is a local synthetic calculation only.
 - “Disabled live trading” is insufficient because it implies a dormant path; the path must be absent.
 - The UI and API describe paper activity as simulated and never as fills representative of live
   execution quality.
@@ -80,6 +81,21 @@ produce `SHADOW_READY`. External readiness expires after 60 seconds and still do
 later action. Nonempty positions/orders, a closed clock, blocked account, inactive instrument, stale
 or invalid quote, transport/schema defect, or uncomputable check blocks readiness. Broker paper
 observations cannot override local cost/slippage, leakage, governance, or risk gates.
+
+## Point-in-time data qualification (Phase 13)
+
+Phase 13 assesses only whether a bounded sample can evidence six frozen Family A data capabilities.
+It never creates a research snapshot, computes a signal or return, promotes a strategy, or consumes
+Phase 7/10/11/12 evidence as authority. A deterministic mock may prove the contract but can never
+claim external qualification.
+
+Every qualification artifact fixes `research_data_eligible=false`,
+`strategy_promotion_authorized=false`, `strategy_execution_eligible=false`,
+`execution_authorized=false`, and `order_submission_authorized=false`. Missing rights, historical
+membership, delisting-return semantics, revisions, action timing, reconciliation, or schema
+determinism blocks the qualification; a hash or superficially complete response cannot override a
+failed/uncomputable check. Even an independently authorized `EXTERNAL_SAMPLE_QUALIFIED` result would
+remain a historical sample assessment and could not supply current risk or execution authority.
 
 ## Kill switch
 

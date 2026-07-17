@@ -61,6 +61,7 @@ export const successfulJsonOperations = [
   "GET /v1/mappings",
   "GET /v1/mappings/{mapping_id}",
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}",
+  "GET /v1/point-in-time-data-qualifications/{qualification_id}",
   "GET /v1/research-runs",
   "POST /v1/research-runs",
   "GET /v1/research-runs/{run_id}",
@@ -106,6 +107,7 @@ export type SuccessfulJsonResponseByOperation = {
   "GET /v1/mappings": paths["/v1/mappings"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings/{mapping_id}": paths["/v1/mappings/{mapping_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}": paths["/v1/paper-shadow-readiness/{readiness_assessment_id}"]["get"]["responses"][200]["content"]["application/json"];
+  "GET /v1/point-in-time-data-qualifications/{qualification_id}": paths["/v1/point-in-time-data-qualifications/{qualification_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/research-runs": paths["/v1/research-runs"]["get"]["responses"][200]["content"]["application/json"];
   "POST /v1/research-runs": paths["/v1/research-runs"]["post"]["responses"][201]["content"]["application/json"];
   "GET /v1/research-runs/{run_id}": paths["/v1/research-runs/{run_id}"]["get"]["responses"][200]["content"]["application/json"];
@@ -324,6 +326,11 @@ export const successfulJsonResponseSchemas: Record<
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}": {
     "200": {
       "$ref": "#/components/schemas/PaperShadowReadinessArtifact"
+    }
+  },
+  "GET /v1/point-in-time-data-qualifications/{qualification_id}": {
+    "200": {
+      "$ref": "#/components/schemas/PointInTimeQualificationArtifact"
     }
   },
   "GET /v1/research-runs": {
@@ -8935,6 +8942,181 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     "title": "Phase6SnapshotBindingLineage",
     "type": "object"
   },
+  "PointInTimeQualificationArtifact": {
+    "additionalProperties": false,
+    "properties": {
+      "artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Artifact Sha256",
+        "type": "string"
+      },
+      "capability_manifests": {
+        "items": {
+          "$ref": "#/components/schemas/QualificationCapabilityManifest"
+        },
+        "title": "Capability Manifests",
+        "type": "array"
+      },
+      "capture_manifest_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Capture Manifest Sha256",
+        "type": "string"
+      },
+      "checks": {
+        "items": {
+          "$ref": "#/components/schemas/QualificationCheck"
+        },
+        "title": "Checks",
+        "type": "array"
+      },
+      "code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Code Version Git Sha",
+        "type": "string"
+      },
+      "completed_at_utc": {
+        "format": "date-time",
+        "title": "Completed At Utc",
+        "type": "string"
+      },
+      "disclaimer": {
+        "const": "Qualification-only sample evidence; not a research dataset, strategy result, execution authority, performance claim, or personalized investment advice.",
+        "title": "Disclaimer",
+        "type": "string"
+      },
+      "execution_authorized": {
+        "const": false,
+        "title": "Execution Authorized",
+        "type": "boolean"
+      },
+      "live_path_absent": {
+        "const": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "no_personalized_investment_advice": {
+        "const": true,
+        "title": "No Personalized Investment Advice",
+        "type": "boolean"
+      },
+      "no_real_performance_claimed": {
+        "const": true,
+        "title": "No Real Performance Claimed",
+        "type": "boolean"
+      },
+      "order_submission_authorized": {
+        "const": false,
+        "title": "Order Submission Authorized",
+        "type": "boolean"
+      },
+      "outcome": {
+        "$ref": "#/components/schemas/QualificationOutcome"
+      },
+      "provider_profile": {
+        "$ref": "#/components/schemas/QualificationProviderProfile"
+      },
+      "qualification_id": {
+        "format": "uuid",
+        "title": "Qualification Id",
+        "type": "string"
+      },
+      "qualification_idempotency_key": {
+        "maxLength": 128,
+        "minLength": 8,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+        "title": "Qualification Idempotency Key",
+        "type": "string"
+      },
+      "request_fingerprint_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Request Fingerprint Sha256",
+        "type": "string"
+      },
+      "research_data_eligible": {
+        "const": false,
+        "title": "Research Data Eligible",
+        "type": "boolean"
+      },
+      "rights_attestation": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/QualificationUseRightsAttestation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "sample_plan_id": {
+        "const": "phase13-family-a-qualification-sample-v1",
+        "title": "Sample Plan Id",
+        "type": "string"
+      },
+      "sample_plan_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Sample Plan Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase13-pit-qualification-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "source_kind": {
+        "$ref": "#/components/schemas/QualificationSourceKind"
+      },
+      "started_at_utc": {
+        "format": "date-time",
+        "title": "Started At Utc",
+        "type": "string"
+      },
+      "strategy_execution_eligible": {
+        "const": false,
+        "title": "Strategy Execution Eligible",
+        "type": "boolean"
+      },
+      "strategy_promotion_authorized": {
+        "const": false,
+        "title": "Strategy Promotion Authorized",
+        "type": "boolean"
+      },
+      "transport_profile_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transport Profile Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema_version",
+      "qualification_id",
+      "qualification_idempotency_key",
+      "request_fingerprint_sha256",
+      "artifact_sha256",
+      "source_kind",
+      "outcome",
+      "provider_profile",
+      "sample_plan_id",
+      "sample_plan_sha256",
+      "transport_profile_sha256",
+      "capture_manifest_sha256",
+      "started_at_utc",
+      "completed_at_utc",
+      "code_version_git_sha",
+      "capability_manifests",
+      "checks",
+      "research_data_eligible",
+      "strategy_promotion_authorized",
+      "strategy_execution_eligible",
+      "execution_authorized",
+      "order_submission_authorized",
+      "live_path_absent",
+      "no_personalized_investment_advice",
+      "no_real_performance_claimed",
+      "disclaimer"
+    ],
+    "title": "PointInTimeQualificationArtifact",
+    "type": "object"
+  },
   "PolicyDeclaration": {
     "additionalProperties": false,
     "properties": {
@@ -9350,6 +9532,630 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     ],
     "title": "PromotionState",
     "type": "string"
+  },
+  "QualificationCapability": {
+    "enum": [
+      "SECURITY_MASTER_STABLE_IDENTITY",
+      "POINT_IN_TIME_UNIVERSE_MEMBERSHIP",
+      "RAW_OHLCV_AVAILABILITY",
+      "CORPORATE_ACTION_ANNOUNCEMENT_REVISION",
+      "DELISTING_RETURN_SEMANTICS",
+      "AS_REPORTED_FUNDAMENTAL_REVISION"
+    ],
+    "title": "QualificationCapability",
+    "type": "string"
+  },
+  "QualificationCapabilityManifest": {
+    "additionalProperties": false,
+    "properties": {
+      "available_at_max_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Available At Max Utc"
+      },
+      "available_at_min_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Available At Min Utc"
+      },
+      "capability": {
+        "$ref": "#/components/schemas/QualificationCapability"
+      },
+      "capability_manifest_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Capability Manifest Sha256",
+        "type": "string"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "event_time_max_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Event Time Max Utc"
+      },
+      "event_time_min_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Event Time Min Utc"
+      },
+      "missingness_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Missingness Count",
+        "type": "integer"
+      },
+      "normalized_evidence_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Normalized Evidence Sha256"
+      },
+      "ordinal": {
+        "maximum": 6,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "raw_evidence_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Raw Evidence Sha256"
+      },
+      "reason_code": {
+        "$ref": "#/components/schemas/QualificationReasonCode"
+      },
+      "record_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Record Count",
+        "type": "integer"
+      },
+      "request_evidence": {
+        "default": [],
+        "items": {
+          "$ref": "#/components/schemas/QualificationRequestEvidence"
+        },
+        "title": "Request Evidence",
+        "type": "array"
+      },
+      "revision_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Revision Count",
+        "type": "integer"
+      },
+      "schema_identity_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Schema Identity Sha256"
+      },
+      "schema_version": {
+        "const": "phase13-pit-capability-manifest-v1",
+        "default": "phase13-pit-capability-manifest-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/QualificationCheckStatus"
+      }
+    },
+    "required": [
+      "ordinal",
+      "capability",
+      "status",
+      "reason_code",
+      "decision_time_utc",
+      "record_count",
+      "missingness_count",
+      "revision_count",
+      "capability_manifest_sha256"
+    ],
+    "title": "QualificationCapabilityManifest",
+    "type": "object"
+  },
+  "QualificationCheck": {
+    "additionalProperties": false,
+    "properties": {
+      "check_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Check Sha256",
+        "type": "string"
+      },
+      "code": {
+        "$ref": "#/components/schemas/QualificationCheckCode"
+      },
+      "evidence_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "title": "Evidence Sha256S",
+        "type": "array"
+      },
+      "observed_value": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Observed Value"
+      },
+      "ordinal": {
+        "maximum": 12,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "reason_code": {
+        "$ref": "#/components/schemas/QualificationReasonCode"
+      },
+      "schema_version": {
+        "const": "phase13-pit-qualification-check-v1",
+        "default": "phase13-pit-qualification-check-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/QualificationCheckStatus"
+      },
+      "threshold_value": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Threshold Value"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "reason_code",
+      "evidence_sha256s",
+      "check_sha256"
+    ],
+    "title": "QualificationCheck",
+    "type": "object"
+  },
+  "QualificationCheckCode": {
+    "enum": [
+      "SOURCE_KIND_EXACT",
+      "READ_ONLY_TRANSPORT_EXACT",
+      "USE_RIGHTS_CURRENT_SUFFICIENT",
+      "SECURITY_MASTER_STABLE_IDENTITY",
+      "POINT_IN_TIME_UNIVERSE_MEMBERSHIP",
+      "RAW_OHLCV_AVAILABILITY",
+      "CORPORATE_ACTION_ANNOUNCEMENT_REVISION",
+      "DELISTING_RETURN_SEMANTICS",
+      "AS_REPORTED_FUNDAMENTAL_REVISION",
+      "RAW_NORMALIZED_RECONCILIATION",
+      "NULL_SENTINEL_SCHEMA_DRIFT",
+      "DETERMINISTIC_CAPTURE_MANIFEST"
+    ],
+    "title": "QualificationCheckCode",
+    "type": "string"
+  },
+  "QualificationCheckStatus": {
+    "enum": [
+      "PASS",
+      "BLOCKED",
+      "UNCOMPUTABLE"
+    ],
+    "title": "QualificationCheckStatus",
+    "type": "string"
+  },
+  "QualificationOutcome": {
+    "enum": [
+      "MOCK_PROOF_COMPLETE",
+      "EXTERNAL_SAMPLE_QUALIFIED",
+      "BLOCKED"
+    ],
+    "title": "QualificationOutcome",
+    "type": "string"
+  },
+  "QualificationProviderProfile": {
+    "additionalProperties": false,
+    "properties": {
+      "adapter_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Adapter Id",
+        "type": "string"
+      },
+      "adapter_version": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Adapter Version",
+        "type": "string"
+      },
+      "dataset_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Dataset Id",
+        "type": "string"
+      },
+      "product_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Product Id",
+        "type": "string"
+      },
+      "provider_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Provider Id",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase13-pit-provider-profile-v1",
+        "default": "phase13-pit-provider-profile-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "source_kind": {
+        "$ref": "#/components/schemas/QualificationSourceKind"
+      },
+      "synthetic": {
+        "title": "Synthetic",
+        "type": "boolean"
+      },
+      "transport_profile_sha256": {
+        "default": "516141ae52eac2cbef09302f8f5928b9453ba227922f9e81e86c2449ea379109",
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transport Profile Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "source_kind",
+      "provider_id",
+      "adapter_id",
+      "adapter_version",
+      "dataset_id",
+      "product_id",
+      "synthetic"
+    ],
+    "title": "QualificationProviderProfile",
+    "type": "object"
+  },
+  "QualificationReasonCode": {
+    "enum": [
+      "check_passed",
+      "mock_rights_not_applicable",
+      "credentials_unavailable",
+      "rights_unavailable",
+      "rights_not_current",
+      "rights_insufficient",
+      "capability_undocumented",
+      "current_universe_only",
+      "delisting_return_unavailable",
+      "http_failure",
+      "transport_failure",
+      "redirect_rejected",
+      "response_too_large",
+      "malformed_utf8",
+      "malformed_json",
+      "duplicate_json_key",
+      "non_finite_number",
+      "schema_drift",
+      "temporal_invalid",
+      "identity_invalid",
+      "action_revision_invalid",
+      "fundamental_revision_invalid",
+      "raw_normalized_mismatch",
+      "null_sentinel_drift",
+      "nondeterministic_capture",
+      "prior_capability_blocked"
+    ],
+    "title": "QualificationReasonCode",
+    "type": "string"
+  },
+  "QualificationRequestCode": {
+    "enum": [
+      "FUNDAMENTALS_META",
+      "EOD_PRICES",
+      "DISTRIBUTIONS",
+      "SPLITS",
+      "FUNDAMENTAL_STATEMENTS"
+    ],
+    "title": "QualificationRequestCode",
+    "type": "string"
+  },
+  "QualificationRequestEvidence": {
+    "additionalProperties": false,
+    "properties": {
+      "body_size_bytes": {
+        "anyOf": [
+          {
+            "maximum": 2000000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Body Size Bytes"
+      },
+      "code": {
+        "$ref": "#/components/schemas/QualificationRequestCode"
+      },
+      "external_request_performed": {
+        "title": "External Request Performed",
+        "type": "boolean"
+      },
+      "host": {
+        "const": "api.tiingo.com",
+        "default": "api.tiingo.com",
+        "title": "Host",
+        "type": "string"
+      },
+      "http_status": {
+        "anyOf": [
+          {
+            "maximum": 599,
+            "minimum": 100,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Http Status"
+      },
+      "method": {
+        "const": "GET",
+        "default": "GET",
+        "title": "Method",
+        "type": "string"
+      },
+      "ordinal": {
+        "maximum": 5,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "port": {
+        "const": 443,
+        "default": 443,
+        "title": "Port",
+        "type": "integer"
+      },
+      "raw_body_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Raw Body Sha256"
+      },
+      "reason_code": {
+        "$ref": "#/components/schemas/QualificationReasonCode"
+      },
+      "record_count": {
+        "anyOf": [
+          {
+            "maximum": 100000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Record Count"
+      },
+      "request_completed_at_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Request Completed At Utc"
+      },
+      "request_evidence_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Request Evidence Sha256",
+        "type": "string"
+      },
+      "request_started_at_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Request Started At Utc"
+      },
+      "schema_version": {
+        "const": "phase13-pit-request-evidence-v1",
+        "default": "phase13-pit-request-evidence-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/QualificationRequestStatus"
+      },
+      "target": {
+        "enum": [
+          "/tiingo/fundamentals/meta?columns=permaTicker,ticker,isActive,statementLastUpdated,dailyLastUpdated",
+          "/tiingo/daily/AAPL/prices?startDate=2020-08-28&endDate=2020-09-01",
+          "/tiingo/corporate-actions/AAPL/distributions?startExDate=2020-01-01&endExDate=2020-12-31",
+          "/tiingo/corporate-actions/AAPL/splits?startExDate=2020-08-28&endExDate=2020-09-01",
+          "/tiingo/fundamentals/AAPL/statements?startDate=2019-01-01"
+        ],
+        "title": "Target",
+        "type": "string"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "target",
+      "external_request_performed",
+      "reason_code",
+      "request_evidence_sha256"
+    ],
+    "title": "QualificationRequestEvidence",
+    "type": "object"
+  },
+  "QualificationRequestStatus": {
+    "enum": [
+      "OBSERVED",
+      "BLOCKED",
+      "NOT_ATTEMPTED"
+    ],
+    "title": "QualificationRequestStatus",
+    "type": "string"
+  },
+  "QualificationSourceKind": {
+    "enum": [
+      "DETERMINISTIC_MOCK",
+      "TIINGO_CANDIDATE_READ_ONLY"
+    ],
+    "title": "QualificationSourceKind",
+    "type": "string"
+  },
+  "QualificationUseRightsAttestation": {
+    "additionalProperties": false,
+    "properties": {
+      "attestation_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Attestation Id",
+        "type": "string"
+      },
+      "attestation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Attestation Sha256",
+        "type": "string"
+      },
+      "derived_data_allowed": {
+        "title": "Derived Data Allowed",
+        "type": "boolean"
+      },
+      "expires_at_utc": {
+        "format": "date-time",
+        "title": "Expires At Utc",
+        "type": "string"
+      },
+      "non_display_allowed": {
+        "title": "Non Display Allowed",
+        "type": "boolean"
+      },
+      "qualification_use_only": {
+        "const": true,
+        "default": true,
+        "title": "Qualification Use Only",
+        "type": "boolean"
+      },
+      "schema_version": {
+        "const": "phase13-pit-rights-attestation-v1",
+        "default": "phase13-pit-rights-attestation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "storage_allowed": {
+        "title": "Storage Allowed",
+        "type": "boolean"
+      },
+      "valid_from_utc": {
+        "format": "date-time",
+        "title": "Valid From Utc",
+        "type": "string"
+      }
+    },
+    "required": [
+      "attestation_id",
+      "attestation_sha256",
+      "valid_from_utc",
+      "expires_at_utc",
+      "storage_allowed",
+      "non_display_allowed",
+      "derived_data_allowed"
+    ],
+    "title": "QualificationUseRightsAttestation",
+    "type": "object"
   },
   "QualityFlag": {
     "enum": [

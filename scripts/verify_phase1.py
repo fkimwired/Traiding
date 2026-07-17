@@ -727,6 +727,131 @@ PHASE_12_FIXED_GET_TARGETS = (
     "https://paper-api.alpaca.markets/v2/orders?status=open&limit=500&direction=asc",
     "https://data.alpaca.markets/v2/stocks/AAPL/quotes/latest?feed=iex&currency=USD",
 )
+PHASE_13_BASELINE_SHA = "37530a94f841d538a162447cb01ec3e11f375ead"
+EXPECTED_PHASE_13_BASELINE_TREE = "d8d747ffccb76c3d754cdd2cc14b8ec49fb97287"
+PHASE_13_QUALIFICATION_PATH = "/v1/point-in-time-data-qualifications/{qualification_id}"
+PHASE_13_MIGRATION = (
+    "services/api/migrations/versions/0010_phase13_point_in_time_data_qualification.py"
+)
+PHASE_13_TABLES = (
+    "point_in_time_qualification_runs",
+    "point_in_time_qualification_payloads",
+    "point_in_time_qualification_checks",
+)
+PHASE_13_REQUIRED_PATHS = (
+    "docs/PHASE_13_POINT_IN_TIME_DATA_QUALIFICATION_DECISIONS.md",
+    "docs/handoffs/PHASE_13.md",
+    "packages/contracts/src/phase13-contract.type-test.ts",
+    "scripts/capture_point_in_time_data_qualification.py",
+    PHASE_13_MIGRATION,
+    "services/api/src/fable5_api/data_qualifications.py",
+    "services/api/tests/test_phase13_openapi_contract.py",
+    "services/api/tests/test_phase13_routes.py",
+    "services/data/src/fable5_data/phase13/__init__.py",
+    "services/data/src/fable5_data/phase13/adapters.py",
+    "services/data/src/fable5_data/phase13/canonical.py",
+    "services/data/src/fable5_data/phase13/contracts.py",
+    "services/data/src/fable5_data/phase13/repository.py",
+    "services/data/src/fable5_data/phase13/settings.py",
+    "services/data/src/fable5_data/phase13/tiingo.py",
+    "services/data/src/fable5_data/phase13/workflow.py",
+    "services/data/tests/test_phase13_adapters.py",
+    "services/data/tests/test_phase13_contracts.py",
+    "services/data/tests/test_phase13_postgres.py",
+    "services/data/tests/test_phase13_security.py",
+    "services/data/tests/test_phase13_workflow.py",
+    "tests/test_phase13_migration.py",
+    "tests/test_phase13_static.py",
+)
+PHASE_13_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "README.md",
+        "docs/COMPLIANCE_NOTES.md",
+        "docs/DATA_SOURCES.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/PHASE_13_POINT_IN_TIME_DATA_QUALIFICATION_DECISIONS.md",
+        "docs/RISK_POLICY.md",
+        "docs/handoffs/PHASE_13.md",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/phase13-contract.type-test.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "scripts/capture_point_in_time_data_qualification.py",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        "scripts/verify_phase1.py",
+        PHASE_13_MIGRATION,
+        "services/api/src/fable5_api/data_qualifications.py",
+        "services/api/src/fable5_api/main.py",
+        "services/api/tests/test_phase13_openapi_contract.py",
+        "services/api/tests/test_phase13_routes.py",
+        "services/data/src/fable5_data/phase13/__init__.py",
+        "services/data/src/fable5_data/phase13/adapters.py",
+        "services/data/src/fable5_data/phase13/canonical.py",
+        "services/data/src/fable5_data/phase13/contracts.py",
+        "services/data/src/fable5_data/phase13/repository.py",
+        "services/data/src/fable5_data/phase13/settings.py",
+        "services/data/src/fable5_data/phase13/tiingo.py",
+        "services/data/src/fable5_data/phase13/workflow.py",
+        "services/data/tests/test_phase13_adapters.py",
+        "services/data/tests/test_phase13_contracts.py",
+        "services/data/tests/test_phase13_postgres.py",
+        "services/data/tests/test_phase13_security.py",
+        "services/data/tests/test_phase13_workflow.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
+        "services/frontend/e2e/phase8.visual.spec.ts",
+        "tests/test_phase10_static.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase12_static.py",
+        "tests/test_phase13_migration.py",
+        "tests/test_phase13_static.py",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_13_SOURCE_KINDS = {"DETERMINISTIC_MOCK", "TIINGO_CANDIDATE_READ_ONLY"}
+PHASE_13_OUTCOMES = {"MOCK_PROOF_COMPLETE", "EXTERNAL_SAMPLE_QUALIFIED", "BLOCKED"}
+PHASE_13_ARTIFACT_SCHEMA_VERSION = "phase13-pit-qualification-v1"
+PHASE_13_CAPABILITY_SCHEMA_VERSION = "phase13-pit-capability-manifest-v1"
+PHASE_13_CHECK_SCHEMA_VERSION = "phase13-pit-qualification-check-v1"
+PHASE_13_CAPABILITIES = (
+    "SECURITY_MASTER_STABLE_IDENTITY",
+    "POINT_IN_TIME_UNIVERSE_MEMBERSHIP",
+    "RAW_OHLCV_AVAILABILITY",
+    "CORPORATE_ACTION_ANNOUNCEMENT_REVISION",
+    "DELISTING_RETURN_SEMANTICS",
+    "AS_REPORTED_FUNDAMENTAL_REVISION",
+)
+PHASE_13_CHECK_CODES = (
+    "SOURCE_KIND_EXACT",
+    "READ_ONLY_TRANSPORT_EXACT",
+    "USE_RIGHTS_CURRENT_SUFFICIENT",
+    *PHASE_13_CAPABILITIES,
+    "RAW_NORMALIZED_RECONCILIATION",
+    "NULL_SENTINEL_SCHEMA_DRIFT",
+    "DETERMINISTIC_CAPTURE_MANIFEST",
+)
+PHASE_13_CREDENTIAL_ENV_NAMES = (
+    "FABLE5_TIINGO_RESEARCH_API_TOKEN",
+    "FABLE5_TIINGO_RESEARCH_RIGHTS_ATTESTATION_ID",
+    "FABLE5_TIINGO_RESEARCH_RIGHTS_ATTESTATION_SHA256",
+    "FABLE5_TIINGO_RESEARCH_RIGHTS_VALID_FROM_UTC",
+    "FABLE5_TIINGO_RESEARCH_RIGHTS_EXPIRES_AT_UTC",
+    "FABLE5_TIINGO_RESEARCH_STORAGE_ALLOWED",
+    "FABLE5_TIINGO_RESEARCH_NON_DISPLAY_ALLOWED",
+    "FABLE5_TIINGO_RESEARCH_DERIVED_DATA_ALLOWED",
+)
+PHASE_13_APPEND_ONLY_ERROR = "Phase 13 point-in-time qualification artifacts are append-only"
+PHASE_13_FIXED_GET_TARGETS = (
+    "https://api.tiingo.com/tiingo/fundamentals/meta?columns=permaTicker,ticker,isActive,statementLastUpdated,dailyLastUpdated",
+    "https://api.tiingo.com/tiingo/daily/AAPL/prices?startDate=2020-08-28&endDate=2020-09-01",
+    "https://api.tiingo.com/tiingo/corporate-actions/AAPL/distributions?startExDate=2020-01-01&endExDate=2020-12-31",
+    "https://api.tiingo.com/tiingo/corporate-actions/AAPL/splits?startExDate=2020-08-28&endExDate=2020-09-01",
+    "https://api.tiingo.com/tiingo/fundamentals/AAPL/statements?startDate=2019-01-01",
+)
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -918,6 +1043,7 @@ FORBIDDEN_VENDOR_SDK_MODULES = {
     "ibapi",
     "polygon",
     "refinitiv",
+    "tiingo",
     "yfinance",
 }
 FORBIDDEN_PHASE_4_NETWORK_MODULES = {
@@ -976,10 +1102,12 @@ def phase_number(value: str) -> int:
         phase = int(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
-            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, or 12"
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, or 13"
         ) from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}:
-        raise argparse.ArgumentTypeError("phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, or 12")
+    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}:
+        raise argparse.ArgumentTypeError(
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, or 13"
+        )
     return phase
 
 
@@ -1347,7 +1475,7 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
                     f"{entrypoint} does not validate and forward FABLE5_VERIFY_PHASE"
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
-        ci_phases = [int(value) for value in re.findall(r"--phase\s+(12|11|10|[1-9])\b", ci)]
+        ci_phases = [int(value) for value in re.findall(r"--phase\s+(13|12|11|10|[1-9])\b", ci)]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
                 f"CI does not run both static and full verification at or beyond Phase {phase}"
@@ -2666,6 +2794,8 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
         client_exclusions = {"GET /ready"}
         if phase >= 12:
             client_exclusions.add(f"GET {PHASE_12_READINESS_PATH}")
+        if phase >= 13:
+            client_exclusions.add(f"GET {PHASE_13_QUALIFICATION_PATH}")
         expected_client_operations = set(runtime_operations) - client_exclusions
         if client_operations != expected_client_operations:
             raise AssertionError(
@@ -3133,6 +3263,8 @@ def verify_phase10_static(
     }
     if active_phase >= 12:
         expected_migrations.add(PHASE_12_MIGRATION)
+    if active_phase >= 13:
+        expected_migrations.add(PHASE_13_MIGRATION)
     migration_paths = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
     if migration_paths != expected_migrations:
         raise AssertionError(
@@ -3404,6 +3536,8 @@ def verify_phase11_static(
     }
     if active_phase >= 12:
         expected_migrations.add(PHASE_12_MIGRATION)
+    if active_phase >= 13:
+        expected_migrations.add(PHASE_13_MIGRATION)
     actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
     if actual_migrations != expected_migrations:
         raise AssertionError(
@@ -3591,7 +3725,11 @@ def verify_phase11_static(
             raise AssertionError(f"Phase 11 boundary documentation is missing {required}")
 
 
-def verify_phase12_static() -> None:
+def verify_phase12_static(
+    *,
+    release_closure: bool = True,
+    active_phase: int = 12,
+) -> None:
     missing = [path for path in PHASE_12_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 12 paths: {', '.join(missing)}")
@@ -3635,7 +3773,7 @@ def verify_phase12_static() -> None:
         if path
     )
     forbidden_changes = sorted(changed_paths - PHASE_12_ALLOWED_WRITES)
-    if forbidden_changes:
+    if release_closure and forbidden_changes:
         raise AssertionError(
             "Phase 12 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
         )
@@ -3645,9 +3783,13 @@ def verify_phase12_static() -> None:
         "services/api/migrations/versions/0008_phase10_local_paper.py",
         PHASE_12_MIGRATION,
     }
+    if active_phase >= 13:
+        expected_migrations.add(PHASE_13_MIGRATION)
     actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
     if actual_migrations != expected_migrations:
-        raise AssertionError("Phase 12 must retain exactly migrations 0001 through 0009")
+        raise AssertionError(
+            f"Phase {active_phase} does not preserve the exact Phase 12 migration ancestry"
+        )
     if (
         hashlib.sha256((migration_root / "0008_phase10_local_paper.py").read_bytes()).hexdigest()
         != PHASE_11_PHASE10_MIGRATION_SHA256
@@ -3824,7 +3966,7 @@ def verify_phase12_static() -> None:
         raise AssertionError("Phase 12 PostgreSQL acceptance does not select head 0009_phase12")
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    if (
+    if release_closure and (
         not workflow.startswith("name: phase-12-ci\n")
         or 'FABLE5_VERIFY_PHASE: "12"' not in workflow
         or "phase12-compose:" not in workflow
@@ -3857,6 +3999,300 @@ def verify_phase12_static() -> None:
             raise AssertionError(f"Phase 12 boundary documentation is missing {required}")
 
 
+def verify_phase13_static() -> None:
+    missing = [path for path in PHASE_13_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 13 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_13_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 12 baseline is unavailable") from exc
+    if (
+        git_text("show", "-s", "--format=%T", PHASE_13_BASELINE_SHA)
+        != EXPECTED_PHASE_13_BASELINE_TREE
+    ):
+        raise AssertionError("The authorized Phase 13 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_13_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 13 HEAD is not descended from the accepted Phase 12 baseline")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_13_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_13_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 13 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    expected_migrations = set(PHASE_1_7_MIGRATION_SHA256) | {
+        "services/api/migrations/versions/0008_phase10_local_paper.py",
+        PHASE_12_MIGRATION,
+        PHASE_13_MIGRATION,
+    }
+    actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if actual_migrations != expected_migrations:
+        raise AssertionError("Phase 13 must retain exactly migrations 0001 through 0010")
+    for inherited_migration in expected_migrations - {PHASE_13_MIGRATION}:
+        if (ROOT / inherited_migration).read_bytes() != git_blob(
+            PHASE_13_BASELINE_SHA, inherited_migration
+        ):
+            raise AssertionError(f"Phase 13 changed inherited migration {inherited_migration}")
+    migration = normalized(ROOT / PHASE_13_MIGRATION)
+    for required in (
+        'revision: str = "0010_phase13"',
+        'down_revision: str | None = "0009_phase12"',
+        *PHASE_13_TABLES,
+        "own_phase13_created_at_utc()",
+        "phase13_lock_qualification_idempotency()",
+        "validate_phase13_qualification_root_payload()",
+        "validate_phase13_qualification_payload_manifest()",
+        "validate_phase13_qualification_check_payload()",
+        "validate_phase13_qualification_completeness()",
+        "reject_phase13_qualification_mutation()",
+        "DEFERRABLE INITIALLY DEFERRED",
+        PHASE_13_APPEND_ONLY_ERROR,
+    ):
+        if required not in migration:
+            raise AssertionError(f"Phase 13 migration is missing {required}")
+
+    openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+    path_item = openapi.get("paths", {}).get(PHASE_13_QUALIFICATION_PATH)
+    if not isinstance(path_item, dict):
+        raise AssertionError("Phase 13 qualification GET is absent from generated OpenAPI")
+    methods = set(path_item) & {"get", "post", "put", "patch", "delete"}
+    if methods != {"get"}:
+        raise AssertionError(f"Phase 13 qualification endpoint is not GET-only: {methods}")
+    operation = path_item["get"]
+    if not isinstance(operation, dict) or "requestBody" in operation:
+        raise AssertionError("Phase 13 qualification GET accepts a request body")
+    parameters = operation.get("parameters", [])
+    if (
+        not isinstance(parameters, list)
+        or len(parameters) != 1
+        or not isinstance(parameters[0], dict)
+        or parameters[0].get("in") != "path"
+        or parameters[0].get("name") != "qualification_id"
+    ):
+        raise AssertionError("Phase 13 qualification GET accepts more than its UUID path identity")
+    if set(operation.get("responses", {})) != {"200", "404", "409", "422"}:
+        raise AssertionError("Phase 13 qualification GET does not expose exact typed outcomes")
+
+    components = openapi.get("components", {}).get("schemas", {})
+    serialized_contract = json.dumps(components, sort_keys=True)
+    for required in (
+        *PHASE_13_SOURCE_KINDS,
+        *PHASE_13_OUTCOMES,
+        *PHASE_13_CAPABILITIES,
+        *PHASE_13_CHECK_CODES,
+        "research_data_eligible",
+        "strategy_promotion_authorized",
+        "strategy_execution_eligible",
+        "execution_authorized",
+        "order_submission_authorized",
+        "live_path_absent",
+        "no_personalized_investment_advice",
+        "no_real_performance_claimed",
+    ):
+        if required not in serialized_contract:
+            raise AssertionError(f"Phase 13 generated contract is missing {required}")
+    qualification_components = {
+        name: schema
+        for name, schema in components.items()
+        if "Qualification" in name and isinstance(schema, dict)
+    }
+    if not qualification_components:
+        raise AssertionError("Phase 13 generated qualification schemas are absent")
+    property_names = {
+        property_name.casefold()
+        for schema in qualification_components.values()
+        for property_name in (
+            schema.get("properties", {}) if isinstance(schema.get("properties"), dict) else {}
+        )
+    }
+    forbidden_properties = {
+        "api_token",
+        "authorization_header",
+        "raw_body",
+        "raw_response",
+        "raw_price",
+        "statement_value",
+        "signal",
+        "side",
+        "quantity",
+        "allocation",
+        "order_id",
+        "order_payload",
+    }
+    exposed = sorted(property_names & forbidden_properties)
+    if exposed:
+        raise AssertionError(
+            "Phase 13 generated contract exposes forbidden fields: " + ", ".join(exposed)
+        )
+
+    generated = normalized(ROOT / "packages/contracts/src/api.generated.ts")
+    runtime = normalized(ROOT / "packages/contracts/src/runtime.generated.ts")
+    type_test = normalized(ROOT / "packages/contracts/src/phase13-contract.type-test.ts")
+    for required in (PHASE_13_QUALIFICATION_PATH, "PointInTimeQualification"):
+        if required not in generated or required not in runtime:
+            raise AssertionError(f"Phase 13 generated contracts are missing {required}")
+    for required in (
+        "PointInTimeQualificationArtifact",
+        "@ts-expect-error",
+        "NoPost",
+        "NoPut",
+        "NoPatch",
+        "NoDelete",
+    ):
+        if required not in type_test:
+            raise AssertionError(f"Phase 13 type-level contract proof is missing {required}")
+
+    phase13_root = ROOT / "services/data/src/fable5_data/phase13"
+    adapters = normalized(phase13_root / "adapters.py")
+    canonical = normalized(phase13_root / "canonical.py")
+    tiingo_path = phase13_root / "tiingo.py"
+    for required in (
+        "PointInTimeQualificationAdapter",
+        "DeterministicMockPointInTimeQualificationAdapter",
+        "inspect_capability",
+    ):
+        if required not in adapters:
+            raise AssertionError(f"Phase 13 adapter contract is missing {required}")
+    from fable5_data.phase13.canonical import PHASE13_FIXED_ENDPOINTS
+
+    actual_targets = tuple(
+        f"https://{endpoint['host']}{endpoint['target']}" for endpoint in PHASE13_FIXED_ENDPOINTS
+    )
+    if actual_targets != PHASE_13_FIXED_GET_TARGETS:
+        raise AssertionError(f"Phase 13 fixed external GET targets drifted: {actual_targets}")
+    if (
+        tuple(endpoint["method"] for endpoint in PHASE13_FIXED_ENDPOINTS) != ("GET",) * 5
+        or tuple(endpoint["port"] for endpoint in PHASE13_FIXED_ENDPOINTS) != (443,) * 5
+        or canonical.count('"method": "GET"') != 5
+    ):
+        raise AssertionError("Phase 13 external profile is not exactly five fixed HTTPS GETs")
+    forbidden_imports = imported_module_roots(tiingo_path) & FORBIDDEN_VENDOR_SDK_MODULES
+    if forbidden_imports:
+        raise AssertionError(
+            "Phase 13 Tiingo adapter imports a vendor SDK: " + ", ".join(sorted(forbidden_imports))
+        )
+    production_sources = "\n".join(normalized(path) for path in sorted(phase13_root.glob("*.py")))
+    for forbidden in (
+        "submit_order",
+        "place_order",
+        "create_order",
+        "replace_order",
+        "cancel_order",
+        "base_url",
+        "urljoin",
+        "websocket",
+        "asyncio",
+        "retry",
+    ):
+        if forbidden in production_sources.casefold():
+            raise AssertionError(f"Phase 13 contains forbidden capability {forbidden}")
+
+    settings = normalized(phase13_root / "settings.py")
+    if "SecretStr" not in settings:
+        raise AssertionError("Phase 13 token is not a SecretStr")
+    for environment_name in PHASE_13_CREDENTIAL_ENV_NAMES:
+        if environment_name not in settings:
+            raise AssertionError(f"Phase 13 settings are missing {environment_name}")
+    cli = normalized(ROOT / "scripts/capture_point_in_time_data_qualification.py")
+    for required in ("--idempotency-key", "--confirm-read-only-qualification"):
+        if required not in cli:
+            raise AssertionError(f"Phase 13 operator CLI is missing {required}")
+    for forbidden in (
+        "--provider",
+        "--url",
+        "--host",
+        "--path",
+        "--query",
+        "--symbol",
+        "--date",
+        "--capability",
+        "--credential",
+        "--rights",
+        "--strategy",
+        "--action",
+        "--side",
+        "--quantity",
+        "--price",
+        "--allocation",
+        "--retry",
+        "--broker",
+        "--execution",
+    ):
+        if forbidden in cli:
+            raise AssertionError(f"Phase 13 operator CLI exposes forbidden argument {forbidden}")
+
+    api_source = normalized(ROOT / "services/api/src/fable5_api/data_qualifications.py")
+    for forbidden in ("Tiingo", "QualificationAdapter", "create_qualification", "SecretStr"):
+        if forbidden in api_source:
+            raise AssertionError(f"Phase 13 historical GET imports mutation/transport: {forbidden}")
+    phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
+    if '"13": "0010_phase13"' not in phase5_postgres_tests:
+        raise AssertionError("Phase 13 PostgreSQL acceptance does not select head 0010_phase13")
+
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-13-ci\n")
+        or 'FABLE5_VERIFY_PHASE: "13"' not in workflow
+        or "phase13-compose:" not in workflow
+        or "python scripts/verify_phase1.py --static-only --phase 13" not in workflow
+        or "python scripts/verify_phase1.py --phase 13" not in workflow
+    ):
+        raise AssertionError("Phase 13 Ubuntu CI does not run the static and full verifiers")
+    for environment_name in PHASE_13_CREDENTIAL_ENV_NAMES:
+        if f'{environment_name}: ""' not in workflow:
+            raise AssertionError(f"Phase 13 CI does not clear {environment_name}")
+    immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
+    if workflow.count(immutable_pull) != 1:
+        raise AssertionError("Phase 13 CI must pre-pull the pinned browser image exactly once")
+    if "secrets." in workflow or PHASE_10_LINUX_SNAPSHOT_FLAG in workflow:
+        raise AssertionError("Phase 13 CI consumes a secret or snapshot-generation authority")
+    if "FABLE5_UPDATE_SNAPSHOTS" in workflow or "run_phase_gate.py run --phase 13" in workflow:
+        raise AssertionError("Phase 13 CI may not regenerate snapshots or widen the release runner")
+
+    decisions = normalized(ROOT / "docs/PHASE_13_POINT_IN_TIME_DATA_QUALIFICATION_DECISIONS.md")
+    handoff = normalized(ROOT / "docs/handoffs/PHASE_13.md")
+    for required in (
+        PHASE_13_BASELINE_SHA,
+        EXPECTED_PHASE_13_BASELINE_TREE,
+        f"GET {PHASE_13_QUALIFICATION_PATH}",
+        "MOCK_PROOF_COMPLETE",
+        "EXTERNAL_SAMPLE_QUALIFIED",
+        "BLOCKED",
+        "Stop after Phase 13",
+    ):
+        if required not in decisions + handoff:
+            raise AssertionError(f"Phase 13 boundary documentation is missing {required}")
+
+
 def verify_static(phase: int = 1) -> None:
     if phase == 9:
         with phase9_stage(phase, "phase1_8_static"):
@@ -3882,6 +4318,14 @@ def verify_static(phase: int = 1) -> None:
         verify_phase11_static(release_closure=False, active_phase=12)
         verify_phase12_static()
         print("Static repository policy checks passed for Phase 12.")
+        return
+    if phase == 13:
+        verify_static_inherited(13, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=13)
+        verify_phase11_static(release_closure=False, active_phase=13)
+        verify_phase12_static(release_closure=False, active_phase=13)
+        verify_phase13_static()
+        print("Static repository policy checks passed for Phase 13.")
         return
     verify_static_inherited(phase)
 
@@ -3919,8 +4363,11 @@ def acceptance_environment(
     api_url = f"http://127.0.0.1:{api_port}"
     frontend_url = f"http://127.0.0.1:{frontend_port}"
     environment = os.environ.copy()
-    if phase == 12:
+    if phase >= 12:
         for credential_name in PHASE_12_CREDENTIAL_ENV_NAMES:
+            environment.pop(credential_name, None)
+    if phase == 13:
+        for credential_name in PHASE_13_CREDENTIAL_ENV_NAMES:
             environment.pop(credential_name, None)
     generate_linux_snapshots = phase == 10 and environment.get(PHASE_10_LINUX_SNAPSHOT_FLAG) == "1"
     browser_api_url = (
@@ -3959,7 +4406,7 @@ def acceptance_environment(
         ).stdout.strip()
         if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
             raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
-        if phase in {10, 11, 12} and expected_git_identity is not None:
+        if phase in {10, 11, 12, 13} and expected_git_identity is not None:
             git_tree = subprocess.run(
                 ["git", "show", "-s", "--format=%T", "HEAD"],
                 cwd=ROOT,
@@ -5082,7 +5529,7 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
 
 
 def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
-    if phase in {9, 10, 11, 12}:
+    if phase in {9, 10, 11, 12, 13}:
         return (
             PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
             PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
@@ -7776,6 +8223,217 @@ def verify_phase12_capture_cli(
     return artifact
 
 
+def verify_phase13_capture_cli(
+    project: str,
+    environment: dict[str, str],
+) -> dict[str, object]:
+    database_url = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    command = [
+        sys.executable,
+        "scripts/capture_point_in_time_data_qualification.py",
+        "--idempotency-key",
+        "phase13-acceptance-cli-gate-v1",
+        "--confirm-read-only-qualification",
+    ]
+    before_cli = snapshot_tables(project, environment, PHASE_13_TABLES)
+    base_cli_environment = environment.copy()
+    base_cli_environment["FABLE5_DATABASE_URL"] = database_url
+    base_cli_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    for credential_name in PHASE_13_CREDENTIAL_ENV_NAMES:
+        base_cli_environment.pop(credential_name, None)
+
+    missing_confirmation = subprocess.run(
+        command[:-1],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=base_cli_environment,
+    )
+    if (
+        missing_confirmation.returncode != 2
+        or missing_confirmation.stdout
+        or missing_confirmation.stderr.strip() != "Point-in-time data qualification capture failed."
+    ):
+        raise AssertionError("Phase 13 CLI did not fail closed on missing confirmation")
+
+    credential_cases = (
+        {},
+        {PHASE_13_CREDENTIAL_ENV_NAMES[0]: "phase13-token-canary"},
+        {
+            PHASE_13_CREDENTIAL_ENV_NAMES[0]: "phase13-token-canary",
+            PHASE_13_CREDENTIAL_ENV_NAMES[1]: "phase13-rights-id-canary",
+        },
+    )
+    for supplied in credential_cases:
+        case_environment = base_cli_environment.copy()
+        case_environment.update(supplied)
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=case_environment,
+        )
+        rendered = f"{result.stdout}\n{result.stderr}"
+        if (
+            result.returncode != 2
+            or result.stdout
+            or result.stderr.strip() != "Point-in-time data qualification capture failed."
+            or any(value in rendered for value in supplied.values())
+        ):
+            raise AssertionError("Phase 13 missing/partial access gate was not sanitized")
+    assert_snapshots_equal(
+        before_cli,
+        snapshot_tables(project, environment, PHASE_13_TABLES),
+        "during Phase 13 CLI confirmation and credential/rights failure",
+    )
+
+    from fable5_data.phase13.adapters import (
+        DeterministicMockPointInTimeQualificationAdapter,
+        MockQualificationScenario,
+    )
+    from fable5_data.phase13.contracts import PointInTimeQualificationCreateRequest
+    from fable5_data.phase13.repository import PointInTimeQualificationRepository
+    from fable5_data.phase13.workflow import PointInTimeQualificationWorkflow
+
+    repository = PointInTimeQualificationRepository(database_url)
+    try:
+        workflow = PointInTimeQualificationWorkflow(
+            adapter=DeterministicMockPointInTimeQualificationAdapter(),
+            store=repository,
+            phase13_code_version_git_sha=environment["FABLE5_CODE_VERSION_GIT_SHA"],
+        )
+        request = PointInTimeQualificationCreateRequest(
+            qualification_idempotency_key="phase13-acceptance-mock-proof-v1"
+        )
+        first = workflow.create_qualification(request)
+        after_first = snapshot_tables(project, environment, PHASE_13_TABLES)
+        expected_counts = {
+            PHASE_13_TABLES[0]: 1,
+            PHASE_13_TABLES[1]: len(PHASE_13_CAPABILITIES),
+            PHASE_13_TABLES[2]: len(PHASE_13_CHECK_CODES),
+        }
+        if any(after_first[table][0] != count for table, count in expected_counts.items()):
+            raise AssertionError(
+                "Phase 13 deterministic mock did not persist one complete qualification"
+            )
+        second = workflow.create_qualification(request)
+        if second != first:
+            raise AssertionError("Phase 13 same-key deterministic mock result changed")
+        assert_snapshots_equal(
+            after_first,
+            snapshot_tables(project, environment, PHASE_13_TABLES),
+            "during Phase 13 same-key deterministic mock replay",
+        )
+        artifact = first.model_dump(mode="json")
+
+        blocked_workflow = PointInTimeQualificationWorkflow(
+            adapter=DeterministicMockPointInTimeQualificationAdapter(
+                scenario=MockQualificationScenario.CURRENT_UNIVERSE_SUBSTITUTION
+            ),
+            store=repository,
+            phase13_code_version_git_sha=environment["FABLE5_CODE_VERSION_GIT_SHA"],
+        )
+        blocked = blocked_workflow.create_qualification(
+            PointInTimeQualificationCreateRequest(
+                qualification_idempotency_key="phase13-acceptance-mock-blocked-v1"
+            )
+        ).model_dump(mode="json")
+        after_blocked = snapshot_tables(project, environment, PHASE_13_TABLES)
+        expected_blocked_counts = {
+            PHASE_13_TABLES[0]: 2,
+            PHASE_13_TABLES[1]: 2 * len(PHASE_13_CAPABILITIES),
+            PHASE_13_TABLES[2]: 2 * len(PHASE_13_CHECK_CODES),
+        }
+        if any(
+            after_blocked[table][0] != count for table, count in expected_blocked_counts.items()
+        ):
+            raise AssertionError(
+                "Phase 13 deterministic blocked mock did not persist one complete qualification"
+            )
+        if blocked.get("outcome") != "BLOCKED":
+            raise AssertionError("Phase 13 deterministic blocked mock did not stay blocked")
+    finally:
+        repository.dispose()
+
+    expected_literals = {
+        "schema_version": PHASE_13_ARTIFACT_SCHEMA_VERSION,
+        "source_kind": "DETERMINISTIC_MOCK",
+        "outcome": "MOCK_PROOF_COMPLETE",
+        "research_data_eligible": False,
+        "strategy_promotion_authorized": False,
+        "strategy_execution_eligible": False,
+        "execution_authorized": False,
+        "order_submission_authorized": False,
+        "live_path_absent": True,
+        "no_personalized_investment_advice": True,
+        "no_real_performance_claimed": True,
+    }
+    for field, expected in expected_literals.items():
+        if artifact.get(field) != expected:
+            raise AssertionError(f"Phase 13 mock artifact has unexpected {field}")
+        if blocked.get(field) != ("BLOCKED" if field == "outcome" else expected):
+            raise AssertionError(f"Phase 13 blocked mock has unexpected {field}")
+    manifests = artifact.get("capability_manifests")
+    if not isinstance(manifests, list) or [
+        item.get("capability") for item in manifests if isinstance(item, dict)
+    ] != list(PHASE_13_CAPABILITIES):
+        raise AssertionError("Phase 13 mock artifact lacks exact ordered capability manifests")
+    checks = artifact.get("checks")
+    if not isinstance(checks, list) or [
+        item.get("code") for item in checks if isinstance(item, dict)
+    ] != list(PHASE_13_CHECK_CODES):
+        raise AssertionError("Phase 13 mock artifact lacks exact ordered checks")
+    for field, pattern in (
+        ("qualification_id", r"[0-9a-f-]{36}"),
+        ("artifact_sha256", r"[0-9a-f]{64}"),
+        ("request_fingerprint_sha256", r"[0-9a-f]{64}"),
+        ("capture_manifest_sha256", r"[0-9a-f]{64}"),
+        ("transport_profile_sha256", r"[0-9a-f]{64}"),
+    ):
+        if re.fullmatch(pattern, str(artifact.get(field, ""))) is None:
+            raise AssertionError(f"Phase 13 mock artifact has invalid {field}")
+
+    def artifact_property_names(value: object) -> set[str]:
+        if isinstance(value, dict):
+            return set(value) | {
+                nested for item in value.values() for nested in artifact_property_names(item)
+            }
+        if isinstance(value, list):
+            return {nested for item in value for nested in artifact_property_names(item)}
+        return set()
+
+    leaked = artifact_property_names(artifact) & {
+        "api_token",
+        "authorization_header",
+        "raw_body",
+        "raw_response",
+        "raw_price",
+        "statement_value",
+        "strategy",
+        "signal",
+        "side",
+        "quantity",
+        "allocation",
+        "order_id",
+        "order_payload",
+    }
+    if leaked:
+        raise AssertionError("Phase 13 mock artifact leaked forbidden fields: " + ", ".join(leaked))
+    print(
+        "Phase 13 explicit CLI/access failure, deterministic complete/blocked mock, "
+        "mock-cannot-be-EXTERNAL_SAMPLE_QUALIFIED, and single-flight proof passed "
+        f"without an external capture (qualification_id={artifact['qualification_id']}, "
+        f"artifact_sha256={artifact['artifact_sha256']})."
+    )
+    return artifact
+
+
 def verify_phase12_api(
     project: str,
     environment: dict[str, str],
@@ -7842,6 +8500,90 @@ def verify_phase12_api(
     print(
         "Phase 12 repeated persisted GET, typed 404/422, exact artifact parity, and zero-write "
         "proof passed without transport creation."
+    )
+
+
+def verify_phase13_api(
+    project: str,
+    environment: dict[str, str],
+    api_url: str,
+    artifact: dict[str, object],
+) -> None:
+    all_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
+        *PHASE_12_TABLES,
+        *PHASE_13_TABLES,
+    )
+    before = snapshot_tables(project, environment, all_tables)
+    qualification_id = str(artifact["qualification_id"])
+    path = f"{api_url}/v1/point-in-time-data-qualifications/{qualification_id}"
+    responses: list[bytes] = []
+    for _ in range(2):
+        with urllib.request.urlopen(path, timeout=5) as response:
+            if response.status != 200 or "application/json" not in response.headers.get(
+                "content-type", ""
+            ):
+                raise AssertionError("Phase 13 qualification GET did not return JSON 200")
+            responses.append(response.read())
+    if responses[0] != responses[1]:
+        raise AssertionError("Phase 13 repeated qualification GET was not byte-equivalent")
+    try:
+        rendered = json.loads(responses[0].decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AssertionError("Phase 13 qualification GET returned invalid JSON") from exc
+    if rendered != artifact:
+        raise AssertionError("Phase 13 GET is not the exact persisted qualification artifact")
+    malformed = request_error_json(
+        f"{api_url}/v1/point-in-time-data-qualifications/not-a-uuid",
+        expected_status=422,
+        method="GET",
+    )
+    if not isinstance(malformed.get("detail"), list):
+        raise AssertionError(
+            "Phase 13 malformed qualification identity did not return typed validation"
+        )
+    missing = request_error_json(
+        f"{api_url}/v1/point-in-time-data-qualifications/00000000-0000-4000-8000-000000000013",
+        expected_status=404,
+        method="GET",
+    )
+    if "detail" not in missing:
+        raise AssertionError("Phase 13 unknown qualification identity did not fail closed")
+    for method in ("POST", "PUT", "PATCH", "DELETE"):
+        rejected = request_error_json(path, expected_status=405, method=method)
+        if "detail" not in rejected:
+            raise AssertionError(f"Phase 13 qualification {method} was not rejected with JSON")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, all_tables),
+        "during Phase 13 historical GET acceptance",
+    )
+    version = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT version_num FROM alembic_version;",
+        ],
+    ).stdout.strip()
+    if version != "0010_phase13":
+        raise AssertionError(f"Phase 13 qualification GET changed the migration head: {version}")
+    print(
+        "Phase 13 repeated byte-equivalent persisted GET, typed 404/422, exact artifact parity, "
+        "and zero-write proof passed without transport creation."
     )
 
 
@@ -8192,11 +8934,11 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase in {9, 10, 11, 12}:
+    if phase in {9, 10, 11, 12, 13}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
-    linux_phase11 = phase in {11, 12} and sys.platform.startswith("linux")
+    linux_phase11 = phase in {11, 12, 13} and sys.platform.startswith("linux")
     if linux_phase9:
         command = phase9_linux_playwright_command(project, frontend_url)
     elif linux_phase10:
@@ -8216,7 +8958,7 @@ def verify_phase8_browser(
             output_path=f"/tmp/phase{phase}-inherited-playwright-results",
             verify_phase=phase,
         )
-    elif phase in {10, 11, 12}:
+    elif phase in {10, 11, 12, 13}:
         command = [
             npm,
             "--workspace",
@@ -8249,7 +8991,7 @@ def verify_phase8_browser(
         )
     coverage = (
         "unaffected inherited modes and shared layout"
-        if phase in {10, 11, 12}
+        if phase in {10, 11, 12, 13}
         else "all four modes"
     )
     print(
@@ -8449,7 +9191,7 @@ def verify_phase10_browser(
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
     phase = int(browser_environment.get("FABLE5_VERIFY_PHASE", "10"))
-    if phase in {11, 12}:
+    if phase in {11, 12, 13}:
         browser_environment.pop(PHASE_10_LINUX_SNAPSHOT_FLAG, None)
         browser_environment.pop("FABLE5_UPDATE_SNAPSHOTS", None)
         browser_environment.pop("FABLE5_VISUAL_CORPUS", None)
@@ -8470,7 +9212,7 @@ def verify_phase10_browser(
         else frontend_url
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
-    if phase in {11, 12} and linux:
+    if phase in {11, 12, 13} and linux:
         command = phase11_linux_playwright_command(
             project,
             browser_frontend_url,
@@ -8498,7 +9240,7 @@ def verify_phase10_browser(
     try:
         run(command, env=browser_environment)
     finally:
-        if phase in {11, 12} and linux:
+        if phase in {11, 12, 13} and linux:
             cleanup_phase11_linux_playwright_container(project, browser_environment)
         elif linux:
             cleanup_phase10_linux_playwright_container(project, browser_environment)
@@ -8864,6 +9606,71 @@ def verify_phase12_mock_network_denial(environment: dict[str, str]) -> None:
     print(
         "Phase 12 deterministic mock, credential-failure, secret-canary, and active "
         "socket-denial proof passed without an external probe."
+    )
+
+
+def verify_phase13_postgres_acceptance(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    for credential_name in (*PHASE_12_CREDENTIAL_ENV_NAMES, *PHASE_13_CREDENTIAL_ENV_NAMES):
+        test_environment.pop(credential_name, None)
+    test_environment["FABLE5_TEST_DATABASE_URL"] = (
+        "postgresql+psycopg://fable5:fable5_dev_only@127.0.0.1:"
+        f"{environment['POSTGRES_PORT']}/fable5"
+    )
+    test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    test_environment["FABLE5_VERIFY_PHASE"] = "13"
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "services/data/tests/test_phase13_postgres.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 13 isolated PostgreSQL acceptance tests failed")
+    print(
+        "Phase 13 single-flight idempotency, exact ordered manifests/checks, payload parity, "
+        "deferred completeness, tamper rejection, and append-only PostgreSQL tests passed."
+    )
+
+
+def verify_phase13_mock_network_denial(environment: dict[str, str]) -> None:
+    test_environment = os.environ.copy()
+    for credential_name in (*PHASE_12_CREDENTIAL_ENV_NAMES, *PHASE_13_CREDENTIAL_ENV_NAMES):
+        test_environment.pop(credential_name, None)
+    test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    test_environment["FABLE5_VERIFY_PHASE"] = "13"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "services/data/tests/test_phase13_adapters.py",
+            "services/data/tests/test_phase13_contracts.py",
+            "services/data/tests/test_phase13_workflow.py",
+            "services/data/tests/test_phase13_security.py",
+            "-q",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 13 credential-free domain and socket-denial tests failed")
+    print(
+        "Phase 13 deterministic complete/blocked mock, mock-cannot-qualify, external-adversarial, "
+        "secret-canary, rights, and active socket-denial proofs passed without an external capture."
     )
 
 
@@ -9553,6 +10360,117 @@ def verify_phase12_append_only(project: str, environment: dict[str, str]) -> Non
                     f"{statement} Output: {diagnostic.strip()}"
                 )
     print("Phase 12 append-only update/delete/truncate proof passed for both tables.")
+
+
+def verify_phase13_append_only(project: str, environment: dict[str, str]) -> None:
+    expected_trigger_names = sorted(
+        trigger_name
+        for table in PHASE_13_TABLES
+        for trigger_name in (
+            f"{table}_90_append_only_row",
+            f"{table}_91_append_only_truncate",
+        )
+    )
+    expected_triggers = ",".join(
+        sorted(
+            trigger
+            for table in PHASE_13_TABLES
+            for trigger in (
+                f"{table}:{table}_90_append_only_row",
+                f"{table}:{table}_91_append_only_truncate",
+            )
+        )
+    )
+    trigger_query = (
+        "SELECT string_agg(c.relname || ':' || t.tgname, ',' "
+        "ORDER BY c.relname, t.tgname) "
+        "FROM pg_trigger AS t "
+        "JOIN pg_class AS c ON c.oid = t.tgrelid "
+        "JOIN pg_namespace AS n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = 'public' AND NOT t.tgisinternal "
+        "AND t.tgenabled IN ('O','A') "
+        "AND c.relname IN ("
+        + ",".join(f"'{table}'" for table in PHASE_13_TABLES)
+        + ") AND t.tgname IN ("
+        + ",".join(f"'{name}'" for name in expected_trigger_names)
+        + ");"
+    )
+    installed_triggers = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", trigger_query],
+    ).stdout.strip()
+    if installed_triggers != expected_triggers:
+        raise AssertionError(
+            "Phase 13 append-only trigger catalog did not match the migration: "
+            + installed_triggers
+        )
+
+    for table in PHASE_13_TABLES:
+        row_count = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                f"SELECT count(*) FROM public.{table};",
+            ],
+        ).stdout.strip()
+        if not row_count.isdigit() or int(row_count) < 1:
+            raise AssertionError(f"Phase 13 append-only proof has no persisted row in {table}")
+        column = compose_exec(
+            project,
+            environment,
+            "postgres",
+            [
+                "psql",
+                "-U",
+                "fable5",
+                "-d",
+                "fable5",
+                "-tAc",
+                "SELECT column_name FROM information_schema.columns "
+                f"WHERE table_schema = 'public' AND table_name = '{table}' "
+                "ORDER BY ordinal_position LIMIT 1;",
+            ],
+        ).stdout.strip()
+        if not column:
+            raise AssertionError(f"Phase 13 append-only proof found no column in {table}")
+        for statement in (
+            f'UPDATE public.{table} SET "{column}" = "{column}";',
+            f"DELETE FROM public.{table};",
+            f"TRUNCATE public.{table} CASCADE;",
+        ):
+            result = compose_exec(
+                project,
+                environment,
+                "postgres",
+                [
+                    "psql",
+                    "-U",
+                    "fable5",
+                    "-d",
+                    "fable5",
+                    "-v",
+                    "ON_ERROR_STOP=1",
+                    "-c",
+                    statement,
+                ],
+                check=False,
+            )
+            diagnostic = f"{result.stdout}\n{result.stderr}"
+            if result.returncode == 0 or PHASE_13_APPEND_ONLY_ERROR not in diagnostic:
+                raise AssertionError(
+                    "Phase 13 mutation was not rejected by its append-only trigger: "
+                    f"{statement} Output: {diagnostic.strip()}"
+                )
+    print("Phase 13 append-only update/delete/truncate proof passed for all three tables.")
 
 
 def snapshot_tables(
@@ -10616,6 +11534,198 @@ def verify_phase12_migration_cycle(
     return before
 
 
+def snapshot_pre_phase13_function_bodies(
+    project: str,
+    environment: dict[str, str],
+) -> str:
+    query = (
+        "SELECT COALESCE(jsonb_agg(jsonb_build_object("
+        "'identity', p.oid::regprocedure::text, 'source', p.prosrc, "
+        "'kind', p.prokind, 'volatility', p.provolatile) "
+        "ORDER BY p.oid::regprocedure::text), '[]'::jsonb)::text "
+        "FROM pg_proc AS p JOIN pg_namespace AS n ON n.oid = p.pronamespace "
+        "WHERE n.nspname = 'public' AND p.proname NOT LIKE '%phase13%';"
+    )
+    rendered = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", query],
+    ).stdout.strip()
+    payload = json.loads(rendered or "[]")
+    if not isinstance(payload, list) or not payload:
+        raise AssertionError("Phase 13 migration proof found no earlier function bodies")
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def verify_phase13_migration_cycle(
+    project: str,
+    environment: dict[str, str],
+) -> dict[str, tuple[int, str]]:
+    earlier_tables = (
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
+        *PHASE_12_TABLES,
+    )
+    before = snapshot_tables(project, environment, earlier_tables)
+    if len(before) != 51:
+        raise AssertionError("Phase 13 migration proof did not cover all 51 Phase 1-12 tables")
+    empty = sorted(table for table, (count, _) in before.items() if count < 1)
+    if empty:
+        raise AssertionError(
+            "Phase 13 migration proof requires nonempty earlier evidence: " + ", ".join(empty)
+        )
+    version = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT version_num FROM alembic_version;",
+        ],
+    ).stdout.strip()
+    if version != "0009_phase12":
+        raise AssertionError(f"Phase 13 migration cycle must start at 0009_phase12: {version}")
+    functions_before = snapshot_pre_phase13_function_bodies(project, environment)
+    phase13_functions = (
+        "own_phase13_created_at_utc()",
+        "phase13_lock_qualification_idempotency()",
+        "validate_phase13_qualification_root_payload()",
+        "validate_phase13_qualification_payload_manifest()",
+        "validate_phase13_qualification_check_payload()",
+        "validate_phase13_qualification_completeness()",
+        "reject_phase13_qualification_mutation()",
+    )
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0010_phase13",
+        ],
+        project=project,
+        env=environment,
+    )
+    present_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NOT NULL" for table in PHASE_13_TABLES)
+        + ", "
+        + ", ".join(f"to_regprocedure('{name}') IS NOT NULL" for name in phase13_functions)
+        + " FROM alembic_version;"
+    )
+    expected_upgraded = "0010_phase13|" + "|".join(
+        "t" for _ in range(len(PHASE_13_TABLES) + len(phase13_functions))
+    )
+    upgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", present_query],
+    ).stdout.strip()
+    if upgraded != expected_upgraded:
+        raise AssertionError(f"Phase 13 upgrade did not install the exact schema: {upgraded}")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, earlier_tables),
+        "during upgrade to 0010_phase13",
+    )
+    if snapshot_pre_phase13_function_bodies(project, environment) != functions_before:
+        raise AssertionError("Phase 13 upgrade changed an earlier function body")
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "downgrade",
+            "0009_phase12",
+        ],
+        project=project,
+        env=environment,
+    )
+    absent_query = (
+        "SELECT version_num, "
+        + ", ".join(f"to_regclass('public.{table}') IS NULL" for table in PHASE_13_TABLES)
+        + ", "
+        + ", ".join(f"to_regprocedure('{name}') IS NULL" for name in phase13_functions)
+        + " FROM alembic_version;"
+    )
+    expected_downgraded = "0009_phase12|" + "|".join(
+        "t" for _ in range(len(PHASE_13_TABLES) + len(phase13_functions))
+    )
+    downgraded = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", absent_query],
+    ).stdout.strip()
+    if downgraded != expected_downgraded:
+        raise AssertionError(f"Phase 13 downgrade left Phase 13 objects: {downgraded}")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, earlier_tables),
+        "during downgrade to 0009_phase12",
+    )
+    if snapshot_pre_phase13_function_bodies(project, environment) != functions_before:
+        raise AssertionError("Phase 13 downgrade changed an earlier function body")
+
+    run(
+        [
+            "exec",
+            "-T",
+            "api",
+            "alembic",
+            "-c",
+            "services/api/alembic.ini",
+            "upgrade",
+            "0010_phase13",
+        ],
+        project=project,
+        env=environment,
+    )
+    restored = compose_exec(
+        project,
+        environment,
+        "postgres",
+        ["psql", "-U", "fable5", "-d", "fable5", "-tAc", present_query],
+    ).stdout.strip()
+    if restored != expected_upgraded:
+        raise AssertionError(f"Phase 13 re-upgrade did not restore exact objects: {restored}")
+    assert_snapshots_equal(
+        before,
+        snapshot_tables(project, environment, earlier_tables),
+        "during re-upgrade to 0010_phase13",
+    )
+    if snapshot_pre_phase13_function_bodies(project, environment) != functions_before:
+        raise AssertionError("Phase 13 re-upgrade changed an earlier function body")
+    print(
+        "Phase 13 0009->0010->0009->0010 cycle preserved all 51 nonempty Phase 1-12 "
+        "tables and every earlier public function body byte-identically."
+    )
+    return before
+
+
 def wait_for_frontend(url: str, timeout: int = 60) -> str:
     deadline = time.monotonic() + timeout
     last_error: Exception | None = None
@@ -10761,11 +11871,11 @@ def verify_phase9_compose_cleanup(
 
 def verify_compose(phase: int = 1) -> None:
     acceptance_identity = (
-        phase10_clean_git_identity("preflight", phase=phase) if phase in {10, 11, 12} else None
+        phase10_clean_git_identity("preflight", phase=phase) if phase in {10, 11, 12, 13} else None
     )
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
-    if phase in {10, 11, 12}:
+    if phase in {10, 11, 12, 13}:
         verify_phase10_acceptance_resource_namespace(
             "preflight",
             os.environ.copy(),
@@ -10921,14 +12031,14 @@ def verify_compose(phase: int = 1) -> None:
                                             )
                                         with phase9_stage(phase, "phase8_timeline_api"):
                                             verify_phase8_evidence_timeline_api(api_url)
-                                        if phase in {8, 9, 10, 11, 12}:
+                                        if phase in {8, 9, 10, 11, 12, 13}:
                                             verify_phase8_browser(
                                                 project,
                                                 environment,
                                                 frontend_url,
                                             )
                                             print("Full Compose Phase 8 verification passed.")
-                                    if phase in {10, 11, 12}:
+                                    if phase in {10, 11, 12, 13}:
                                         with phase9_stage(phase, "phase10_acceptance"):
                                             with phase9_stage(phase, "phase10_schema_cycle"):
                                                 verify_phase10_migration_cycle(
@@ -10962,7 +12072,7 @@ def verify_compose(phase: int = 1) -> None:
                                                     environment,
                                                     frontend_url,
                                                 )
-                                        if phase in {11, 12}:
+                                        if phase in {11, 12, 13}:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
                                                     verify_phase11_api(
@@ -10977,7 +12087,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         frontend_url,
                                                     )
-                                        if phase == 12:
+                                        if phase in {12, 13}:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -11014,6 +12124,46 @@ def verify_compose(phase: int = 1) -> None:
                                                     "phase12_append_only",
                                                 ):
                                                     verify_phase12_append_only(
+                                                        project,
+                                                        environment,
+                                                    )
+                                        if phase == 13:
+                                            with phase9_stage(phase, "phase13_acceptance"):
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase13_schema_cycle",
+                                                ):
+                                                    verify_phase13_migration_cycle(
+                                                        project,
+                                                        environment,
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase13_mock_network_denial",
+                                                ):
+                                                    verify_phase13_mock_network_denial(environment)
+                                                with phase9_stage(phase, "phase13_capture"):
+                                                    phase13_evidence = verify_phase13_capture_cli(
+                                                        project,
+                                                        environment,
+                                                    )
+                                                with phase9_stage(phase, "phase13_api"):
+                                                    verify_phase13_api(
+                                                        project,
+                                                        environment,
+                                                        api_url,
+                                                        phase13_evidence,
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase13_postgres_tests",
+                                                ):
+                                                    verify_phase13_postgres_acceptance(environment)
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase13_append_only",
+                                                ):
+                                                    verify_phase13_append_only(
                                                         project,
                                                         environment,
                                                     )
@@ -11057,16 +12207,16 @@ def verify_compose(phase: int = 1) -> None:
                     text=True,
                     env=environment,
                 )
-                if phase in {9, 10, 11, 12}:
+                if phase in {9, 10, 11, 12, 13}:
                     if cleanup.returncode != 0:
                         raise AssertionError(
                             f"Phase {phase} inherited Compose cleanup exited {cleanup.returncode}"
                         )
-                    if phase in {9, 11, 12}:
+                    if phase in {9, 11, 12, 13}:
                         verify_phase9_compose_cleanup(project, environment, phase=phase)
         finally:
             try:
-                if phase in {10, 11, 12}:
+                if phase in {10, 11, 12, 13}:
                     verify_phase10_acceptance_resource_namespace(
                         "post-cleanup",
                         environment,
@@ -11088,6 +12238,8 @@ def verify_compose(phase: int = 1) -> None:
         print("Full Compose Phase 11 verification passed.")
     if phase == 12:
         print("Full Compose Phase 12 verification passed.")
+    if phase == 13:
+        print("Full Compose Phase 13 verification passed.")
 
 
 def main() -> int:
@@ -11098,10 +12250,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "12"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "13"),
         help=(
-            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, or 12 "
-            "(default: FABLE5_VERIFY_PHASE or 12)."
+            "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "
+            "or 13 (default: FABLE5_VERIFY_PHASE or 13)."
         ),
     )
     args = parser.parse_args()

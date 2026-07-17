@@ -32,6 +32,10 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
 - Phase 12 paper credentials may be loaded only by the explicit local capture command from the two
   paper-specific environment/secret names. Missing or partial pairs fail before transport or database
   construction; API, frontend, CI evidence, logs, errors, and persisted rows remain credential-free.
+- Phase 13 candidate credentials and rights attestations may be loaded only by its explicit local
+  qualification command. The complete token/current-rights tuple must validate before transport,
+  socket, or database construction. CI clears those variables and proves the mock/blocking paths
+  while outbound network is denied.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -50,3 +54,10 @@ must not contain credentials, unnecessary personal data, or licensed full text.
 Phase 12 readiness evidence also excludes raw account identifiers, headers, provider bodies, order
 details, position details, and raw quote prices. `SHADOW_READY` is short-lived historical evidence,
 not investment advice, a performance claim, strategy eligibility, or permission to submit an order.
+
+Phase 13 qualification evidence stores only sanitized bounded manifests, checks, hashes, counts,
+ranges, and closed reason codes. Raw provider bodies, token-bearing URLs, headers, exception text,
+and licensed observations are neither persisted nor returned. `MOCK_PROOF_COMPLETE` proves only the
+local contract. `EXTERNAL_SAMPLE_QUALIFIED`, if separately authorized and actually proven, would not
+establish full-history coverage, research eligibility, performance, personalized advice, execution
+readiness, or permission to submit an order.

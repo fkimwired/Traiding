@@ -469,6 +469,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/point-in-time-data-qualifications/{qualification_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Point In Time Qualification */
+        get: operations["get_point_in_time_qualification_v1_point_in_time_data_qualifications__qualification_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/research-runs": {
         parameters: {
             query?: never;
@@ -4537,6 +4554,131 @@ export interface components {
             /** Snapshot Sha256 */
             snapshot_sha256: string;
         };
+        /** PointInTimeQualificationArtifact */
+        PointInTimeQualificationArtifact: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /** Capability Manifests */
+            capability_manifests: components["schemas"]["QualificationCapabilityManifest"][];
+            /** Capture Manifest Sha256 */
+            capture_manifest_sha256: string;
+            /** Checks */
+            checks: components["schemas"]["QualificationCheck"][];
+            /** Code Version Git Sha */
+            code_version_git_sha: string;
+            /**
+             * Completed At Utc
+             * Format: date-time
+             */
+            completed_at_utc: string;
+            /**
+             * Disclaimer
+             * @constant
+             */
+            disclaimer: "Qualification-only sample evidence; not a research dataset, strategy result, execution authority, performance claim, or personalized investment advice.";
+            /**
+             * Execution Authorized
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * Live Path Absent
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * No Personalized Investment Advice
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Order Submission Authorized
+             * @constant
+             */
+            order_submission_authorized: false;
+            outcome: components["schemas"]["QualificationOutcome"];
+            provider_profile: components["schemas"]["QualificationProviderProfile"];
+            /**
+             * Qualification Id
+             * Format: uuid
+             */
+            qualification_id: string;
+            /** Qualification Idempotency Key */
+            qualification_idempotency_key: string;
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Research Data Eligible
+             * @constant
+             */
+            research_data_eligible: false;
+            rights_attestation?: components["schemas"]["QualificationUseRightsAttestation"] | null;
+            /**
+             * Sample Plan Id
+             * @constant
+             */
+            sample_plan_id: "phase13-family-a-qualification-sample-v1";
+            /** Sample Plan Sha256 */
+            sample_plan_sha256: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "phase13-pit-qualification-v1";
+            source_kind: components["schemas"]["QualificationSourceKind"];
+            /**
+             * Started At Utc
+             * Format: date-time
+             */
+            started_at_utc: string;
+            /**
+             * Strategy Execution Eligible
+             * @constant
+             */
+            strategy_execution_eligible: false;
+            /**
+             * Strategy Promotion Authorized
+             * @constant
+             */
+            strategy_promotion_authorized: false;
+            /** Transport Profile Sha256 */
+            transport_profile_sha256: string;
+        };
+        /** PointInTimeQualificationConflictErrorResponse */
+        PointInTimeQualificationConflictErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "Immutable Phase 13 point-in-time qualification evidence conflicts with persisted lineage.";
+        };
+        /** PointInTimeQualificationNotFoundErrorResponse */
+        PointInTimeQualificationNotFoundErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "The requested immutable Phase 13 point-in-time qualification evidence was not found.";
+        };
+        /** PointInTimeQualificationValidationErrorResponse */
+        PointInTimeQualificationValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["PointInTimeQualificationValidationIssue"][];
+        };
+        /** PointInTimeQualificationValidationIssue */
+        PointInTimeQualificationValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /** PolicyDeclaration */
         PolicyDeclaration: {
             /** Name */
@@ -4719,6 +4861,229 @@ export interface components {
          * @enum {string}
          */
         PromotionState: "PASS_RESEARCH" | "FAIL_REJECT" | "BLOCKED_MISSING_POLICY" | "BLOCKED_UNCOMPUTABLE" | "RESEARCH_ONLY_REGIME_DEPENDENT";
+        /**
+         * QualificationCapability
+         * @enum {string}
+         */
+        QualificationCapability: "SECURITY_MASTER_STABLE_IDENTITY" | "POINT_IN_TIME_UNIVERSE_MEMBERSHIP" | "RAW_OHLCV_AVAILABILITY" | "CORPORATE_ACTION_ANNOUNCEMENT_REVISION" | "DELISTING_RETURN_SEMANTICS" | "AS_REPORTED_FUNDAMENTAL_REVISION";
+        /** QualificationCapabilityManifest */
+        QualificationCapabilityManifest: {
+            /** Available At Max Utc */
+            available_at_max_utc?: string | null;
+            /** Available At Min Utc */
+            available_at_min_utc?: string | null;
+            capability: components["schemas"]["QualificationCapability"];
+            /** Capability Manifest Sha256 */
+            capability_manifest_sha256: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Event Time Max Utc */
+            event_time_max_utc?: string | null;
+            /** Event Time Min Utc */
+            event_time_min_utc?: string | null;
+            /** Missingness Count */
+            missingness_count: number;
+            /** Normalized Evidence Sha256 */
+            normalized_evidence_sha256?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Raw Evidence Sha256 */
+            raw_evidence_sha256?: string | null;
+            reason_code: components["schemas"]["QualificationReasonCode"];
+            /** Record Count */
+            record_count: number;
+            /**
+             * Request Evidence
+             * @default []
+             */
+            request_evidence: components["schemas"]["QualificationRequestEvidence"][];
+            /** Revision Count */
+            revision_count: number;
+            /** Schema Identity Sha256 */
+            schema_identity_sha256?: string | null;
+            /**
+             * Schema Version
+             * @default phase13-pit-capability-manifest-v1
+             * @constant
+             */
+            schema_version: "phase13-pit-capability-manifest-v1";
+            status: components["schemas"]["QualificationCheckStatus"];
+        };
+        /** QualificationCheck */
+        QualificationCheck: {
+            /** Check Sha256 */
+            check_sha256: string;
+            code: components["schemas"]["QualificationCheckCode"];
+            /** Evidence Sha256S */
+            evidence_sha256s: string[];
+            /** Observed Value */
+            observed_value?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            reason_code: components["schemas"]["QualificationReasonCode"];
+            /**
+             * Schema Version
+             * @default phase13-pit-qualification-check-v1
+             * @constant
+             */
+            schema_version: "phase13-pit-qualification-check-v1";
+            status: components["schemas"]["QualificationCheckStatus"];
+            /** Threshold Value */
+            threshold_value?: string | null;
+        };
+        /**
+         * QualificationCheckCode
+         * @enum {string}
+         */
+        QualificationCheckCode: "SOURCE_KIND_EXACT" | "READ_ONLY_TRANSPORT_EXACT" | "USE_RIGHTS_CURRENT_SUFFICIENT" | "SECURITY_MASTER_STABLE_IDENTITY" | "POINT_IN_TIME_UNIVERSE_MEMBERSHIP" | "RAW_OHLCV_AVAILABILITY" | "CORPORATE_ACTION_ANNOUNCEMENT_REVISION" | "DELISTING_RETURN_SEMANTICS" | "AS_REPORTED_FUNDAMENTAL_REVISION" | "RAW_NORMALIZED_RECONCILIATION" | "NULL_SENTINEL_SCHEMA_DRIFT" | "DETERMINISTIC_CAPTURE_MANIFEST";
+        /**
+         * QualificationCheckStatus
+         * @enum {string}
+         */
+        QualificationCheckStatus: "PASS" | "BLOCKED" | "UNCOMPUTABLE";
+        /**
+         * QualificationOutcome
+         * @enum {string}
+         */
+        QualificationOutcome: "MOCK_PROOF_COMPLETE" | "EXTERNAL_SAMPLE_QUALIFIED" | "BLOCKED";
+        /** QualificationProviderProfile */
+        QualificationProviderProfile: {
+            /** Adapter Id */
+            adapter_id: string;
+            /** Adapter Version */
+            adapter_version: string;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Product Id */
+            product_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * Schema Version
+             * @default phase13-pit-provider-profile-v1
+             * @constant
+             */
+            schema_version: "phase13-pit-provider-profile-v1";
+            source_kind: components["schemas"]["QualificationSourceKind"];
+            /** Synthetic */
+            synthetic: boolean;
+            /**
+             * Transport Profile Sha256
+             * @default 516141ae52eac2cbef09302f8f5928b9453ba227922f9e81e86c2449ea379109
+             */
+            transport_profile_sha256: string;
+        };
+        /**
+         * QualificationReasonCode
+         * @enum {string}
+         */
+        QualificationReasonCode: "check_passed" | "mock_rights_not_applicable" | "credentials_unavailable" | "rights_unavailable" | "rights_not_current" | "rights_insufficient" | "capability_undocumented" | "current_universe_only" | "delisting_return_unavailable" | "http_failure" | "transport_failure" | "redirect_rejected" | "response_too_large" | "malformed_utf8" | "malformed_json" | "duplicate_json_key" | "non_finite_number" | "schema_drift" | "temporal_invalid" | "identity_invalid" | "action_revision_invalid" | "fundamental_revision_invalid" | "raw_normalized_mismatch" | "null_sentinel_drift" | "nondeterministic_capture" | "prior_capability_blocked";
+        /**
+         * QualificationRequestCode
+         * @enum {string}
+         */
+        QualificationRequestCode: "FUNDAMENTALS_META" | "EOD_PRICES" | "DISTRIBUTIONS" | "SPLITS" | "FUNDAMENTAL_STATEMENTS";
+        /** QualificationRequestEvidence */
+        QualificationRequestEvidence: {
+            /** Body Size Bytes */
+            body_size_bytes?: number | null;
+            code: components["schemas"]["QualificationRequestCode"];
+            /** External Request Performed */
+            external_request_performed: boolean;
+            /**
+             * Host
+             * @default api.tiingo.com
+             * @constant
+             */
+            host: "api.tiingo.com";
+            /** Http Status */
+            http_status?: number | null;
+            /**
+             * Method
+             * @default GET
+             * @constant
+             */
+            method: "GET";
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Port
+             * @default 443
+             * @constant
+             */
+            port: 443;
+            /** Raw Body Sha256 */
+            raw_body_sha256?: string | null;
+            reason_code: components["schemas"]["QualificationReasonCode"];
+            /** Record Count */
+            record_count?: number | null;
+            /** Request Completed At Utc */
+            request_completed_at_utc?: string | null;
+            /** Request Evidence Sha256 */
+            request_evidence_sha256: string;
+            /** Request Started At Utc */
+            request_started_at_utc?: string | null;
+            /**
+             * Schema Version
+             * @default phase13-pit-request-evidence-v1
+             * @constant
+             */
+            schema_version: "phase13-pit-request-evidence-v1";
+            status: components["schemas"]["QualificationRequestStatus"];
+            /**
+             * Target
+             * @enum {string}
+             */
+            target: "/tiingo/fundamentals/meta?columns=permaTicker,ticker,isActive,statementLastUpdated,dailyLastUpdated" | "/tiingo/daily/AAPL/prices?startDate=2020-08-28&endDate=2020-09-01" | "/tiingo/corporate-actions/AAPL/distributions?startExDate=2020-01-01&endExDate=2020-12-31" | "/tiingo/corporate-actions/AAPL/splits?startExDate=2020-08-28&endExDate=2020-09-01" | "/tiingo/fundamentals/AAPL/statements?startDate=2019-01-01";
+        };
+        /**
+         * QualificationRequestStatus
+         * @enum {string}
+         */
+        QualificationRequestStatus: "OBSERVED" | "BLOCKED" | "NOT_ATTEMPTED";
+        /**
+         * QualificationSourceKind
+         * @enum {string}
+         */
+        QualificationSourceKind: "DETERMINISTIC_MOCK" | "TIINGO_CANDIDATE_READ_ONLY";
+        /** QualificationUseRightsAttestation */
+        QualificationUseRightsAttestation: {
+            /** Attestation Id */
+            attestation_id: string;
+            /** Attestation Sha256 */
+            attestation_sha256: string;
+            /** Derived Data Allowed */
+            derived_data_allowed: boolean;
+            /**
+             * Expires At Utc
+             * Format: date-time
+             */
+            expires_at_utc: string;
+            /** Non Display Allowed */
+            non_display_allowed: boolean;
+            /**
+             * Qualification Use Only
+             * @default true
+             * @constant
+             */
+            qualification_use_only: true;
+            /**
+             * Schema Version
+             * @default phase13-pit-rights-attestation-v1
+             * @constant
+             */
+            schema_version: "phase13-pit-rights-attestation-v1";
+            /** Storage Allowed */
+            storage_allowed: boolean;
+            /**
+             * Valid From Utc
+             * Format: date-time
+             */
+            valid_from_utc: string;
+        };
         /**
          * QualityFlag
          * @enum {string}
@@ -8395,6 +8760,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperShadowReadinessValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_point_in_time_qualification_v1_point_in_time_data_qualifications__qualification_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qualification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointInTimeQualificationArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointInTimeQualificationNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointInTimeQualificationConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PointInTimeQualificationValidationErrorResponse"];
                 };
             };
         };

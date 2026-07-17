@@ -22,6 +22,7 @@ Phase 1 control plane
   -> Phase 10 deterministic local mock-only paper simulation
   -> Phase 11 portable deterministic local simulation evidence verification
   -> Phase 12 external-paper shadow readiness (read-only)
+  -> Phase 13 point-in-time data qualification (read-only, qualification-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -43,6 +44,7 @@ do not receive executable scaffolds.
 | 10 | deterministic local mock-only simulation with fresh governance and immutable ledger | direct Windows/Ubuntu verifier; reversible migration, exact completed/blocked artifacts, idempotency, append-only and browser proof |
 | 11 | deterministic read-only bundle, GET-only retrieval, local JSON download, and offline verification of existing Phase 10 artifacts | generated contracts; completed/blocked and tamper proof; zero writes; network denial; inherited browser and cross-platform cleanup proof |
 | 12 | fixed paper-environment read adapter, deterministic mock, sanitized append-only readiness evidence, local capture, and one historical GET | exact six-read contract; credential/secret/network denial; idempotency/tamper/migration proof; inherited browser and cross-platform cleanup proof; no order path |
+| 13 | frozen Family A PIT qualification profile, deterministic mock, fixed Tiingo candidate reads, sanitized append-only manifests/checks, local capture, and one historical GET | exact six-capability/twelve-check contract; mock-cannot-qualify; rights/credential/secret/network denial; migration/tamper/zero-write/inherited-browser/cross-platform proof; no research ingestion or order path |
 
 ## Required handoff template
 
@@ -63,5 +65,9 @@ Every implementer task must include:
 The accepted Phase 10 boundary remains recorded in `docs/handoffs/PHASE_10.md`. The separately
 authorized and accepted Phase 11 read-only boundary and direct cross-platform closure gate are in
 `docs/handoffs/PHASE_11.md`. The separately authorized Phase 12 read-only external-paper readiness
-boundary is in `docs/handoffs/PHASE_12.md`; it authorizes no order, Phase 13 work, credentialed
-external probe, publication, or deployment.
+boundary is in `docs/handoffs/PHASE_12.md`. Phase 12 is formally accepted at commit
+`37530a94f841d538a162447cb01ec3e11f375ead`, tree
+`d8d747ffccb76c3d754cdd2cc14b8ec49fb97287`. The authorized Phase 13 qualification-only boundary is
+in `docs/handoffs/PHASE_13.md`; it authorizes neither research-data ingestion nor a credentialed
+external capture, order, publication, or deployment. Phase 14 remains dependency-gated on same-SHA
+Windows and Ubuntu Phase 13 acceptance.
