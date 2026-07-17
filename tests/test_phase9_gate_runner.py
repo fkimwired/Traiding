@@ -165,12 +165,38 @@ def test_sanitizer_allows_only_structured_stages_and_exact_final_markers() -> No
         runner.sanitize_child_line("Full Compose Phase 9 verification passed.")
         == "Full Compose Phase 9 verification passed."
     )
+    playwright_result = {
+        "duration_ms": 2_100_123,
+        "file": "phase8.accessibility.spec.ts",
+        "line": 570,
+        "project": "desktop",
+        "status": "timedOut",
+        "timeout_ms": 2_100_000,
+    }
+    safe_playwright_result = runner.PLAYWRIGHT_RESULT_PREFIX + json.dumps(
+        playwright_result, sort_keys=True, separators=(",", ":")
+    )
+    assert runner.sanitize_child_line(safe_playwright_result) == safe_playwright_result
     for unsafe in (
         "AWS_SECRET_ACCESS_KEY=secret",
         "postgres://user:password@example.invalid/db",
         '{"source_payload":"licensed text"}',
         'FABLE5_PHASE9_STAGE {"credential":"secret","stage":"phase9_static"}',
         "FABLE5_PHASE9_STAGE not-json",
+        (
+            runner.PLAYWRIGHT_RESULT_PREFIX
+            + '{"duration_ms":true,"file":"phase8.accessibility.spec.ts","line":570,'
+            '"project":"desktop","status":"timedOut","timeout_ms":2100000}'
+        ),
+        (
+            runner.PLAYWRIGHT_RESULT_PREFIX
+            + '{"duration_ms":2100123,"file":"secret.spec.ts","line":570,'
+            '"project":"desktop","status":"timedOut","timeout_ms":2100000}'
+        ),
+        (
+            safe_playwright_result
+            + ' {"error":"AWS_SECRET_ACCESS_KEY=secret","extra":"licensed payload"}'
+        ),
         "Full Compose Phase 9 verification passed. extra",
     ):
         assert runner.sanitize_child_line(unsafe) is None
@@ -216,6 +242,30 @@ def test_nested_substages_are_required_without_weakening_stage_validation() -> N
     failed_manifest["manifest_sha256"] = runner.manifest_digest(failed_manifest)
     with pytest.raises(runner.GateRunnerError, match="stage did not pass"):
         runner.validate_bundle(failed_manifest, failed_log, context)
+
+
+def test_passing_bundle_rejects_playwright_failure_results() -> None:
+    runner = load_runner()
+    manifest, sanitized_log, context = valid_bundle(runner)
+    result = {
+        "duration_ms": 2_100_123,
+        "file": "phase8.accessibility.spec.ts",
+        "line": 570,
+        "project": "desktop",
+        "status": "timedOut",
+        "timeout_ms": 2_100_000,
+    }
+    result_line = runner.PLAYWRIGHT_RESULT_PREFIX + json.dumps(
+        result, sort_keys=True, separators=(",", ":")
+    )
+    lines = sanitized_log.decode("utf-8").splitlines()
+    lines.insert(-1, result_line)
+    forged_log = ("\n".join(lines) + "\n").encode()
+    forged_manifest = dict(manifest)
+    forged_manifest["sanitized_log_sha256"] = hashlib.sha256(forged_log).hexdigest()
+    forged_manifest["manifest_sha256"] = runner.manifest_digest(forged_manifest)
+    with pytest.raises(runner.GateRunnerError, match="Passing evidence cannot contain"):
+        runner.validate_bundle(forged_manifest, forged_log, context)
 
 
 def test_bundle_detects_log_and_manifest_mutation_and_forged_identity() -> None:

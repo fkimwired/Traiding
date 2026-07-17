@@ -31,12 +31,21 @@ SANITIZED_LOG_NAME = "phase-gate.sanitized.log"
 HEARTBEAT_NAME = "phase-gate.heartbeat.json"
 MANIFEST_NAME = "phase-gate.manifest.json"
 STAGE_PREFIX = "FABLE5_PHASE9_STAGE "
+PLAYWRIGHT_RESULT_PREFIX = "FABLE5_PHASE9_PLAYWRIGHT_RESULT "
 RUNNER_EVENT_PREFIX = "RUNNER_EVENT "
 PHASE8_MARKER = "Full Compose Phase 8 verification passed."
 PHASE9_MARKER = "Full Compose Phase 9 verification passed."
 STATIC_MARKERS = {
     "Static repository policy checks passed for Phase 8.",
     "Static repository policy checks passed for Phase 9.",
+}
+PLAYWRIGHT_FAILURE_LOCATIONS = {
+    "phase8.accessibility.spec.ts": {327, 361, 442, 514, 570, 666},
+    "phase8.visual.spec.ts": {71},
+}
+PLAYWRIGHT_TIMEOUTS = {
+    ("phase8.accessibility.spec.ts", 570): 2_100_000,
+    ("phase8.accessibility.spec.ts", 666): 420_000,
 }
 SNAPSHOT_DIRECTORY = ROOT / "services/frontend/e2e/__screenshots__/phase8.visual.spec.ts"
 SNAPSHOT_MODES = (
@@ -383,10 +392,60 @@ def _parse_stage_line(line: str) -> dict[str, object]:
     return stage
 
 
+def _parse_playwright_result_line(line: str) -> dict[str, object]:
+    try:
+        result = json.loads(line.removeprefix(PLAYWRIGHT_RESULT_PREFIX))
+    except json.JSONDecodeError as exc:
+        raise GateRunnerError("Malformed Phase 9 Playwright result marker.") from exc
+    expected_fields = {
+        "duration_ms",
+        "file",
+        "line",
+        "project",
+        "status",
+        "timeout_ms",
+    }
+    if not isinstance(result, dict) or set(result) != expected_fields:
+        raise GateRunnerError("Phase 9 Playwright result marker has unexpected fields.")
+    file_name = result["file"]
+    line_number = result["line"]
+    duration = result["duration_ms"]
+    timeout = result["timeout_ms"]
+    if (
+        not isinstance(file_name, str)
+        or file_name not in PLAYWRIGHT_FAILURE_LOCATIONS
+        or isinstance(line_number, bool)
+        or not isinstance(line_number, int)
+        or line_number not in PLAYWRIGHT_FAILURE_LOCATIONS[file_name]
+    ):
+        raise GateRunnerError("Phase 9 Playwright result location is not allowlisted.")
+    if result["project"] not in {"mobile", "tablet", "desktop"}:
+        raise GateRunnerError("Phase 9 Playwright result project is not allowlisted.")
+    if result["status"] not in {"failed", "timedOut", "interrupted"}:
+        raise GateRunnerError("Phase 9 Playwright result status is not allowlisted.")
+    expected_timeout = PLAYWRIGHT_TIMEOUTS.get((file_name, line_number), 240_000)
+    if (
+        isinstance(duration, bool)
+        or not isinstance(duration, int)
+        or duration < 0
+        or isinstance(timeout, bool)
+        or not isinstance(timeout, int)
+        or timeout != expected_timeout
+    ):
+        raise GateRunnerError("Phase 9 Playwright result timing is invalid.")
+    return result
+
+
 def sanitize_child_line(line: str) -> str | None:
     stripped = line.rstrip("\r\n")
     if stripped in {PHASE8_MARKER, PHASE9_MARKER, *STATIC_MARKERS}:
         return stripped
+    if stripped.startswith(PLAYWRIGHT_RESULT_PREFIX):
+        try:
+            result = _parse_playwright_result_line(stripped)
+        except GateRunnerError:
+            return None
+        return PLAYWRIGHT_RESULT_PREFIX + canonical_json_bytes(result).decode("utf-8")
     if not stripped.startswith(STAGE_PREFIX):
         return None
     try:
@@ -856,6 +915,16 @@ def validate_bundle(
         safe = sanitize_child_line(line)
         if safe is None or safe != line:
             raise GateRunnerError("Sanitized evidence contains an unapproved line.")
+    playwright_results = [
+        _parse_playwright_result_line(line)
+        for line in lines
+        if line.startswith(PLAYWRIGHT_RESULT_PREFIX)
+    ]
+    canonical_playwright_results = [canonical_json_bytes(result) for result in playwright_results]
+    if len(canonical_playwright_results) != len(set(canonical_playwright_results)):
+        raise GateRunnerError("Sanitized evidence contains duplicate Playwright results.")
+    if manifest.get("child_exit_code") == 0 and playwright_results:
+        raise GateRunnerError("Passing evidence cannot contain a Playwright failure result.")
 
     if manifest.get("schema_version") != MANIFEST_SCHEMA_VERSION or manifest.get("phase") != 9:
         raise GateRunnerError("Evidence does not use the Phase 9 schema.")

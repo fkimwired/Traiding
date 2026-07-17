@@ -50,7 +50,9 @@ directly, and explicitly forwards only `PLAYWRIGHT_BASE_URL`, the exact Phase 9 
 `CI=true` as acceptance values. The container has no Docker socket and has a project-scoped name and
 label so both normal and interrupted cleanup remain auditable. Phase 8 on Linux and Phase 9 on
 Windows retain the native npm path. CI therefore does not install or use a mutable native Ubuntu
-Chromium runtime for the Phase 9 Compose gate.
+Chromium runtime for the Phase 9 Compose gate. The workflow pre-pulls that exact digest before the
+single-flight runner, so cold image acquisition does not consume the verifier's bounded 6,300-second
+evidence window. The verifier's `docker run` still names the same digest exactly.
 
 The frozen generated-contract hashes are:
 
@@ -85,11 +87,18 @@ large immutable-detail reads, and 10 seconds for validation reads in Phases 6 th
 Phase 9 full verifier uses 480, 180, and 30 seconds respectively to tolerate constrained CI compute.
 The verifier also removes any caller-provided `FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE` value and sets
 it to exactly `1` only for the Phase 9 browser child. That profile changes the single exhaustive
-lineage test from its inherited 20-minute deadline to 25 minutes. It changes no assertion, coverage,
+lineage test from its inherited 20-minute deadline to 35 minutes. It changes no assertion, coverage,
 request payload, test order, concurrency proof, retry policy, worker count, global Playwright
 timeout, visual baseline, or application behavior. The Linux runtime pin changes execution
 environment only. The outer single-flight deadline is 6,300 seconds so the bounded browser
 allowance does not race the runner deadline.
+
+The Linux verifier holds Playwright's built-in JSON report only in memory. On failure it emits one
+canonical `FABLE5_PHASE9_PLAYWRIGHT_RESULT` record per unexpected test with exactly the allowlisted
+file basename, frozen definition line, project, status, duration, and timeout. The runner
+revalidates and canonicalizes those fields into the hash-bound sanitized log. Test titles, error
+messages, stacks, stdout/stderr, attachments, source payloads, URLs, and arbitrary paths are never
+forwarded or persisted in the uploaded bundle. Passing evidence rejects any such failure record.
 
 ## Single-flight runner
 

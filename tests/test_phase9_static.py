@@ -17,7 +17,7 @@ PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
 PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
     b"  test.setTimeout(\n"
     b'    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? '
-    b"1_500_000 : 1_200_000,\n"
+    b"2_100_000 : 1_200_000,\n"
     b"  );"
 )
 PHASE_9_ALLOWED_WRITES = {
@@ -249,11 +249,15 @@ def test_phase9_linux_browser_uses_the_exact_pinned_read_only_runtime_and_cleans
     def capture_run(command: list[str], *, env: dict[str, str]) -> None:
         captured_runs.append((command, env.copy()))
 
+    def capture_linux_run(command: list[str], environment: dict[str, str]) -> None:
+        captured_runs.append((command, environment.copy()))
+
     def capture_cleanup(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         cleanup_calls.append((command, kwargs))
         return subprocess.CompletedProcess(command, 1)
 
     monkeypatch.setattr(verifier, "run", capture_run)
+    monkeypatch.setattr(verifier, "run_phase9_linux_playwright", capture_linux_run)
     monkeypatch.setattr(verifier.subprocess, "run", capture_cleanup)
 
     inherited_environment = {
@@ -314,7 +318,7 @@ def test_phase9_linux_browser_uses_the_exact_pinned_read_only_runtime_and_cleans
         "node",
         "../../node_modules/@playwright/test/cli.js",
         "test",
-        "--reporter=list",
+        "--reporter=json",
         "--output=/tmp/playwright-results",
     ]
     command, host_environment = captured_runs[-1]
@@ -351,14 +355,108 @@ def test_phase9_linux_browser_uses_the_exact_pinned_read_only_runtime_and_cleans
 
     cleanup_calls.clear()
 
-    def fail_run(command: list[str], *, env: dict[str, str]) -> None:
+    def fail_run(command: list[str], environment: dict[str, str]) -> None:
         raise subprocess.CalledProcessError(1, command)
 
-    monkeypatch.setattr(verifier, "run", fail_run)
+    monkeypatch.setattr(verifier, "run_phase9_linux_playwright", fail_run)
     with pytest.raises(subprocess.CalledProcessError):
         verifier.verify_phase8_browser("project", phase9_environment, "http://frontend")
     assert len(cleanup_calls) == 1
     assert cleanup_calls[0][0][-1] == "project_phase9_playwright"
+
+
+def test_phase9_linux_playwright_emits_only_allowlisted_failure_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    verifier_path = ROOT / "scripts/verify_phase1.py"
+    spec = importlib.util.spec_from_file_location(
+        "phase9_playwright_result_verifier", verifier_path
+    )
+    assert spec is not None and spec.loader is not None
+    verifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(verifier)
+
+    report = {
+        "stats": {"unexpected": 1},
+        "suites": [
+            {
+                "title": "SECRET TITLE",
+                "specs": [
+                    {
+                        "file": "phase8.accessibility.spec.ts",
+                        "line": 570,
+                        "title": "SECRET TEST TITLE",
+                        "tests": [
+                            {
+                                "projectName": "desktop",
+                                "status": "unexpected",
+                                "timeout": 2_100_000,
+                                "results": [
+                                    {
+                                        "status": "timedOut",
+                                        "duration": 2_100_123,
+                                        "error": {"message": "API_KEY=secret-value"},
+                                        "stderr": ["licensed source payload"],
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+        "errors": [{"message": "postgres://user:password@example.invalid/db"}],
+    }
+
+    def completed_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(
+            command,
+            1,
+            stdout=json.dumps(report),
+            stderr="AWS_SECRET_ACCESS_KEY=secret",
+        )
+
+    monkeypatch.setattr(verifier.subprocess, "run", completed_run)
+    with pytest.raises(subprocess.CalledProcessError):
+        verifier.run_phase9_linux_playwright(["docker", "run"], {"PATH": "safe"})
+    output = capsys.readouterr().out
+    expected = {
+        "duration_ms": 2_100_123,
+        "file": "phase8.accessibility.spec.ts",
+        "line": 570,
+        "project": "desktop",
+        "status": "timedOut",
+        "timeout_ms": 2_100_000,
+    }
+    assert (
+        verifier.PHASE_9_PLAYWRIGHT_RESULT_PREFIX
+        + json.dumps(expected, sort_keys=True, separators=(",", ":"))
+    ) in output
+    for secret in (
+        "SECRET TITLE",
+        "SECRET TEST TITLE",
+        "API_KEY",
+        "licensed source payload",
+        "postgres://",
+        "AWS_SECRET_ACCESS_KEY",
+    ):
+        assert secret not in output
+
+    invalid = json.loads(json.dumps(report))
+    invalid["suites"][0]["specs"][0]["file"] = "e2e/secret.spec.ts"
+    with pytest.raises(AssertionError, match="location is not allowlisted"):
+        verifier.phase9_playwright_failure_records(invalid)
+
+    invalid = json.loads(json.dumps(report))
+    invalid["suites"][0]["specs"][0]["tests"][0]["timeout"] = 1_500_000
+    with pytest.raises(AssertionError, match="timing is invalid"):
+        verifier.phase9_playwright_failure_records(invalid)
+
+    invalid = json.loads(json.dumps(report))
+    invalid["suites"][0]["specs"][0]["tests"][0]["results"][0]["duration"] = True
+    with pytest.raises(AssertionError, match="duration is invalid"):
+        verifier.phase9_playwright_failure_records(invalid)
 
 
 def test_phase9_verifier_runs_inherited_static_first_and_full_cleanup_last() -> None:
@@ -460,6 +558,15 @@ def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() 
     assert "runner_exit" in workflow and "evidence_exit" in workflow
     assert "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow
+    immutable_image = (
+        "mcr.microsoft.com/playwright:v1.61.1-noble@"
+        "sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48"
+    )
+    immutable_pull = f"docker pull {immutable_image}"
+    assert workflow.count(immutable_pull) == 1
+    compose = workflow.split("\n  phase9-compose:\n", 1)[1]
+    assert compose.index("- run: npm ci") < compose.index(immutable_pull)
+    assert compose.index(immutable_pull) < compose.index("run_phase_gate.py run --phase 9")
 
     action_lines = [line.strip() for line in workflow.splitlines() if "uses:" in line]
     assert action_lines

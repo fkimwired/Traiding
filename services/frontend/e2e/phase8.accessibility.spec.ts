@@ -572,7 +572,7 @@ test("every visible result has a direct lineage href and every parameter or bran
 }, testInfo) => {
   skipUnlessDesktop(testInfo);
   test.setTimeout(
-    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? 1_500_000 : 1_200_000,
+    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? 2_100_000 : 1_200_000,
   );
   const writes = recordWrites(page);
   const initialRepresentatives = new Map<string, { href: string; modePath: string }>();

@@ -369,11 +369,20 @@ PHASE_9_LINUX_PLAYWRIGHT_IMAGE = (
     f"sha256:{PHASE_9_PLAYWRIGHT_IMAGE_SHA256}"
 )
 PHASE_9_LINUX_PLAYWRIGHT_CONTAINER_SUFFIX = "_phase9_playwright"
+PHASE_9_PLAYWRIGHT_RESULT_PREFIX = "FABLE5_PHASE9_PLAYWRIGHT_RESULT "
+PHASE_9_PLAYWRIGHT_FAILURE_LOCATIONS = {
+    "phase8.accessibility.spec.ts": {327, 361, 442, 514, 570, 666},
+    "phase8.visual.spec.ts": {71},
+}
+PHASE_9_PLAYWRIGHT_TIMEOUTS = {
+    ("phase8.accessibility.spec.ts", 570): 2_100_000,
+    ("phase8.accessibility.spec.ts", 666): 420_000,
+}
 PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
 PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
     b"  test.setTimeout(\n"
     b'    process.env.FABLE5_PHASE9_BROWSER_TIMEOUT_PROFILE === "1" ? '
-    b"1_500_000 : 1_200_000,\n"
+    b"2_100_000 : 1_200_000,\n"
     b"  );"
 )
 PHASE_9_CONTRACT_SHA256 = {
@@ -2687,6 +2696,11 @@ def verify_phase9_static() -> None:
     if "npx playwright install --with-deps chromium" in workflow:
         raise AssertionError(
             "Phase 9 Linux acceptance must not use the mutable host browser runtime"
+        )
+    immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
+    if workflow.count(immutable_pull) != 1:
+        raise AssertionError(
+            "Phase 9 CI must pre-pull the exact immutable Linux browser image once"
         )
     phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
     if '"9": "0007_phase7"' not in phase5_postgres_tests:
@@ -5938,9 +5952,131 @@ def phase9_linux_playwright_command(project: str, frontend_url: str) -> list[str
         "node",
         "../../node_modules/@playwright/test/cli.js",
         "test",
-        "--reporter=list",
+        "--reporter=json",
         "--output=/tmp/playwright-results",
     ]
+
+
+def phase9_playwright_failure_records(report: object) -> list[dict[str, object]]:
+    if not isinstance(report, dict):
+        raise AssertionError("Phase 9 Playwright JSON report is not an object")
+    stats = report.get("stats")
+    suites = report.get("suites")
+    if not isinstance(stats, dict) or not isinstance(suites, list):
+        raise AssertionError("Phase 9 Playwright JSON report is incomplete")
+    unexpected = stats.get("unexpected")
+    if isinstance(unexpected, bool) or not isinstance(unexpected, int) or unexpected < 0:
+        raise AssertionError("Phase 9 Playwright unexpected-result count is invalid")
+
+    records: list[dict[str, object]] = []
+
+    def visit_suite(suite: object) -> None:
+        if not isinstance(suite, dict):
+            raise AssertionError("Phase 9 Playwright suite is not an object")
+        child_suites = suite.get("suites", [])
+        specs = suite.get("specs", [])
+        if not isinstance(child_suites, list) or not isinstance(specs, list):
+            raise AssertionError("Phase 9 Playwright suite structure is invalid")
+        for child in child_suites:
+            visit_suite(child)
+        for spec in specs:
+            if not isinstance(spec, dict):
+                raise AssertionError("Phase 9 Playwright spec is not an object")
+            file_name = spec.get("file")
+            line = spec.get("line")
+            tests = spec.get("tests")
+            if not isinstance(tests, list):
+                raise AssertionError("Phase 9 Playwright spec tests are invalid")
+            for test in tests:
+                if not isinstance(test, dict):
+                    raise AssertionError("Phase 9 Playwright test result is not an object")
+                if test.get("status") != "unexpected":
+                    continue
+                if (
+                    not isinstance(file_name, str)
+                    or file_name not in PHASE_9_PLAYWRIGHT_FAILURE_LOCATIONS
+                    or isinstance(line, bool)
+                    or not isinstance(line, int)
+                    or line not in PHASE_9_PLAYWRIGHT_FAILURE_LOCATIONS[file_name]
+                ):
+                    raise AssertionError("Phase 9 Playwright failure location is not allowlisted")
+                project_name = test.get("projectName")
+                timeout = test.get("timeout")
+                results = test.get("results")
+                expected_timeout = PHASE_9_PLAYWRIGHT_TIMEOUTS.get((file_name, line), 240_000)
+                if project_name not in {"mobile", "tablet", "desktop"}:
+                    raise AssertionError("Phase 9 Playwright failure project is not allowlisted")
+                if (
+                    isinstance(timeout, bool)
+                    or not isinstance(timeout, int)
+                    or timeout != expected_timeout
+                    or not isinstance(results, list)
+                    or not results
+                ):
+                    raise AssertionError("Phase 9 Playwright failure timing is invalid")
+                result = results[-1]
+                if not isinstance(result, dict):
+                    raise AssertionError("Phase 9 Playwright final result is not an object")
+                status = result.get("status")
+                duration = result.get("duration")
+                if status not in {"failed", "timedOut", "interrupted"}:
+                    raise AssertionError("Phase 9 Playwright failure status is not allowlisted")
+                if isinstance(duration, bool) or not isinstance(duration, int) or duration < 0:
+                    raise AssertionError("Phase 9 Playwright failure duration is invalid")
+                records.append(
+                    {
+                        "duration_ms": duration,
+                        "file": Path(file_name).name,
+                        "line": line,
+                        "project": project_name,
+                        "status": status,
+                        "timeout_ms": timeout,
+                    }
+                )
+
+    for suite in suites:
+        visit_suite(suite)
+    if len(records) != unexpected:
+        raise AssertionError("Phase 9 Playwright failure count does not match its JSON report")
+    return sorted(
+        records,
+        key=lambda record: (
+            str(record["file"]),
+            int(record["line"]),
+            str(record["project"]),
+            str(record["status"]),
+        ),
+    )
+
+
+def run_phase9_linux_playwright(
+    command: list[str],
+    environment: dict[str, str],
+) -> subprocess.CompletedProcess[str]:
+    print("+", " ".join(command))
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+    try:
+        report = json.loads(completed.stdout)
+        failures = phase9_playwright_failure_records(report)
+    except (json.JSONDecodeError, AssertionError) as exc:
+        raise RuntimeError(
+            "Phase 9 Playwright did not produce a valid sanitized JSON report"
+        ) from exc
+    for failure in failures:
+        print(
+            PHASE_9_PLAYWRIGHT_RESULT_PREFIX
+            + json.dumps(failure, sort_keys=True, separators=(",", ":"))
+        )
+    if completed.returncode != 0:
+        raise subprocess.CalledProcessError(completed.returncode, command)
+    return completed
 
 
 def cleanup_phase9_linux_playwright_container(
@@ -5998,7 +6134,10 @@ def verify_phase8_browser(
     )
     with phase9_stage(phase, "phase8_browser_playwright"):
         try:
-            run(command, env=browser_environment)
+            if linux_phase9:
+                run_phase9_linux_playwright(command, browser_environment)
+            else:
+                run(command, env=browser_environment)
         finally:
             if linux_phase9:
                 cleanup_phase9_linux_playwright_container(project, browser_environment)

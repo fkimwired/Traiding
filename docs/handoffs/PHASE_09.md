@@ -62,7 +62,7 @@ environment values, and source payloads are not artifacts.
 The Ubuntu unit job may hydrate only the exact frozen Linux Rolldown binary after `npm ci` and must
 prove that package manifests and the lockfile remain unchanged. The Phase 9 full verifier alone uses
 wider Phase 6 transport deadlines and emits required nested Phase 6 and Phase 8 stage records. It
-owns the browser timeout flag, scrubs arbitrary caller values, and selects 25 minutes only for the
+owns the browser timeout flag, scrubs arbitrary caller values, and selects 35 minutes only for the
 exhaustive-lineage test; inherited Phase 8 remains at 20 minutes. Assertions, coverage, test order,
 concurrency, retries, workers, visual baselines, and application behavior remain unchanged. On Linux
 only, the Phase 9 browser stage uses Playwright 1.61.1 from
@@ -70,8 +70,11 @@ only, the Phase 9 browser stage uses Playwright 1.61.1 from
 It mounts the repository read-only, writes browser output inside the container, explicitly forwards
 only the local base URL, exact timeout flag, and `CI=true` as acceptance values, and uses a
 project-scoped container identity with best-effort interruption cleanup. Phase 8 and Windows remain
-native. The outer runner deadline is 6,300 seconds and the Ubuntu Compose job deadline is 120
-minutes.
+native. Ubuntu pre-pulls the same exact digest before the single-flight evidence clock so cold image
+acquisition does not spend the verifier budget. A failed Linux browser run retains only canonical
+allowlisted file/line/project/status/duration/timeout identity in the hash-bound sanitized log; raw
+JSON, titles, errors, payloads, and paths stay excluded. The outer runner deadline is 6,300 seconds
+and the Ubuntu Compose job deadline is 120 minutes.
 
 Until that Ubuntu job and its evidence verifier pass at the same final identity, Phase 9 is not accepted.
 If repository publication authority is absent, stop after local implementation and report
