@@ -7,14 +7,17 @@ valid research, and positive research statistics do not create authorization to 
 Phase 1 establishes the policy, paper-only configuration, and immutable audit spine. Phase 7 adds
 only immutable approval and pre-order-risk assessment evidence. Phase 10 adds one deterministic
 local mock-only simulation with immutable synthetic ledger evidence; it is not broker execution.
+Phase 12 adds a short-lived read-only paper-environment readiness observation; it is not strategy
+eligibility, pre-order risk, or order authority.
 
 ## Execution boundary
 
 - The only valid execution-mode value is `paper`.
 - There is no `live` enum member, broker production URL, arbitrary broker base URL, live credential,
   or live-order method.
-- No adapter, broker endpoint, account, credential, order-submission method, or external fill/position
-  path exists. Phase 10's ledger is a local synthetic calculation only.
+- The only external adapter is Phase 12's fixed six-method read-only paper inspection boundary. It has
+  no order-submission, replacement, cancellation, liquidation, fill, or position-mutation method.
+  Phase 10's ledger is a local synthetic calculation only.
 - “Disabled live trading” is insufficient because it implies a dormant path; the path must be absent.
 - The UI and API describe paper activity as simulated and never as fills representative of live
   execution quality.
@@ -64,6 +67,19 @@ The configuration, synthetic observation, signal rule, notional, quantity, price
 outcome, and audit identity are server-owned and hash-bound. Component costs, fill-price slippage,
 cash, position, requested/filled/unfilled quantity, and the exact approved proposed notional must
 reconcile. The workflow performs no network request and has no external routing or live path.
+
+## External-paper shadow readiness (Phase 12)
+
+Phase 12 may inspect only fixed paper account, clock, `AAPL` asset, positions, open-order inventory,
+and IEX latest-quote surfaces. The result is sanitized historical connectivity/readiness evidence.
+It never consumes or promotes a Phase 7, 10, or 11 artifact and never computes an order.
+
+Every readiness artifact states `order_submission_authorized=false` and
+`strategy_execution_eligible=false`. A deterministic mock may prove the local contract but can never
+produce `SHADOW_READY`. External readiness expires after 60 seconds and still does not authorize a
+later action. Nonempty positions/orders, a closed clock, blocked account, inactive instrument, stale
+or invalid quote, transport/schema defect, or uncomputable check blocks readiness. Broker paper
+observations cannot override local cost/slippage, leakage, governance, or risk gates.
 
 ## Kill switch
 

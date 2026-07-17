@@ -34,7 +34,6 @@ from fable5_api.idea_intake import WorkflowFactory, default_workflow_factory, ro
 from fable5_api.local_simulations import (
     PaperSimulationWorkflowFactory,
     default_paper_simulation_workflow_factory,
-    paper_simulation_validation_error_handler,
 )
 from fable5_api.local_simulations import evidence_router as local_simulation_evidence_router
 from fable5_api.local_simulations import router as local_simulation_router
@@ -45,6 +44,12 @@ from fable5_api.mappings import (
 from fable5_api.mappings import (
     router as mapping_router,
 )
+from fable5_api.paper_shadow_readiness import (
+    PaperShadowReadinessRepositoryFactory,
+    default_paper_shadow_readiness_repository_factory,
+    paper_shadow_readiness_validation_error_handler,
+)
+from fable5_api.paper_shadow_readiness import router as paper_shadow_readiness_router
 from fable5_api.readiness import check_dependencies
 from fable5_api.research import (
     ResearchWorkflowFactory,
@@ -66,6 +71,9 @@ def create_app(
     paper_simulation_workflow_factory: PaperSimulationWorkflowFactory = (
         default_paper_simulation_workflow_factory
     ),
+    paper_shadow_readiness_repository_factory: PaperShadowReadinessRepositoryFactory = (
+        default_paper_shadow_readiness_repository_factory
+    ),
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -80,7 +88,10 @@ def create_app(
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
-    app.add_exception_handler(RequestValidationError, paper_simulation_validation_error_handler)
+    app.add_exception_handler(
+        RequestValidationError,
+        paper_shadow_readiness_validation_error_handler,
+    )
     app.state.idea_intake_workflow = workflow_factory(settings)
     app.state.mapping_workflow = mapping_workflow_factory(settings)
     app.state.snapshot_workflow = snapshot_workflow_factory(settings)
@@ -88,6 +99,9 @@ def create_app(
     app.state.research_workflow = research_workflow_factory(settings)
     app.state.approval_workflow = approval_workflow_factory(settings)
     app.state.paper_simulation_workflow = paper_simulation_workflow_factory(settings)
+    app.state.paper_shadow_readiness_repository = paper_shadow_readiness_repository_factory(
+        settings
+    )
     app.include_router(router)
     app.include_router(mapping_router)
     app.include_router(data_snapshot_router)
@@ -99,6 +113,7 @@ def create_app(
     app.include_router(revocation_router)
     app.include_router(local_simulation_router)
     app.include_router(local_simulation_evidence_router)
+    app.include_router(paper_shadow_readiness_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

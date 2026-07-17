@@ -60,6 +60,7 @@ export const successfulJsonOperations = [
   "GET /v1/local-simulations/{simulation_run_id}/evidence-bundle",
   "GET /v1/mappings",
   "GET /v1/mappings/{mapping_id}",
+  "GET /v1/paper-shadow-readiness/{readiness_assessment_id}",
   "GET /v1/research-runs",
   "POST /v1/research-runs",
   "GET /v1/research-runs/{run_id}",
@@ -104,6 +105,7 @@ export type SuccessfulJsonResponseByOperation = {
   "GET /v1/local-simulations/{simulation_run_id}/evidence-bundle": paths["/v1/local-simulations/{simulation_run_id}/evidence-bundle"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings": paths["/v1/mappings"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings/{mapping_id}": paths["/v1/mappings/{mapping_id}"]["get"]["responses"][200]["content"]["application/json"];
+  "GET /v1/paper-shadow-readiness/{readiness_assessment_id}": paths["/v1/paper-shadow-readiness/{readiness_assessment_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/research-runs": paths["/v1/research-runs"]["get"]["responses"][200]["content"]["application/json"];
   "POST /v1/research-runs": paths["/v1/research-runs"]["post"]["responses"][201]["content"]["application/json"];
   "GET /v1/research-runs/{run_id}": paths["/v1/research-runs/{run_id}"]["get"]["responses"][200]["content"]["application/json"];
@@ -317,6 +319,11 @@ export const successfulJsonResponseSchemas: Record<
   "GET /v1/mappings/{mapping_id}": {
     "200": {
       "$ref": "#/components/schemas/MappingWithRationale"
+    }
+  },
+  "GET /v1/paper-shadow-readiness/{readiness_assessment_id}": {
+    "200": {
+      "$ref": "#/components/schemas/PaperShadowReadinessArtifact"
     }
   },
   "GET /v1/research-runs": {
@@ -6690,6 +6697,50 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     "title": "OosLedgerEntry",
     "type": "object"
   },
+  "PaperAccountObservation": {
+    "additionalProperties": false,
+    "properties": {
+      "account_blocked": {
+        "title": "Account Blocked",
+        "type": "boolean"
+      },
+      "observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Observation Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-account-observation-v1",
+        "default": "phase12-paper-account-observation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Status",
+        "type": "string"
+      },
+      "trade_suspended_by_user": {
+        "title": "Trade Suspended By User",
+        "type": "boolean"
+      },
+      "trading_blocked": {
+        "title": "Trading Blocked",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "observation_sha256",
+      "status",
+      "account_blocked",
+      "trading_blocked",
+      "trade_suspended_by_user"
+    ],
+    "title": "PaperAccountObservation",
+    "type": "object"
+  },
   "PaperCheckCode": {
     "enum": [
       "SOURCE_APPROVAL_EXACT",
@@ -6712,6 +6763,520 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     ],
     "title": "PaperCheckStatus",
     "type": "string"
+  },
+  "PaperClockObservation": {
+    "additionalProperties": false,
+    "properties": {
+      "is_open": {
+        "title": "Is Open",
+        "type": "boolean"
+      },
+      "next_close_utc": {
+        "format": "date-time",
+        "title": "Next Close Utc",
+        "type": "string"
+      },
+      "next_open_utc": {
+        "format": "date-time",
+        "title": "Next Open Utc",
+        "type": "string"
+      },
+      "observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Observation Sha256",
+        "type": "string"
+      },
+      "provider_timestamp_utc": {
+        "format": "date-time",
+        "title": "Provider Timestamp Utc",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-clock-observation-v1",
+        "default": "phase12-paper-clock-observation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "observation_sha256",
+      "is_open",
+      "provider_timestamp_utc",
+      "next_open_utc",
+      "next_close_utc"
+    ],
+    "title": "PaperClockObservation",
+    "type": "object"
+  },
+  "PaperInstrumentObservation": {
+    "additionalProperties": false,
+    "properties": {
+      "active": {
+        "title": "Active",
+        "type": "boolean"
+      },
+      "asset_id": {
+        "format": "uuid",
+        "title": "Asset Id",
+        "type": "string"
+      },
+      "exchange": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Exchange",
+        "type": "string"
+      },
+      "observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Observation Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-instrument-observation-v1",
+        "default": "phase12-paper-instrument-observation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Status",
+        "type": "string"
+      },
+      "symbol": {
+        "const": "AAPL",
+        "default": "AAPL",
+        "title": "Symbol",
+        "type": "string"
+      },
+      "tradable": {
+        "title": "Tradable",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "observation_sha256",
+      "asset_id",
+      "exchange",
+      "status",
+      "active",
+      "tradable"
+    ],
+    "title": "PaperInstrumentObservation",
+    "type": "object"
+  },
+  "PaperInventoryObservation": {
+    "additionalProperties": false,
+    "properties": {
+      "inventory_kind": {
+        "enum": [
+          "POSITIONS",
+          "OPEN_ORDERS"
+        ],
+        "title": "Inventory Kind",
+        "type": "string"
+      },
+      "inventory_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Inventory Sha256",
+        "type": "string"
+      },
+      "item_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Item Count",
+        "type": "integer"
+      },
+      "observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Observation Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-inventory-observation-v1",
+        "default": "phase12-paper-inventory-observation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "observation_sha256",
+      "inventory_kind",
+      "item_count",
+      "inventory_sha256"
+    ],
+    "title": "PaperInventoryObservation",
+    "type": "object"
+  },
+  "PaperQuoteObservation": {
+    "additionalProperties": false,
+    "properties": {
+      "age_seconds": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Age Seconds",
+        "type": "string"
+      },
+      "ask_price_valid": {
+        "title": "Ask Price Valid",
+        "type": "boolean"
+      },
+      "bid_price_valid": {
+        "title": "Bid Price Valid",
+        "type": "boolean"
+      },
+      "event_time_utc": {
+        "format": "date-time",
+        "title": "Event Time Utc",
+        "type": "string"
+      },
+      "feed": {
+        "const": "iex",
+        "default": "iex",
+        "title": "Feed",
+        "type": "string"
+      },
+      "fresh": {
+        "title": "Fresh",
+        "type": "boolean"
+      },
+      "freshness_ttl_seconds": {
+        "const": 60,
+        "default": 60,
+        "title": "Freshness Ttl Seconds",
+        "type": "integer"
+      },
+      "non_crossed": {
+        "title": "Non Crossed",
+        "type": "boolean"
+      },
+      "observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Observation Sha256",
+        "type": "string"
+      },
+      "received_at_utc": {
+        "format": "date-time",
+        "title": "Received At Utc",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-quote-observation-v1",
+        "default": "phase12-paper-quote-observation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "symbol": {
+        "const": "AAPL",
+        "default": "AAPL",
+        "title": "Symbol",
+        "type": "string"
+      }
+    },
+    "required": [
+      "observation_sha256",
+      "event_time_utc",
+      "received_at_utc",
+      "age_seconds",
+      "fresh",
+      "bid_price_valid",
+      "ask_price_valid",
+      "non_crossed"
+    ],
+    "title": "PaperQuoteObservation",
+    "type": "object"
+  },
+  "PaperShadowReadinessArtifact": {
+    "additionalProperties": false,
+    "properties": {
+      "account": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperAccountObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "artifact_schema_version": {
+        "const": "phase12-paper-shadow-readiness-v1",
+        "title": "Artifact Schema Version",
+        "type": "string"
+      },
+      "artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Artifact Sha256",
+        "type": "string"
+      },
+      "assessment_completed_at_utc": {
+        "format": "date-time",
+        "title": "Assessment Completed At Utc",
+        "type": "string"
+      },
+      "assessment_started_at_utc": {
+        "format": "date-time",
+        "title": "Assessment Started At Utc",
+        "type": "string"
+      },
+      "checks": {
+        "items": {
+          "$ref": "#/components/schemas/PaperShadowReadinessCheck"
+        },
+        "maxItems": 8,
+        "minItems": 8,
+        "title": "Checks",
+        "type": "array"
+      },
+      "clock": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperClockObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "disclaimer": {
+        "const": "PAPER ONLY shadow-readiness evidence; no order submission, strategy execution, real performance claim, or personalized investment advice.",
+        "title": "Disclaimer",
+        "type": "string"
+      },
+      "expires_at_utc": {
+        "format": "date-time",
+        "title": "Expires At Utc",
+        "type": "string"
+      },
+      "inspections": {
+        "items": {
+          "$ref": "#/components/schemas/ReadinessInspectionEvidence"
+        },
+        "maxItems": 6,
+        "minItems": 6,
+        "title": "Inspections",
+        "type": "array"
+      },
+      "instrument": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperInstrumentObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "latest_quote": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperQuoteObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "live_path_absent": {
+        "const": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "no_personalized_investment_advice": {
+        "const": true,
+        "title": "No Personalized Investment Advice",
+        "type": "boolean"
+      },
+      "no_real_performance_claimed": {
+        "const": true,
+        "title": "No Real Performance Claimed",
+        "type": "boolean"
+      },
+      "open_orders": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperInventoryObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "order_submission_authorized": {
+        "const": false,
+        "title": "Order Submission Authorized",
+        "type": "boolean"
+      },
+      "outcome": {
+        "$ref": "#/components/schemas/ReadinessOutcome"
+      },
+      "phase12_code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Phase12 Code Version Git Sha",
+        "type": "string"
+      },
+      "positions": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PaperInventoryObservation"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "readiness_assessment_id": {
+        "format": "uuid",
+        "title": "Readiness Assessment Id",
+        "type": "string"
+      },
+      "readiness_idempotency_key": {
+        "maxLength": 128,
+        "minLength": 8,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+        "title": "Readiness Idempotency Key",
+        "type": "string"
+      },
+      "reason_codes": {
+        "items": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Reason Codes",
+        "type": "array"
+      },
+      "request_fingerprint_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Request Fingerprint Sha256",
+        "type": "string"
+      },
+      "source_kind": {
+        "$ref": "#/components/schemas/ReadinessSourceKind"
+      },
+      "strategy_execution_eligible": {
+        "const": false,
+        "title": "Strategy Execution Eligible",
+        "type": "boolean"
+      },
+      "transport_profile_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transport Profile Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "readiness_assessment_id",
+      "artifact_schema_version",
+      "artifact_sha256",
+      "request_fingerprint_sha256",
+      "readiness_idempotency_key",
+      "source_kind",
+      "transport_profile_sha256",
+      "inspections",
+      "account",
+      "clock",
+      "instrument",
+      "positions",
+      "open_orders",
+      "latest_quote",
+      "checks",
+      "outcome",
+      "reason_codes",
+      "phase12_code_version_git_sha",
+      "assessment_started_at_utc",
+      "assessment_completed_at_utc",
+      "expires_at_utc",
+      "order_submission_authorized",
+      "strategy_execution_eligible",
+      "live_path_absent",
+      "no_personalized_investment_advice",
+      "no_real_performance_claimed",
+      "disclaimer"
+    ],
+    "title": "PaperShadowReadinessArtifact",
+    "type": "object"
+  },
+  "PaperShadowReadinessCheck": {
+    "additionalProperties": false,
+    "properties": {
+      "check_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Check Sha256",
+        "type": "string"
+      },
+      "code": {
+        "$ref": "#/components/schemas/ReadinessCheckCode"
+      },
+      "evidence_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Evidence Sha256S",
+        "type": "array"
+      },
+      "observed_value": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Observed Value"
+      },
+      "ordinal": {
+        "maximum": 8,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "reason_code": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Reason Code",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase12-paper-shadow-readiness-check-v1",
+        "default": "phase12-paper-shadow-readiness-check-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/ReadinessCheckStatus"
+      },
+      "threshold_value": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Threshold Value"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "reason_code",
+      "evidence_sha256s",
+      "check_sha256"
+    ],
+    "title": "PaperShadowReadinessCheck",
+    "type": "object"
   },
   "PaperSimulationArtifact": {
     "additionalProperties": false,
@@ -9126,6 +9691,195 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     "title": "RawObservation",
     "type": "object"
   },
+  "ReadinessCheckCode": {
+    "enum": [
+      "SOURCE_KIND_EXACT",
+      "READ_ONLY_TRANSPORT_EXACT",
+      "ACCOUNT_READY",
+      "MARKET_CLOCK_OPEN",
+      "INSTRUMENT_ACTIVE_TRADABLE",
+      "POSITIONS_EMPTY",
+      "OPEN_ORDERS_EMPTY",
+      "IEX_QUOTE_FRESH_VALID"
+    ],
+    "title": "ReadinessCheckCode",
+    "type": "string"
+  },
+  "ReadinessCheckStatus": {
+    "enum": [
+      "PASS",
+      "BLOCKED",
+      "UNCOMPUTABLE"
+    ],
+    "title": "ReadinessCheckStatus",
+    "type": "string"
+  },
+  "ReadinessInspectionCode": {
+    "enum": [
+      "ACCOUNT",
+      "CLOCK",
+      "INSTRUMENT",
+      "POSITIONS",
+      "OPEN_ORDERS",
+      "LATEST_QUOTE"
+    ],
+    "title": "ReadinessInspectionCode",
+    "type": "string"
+  },
+  "ReadinessInspectionEvidence": {
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "$ref": "#/components/schemas/ReadinessInspectionCode"
+      },
+      "external_request_performed": {
+        "title": "External Request Performed",
+        "type": "boolean"
+      },
+      "failure_reason": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Failure Reason"
+      },
+      "http_status": {
+        "anyOf": [
+          {
+            "maximum": 599,
+            "minimum": 100,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Http Status"
+      },
+      "inspection_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Inspection Sha256",
+        "type": "string"
+      },
+      "method": {
+        "const": "GET",
+        "default": "GET",
+        "title": "Method",
+        "type": "string"
+      },
+      "observation_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Observation Sha256"
+      },
+      "ordinal": {
+        "maximum": 6,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "request_completed_at_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Request Completed At Utc"
+      },
+      "request_id": {
+        "anyOf": [
+          {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Request Id"
+      },
+      "request_started_at_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Request Started At Utc"
+      },
+      "response_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Response Sha256"
+      },
+      "schema_version": {
+        "const": "phase12-paper-shadow-inspection-v1",
+        "default": "phase12-paper-shadow-inspection-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/ReadinessInspectionStatus"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "external_request_performed",
+      "inspection_sha256"
+    ],
+    "title": "ReadinessInspectionEvidence",
+    "type": "object"
+  },
+  "ReadinessInspectionStatus": {
+    "enum": [
+      "OBSERVED",
+      "BLOCKED",
+      "NOT_ATTEMPTED"
+    ],
+    "title": "ReadinessInspectionStatus",
+    "type": "string"
+  },
+  "ReadinessOutcome": {
+    "enum": [
+      "MOCK_PROOF_COMPLETE",
+      "SHADOW_READY",
+      "BLOCKED"
+    ],
+    "title": "ReadinessOutcome",
+    "type": "string"
+  },
   "ReadinessResponse": {
     "additionalProperties": false,
     "properties": {
@@ -9150,6 +9904,14 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     ],
     "title": "ReadinessResponse",
     "type": "object"
+  },
+  "ReadinessSourceKind": {
+    "enum": [
+      "DETERMINISTIC_MOCK",
+      "ALPACA_PAPER_READ_ONLY"
+    ],
+    "title": "ReadinessSourceKind",
+    "type": "string"
   },
   "RegimePolicy": {
     "additionalProperties": false,

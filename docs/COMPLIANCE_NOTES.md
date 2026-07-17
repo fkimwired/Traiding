@@ -29,6 +29,9 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
 - Respect SEC fair-access requirements, vendor rate limits, source attribution, correction history,
   privacy terms, and deletion obligations.
 - Never ship vendor credentials, paper credentials, or secrets to the browser or repository.
+- Phase 12 paper credentials may be loaded only by the explicit local capture command from the two
+  paper-specific environment/secret names. Missing or partial pairs fail before transport or database
+  construction; API, frontend, CI evidence, logs, errors, and persisted rows remain credential-free.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -44,3 +47,6 @@ Retain source/version lineage, model/config lineage, approvals, evaluation repor
 communication-safe explanations according to an approved retention policy. Immutable audit events
 must not contain credentials, unnecessary personal data, or licensed full text.
 
+Phase 12 readiness evidence also excludes raw account identifiers, headers, provider bodies, order
+details, position details, and raw quote prices. `SHADOW_READY` is short-lived historical evidence,
+not investment advice, a performance claim, strategy eligibility, or permission to submit an order.

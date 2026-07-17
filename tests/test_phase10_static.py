@@ -246,6 +246,11 @@ def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime
         "cleanup_phase10_linux_playwright_container",
         lambda project, environment: cleaned.append(project),
     )
+    monkeypatch.setattr(
+        verifier,
+        "cleanup_phase11_linux_playwright_container",
+        lambda project, environment: cleaned.append(project),
+    )
 
     phase10_environment = {
         "FABLE5_VERIFY_PHASE": "10",
@@ -271,8 +276,26 @@ def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime
     assert environment[verifier.PHASE_9_BROWSER_TIMEOUT_FLAG] == "1"
     assert cleaned == ["phase10-inherited"]
 
-    future_environment = {
+    phase12_environment = {
         "FABLE5_VERIFY_PHASE": "12",
+        verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
+    }
+    original_phase12_environment = phase12_environment.copy()
+    verifier.verify_phase8_browser(
+        "phase12-inherited",
+        phase12_environment,
+        "http://127.0.0.1:3000",
+    )
+    phase12_command, phase12_host_environment = captured[-1]
+    assert phase12_environment == original_phase12_environment
+    assert "FABLE5_VERIFY_PHASE=12" in phase12_command
+    assert phase12_command.count(timeout_flag) == 1
+    assert phase12_command[phase12_command.index("--mount") + 1].endswith(",readonly")
+    assert phase12_host_environment["FABLE5_VERIFY_PHASE"] == "12"
+    assert cleaned == ["phase10-inherited", "phase12-inherited"]
+
+    future_environment = {
+        "FABLE5_VERIFY_PHASE": "13",
         verifier.PHASE_9_BROWSER_TIMEOUT_FLAG: "ambient-value",
     }
     original_future_environment = future_environment.copy()
@@ -281,7 +304,7 @@ def test_phase10_runs_inherited_phase8_browser_specs_in_the_pinned_linux_runtime
     assert future_environment == original_future_environment
     assert timeout_flag not in future_command
     assert verifier.PHASE_9_BROWSER_TIMEOUT_FLAG not in future_host_environment
-    assert cleaned == ["phase10-inherited"]
+    assert cleaned == ["phase10-inherited", "phase12-inherited"]
 
 
 def test_phase10_allowlist_enumerates_paper_and_visual_files_exactly() -> None:
@@ -373,7 +396,8 @@ def test_phase10_resource_inventory_is_global_and_fail_closed(
 
 def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() -> None:
     source = normalized(ROOT / "scripts/verify_phase1.py")
-    assert 'phase10_clean_git_identity("preflight", phase=phase) if phase in {10, 11}' in source
+    assert "if phase in {10, 11, 12}" in source
+    assert 'phase10_clean_git_identity("preflight", phase=phase)' in source
     assert 'verify_phase10_acceptance_resource_namespace(\n            "preflight"' in source
     post_cleanup_resources = (
         'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"'
@@ -384,11 +408,11 @@ def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() ->
         "                        phase=phase,"
     )
     assert post_cleanup_identity in source
-    assert "if phase in {8, 9, 10, 11}:" in source
+    assert "if phase in {8, 9, 10, 11, 12}:" in source
     assert "spec_paths=PHASE_8_BROWSER_SPECS" in source
 
     accessibility = normalized(ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts")
     visual = normalized(ROOT / "services/frontend/e2e/phase8.visual.spec.ts")
     for spec in (accessibility, visual):
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "11"' in spec
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "12"' in spec
         assert "inheritedModes" in spec

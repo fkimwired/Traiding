@@ -452,6 +452,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/paper-shadow-readiness/{readiness_assessment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper Shadow Readiness */
+        get: operations["get_paper_shadow_readiness_v1_paper_shadow_readiness__readiness_assessment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/research-runs": {
         parameters: {
             query?: never;
@@ -3365,6 +3382,25 @@ export interface components {
              */
             trial_id: string;
         };
+        /** PaperAccountObservation */
+        PaperAccountObservation: {
+            /** Account Blocked */
+            account_blocked: boolean;
+            /** Observation Sha256 */
+            observation_sha256: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-account-observation-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-account-observation-v1";
+            /** Status */
+            status: string;
+            /** Trade Suspended By User */
+            trade_suspended_by_user: boolean;
+            /** Trading Blocked */
+            trading_blocked: boolean;
+        };
         /**
          * PaperCheckCode
          * @enum {string}
@@ -3375,6 +3411,268 @@ export interface components {
          * @enum {string}
          */
         PaperCheckStatus: "PASS" | "FAIL" | "BLOCKED" | "UNCOMPUTABLE";
+        /** PaperClockObservation */
+        PaperClockObservation: {
+            /** Is Open */
+            is_open: boolean;
+            /**
+             * Next Close Utc
+             * Format: date-time
+             */
+            next_close_utc: string;
+            /**
+             * Next Open Utc
+             * Format: date-time
+             */
+            next_open_utc: string;
+            /** Observation Sha256 */
+            observation_sha256: string;
+            /**
+             * Provider Timestamp Utc
+             * Format: date-time
+             */
+            provider_timestamp_utc: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-clock-observation-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-clock-observation-v1";
+        };
+        /** PaperInstrumentObservation */
+        PaperInstrumentObservation: {
+            /** Active */
+            active: boolean;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Exchange */
+            exchange: string;
+            /** Observation Sha256 */
+            observation_sha256: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-instrument-observation-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-instrument-observation-v1";
+            /** Status */
+            status: string;
+            /**
+             * Symbol
+             * @default AAPL
+             * @constant
+             */
+            symbol: "AAPL";
+            /** Tradable */
+            tradable: boolean;
+        };
+        /** PaperInventoryObservation */
+        PaperInventoryObservation: {
+            /**
+             * Inventory Kind
+             * @enum {string}
+             */
+            inventory_kind: "POSITIONS" | "OPEN_ORDERS";
+            /** Inventory Sha256 */
+            inventory_sha256: string;
+            /** Item Count */
+            item_count: number;
+            /** Observation Sha256 */
+            observation_sha256: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-inventory-observation-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-inventory-observation-v1";
+        };
+        /** PaperQuoteObservation */
+        PaperQuoteObservation: {
+            /** Age Seconds */
+            age_seconds: string;
+            /** Ask Price Valid */
+            ask_price_valid: boolean;
+            /** Bid Price Valid */
+            bid_price_valid: boolean;
+            /**
+             * Event Time Utc
+             * Format: date-time
+             */
+            event_time_utc: string;
+            /**
+             * Feed
+             * @default iex
+             * @constant
+             */
+            feed: "iex";
+            /** Fresh */
+            fresh: boolean;
+            /**
+             * Freshness Ttl Seconds
+             * @default 60
+             * @constant
+             */
+            freshness_ttl_seconds: 60;
+            /** Non Crossed */
+            non_crossed: boolean;
+            /** Observation Sha256 */
+            observation_sha256: string;
+            /**
+             * Received At Utc
+             * Format: date-time
+             */
+            received_at_utc: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-quote-observation-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-quote-observation-v1";
+            /**
+             * Symbol
+             * @default AAPL
+             * @constant
+             */
+            symbol: "AAPL";
+        };
+        /** PaperShadowReadinessArtifact */
+        PaperShadowReadinessArtifact: {
+            account: components["schemas"]["PaperAccountObservation"] | null;
+            /**
+             * Artifact Schema Version
+             * @constant
+             */
+            artifact_schema_version: "phase12-paper-shadow-readiness-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Assessment Completed At Utc
+             * Format: date-time
+             */
+            assessment_completed_at_utc: string;
+            /**
+             * Assessment Started At Utc
+             * Format: date-time
+             */
+            assessment_started_at_utc: string;
+            /** Checks */
+            checks: components["schemas"]["PaperShadowReadinessCheck"][];
+            clock: components["schemas"]["PaperClockObservation"] | null;
+            /**
+             * Disclaimer
+             * @constant
+             */
+            disclaimer: "PAPER ONLY shadow-readiness evidence; no order submission, strategy execution, real performance claim, or personalized investment advice.";
+            /**
+             * Expires At Utc
+             * Format: date-time
+             */
+            expires_at_utc: string;
+            /** Inspections */
+            inspections: components["schemas"]["ReadinessInspectionEvidence"][];
+            instrument: components["schemas"]["PaperInstrumentObservation"] | null;
+            latest_quote: components["schemas"]["PaperQuoteObservation"] | null;
+            /**
+             * Live Path Absent
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * No Personalized Investment Advice
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            open_orders: components["schemas"]["PaperInventoryObservation"] | null;
+            /**
+             * Order Submission Authorized
+             * @constant
+             */
+            order_submission_authorized: false;
+            outcome: components["schemas"]["ReadinessOutcome"];
+            /** Phase12 Code Version Git Sha */
+            phase12_code_version_git_sha: string;
+            positions: components["schemas"]["PaperInventoryObservation"] | null;
+            /**
+             * Readiness Assessment Id
+             * Format: uuid
+             */
+            readiness_assessment_id: string;
+            /** Readiness Idempotency Key */
+            readiness_idempotency_key: string;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            source_kind: components["schemas"]["ReadinessSourceKind"];
+            /**
+             * Strategy Execution Eligible
+             * @constant
+             */
+            strategy_execution_eligible: false;
+            /** Transport Profile Sha256 */
+            transport_profile_sha256: string;
+        };
+        /** PaperShadowReadinessCheck */
+        PaperShadowReadinessCheck: {
+            /** Check Sha256 */
+            check_sha256: string;
+            code: components["schemas"]["ReadinessCheckCode"];
+            /** Evidence Sha256S */
+            evidence_sha256s: string[];
+            /** Observed Value */
+            observed_value?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Reason Code */
+            reason_code: string;
+            /**
+             * Schema Version
+             * @default phase12-paper-shadow-readiness-check-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-shadow-readiness-check-v1";
+            status: components["schemas"]["ReadinessCheckStatus"];
+            /** Threshold Value */
+            threshold_value?: string | null;
+        };
+        /** PaperShadowReadinessConflictErrorResponse */
+        PaperShadowReadinessConflictErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "Immutable Phase 12 paper shadow-readiness evidence conflicts with persisted lineage.";
+        };
+        /** PaperShadowReadinessNotFoundErrorResponse */
+        PaperShadowReadinessNotFoundErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "The requested immutable Phase 12 paper shadow-readiness evidence was not found.";
+        };
+        /** PaperShadowReadinessValidationErrorResponse */
+        PaperShadowReadinessValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["PaperShadowReadinessValidationIssue"][];
+        };
+        /** PaperShadowReadinessValidationIssue */
+        PaperShadowReadinessValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /** PaperSimulationArtifact */
         PaperSimulationArtifact: {
             /** Approval Policy Sha256 */
@@ -4536,6 +4834,68 @@ export interface components {
             /** Vintage Id */
             vintage_id: string;
         };
+        /**
+         * ReadinessCheckCode
+         * @enum {string}
+         */
+        ReadinessCheckCode: "SOURCE_KIND_EXACT" | "READ_ONLY_TRANSPORT_EXACT" | "ACCOUNT_READY" | "MARKET_CLOCK_OPEN" | "INSTRUMENT_ACTIVE_TRADABLE" | "POSITIONS_EMPTY" | "OPEN_ORDERS_EMPTY" | "IEX_QUOTE_FRESH_VALID";
+        /**
+         * ReadinessCheckStatus
+         * @enum {string}
+         */
+        ReadinessCheckStatus: "PASS" | "BLOCKED" | "UNCOMPUTABLE";
+        /**
+         * ReadinessInspectionCode
+         * @enum {string}
+         */
+        ReadinessInspectionCode: "ACCOUNT" | "CLOCK" | "INSTRUMENT" | "POSITIONS" | "OPEN_ORDERS" | "LATEST_QUOTE";
+        /** ReadinessInspectionEvidence */
+        ReadinessInspectionEvidence: {
+            code: components["schemas"]["ReadinessInspectionCode"];
+            /** External Request Performed */
+            external_request_performed: boolean;
+            /** Failure Reason */
+            failure_reason?: string | null;
+            /** Http Status */
+            http_status?: number | null;
+            /** Inspection Sha256 */
+            inspection_sha256: string;
+            /**
+             * Method
+             * @default GET
+             * @constant
+             */
+            method: "GET";
+            /** Observation Sha256 */
+            observation_sha256?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Request Completed At Utc */
+            request_completed_at_utc?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Request Started At Utc */
+            request_started_at_utc?: string | null;
+            /** Response Sha256 */
+            response_sha256?: string | null;
+            /**
+             * Schema Version
+             * @default phase12-paper-shadow-inspection-v1
+             * @constant
+             */
+            schema_version: "phase12-paper-shadow-inspection-v1";
+            status: components["schemas"]["ReadinessInspectionStatus"];
+        };
+        /**
+         * ReadinessInspectionStatus
+         * @enum {string}
+         */
+        ReadinessInspectionStatus: "OBSERVED" | "BLOCKED" | "NOT_ATTEMPTED";
+        /**
+         * ReadinessOutcome
+         * @enum {string}
+         */
+        ReadinessOutcome: "MOCK_PROOF_COMPLETE" | "SHADOW_READY" | "BLOCKED";
         /** ReadinessResponse */
         ReadinessResponse: {
             dependencies: components["schemas"]["DependencyStatus"];
@@ -4552,6 +4912,11 @@ export interface components {
              */
             status: "ready";
         };
+        /**
+         * ReadinessSourceKind
+         * @enum {string}
+         */
+        ReadinessSourceKind: "DETERMINISTIC_MOCK" | "ALPACA_PAPER_READ_ONLY";
         /** RegimePolicy */
         RegimePolicy: {
             /** Crisis Windows */
@@ -7981,6 +8346,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_shadow_readiness_v1_paper_shadow_readiness__readiness_assessment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readiness_assessment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperShadowReadinessArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperShadowReadinessNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperShadowReadinessConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperShadowReadinessValidationErrorResponse"];
                 };
             };
         };

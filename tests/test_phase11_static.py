@@ -58,8 +58,8 @@ def test_phase11_baseline_parser_and_exact_allowlist_are_frozen() -> None:
     assert verifier.EXPECTED_PHASE_11_BASELINE_TREE == BASELINE_TREE
     assert verifier.PHASE_11_BUNDLE_SCHEMA_VERSION == BUNDLE_VERSION
     assert verifier.PHASE_11_BUNDLE_PATH == BUNDLE_PATH
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 12)] == list(range(1, 12))
-    for invalid in ("0", "12", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 13)] == list(range(1, 13))
+    for invalid in ("0", "13", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -146,7 +146,7 @@ def test_phase11_openapi_bundle_and_generated_contract_are_exact() -> None:
     assert "@ts-expect-error" in type_test
 
 
-def test_phase11_is_database_free_network_disabled_and_migration_free() -> None:
+def test_phase11_is_database_free_network_disabled_and_preserved_by_phase12() -> None:
     evidence_path = ROOT / "services/paper/src/fable5_paper/evidence.py"
     cli_path = ROOT / "scripts/verify_local_simulation_evidence.py"
     forbidden_imports = {
@@ -179,7 +179,6 @@ def test_phase11_is_database_free_network_disabled_and_migration_free() -> None:
         assert forbidden not in cli
 
     migration_root = ROOT / "services/api/migrations/versions"
-    assert not list(migration_root.glob("0009*.py"))
     migration = migration_root / "0008_phase10_local_paper.py"
     repository = ROOT / "services/paper/src/fable5_paper/repository.py"
     assert hashlib.sha256(migration.read_bytes()).hexdigest() == (
@@ -204,12 +203,12 @@ def test_phase11_linux_browser_is_read_only_pinned_and_never_updates_snapshots()
     assert "FABLE5_VISUAL_CORPUS=synthetic" not in command
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-11-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "11"' in workflow
-    assert "phase11-compose:" in workflow
+    assert workflow.startswith("name: phase-12-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "12"' in workflow
+    assert "phase12-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
     assert workflow.count(f"docker pull {IMMUTABLE_PLAYWRIGHT_IMAGE}") == 1
-    assert workflow.count("python scripts/verify_phase1.py --phase 11") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 12") == 1
     assert "FABLE5_UPDATE_SNAPSHOTS" not in workflow
     assert "--update-snapshots" not in workflow
 
@@ -228,8 +227,10 @@ def test_phase11_full_verifier_binds_zero_write_cleanup_and_same_git_identity() 
         'print("Full Compose Phase 11 verification passed.")',
     ):
         assert required in source
-    assert "if phase in {10, 11}:" in source
-    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "11")' in source
+    assert "if phase in {10, 11, 12}:" in source
+    assert "if phase in {11, 12}:" in source
+    assert "verify_phase12_api(" in source
+    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "12")' in source
 
 
 def test_phase11_docs_freeze_integrity_only_and_hard_stop() -> None:

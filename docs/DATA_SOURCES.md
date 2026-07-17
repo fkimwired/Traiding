@@ -1,7 +1,7 @@
 # Data-source and adapter policy
 
-**Landscape reviewed:** 2026-07-13  
-**Readiness posture:** No commercial entitlement or credential was tested in Phase 1. Vendor names
+**Landscape reviewed:** 2026-07-17
+**Readiness posture:** No commercial entitlement or credential is proven by repository tests. Vendor names
 below are candidates to evaluate, not configured dependencies or endorsements.
 
 ## Non-negotiable adapter boundary
@@ -90,7 +90,10 @@ Alpaca paper uses both separate credentials and the paper endpoint; see
 may receive IEX rather than consolidated SIP market data. The simulator does not model all market
 impact, information leakage, latency/queue state, price improvement, regulatory fees, dividends, or
 borrow fees. It therefore cannot supply the platform's cost-realism gate; local evaluation and risk
-models remain authoritative. Phase 1 contains no broker adapter.
+models remain authoritative. Phase 12 adds one fixed read-only paper/data adapter for six readiness
+GETs. It freezes `AAPL` and `feed=iex` as connectivity probes, stores only sanitized status/count/hash
+evidence, and has no order or generic request method. Mock/fake-transport tests do not prove a real
+entitlement or external `SHADOW_READY`; that probe requires separate authorization.
 
 ### Point-in-time reference data
 
@@ -118,4 +121,3 @@ and corporate actions, an adapter must demonstrate:
 
 An adapter that supplies current dashboards but cannot reconstruct what was knowable historically is
 not approved for strategy validation.
-

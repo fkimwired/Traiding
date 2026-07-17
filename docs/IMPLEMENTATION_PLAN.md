@@ -21,6 +21,7 @@ Phase 1 control plane
   -> Phase 9 single-flight release-acceptance evidence
   -> Phase 10 deterministic local mock-only paper simulation
   -> Phase 11 portable deterministic local simulation evidence verification
+  -> Phase 12 external-paper shadow readiness (read-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -41,6 +42,7 @@ do not receive executable scaffolds.
 | 9 | assertion-preserving release-gate orchestration and evidence | single-flight Windows/Ubuntu runner; verified sanitized manifests at one SHA/tree |
 | 10 | deterministic local mock-only simulation with fresh governance and immutable ledger | direct Windows/Ubuntu verifier; reversible migration, exact completed/blocked artifacts, idempotency, append-only and browser proof |
 | 11 | deterministic read-only bundle, GET-only retrieval, local JSON download, and offline verification of existing Phase 10 artifacts | generated contracts; completed/blocked and tamper proof; zero writes; network denial; inherited browser and cross-platform cleanup proof |
+| 12 | fixed paper-environment read adapter, deterministic mock, sanitized append-only readiness evidence, local capture, and one historical GET | exact six-read contract; credential/secret/network denial; idempotency/tamper/migration proof; inherited browser and cross-platform cleanup proof; no order path |
 
 ## Required handoff template
 
@@ -59,5 +61,7 @@ Every implementer task must include:
 10. **Stop condition.** Stop immediately after the named phase; do not anticipate later behavior.
 
 The accepted Phase 10 boundary remains recorded in `docs/handoffs/PHASE_10.md`. The separately
-authorized Phase 11 read-only boundary and direct cross-platform closure gate are in
-`docs/handoffs/PHASE_11.md`; they authorize no Phase 12 implementation, publication, or deployment.
+authorized and accepted Phase 11 read-only boundary and direct cross-platform closure gate are in
+`docs/handoffs/PHASE_11.md`. The separately authorized Phase 12 read-only external-paper readiness
+boundary is in `docs/handoffs/PHASE_12.md`; it authorizes no order, Phase 13 work, credentialed
+external probe, publication, or deployment.

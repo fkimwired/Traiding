@@ -5,9 +5,10 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 11 implementation status
+## Phase 12 implementation status
 
-The accepted Phase 10 identity and the authorized Phase 11 read-only evidence surface include:
+The formally accepted Phase 11 identity and the authorized Phase 12 read-only shadow-readiness
+surface include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -69,20 +70,32 @@ The accepted Phase 10 identity and the authorized Phase 11 read-only evidence su
 - an explicit deterministic local JSON download that uses the already prepared object and makes no
   second API request; and
 - a database-free, network-disabled offline verifier that requires an independently supplied digest
-  and rejects malformed, inconsistent, completed/blocked, and adversarially tampered evidence.
+  and rejects malformed, inconsistent, completed/blocked, and adversarially tampered evidence;
+- a vendor-neutral six-method read-only paper-environment adapter contract, deterministic mock, and
+  exactly one fixed Alpaca paper/data implementation using six allowlisted GET requests;
+- strict paper-only credential validation before transport, socket, or database construction, with
+  no credentials in the API, frontend, logs, artifacts, or generated contracts;
+- append-only Phase 12 readiness roots and eight ordered checks, with advisory-lock idempotency,
+  deferred completeness, composite hash lineage, and 60-second historical readiness expiry; and
+- one GET-only `/v1/paper-shadow-readiness/{readiness_assessment_id}` operation that reads persisted
+  sanitized evidence without a database write or external request.
 
-Intentionally absent: real-provider implementations, brokers, accounts, credentials, external order
-submission/routing, real fills or positions, and every live-order capability. Phase 10's fill and
-position fields are local synthetic ledger calculations only; no order leaves the process.
+Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
+fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
+capability. Phase 10's fill and position fields are local synthetic ledger calculations only; no
+order leaves the process. Phase 12 may inspect sanitized paper-account readiness but persists no raw
+account identity, order detail, position detail, quote price, credential, header, or response body.
 `APPROVED_PAPER` is synthetic governance evidence and never implies general execution readiness.
 Phase 11 adds no migration, simulation execution, replay, mutation, signing, publication,
 asynchronous work, or deployment. A valid bundle hash is deterministic integrity evidence, not a
 signature, authenticity proof, proof of current authority, or permission to replay or execute.
 
-The Phase 11 implementation is not formally accepted until the complete Windows gate and Ubuntu
-`phase11-compose` gate pass at one committed SHA/tree. If that commit remains local and unpushed,
-Ubuntu acceptance is necessarily pending; this repository does not treat local evidence as a
-substitute.
+Phase 11 is formally accepted at commit `b8657abe34d3290a42cb92cb1ad751d0d9d73ad5`, tree
+`b6f57d6448dea70911f6f80695100ae53c6b6513`, after clean Windows acceptance and successful GitHub
+Actions `preflight`, `unit`, and `phase11-compose` jobs at that exact identity. Phase 12 is not
+formally accepted until its complete Windows and Ubuntu gates pass at one later committed SHA/tree.
+A fake-transport test result is not proof of external `SHADOW_READY`; a real credentialed six-GET
+probe requires separate authorization.
 
 ## Prerequisites
 
@@ -90,9 +103,11 @@ substitute.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 11. Local and CI evidence
-is deterministic and synthetic. LLM use remains limited to structured extraction from text; no LLM
-may emit an approval, label, signal, allocation, risk override, or execution instruction.
+No data-provider, LLM, broker, or commercial credential is needed for Phase 12 local or CI
+acceptance. Those paths are deterministic and mock-only. The separately authorized external capture
+command requires a complete pair of paper-only credentials and never falls back to mock evidence.
+LLM use remains limited to structured extraction from text; no LLM may emit an approval, label,
+signal, allocation, risk override, or execution instruction.
 
 ## Start the full stack
 
@@ -152,23 +167,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 11 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 12 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "11"
+$env:FABLE5_VERIFY_PHASE = "12"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 11 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 11:
+Run the complete Phase 12 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 12:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "11"
+$env:FABLE5_VERIFY_PHASE = "12"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 11
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 11
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 12
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 12
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -176,10 +191,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 11 rechecks the unaffected inherited Phase 8 modes/shared layout and Phase 10 completed/blocked
-paper-simulation behavior before its evidence-download accessibility checks. Windows uses the native
+Phase 12 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 11 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 12 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Local evidence verification
 
@@ -256,20 +271,24 @@ versioned policy, scope, human authorization, revocation, risk-input, assessment
 `0008_phase10` adds only append-only deterministic local simulation roots, checks, and synthetic
 ledger evidence. Phase 11 adds no migration. Its acceptance pins the Alembic head at `0008_phase10`
 and proves the bundle API, download, and verifier leave all database rows byte-identical.
+`0009_phase12` adds only append-only paper shadow-readiness roots and ordered checks. It does not
+reference Phase 7, 10, or 11 artifacts as authority and does not store credentials, raw provider
+payloads, order details, position details, or raw quote prices.
 
 ## Architecture
 
 | Component | Current responsibility | Boundary |
 |---|---|---|
 | `frontend` | Complete four-mode workflows, exact lineage, one deterministic local simulation action, and explicit local evidence download | no client-authored trade parameters, server export, or real/live controls |
-| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and one read-only evidence-bundle GET | no bundle mutation, replay, broker, account, credential, external routing, or live endpoint |
+| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12 evidence GETs | no credential loading, vendor call, readiness mutation, order, external routing, or live endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
-| `postgres` | Immutable Phase 1-7 evidence plus Phase 10 local synthetic simulation/check/ledger artifacts | no external order, broker, account, credential, or live records |
+| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, and sanitized Phase 12 readiness/check evidence | no credential, raw provider payload, executable order, fill, or live record |
 | `redis` | queue/cache connectivity | no trading queue exists |
-| `packages/contracts` | generated OpenAPI TypeScript, including the strict Phase 11 bundle | never a second schema authority |
+| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle and Phase 12 readiness contracts | never a second schema authority |
 
-No execution adapter, broker dependency, or order-state abstraction is present.
+No order submission adapter, vendor SDK, execution intent, or order-state abstraction is present.
+The Phase 12 adapter is read-only and exposes only six fixed inspection methods.
 
 ## Repository guide
 
@@ -297,6 +316,9 @@ No execution adapter, broker dependency, or order-state abstraction is present.
 - `docs/PHASE_11_PORTABLE_SIMULATION_EVIDENCE_DECISIONS.md`: frozen five-field bundle, GET-only API,
   deterministic download, offline verifier, and non-execution semantics.
 - `docs/handoffs/PHASE_11.md`: direct Windows/Ubuntu Phase 11 closure gate and hard stop boundary.
+- `docs/PHASE_12_EXTERNAL_PAPER_SHADOW_READINESS_DECISIONS.md`: fixed adapter, credential,
+  transport, evidence, persistence, and no-order decisions.
+- `docs/handoffs/PHASE_12.md`: Phase 12 implementation/acceptance contract and hard stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts, synthetic adapters, quality gate, immutable
@@ -304,9 +326,9 @@ No execution adapter, broker dependency, or order-state abstraction is present.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
-- `services/paper`: deterministic local mock-only simulation and immutable synthetic ledger evidence;
-  plus pure read-only Phase 11 bundle construction; no adapter, external request, account,
-  credential, or live path.
+- `services/paper`: deterministic local simulation and Phase 11 bundle evidence, plus the Phase 12
+  six-read shadow-readiness contract, deterministic mock, fixed paper adapter, sanitized persistence,
+  and explicit local capture workflow; no order or live path.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -319,7 +341,8 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 11 gate and obtain the required Ubuntu CI result at the identical
-final SHA and tree. Stop after Phase 11. Do not push, open a pull request, tag, sign, publish,
-release, deploy, create a Phase 12 plan, or add real providers/data, brokers, accounts, credentials,
-external routing, asynchronous work, or any live capability without separate authorization.
+Complete the direct local Phase 12 gate from one honest committed SHA/tree. Do not push the Phase 12
+commit, open a pull request, tag, sign, publish, release, deploy, perform a real credentialed probe,
+submit or reconcile an order, begin Phase 13, or add any live capability without separate
+authorization. Until a later same-SHA Ubuntu Phase 12 gate passes, report Phase 12 as implemented but
+not formally accepted.
