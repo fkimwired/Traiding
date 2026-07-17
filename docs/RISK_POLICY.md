@@ -4,16 +4,17 @@
 
 Fable5 is research software with simulated paper trading only. Risk controls are not a substitute for
 valid research, and positive research statistics do not create authorization to simulate an order.
-Phase 1 establishes the policy, paper-only configuration, and immutable audit spine; executable
-portfolio or order controls remain absent. Phase 7 adds only immutable approval and pre-order-risk
-assessment evidence.
+Phase 1 establishes the policy, paper-only configuration, and immutable audit spine. Phase 7 adds
+only immutable approval and pre-order-risk assessment evidence. Phase 10 adds one deterministic
+local mock-only simulation with immutable synthetic ledger evidence; it is not broker execution.
 
 ## Execution boundary
 
 - The only valid execution-mode value is `paper`.
 - There is no `live` enum member, broker production URL, arbitrary broker base URL, live credential,
   or live-order method.
-- No paper adapter, broker endpoint, order-submission method, fill, or position path exists.
+- No adapter, broker endpoint, account, credential, order-submission method, or external fill/position
+  path exists. Phase 10's ledger is a local synthetic calculation only.
 - “Disabled live trading” is insufficient because it implies a dormant path; the path must be absent.
 - The UI and API describe paper activity as simulated and never as fills representative of live
   execution quality.
@@ -49,6 +50,20 @@ Without creating any order or executable intent, the risk service must prove:
 If a policy limit is missing or cannot be computed, persist `FAIL_REJECT`. Limits are explicit,
 versioned, synthetic inputs; this document does not invent universal percentages. No order object is
 created by either outcome.
+
+## Deterministic local simulation (Phase 10)
+
+A Phase 10 request identifies only an immutable Phase 7 assessment and an idempotency key. The
+server reruns the exact Phase 7 approval, currentness, revocation, and risk checks at the simulation
+decision time and persists a separate hash-bound Phase 10 revalidation proof, then runs seven ordered
+Phase 10 boundary checks. All must pass before the sole synthetic long-only mock ledger may exist. A
+resolved stale, expired, revoked, uncomputable, mismatched, or otherwise ineligible source persists
+`BLOCKED` with no ledger.
+
+The configuration, synthetic observation, signal rule, notional, quantity, price, cost/slippage,
+outcome, and audit identity are server-owned and hash-bound. Component costs, fill-price slippage,
+cash, position, requested/filled/unfilled quantity, and the exact approved proposed notional must
+reconcile. The workflow performs no network request and has no external routing or live path.
 
 ## Kill switch
 

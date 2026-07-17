@@ -1,0 +1,93 @@
+{
+  "card_id": "44000000-0000-0000-0000-000000000001",
+  "extraction_request_id": "33000000-0000-0000-0000-000000000001",
+  "source_id": "11000000-0000-0000-0000-000000000001",
+  "source_version_id": "22000000-0000-0000-0000-000000000001",
+  "source_authority": "other",
+  "source_url": null,
+  "source_version": 1,
+  "raw_text": "Rank the synthetic equity universe by value score over two sessions using point-in-time security master data.",
+  "quoted_claims": [
+    {
+      "claim_id": "segment-001",
+      "kind": "source_claim",
+      "span": {
+        "segment_id": "segment-001",
+        "start_byte": 0,
+        "end_byte": 109,
+        "text_sha256": "fcfc2fc2898c0d19c2e84263300d26197ae99edafd55d45a96ba10387019c815"
+      },
+      "exact_text": "Rank the synthetic equity universe by value score over two sessions using point-in-time security master data."
+    }
+  ],
+  "paraphrased_claim": null,
+  "asset_class": {
+    "state": "source_supported",
+    "value": "equity",
+    "claim_ids": [
+      "segment-001"
+    ]
+  },
+  "forecast_horizon": {
+    "state": "not_stated",
+    "value": null,
+    "claim_ids": []
+  },
+  "signal_family": {
+    "state": "not_stated",
+    "value": null,
+    "claim_ids": []
+  },
+  "execution_style": {
+    "state": "not_stated",
+    "value": null,
+    "claim_ids": []
+  },
+  "required_data": {
+    "state": "source_supported",
+    "values": [
+      "point_in_time_universe"
+    ],
+    "claim_ids": [
+      "segment-001"
+    ]
+  },
+  "action_rule": {
+    "state": "not_stated",
+    "claim_ids": []
+  },
+  "risk_assumptions": {
+    "state": "not_stated",
+    "values": [],
+    "claim_ids": []
+  },
+  "ambiguity_flags": [
+    "synthetic_fixture",
+    "missing_action_rule",
+    "missing_forecast_horizon"
+  ],
+  "testability_status": "non_testable",
+  "testability_reason_codes": [
+    "missing_action_rule",
+    "missing_forecast_horizon"
+  ],
+  "testability_score": 0.0,
+  "testability_score_method": "phase2-testability-v1",
+  "infra_risk": "unknown",
+  "research_priority_score": null,
+  "corroboration_status": "not_required",
+  "contribution_status": "not_blocked_by_corroboration",
+  "official_corroboration_source_ids": [],
+  "official_corroboration_source_version_ids": [],
+  "extractor_kind": "deterministic_mock",
+  "extractor_id": "fable5-deterministic-extractor",
+  "extractor_version": "2",
+  "extraction_model_id": null,
+  "extraction_model_revision": null,
+  "extraction_prompt_version": null,
+  "extraction_prompt_sha256": null,
+  "extraction_schema_version": "phase2-trading-idea-card-v2",
+  "extraction_config_sha256": "02afedb053950b5a2855ede364dd0de222236c8b489bf67bd608a9dfdd093bf5",
+  "synthetic_fixture": true,
+  "created_at_utc": "2026-07-13T20:00:00Z"
+}

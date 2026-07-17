@@ -54,6 +54,9 @@ export const successfulJsonOperations = [
   "GET /v1/evaluation-reports/{artifact_id}",
   "GET /v1/extractions",
   "GET /v1/extractions/{request_id}",
+  "GET /v1/local-simulations",
+  "POST /v1/local-simulations",
+  "GET /v1/local-simulations/{simulation_run_id}",
   "GET /v1/mappings",
   "GET /v1/mappings/{mapping_id}",
   "GET /v1/research-runs",
@@ -94,6 +97,9 @@ export type SuccessfulJsonResponseByOperation = {
   "GET /v1/evaluation-reports/{artifact_id}": paths["/v1/evaluation-reports/{artifact_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/extractions": paths["/v1/extractions"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/extractions/{request_id}": paths["/v1/extractions/{request_id}"]["get"]["responses"][200]["content"]["application/json"];
+  "GET /v1/local-simulations": paths["/v1/local-simulations"]["get"]["responses"][200]["content"]["application/json"];
+  "POST /v1/local-simulations": paths["/v1/local-simulations"]["post"]["responses"][201]["content"]["application/json"];
+  "GET /v1/local-simulations/{simulation_run_id}": paths["/v1/local-simulations/{simulation_run_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings": paths["/v1/mappings"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/mappings/{mapping_id}": paths["/v1/mappings/{mapping_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/research-runs": paths["/v1/research-runs"]["get"]["responses"][200]["content"]["application/json"];
@@ -271,6 +277,25 @@ export const successfulJsonResponseSchemas: Record<
   "GET /v1/extractions/{request_id}": {
     "200": {
       "$ref": "#/components/schemas/ExtractionRequestRecord"
+    }
+  },
+  "GET /v1/local-simulations": {
+    "200": {
+      "items": {
+        "$ref": "#/components/schemas/PaperSimulationSummary"
+      },
+      "title": "Response List Local Simulations V1 Local Simulations Get",
+      "type": "array"
+    }
+  },
+  "POST /v1/local-simulations": {
+    "201": {
+      "$ref": "#/components/schemas/PaperSimulationArtifact"
+    }
+  },
+  "GET /v1/local-simulations/{simulation_run_id}": {
+    "200": {
+      "$ref": "#/components/schemas/PaperSimulationArtifact"
     }
   },
   "GET /v1/mappings": {
@@ -6618,6 +6643,1272 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
       "baseline_net_return"
     ],
     "title": "OosLedgerEntry",
+    "type": "object"
+  },
+  "PaperCheckCode": {
+    "enum": [
+      "SOURCE_APPROVAL_EXACT",
+      "TRANSITION_APPROVAL_FRESH",
+      "RESEARCH_PREREQUISITES_COMPLETE",
+      "SIMULATION_CONFIGURATION_EXACT",
+      "RISK_CONTEXT_EXACT",
+      "COST_SLIPPAGE_COMPLETE",
+      "LOCAL_BOUNDARY_ENFORCED"
+    ],
+    "title": "PaperCheckCode",
+    "type": "string"
+  },
+  "PaperCheckStatus": {
+    "enum": [
+      "PASS",
+      "FAIL",
+      "BLOCKED",
+      "UNCOMPUTABLE"
+    ],
+    "title": "PaperCheckStatus",
+    "type": "string"
+  },
+  "PaperSimulationArtifact": {
+    "additionalProperties": false,
+    "properties": {
+      "approval_policy_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Approval Policy Sha256",
+        "type": "string"
+      },
+      "approval_policy_version_id": {
+        "format": "uuid",
+        "title": "Approval Policy Version Id",
+        "type": "string"
+      },
+      "approval_scope_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Approval Scope Sha256",
+        "type": "string"
+      },
+      "approval_scope_version_id": {
+        "format": "uuid",
+        "title": "Approval Scope Version Id",
+        "type": "string"
+      },
+      "artifact_schema_version": {
+        "const": "phase10-local-paper-simulation-v1",
+        "default": "phase10-local-paper-simulation-v1",
+        "title": "Artifact Schema Version",
+        "type": "string"
+      },
+      "artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Artifact Sha256",
+        "type": "string"
+      },
+      "authorization_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Authorization Sha256",
+        "type": "string"
+      },
+      "checks": {
+        "items": {
+          "$ref": "#/components/schemas/PaperSimulationCheck"
+        },
+        "minItems": 7,
+        "title": "Checks",
+        "type": "array"
+      },
+      "configuration": {
+        "$ref": "#/components/schemas/PaperSimulationConfiguration"
+      },
+      "created_at_utc": {
+        "format": "date-time",
+        "title": "Created At Utc",
+        "type": "string"
+      },
+      "currentness_state_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Currentness State Sha256",
+        "type": "string"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "disclaimer": {
+        "const": "Deterministic synthetic local paper simulation only; no external routing, live trading, real performance claim, or personalized investment advice.",
+        "default": "Deterministic synthetic local paper simulation only; no external routing, live trading, real performance claim, or personalized investment advice.",
+        "title": "Disclaimer",
+        "type": "string"
+      },
+      "effective_trial_count": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Effective Trial Count",
+        "type": "string"
+      },
+      "external_routing_absent": {
+        "const": true,
+        "default": true,
+        "title": "External Routing Absent",
+        "type": "boolean"
+      },
+      "external_submission": {
+        "const": false,
+        "default": false,
+        "title": "External Submission",
+        "type": "boolean"
+      },
+      "human_authorization_evidence_id": {
+        "format": "uuid",
+        "title": "Human Authorization Evidence Id",
+        "type": "string"
+      },
+      "ledger_entries": {
+        "items": {
+          "$ref": "#/components/schemas/PaperSimulationLedgerEntry"
+        },
+        "maxItems": 1,
+        "title": "Ledger Entries",
+        "type": "array"
+      },
+      "live_path_absent": {
+        "const": true,
+        "default": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "local_mock_only": {
+        "const": true,
+        "default": true,
+        "title": "Local Mock Only",
+        "type": "boolean"
+      },
+      "no_personalized_investment_advice": {
+        "const": true,
+        "default": true,
+        "title": "No Personalized Investment Advice",
+        "type": "boolean"
+      },
+      "no_real_performance_claimed": {
+        "const": true,
+        "default": true,
+        "title": "No Real Performance Claimed",
+        "type": "boolean"
+      },
+      "outcome": {
+        "$ref": "#/components/schemas/PaperSimulationOutcome"
+      },
+      "phase10_code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Phase10 Code Version Git Sha",
+        "type": "string"
+      },
+      "phase6_lineage_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Phase6 Lineage Sha256",
+        "type": "string"
+      },
+      "random_seed": {
+        "minimum": 0,
+        "title": "Random Seed",
+        "type": "integer"
+      },
+      "raw_trial_count": {
+        "minimum": 0,
+        "title": "Raw Trial Count",
+        "type": "integer"
+      },
+      "reason_codes": {
+        "items": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Reason Codes",
+        "type": "array"
+      },
+      "request_fingerprint_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Request Fingerprint Sha256",
+        "type": "string"
+      },
+      "research_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Research Artifact Sha256",
+        "type": "string"
+      },
+      "research_run_id": {
+        "format": "uuid",
+        "title": "Research Run Id",
+        "type": "string"
+      },
+      "risk_input_id": {
+        "format": "uuid",
+        "title": "Risk Input Id",
+        "type": "string"
+      },
+      "risk_input_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Risk Input Sha256",
+        "type": "string"
+      },
+      "simulated_paper_only": {
+        "const": true,
+        "default": true,
+        "title": "Simulated Paper Only",
+        "type": "boolean"
+      },
+      "simulation_idempotency_key": {
+        "maxLength": 128,
+        "minLength": 8,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+        "title": "Simulation Idempotency Key",
+        "type": "string"
+      },
+      "simulation_run_id": {
+        "format": "uuid",
+        "title": "Simulation Run Id",
+        "type": "string"
+      },
+      "source_assessment_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Assessment Artifact Sha256",
+        "type": "string"
+      },
+      "source_assessment_id": {
+        "format": "uuid",
+        "title": "Source Assessment Id",
+        "type": "string"
+      },
+      "synthetic": {
+        "const": true,
+        "default": true,
+        "title": "Synthetic",
+        "type": "boolean"
+      },
+      "transition_assessment_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Assessment Artifact Sha256",
+        "type": "string"
+      },
+      "transition_assessment_id": {
+        "format": "uuid",
+        "title": "Transition Assessment Id",
+        "type": "string"
+      },
+      "transition_currentness_state_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Currentness State Sha256",
+        "type": "string"
+      },
+      "transition_revalidation_proof": {
+        "$ref": "#/components/schemas/PaperTransitionRevalidationProof"
+      },
+      "transition_revocation_set_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Revocation Set Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "simulation_run_id",
+      "artifact_sha256",
+      "request_fingerprint_sha256",
+      "currentness_state_sha256",
+      "simulation_idempotency_key",
+      "source_assessment_id",
+      "source_assessment_artifact_sha256",
+      "transition_assessment_id",
+      "transition_assessment_artifact_sha256",
+      "transition_currentness_state_sha256",
+      "transition_revocation_set_sha256",
+      "transition_revalidation_proof",
+      "research_run_id",
+      "research_artifact_sha256",
+      "phase6_lineage_sha256",
+      "approval_policy_version_id",
+      "approval_policy_sha256",
+      "approval_scope_version_id",
+      "approval_scope_sha256",
+      "human_authorization_evidence_id",
+      "authorization_sha256",
+      "risk_input_id",
+      "risk_input_sha256",
+      "configuration",
+      "checks",
+      "ledger_entries",
+      "outcome",
+      "reason_codes",
+      "phase10_code_version_git_sha",
+      "random_seed",
+      "raw_trial_count",
+      "effective_trial_count",
+      "decision_time_utc",
+      "created_at_utc"
+    ],
+    "title": "PaperSimulationArtifact",
+    "type": "object"
+  },
+  "PaperSimulationCheck": {
+    "additionalProperties": false,
+    "properties": {
+      "check_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Check Sha256",
+        "type": "string"
+      },
+      "code": {
+        "$ref": "#/components/schemas/PaperCheckCode"
+      },
+      "evidence_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Evidence Sha256S",
+        "type": "array"
+      },
+      "observed_value": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Observed Value"
+      },
+      "ordinal": {
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "reason_code": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Reason Code",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase10-local-simulation-check-v1",
+        "default": "phase10-local-simulation-check-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/PaperCheckStatus"
+      },
+      "threshold_value": {
+        "anyOf": [
+          {
+            "maxLength": 500,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Threshold Value"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "reason_code",
+      "evidence_sha256s",
+      "check_sha256"
+    ],
+    "title": "PaperSimulationCheck",
+    "type": "object"
+  },
+  "PaperSimulationConfiguration": {
+    "additionalProperties": false,
+    "properties": {
+      "approved_proposed_notional": {
+        "anyOf": [
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Approved Proposed Notional"
+      },
+      "available_at_utc": {
+        "format": "date-time",
+        "title": "Available At Utc",
+        "type": "string"
+      },
+      "average_daily_volume": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Average Daily Volume",
+        "type": "string"
+      },
+      "canonical_family": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Canonical Family",
+        "type": "string"
+      },
+      "configuration_id": {
+        "const": "phase10-a-local-mock-qa-v1",
+        "default": "phase10-a-local-mock-qa-v1",
+        "title": "Configuration Id",
+        "type": "string"
+      },
+      "configuration_instance_id": {
+        "format": "uuid",
+        "title": "Configuration Instance Id",
+        "type": "string"
+      },
+      "configuration_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Configuration Sha256",
+        "type": "string"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "effective_trial_count": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Effective Trial Count",
+        "type": "string"
+      },
+      "external_routing_absent": {
+        "const": true,
+        "default": true,
+        "title": "External Routing Absent",
+        "type": "boolean"
+      },
+      "live_path_absent": {
+        "const": true,
+        "default": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "llm_decision_role_absent": {
+        "const": true,
+        "default": true,
+        "title": "Llm Decision Role Absent",
+        "type": "boolean"
+      },
+      "local_cost_model_id": {
+        "const": "phase10-local-transparent-cost-v1",
+        "default": "phase10-local-transparent-cost-v1",
+        "title": "Local Cost Model Id",
+        "type": "string"
+      },
+      "local_mock_only": {
+        "const": true,
+        "default": true,
+        "title": "Local Mock Only",
+        "type": "boolean"
+      },
+      "local_slippage_model_id": {
+        "const": "phase10-local-transparent-slippage-v1",
+        "default": "phase10-local-transparent-slippage-v1",
+        "title": "Local Slippage Model Id",
+        "type": "string"
+      },
+      "mock_entity_id": {
+        "const": "SYNTHETIC-ASSET-001",
+        "default": "SYNTHETIC-ASSET-001",
+        "title": "Mock Entity Id",
+        "type": "string"
+      },
+      "mock_observation_id": {
+        "format": "uuid",
+        "title": "Mock Observation Id",
+        "type": "string"
+      },
+      "mock_observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Mock Observation Sha256",
+        "type": "string"
+      },
+      "mock_snapshot_id": {
+        "format": "uuid",
+        "title": "Mock Snapshot Id",
+        "type": "string"
+      },
+      "mock_snapshot_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Mock Snapshot Sha256",
+        "type": "string"
+      },
+      "mock_universe_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Mock Universe Id",
+        "type": "string"
+      },
+      "model_id": {
+        "const": "sector-relative-rank-linear-v1",
+        "default": "sector-relative-rank-linear-v1",
+        "title": "Model Id",
+        "type": "string"
+      },
+      "observed_at_utc": {
+        "format": "date-time",
+        "title": "Observed At Utc",
+        "type": "string"
+      },
+      "random_seed": {
+        "minimum": 0,
+        "title": "Random Seed",
+        "type": "integer"
+      },
+      "raw_trial_count": {
+        "minimum": 0,
+        "title": "Raw Trial Count",
+        "type": "integer"
+      },
+      "reference_price": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Reference Price",
+        "type": "string"
+      },
+      "requested_quantity": {
+        "anyOf": [
+          {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Requested Quantity"
+      },
+      "required_audit_fields": {
+        "items": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+          "type": "string"
+        },
+        "minItems": 10,
+        "title": "Required Audit Fields",
+        "type": "array"
+      },
+      "required_capabilities": {
+        "items": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Required Capabilities",
+        "type": "array"
+      },
+      "research_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Research Artifact Sha256",
+        "type": "string"
+      },
+      "research_configuration_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Research Configuration Id",
+        "type": "string"
+      },
+      "research_configuration_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Research Configuration Sha256",
+        "type": "string"
+      },
+      "research_run_id": {
+        "format": "uuid",
+        "title": "Research Run Id",
+        "type": "string"
+      },
+      "research_snapshot_bundle_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Research Snapshot Bundle Sha256",
+        "type": "string"
+      },
+      "research_specification_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Research Specification Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase10-local-simulation-configuration-v1",
+        "default": "phase10-local-simulation-configuration-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "signal_definition_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Signal Definition Sha256",
+        "type": "string"
+      },
+      "signal_rule_id": {
+        "const": "phase6-a-score-positive-long-flat-v1",
+        "default": "phase6-a-score-positive-long-flat-v1",
+        "title": "Signal Rule Id",
+        "type": "string"
+      },
+      "source_slippage_model_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Source Slippage Model Id",
+        "type": "string"
+      },
+      "source_snapshot_bindings": {
+        "items": {
+          "$ref": "#/components/schemas/PaperSourceSnapshotReference"
+        },
+        "minItems": 1,
+        "title": "Source Snapshot Bindings",
+        "type": "array"
+      },
+      "source_transaction_cost_model_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Source Transaction Cost Model Id",
+        "type": "string"
+      },
+      "starting_cash": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Starting Cash",
+        "type": "string"
+      },
+      "synthetic": {
+        "const": true,
+        "default": true,
+        "title": "Synthetic",
+        "type": "boolean"
+      },
+      "synthetic_model_output": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Synthetic Model Output",
+        "type": "string"
+      },
+      "target_forecast_horizon": {
+        "maxLength": 256,
+        "minLength": 1,
+        "title": "Target Forecast Horizon",
+        "type": "string"
+      },
+      "volatility": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Volatility",
+        "type": "string"
+      }
+    },
+    "required": [
+      "configuration_instance_id",
+      "configuration_sha256",
+      "research_run_id",
+      "research_artifact_sha256",
+      "research_configuration_id",
+      "research_configuration_sha256",
+      "research_specification_sha256",
+      "research_snapshot_bundle_sha256",
+      "source_snapshot_bindings",
+      "canonical_family",
+      "signal_definition_sha256",
+      "target_forecast_horizon",
+      "required_capabilities",
+      "required_audit_fields",
+      "source_transaction_cost_model_id",
+      "source_slippage_model_id",
+      "mock_snapshot_id",
+      "mock_snapshot_sha256",
+      "mock_observation_id",
+      "mock_observation_sha256",
+      "mock_universe_id",
+      "observed_at_utc",
+      "available_at_utc",
+      "decision_time_utc",
+      "synthetic_model_output",
+      "reference_price",
+      "average_daily_volume",
+      "volatility",
+      "starting_cash",
+      "random_seed",
+      "raw_trial_count",
+      "effective_trial_count"
+    ],
+    "title": "PaperSimulationConfiguration",
+    "type": "object"
+  },
+  "PaperSimulationLedgerEntry": {
+    "additionalProperties": false,
+    "properties": {
+      "approved_proposed_notional": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Approved Proposed Notional",
+        "type": "string"
+      },
+      "available_at_utc": {
+        "format": "date-time",
+        "title": "Available At Utc",
+        "type": "string"
+      },
+      "average_daily_volume": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Average Daily Volume",
+        "type": "string"
+      },
+      "borrow_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Borrow Cost",
+        "type": "string"
+      },
+      "capacity_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Capacity Cost",
+        "type": "string"
+      },
+      "cash_after": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Cash After",
+        "type": "string"
+      },
+      "cash_before": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Cash Before",
+        "type": "string"
+      },
+      "commission_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Commission Cost",
+        "type": "string"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "entity_id": {
+        "const": "SYNTHETIC-ASSET-001",
+        "default": "SYNTHETIC-ASSET-001",
+        "title": "Entity Id",
+        "type": "string"
+      },
+      "external_submission": {
+        "const": false,
+        "default": false,
+        "title": "External Submission",
+        "type": "boolean"
+      },
+      "fill_status": {
+        "const": "SIMULATED_FILLED",
+        "default": "SIMULATED_FILLED",
+        "title": "Fill Status",
+        "type": "string"
+      },
+      "filled_quantity": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Filled Quantity",
+        "type": "string"
+      },
+      "impact_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Impact Cost",
+        "type": "string"
+      },
+      "latency_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Latency Cost",
+        "type": "string"
+      },
+      "ledger_entry_id": {
+        "format": "uuid",
+        "title": "Ledger Entry Id",
+        "type": "string"
+      },
+      "ledger_entry_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Ledger Entry Sha256",
+        "type": "string"
+      },
+      "live_path_absent": {
+        "const": true,
+        "default": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "local_cost_model_id": {
+        "const": "phase10-local-transparent-cost-v1",
+        "default": "phase10-local-transparent-cost-v1",
+        "title": "Local Cost Model Id",
+        "type": "string"
+      },
+      "local_mock_only": {
+        "const": true,
+        "default": true,
+        "title": "Local Mock Only",
+        "type": "boolean"
+      },
+      "local_slippage_model_id": {
+        "const": "phase10-local-transparent-slippage-v1",
+        "default": "phase10-local-transparent-slippage-v1",
+        "title": "Local Slippage Model Id",
+        "type": "string"
+      },
+      "mock_observation_id": {
+        "format": "uuid",
+        "title": "Mock Observation Id",
+        "type": "string"
+      },
+      "mock_observation_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Mock Observation Sha256",
+        "type": "string"
+      },
+      "mock_snapshot_id": {
+        "format": "uuid",
+        "title": "Mock Snapshot Id",
+        "type": "string"
+      },
+      "mock_snapshot_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Mock Snapshot Sha256",
+        "type": "string"
+      },
+      "model_id": {
+        "const": "sector-relative-rank-linear-v1",
+        "default": "sector-relative-rank-linear-v1",
+        "title": "Model Id",
+        "type": "string"
+      },
+      "observed_at_utc": {
+        "format": "date-time",
+        "title": "Observed At Utc",
+        "type": "string"
+      },
+      "ordinal": {
+        "const": 1,
+        "default": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "participation_rate": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Participation Rate",
+        "type": "string"
+      },
+      "position_quantity_after": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Position Quantity After",
+        "type": "string"
+      },
+      "position_quantity_before": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Position Quantity Before",
+        "type": "string"
+      },
+      "reference_price": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Reference Price",
+        "type": "string"
+      },
+      "regulatory_fee_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Regulatory Fee Cost",
+        "type": "string"
+      },
+      "rejected_quantity": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Rejected Quantity",
+        "type": "string"
+      },
+      "requested_quantity": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Requested Quantity",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase10-local-simulation-ledger-v1",
+        "default": "phase10-local-simulation-ledger-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "signal_rule_id": {
+        "const": "phase6-a-score-positive-long-flat-v1",
+        "default": "phase6-a-score-positive-long-flat-v1",
+        "title": "Signal Rule Id",
+        "type": "string"
+      },
+      "signal_state": {
+        "const": "LONG",
+        "default": "LONG",
+        "title": "Signal State",
+        "type": "string"
+      },
+      "signal_value": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Signal Value",
+        "type": "string"
+      },
+      "simulated_fill_price": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Simulated Fill Price",
+        "type": "string"
+      },
+      "simulated_paper_only": {
+        "const": true,
+        "default": true,
+        "title": "Simulated Paper Only",
+        "type": "boolean"
+      },
+      "simulated_side": {
+        "const": "BUY",
+        "default": "BUY",
+        "title": "Simulated Side",
+        "type": "string"
+      },
+      "simulation_run_id": {
+        "format": "uuid",
+        "title": "Simulation Run Id",
+        "type": "string"
+      },
+      "source_slippage_model_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Source Slippage Model Id",
+        "type": "string"
+      },
+      "source_transaction_cost_model_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Source Transaction Cost Model Id",
+        "type": "string"
+      },
+      "spread_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Spread Cost",
+        "type": "string"
+      },
+      "synthetic": {
+        "const": true,
+        "default": true,
+        "title": "Synthetic",
+        "type": "boolean"
+      },
+      "total_cost": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Total Cost",
+        "type": "string"
+      },
+      "unfilled_quantity": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Unfilled Quantity",
+        "type": "string"
+      },
+      "universe_id": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Universe Id",
+        "type": "string"
+      },
+      "volatility": {
+        "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+        "title": "Volatility",
+        "type": "string"
+      }
+    },
+    "required": [
+      "simulation_run_id",
+      "ledger_entry_id",
+      "ledger_entry_sha256",
+      "mock_snapshot_id",
+      "mock_snapshot_sha256",
+      "mock_observation_id",
+      "mock_observation_sha256",
+      "universe_id",
+      "observed_at_utc",
+      "available_at_utc",
+      "decision_time_utc",
+      "signal_value",
+      "approved_proposed_notional",
+      "requested_quantity",
+      "filled_quantity",
+      "rejected_quantity",
+      "unfilled_quantity",
+      "reference_price",
+      "simulated_fill_price",
+      "average_daily_volume",
+      "volatility",
+      "participation_rate",
+      "commission_cost",
+      "regulatory_fee_cost",
+      "spread_cost",
+      "impact_cost",
+      "latency_cost",
+      "borrow_cost",
+      "capacity_cost",
+      "total_cost",
+      "position_quantity_before",
+      "position_quantity_after",
+      "cash_before",
+      "cash_after",
+      "source_transaction_cost_model_id",
+      "source_slippage_model_id"
+    ],
+    "title": "PaperSimulationLedgerEntry",
+    "type": "object"
+  },
+  "PaperSimulationOutcome": {
+    "enum": [
+      "SIMULATED_COMPLETE",
+      "BLOCKED"
+    ],
+    "title": "PaperSimulationOutcome",
+    "type": "string"
+  },
+  "PaperSimulationSummary": {
+    "additionalProperties": false,
+    "properties": {
+      "artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Artifact Sha256",
+        "type": "string"
+      },
+      "configuration_id": {
+        "const": "phase10-a-local-mock-qa-v1",
+        "default": "phase10-a-local-mock-qa-v1",
+        "title": "Configuration Id",
+        "type": "string"
+      },
+      "created_at_utc": {
+        "format": "date-time",
+        "title": "Created At Utc",
+        "type": "string"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "external_submission": {
+        "const": false,
+        "default": false,
+        "title": "External Submission",
+        "type": "boolean"
+      },
+      "live_path_absent": {
+        "const": true,
+        "default": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "local_mock_only": {
+        "const": true,
+        "default": true,
+        "title": "Local Mock Only",
+        "type": "boolean"
+      },
+      "no_personalized_investment_advice": {
+        "const": true,
+        "default": true,
+        "title": "No Personalized Investment Advice",
+        "type": "boolean"
+      },
+      "no_real_performance_claimed": {
+        "const": true,
+        "default": true,
+        "title": "No Real Performance Claimed",
+        "type": "boolean"
+      },
+      "outcome": {
+        "$ref": "#/components/schemas/PaperSimulationOutcome"
+      },
+      "reason_codes": {
+        "items": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+          "type": "string"
+        },
+        "title": "Reason Codes",
+        "type": "array"
+      },
+      "simulated_paper_only": {
+        "const": true,
+        "default": true,
+        "title": "Simulated Paper Only",
+        "type": "boolean"
+      },
+      "simulation_run_id": {
+        "format": "uuid",
+        "title": "Simulation Run Id",
+        "type": "string"
+      },
+      "source_assessment_id": {
+        "format": "uuid",
+        "title": "Source Assessment Id",
+        "type": "string"
+      },
+      "synthetic": {
+        "const": true,
+        "default": true,
+        "title": "Synthetic",
+        "type": "boolean"
+      },
+      "transition_assessment_id": {
+        "format": "uuid",
+        "title": "Transition Assessment Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "simulation_run_id",
+      "artifact_sha256",
+      "source_assessment_id",
+      "transition_assessment_id",
+      "outcome",
+      "reason_codes",
+      "decision_time_utc",
+      "created_at_utc"
+    ],
+    "title": "PaperSimulationSummary",
+    "type": "object"
+  },
+  "PaperSourceSnapshotReference": {
+    "additionalProperties": false,
+    "properties": {
+      "binding_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Binding Sha256",
+        "type": "string"
+      },
+      "capability": {
+        "maxLength": 256,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+        "title": "Capability",
+        "type": "string"
+      },
+      "ordinal": {
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "snapshot_id": {
+        "format": "uuid",
+        "title": "Snapshot Id",
+        "type": "string"
+      },
+      "snapshot_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Snapshot Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "ordinal",
+      "snapshot_id",
+      "snapshot_sha256",
+      "binding_sha256",
+      "capability"
+    ],
+    "title": "PaperSourceSnapshotReference",
+    "type": "object"
+  },
+  "PaperTransitionRevalidationProof": {
+    "additionalProperties": false,
+    "description": "Decision-time-bound proof of the fresh Phase 10 authority evaluation.",
+    "properties": {
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "phase10_code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Phase10 Code Version Git Sha",
+        "type": "string"
+      },
+      "revalidation_proof_id": {
+        "format": "uuid",
+        "title": "Revalidation Proof Id",
+        "type": "string"
+      },
+      "revalidation_proof_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Revalidation Proof Sha256",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "phase10-local-simulation-revalidation-v1",
+        "default": "phase10-local-simulation-revalidation-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "simulation_idempotency_key": {
+        "maxLength": 128,
+        "minLength": 8,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+        "title": "Simulation Idempotency Key",
+        "type": "string"
+      },
+      "source_assessment_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Assessment Artifact Sha256",
+        "type": "string"
+      },
+      "source_assessment_id": {
+        "format": "uuid",
+        "title": "Source Assessment Id",
+        "type": "string"
+      },
+      "transition_assessment_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Assessment Artifact Sha256",
+        "type": "string"
+      },
+      "transition_assessment_id": {
+        "format": "uuid",
+        "title": "Transition Assessment Id",
+        "type": "string"
+      },
+      "transition_currentness_state_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Currentness State Sha256",
+        "type": "string"
+      },
+      "transition_revocation_set_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Transition Revocation Set Sha256",
+        "type": "string"
+      }
+    },
+    "required": [
+      "revalidation_proof_id",
+      "revalidation_proof_sha256",
+      "simulation_idempotency_key",
+      "source_assessment_id",
+      "source_assessment_artifact_sha256",
+      "transition_assessment_id",
+      "transition_assessment_artifact_sha256",
+      "transition_currentness_state_sha256",
+      "transition_revocation_set_sha256",
+      "decision_time_utc",
+      "phase10_code_version_git_sha"
+    ],
+    "title": "PaperTransitionRevalidationProof",
     "type": "object"
   },
   "Phase5EvaluationLink": {

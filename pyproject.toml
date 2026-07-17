@@ -37,6 +37,7 @@ where = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/paper/src",
   "services/research/src",
   "services/risk/src",
 ]
@@ -54,6 +55,7 @@ testpaths = [
   "services/extraction/tests",
   "services/jobs/tests",
   "services/mapping/tests",
+  "services/paper/tests",
   "services/research/tests",
   "services/risk/tests",
 ]
@@ -79,6 +81,7 @@ files = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/paper/src",
   "services/research/src",
   "services/risk/src",
 ]
@@ -89,6 +92,7 @@ mypy_path = [
   "services/extraction/src",
   "services/jobs/src",
   "services/mapping/src",
+  "services/paper/src",
   "services/research/src",
   "services/risk/src",
 ]

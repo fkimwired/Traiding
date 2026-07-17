@@ -942,6 +942,83 @@ textarea {
   margin: 0.35rem 0 0;
 }
 
+.simulationControlPanel {
+  border-top: 7px solid var(--p8-amber);
+}
+
+.simulationBoundaryGrid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.2rem;
+}
+
+.simulationBoundaryGrid span {
+  background: #17211d;
+  border: 1px solid #34443c;
+  border-radius: 6px;
+  color: #f4c65d;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  padding: 0.65rem;
+  text-align: center;
+}
+
+.simulationArtifactGrid,
+.simulationLedgerGrid {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.simulationArtifact {
+  box-shadow: var(--p8-shadow);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.simulationArtifact:focus {
+  outline: 3px solid var(--p8-focus);
+  outline-offset: 4px;
+}
+
+.simulationAuditGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.simulationCheckList > li {
+  align-items: start;
+}
+
+.simulationCheckEvidence {
+  margin-top: 0.6rem;
+}
+
+.simulationLedgerEntry {
+  background: #f8f6ef;
+}
+
+.simulationLedgerEntry .cardHeader h4 {
+  font: 500 1.15rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.simulationArtifactDisclosure pre {
+  max-height: 520px;
+}
+
+.simulationDisclaimer {
+  background: var(--p8-amber-soft);
+  border: 1px solid #d2af78;
+  border-radius: 7px;
+  color: #684012;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.55;
+  margin: 1rem 0 0;
+  padding: 0.8rem;
+}
+
 .checkList {
   counter-reset: checks;
 }
@@ -1125,6 +1202,10 @@ dialog.evidenceDialog::backdrop {
   .governanceCard .boundaryNotice {
     grid-template-columns: 1fr;
   }
+
+  .simulationAuditGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -1141,6 +1222,10 @@ dialog.evidenceDialog::backdrop {
   .strategyGrid,
   .governanceGrid {
     grid-template-columns: 1fr;
+  }
+
+  .simulationBoundaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panelHeader,
@@ -1179,7 +1264,9 @@ dialog.evidenceDialog::backdrop {
 
   .phase8ModeGrid,
   .formGrid,
-  .keyValueGrid {
+  .keyValueGrid,
+  .simulationAuditGrid,
+  .simulationBoundaryGrid {
     grid-template-columns: 1fr;
   }
 

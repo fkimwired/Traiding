@@ -131,21 +131,21 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase9_entrypoints_ci_and_runner_select_the_active_phase() -> None:
+def test_phase10_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, 6, 7, 8, or 9" in source
+        assert "1, 2, 3, 4, 5, 6, 7, 8, 9, or 10" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-9-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "9"' in workflow
+    assert workflow.startswith("name: phase-10-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "10"' in workflow
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase9-compose:" in workflow
-    assert "run_phase_gate.py run --phase 9" in workflow
-    assert "run_phase_gate.py verify-evidence" in workflow
+    assert "phase10-compose:" in workflow
+    assert "verify_phase1.py --phase 10" in workflow
+    assert "run_phase_gate.py run --phase 10" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
@@ -158,8 +158,24 @@ def test_phase9_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         assert "COPY services/backtester ./services/backtester" in normalized(ROOT / dockerfile)
         assert "COPY services/research ./services/research" in normalized(ROOT / dockerfile)
         assert "COPY services/risk ./services/risk" in normalized(ROOT / dockerfile)
+        assert "COPY services/paper ./services/paper" in normalized(ROOT / dockerfile)
     assert "COPY services/mapping ./services/mapping" in normalized(
         ROOT / "services/api/Dockerfile"
+    )
+    verifier = normalized(ROOT / "scripts/verify_phase1.py")
+    for closure_control in (
+        'phase10_clean_git_identity("preflight")',
+        'phase10_clean_git_identity("post-cleanup", expected=phase10_identity)',
+        'verify_phase10_acceptance_resource_namespace("preflight"',
+        'verify_phase10_acceptance_resource_namespace("post-cleanup"',
+        "name=fable5_acceptance_",
+        "changed_paths - PHASE_10_ALLOWED_WRITES",
+        "if phase in {8, 9, 10}:",
+    ):
+        assert closure_control in verifier
+    assert (
+        'allowed.update(path for path in changed_paths if path.startswith("services/paper/")'
+        not in verifier
     )
 
 

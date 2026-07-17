@@ -38,6 +38,7 @@ type EvaluationOutcome = components["schemas"]["BlockedEvaluationOutcome"];
 type ResearchRun = components["schemas"]["ResearchRunArtifact"];
 type Assessment = components["schemas"]["ApprovalAssessmentArtifact"];
 type Revocation = components["schemas"]["AuthorizationRevocationArtifact"];
+type PaperSimulationArtifact = components["schemas"]["PaperSimulationArtifact"];
 
 export type LineageSelection = {
   assessment?: Assessment;
@@ -479,6 +480,121 @@ type ArtifactState<T> =
   | { status: "success"; artifact: T }
   | { status: "error"; error: ApiFailure };
 
+function simulationReferenceConflict(): ApiFailure {
+  return {
+    kind: "conflict",
+    message:
+      "The returned Phase 10 simulation conflicts with the exact source assessment lineage.",
+    retrySafe: true,
+  };
+}
+
+function simulationMatchesAssessment(
+  artifact: PaperSimulationArtifact,
+  simulationRunId: string,
+  assessment: Assessment,
+) {
+  return (
+    artifact.simulation_run_id === simulationRunId &&
+    artifact.source_assessment_id === assessment.assessment_id &&
+    artifact.source_assessment_artifact_sha256 === assessment.artifact_sha256 &&
+    artifact.research_run_id === assessment.research_run_id &&
+    artifact.research_artifact_sha256 === assessment.phase6_lineage.research_artifact_sha256 &&
+    artifact.phase6_lineage_sha256 === assessment.phase6_lineage.lineage_sha256 &&
+    artifact.configuration.research_run_id === assessment.research_run_id &&
+    artifact.configuration.research_artifact_sha256 ===
+      assessment.phase6_lineage.research_artifact_sha256
+  );
+}
+
+function SimulationEvidence({
+  assessment,
+  simulationRunId,
+}: Readonly<{ assessment: Assessment; simulationRunId: string }>) {
+  const [state, setState] = useState<ArtifactState<PaperSimulationArtifact>>({
+    status: "loading",
+  });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fable5Api.getLocalSimulation(simulationRunId, controller.signal).then((result) => {
+      if (!result.ok) {
+        if (result.error.kind !== "aborted") {
+          setState({ error: result.error, status: "error" });
+        }
+        return;
+      }
+      if (!simulationMatchesAssessment(result.data, simulationRunId, assessment)) {
+        setState({ error: simulationReferenceConflict(), status: "error" });
+        return;
+      }
+      setState({ artifact: result.data, status: "success" });
+    });
+    return () => controller.abort();
+  }, [assessment, simulationRunId]);
+
+  if (state.status === "loading") {
+    return (
+      <li>
+        <p className="statePanel" role="status" aria-live="polite">
+          Loading the exact Phase 10 simulation terminal...
+        </p>
+      </li>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <li>
+        <div>
+          <strong>Phase 10 simulation terminal unavailable</strong>
+          <p className="statePanel" data-tone="critical" role="alert">
+            {state.error.message} No simulation terminal or substitute artifact was inferred.
+          </p>
+          <p className="mono">Referenced simulation run ID: {simulationRunId}</p>
+        </div>
+      </li>
+    );
+  }
+
+  const blocked = state.artifact.outcome === "BLOCKED";
+  return (
+    <li data-blocking={blocked ? "true" : undefined}>
+      <div>
+        <strong>Deterministic local mock paper simulation terminal</strong>
+        <div className="boundaryNotice" data-tone="simulated">
+          <strong>SIMULATED / LOCAL MOCK</strong>
+          <p>
+            No external routing. No live path. No personalized investment advice and no real
+            performance claim.
+          </p>
+        </div>
+        {blocked ? (
+          <p className="statePanel" data-tone="critical">
+            BLOCKED - no simulated ledger activity was created.
+          </p>
+        ) : null}
+        <p>{state.artifact.outcome}</p>
+        <p className="mono">Simulation run ID: {state.artifact.simulation_run_id}</p>
+        <p className="mono">Source assessment ID: {state.artifact.source_assessment_id}</p>
+        <p className="mono">Transition assessment ID: {state.artifact.transition_assessment_id}</p>
+        <HashValue>{state.artifact.artifact_sha256}</HashValue>
+        <p>{state.artifact.ledger_entries.length} exact persisted synthetic ledger entry or entries.</p>
+        <ol className="checkList" aria-label="Phase 10 simulation checks">
+          {state.artifact.checks.map((check) => (
+            <li key={check.check_sha256}>
+              <span>
+                Server ordinal {check.ordinal}: {check.code}
+              </span>
+              <strong>{check.status}</strong>
+            </li>
+          ))}
+        </ol>
+        <ArtifactDisclosure artifact={state.artifact} label="Phase 10 simulation artifact" />
+      </div>
+    </li>
+  );
+}
+
 function lineageReferenceConflict(artifactLabel: string): ApiFailure {
   return {
     kind: "conflict",
@@ -707,12 +823,16 @@ function terminalMessage(
   branchLinks: LineageBranchLink[],
   lineageRevocations: Revocation[],
   hasAncestorConflict: boolean,
+  simulationRunId?: string | null,
 ) {
   if (hasAncestorConflict) {
     return "An exact ancestor reference is unavailable. The chain stops at the last real immutable artifact; no substitute was inferred.";
   }
   if (branchLinks.length > 0) {
     return "Exact descendant branches are listed above. No branch was selected or described as absent automatically.";
+  }
+  if (simulationRunId) {
+    return "The exact referenced Phase 10 simulation is the requested terminal. An unavailable or conflicting terminal remains explicitly fail-closed above.";
   }
   if (lineageRevocations.length > 0) {
     return "Immutable revocation evidence is the final persisted governance evidence and remains blocking.";
@@ -743,6 +863,7 @@ export function LineageExplorer() {
       mapping_id: parameters.get("mapping_id"),
       revocation_id: parameters.get("revocation_id"),
       run_id: parameters.get("run_id"),
+      simulation_run_id: parameters.get("simulation_run_id"),
     }),
     [parameters],
   );
@@ -1159,6 +1280,13 @@ export function LineageExplorer() {
             </li>
           );
         })}
+        {selection.assessment && identifiers.simulation_run_id ? (
+          <SimulationEvidence
+            assessment={selection.assessment}
+            key={`${selection.assessment.assessment_id}:${identifiers.simulation_run_id}`}
+            simulationRunId={identifiers.simulation_run_id}
+          />
+        ) : null}
         <li>
           <div>
             <strong>Fail-closed terminal state</strong>
@@ -1168,6 +1296,7 @@ export function LineageExplorer() {
                 branchLinks,
                 lineageRevocations,
                 ancestorConflicts.length > 0 || missingBoundRevocations.length > 0,
+                identifiers.simulation_run_id,
               )}
             </p>
           </div>

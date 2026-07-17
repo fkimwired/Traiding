@@ -277,6 +277,7 @@ type EvaluationRunCreateRequest = components["schemas"]["EvaluationRunCreateRequ
 type ResearchRunCreateRequest = components["schemas"]["ResearchRunCreateRequest"];
 type ApprovalAssessmentCreateRequest = components["schemas"]["ApprovalAssessmentCreateRequest"];
 type ApprovalRevocationCreateRequest = components["schemas"]["ApprovalRevocationCreateRequest"];
+type PaperSimulationCreateRequest = components["schemas"]["PaperSimulationCreateRequest"];
 
 export const fable5Api = {
   getHealth: (signal?: AbortSignal) => getJson("GET /health", { signal }),
@@ -440,6 +441,29 @@ export const fable5Api = {
       pathParameters: { revocation_id: revocationId },
       signal,
     }),
+  listLocalSimulations: (
+    signal?: AbortSignal,
+    approvalAssessmentId?: string,
+    limit?: number,
+  ) =>
+    getJson("GET /v1/local-simulations", {
+      queryParameters: {
+        approval_assessment_id: approvalAssessmentId,
+        limit,
+      },
+      signal,
+    }),
+  createLocalSimulation: (body: PaperSimulationCreateRequest, signal?: AbortSignal) =>
+    postJson("POST /v1/local-simulations", {
+      body,
+      retrySafe: true,
+      signal,
+    }),
+  getLocalSimulation: (simulationRunId: string, signal?: AbortSignal) =>
+    getJson("GET /v1/local-simulations/{simulation_run_id}", {
+      pathParameters: { simulation_run_id: simulationRunId },
+      signal,
+    }),
 };
 
-export type { RemoteValue, SourceIntakeRequest };
+export type { PaperSimulationCreateRequest, RemoteValue, SourceIntakeRequest };

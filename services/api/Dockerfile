@@ -13,6 +13,7 @@ COPY services/data ./services/data
 COPY services/extraction ./services/extraction
 COPY services/jobs ./services/jobs
 COPY services/mapping ./services/mapping
+COPY services/paper ./services/paper
 COPY services/research ./services/research
 COPY services/risk ./services/risk
 

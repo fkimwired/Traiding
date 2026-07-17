@@ -366,6 +366,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/local-simulations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Local Simulations */
+        get: operations["list_local_simulations_v1_local_simulations_get"];
+        put?: never;
+        /** Create Local Simulation */
+        post: operations["create_local_simulation_v1_local_simulations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/local-simulations/{simulation_run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Local Simulation */
+        get: operations["get_local_simulation_v1_local_simulations__simulation_run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/mappings": {
         parameters: {
             query?: never;
@@ -3291,6 +3326,735 @@ export interface components {
              * Format: uuid
              */
             trial_id: string;
+        };
+        /**
+         * PaperCheckCode
+         * @enum {string}
+         */
+        PaperCheckCode: "SOURCE_APPROVAL_EXACT" | "TRANSITION_APPROVAL_FRESH" | "RESEARCH_PREREQUISITES_COMPLETE" | "SIMULATION_CONFIGURATION_EXACT" | "RISK_CONTEXT_EXACT" | "COST_SLIPPAGE_COMPLETE" | "LOCAL_BOUNDARY_ENFORCED";
+        /**
+         * PaperCheckStatus
+         * @enum {string}
+         */
+        PaperCheckStatus: "PASS" | "FAIL" | "BLOCKED" | "UNCOMPUTABLE";
+        /** PaperSimulationArtifact */
+        PaperSimulationArtifact: {
+            /** Approval Policy Sha256 */
+            approval_policy_sha256: string;
+            /**
+             * Approval Policy Version Id
+             * Format: uuid
+             */
+            approval_policy_version_id: string;
+            /** Approval Scope Sha256 */
+            approval_scope_sha256: string;
+            /**
+             * Approval Scope Version Id
+             * Format: uuid
+             */
+            approval_scope_version_id: string;
+            /**
+             * Artifact Schema Version
+             * @default phase10-local-paper-simulation-v1
+             * @constant
+             */
+            artifact_schema_version: "phase10-local-paper-simulation-v1";
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /** Authorization Sha256 */
+            authorization_sha256: string;
+            /** Checks */
+            checks: components["schemas"]["PaperSimulationCheck"][];
+            configuration: components["schemas"]["PaperSimulationConfiguration"];
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /** Currentness State Sha256 */
+            currentness_state_sha256: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * Disclaimer
+             * @default Deterministic synthetic local paper simulation only; no external routing, live trading, real performance claim, or personalized investment advice.
+             * @constant
+             */
+            disclaimer: "Deterministic synthetic local paper simulation only; no external routing, live trading, real performance claim, or personalized investment advice.";
+            /** Effective Trial Count */
+            effective_trial_count: string;
+            /**
+             * External Routing Absent
+             * @default true
+             * @constant
+             */
+            external_routing_absent: true;
+            /**
+             * External Submission
+             * @default false
+             * @constant
+             */
+            external_submission: false;
+            /**
+             * Human Authorization Evidence Id
+             * Format: uuid
+             */
+            human_authorization_evidence_id: string;
+            /** Ledger Entries */
+            ledger_entries: components["schemas"]["PaperSimulationLedgerEntry"][];
+            /**
+             * Live Path Absent
+             * @default true
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * Local Mock Only
+             * @default true
+             * @constant
+             */
+            local_mock_only: true;
+            /**
+             * No Personalized Investment Advice
+             * @default true
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            outcome: components["schemas"]["PaperSimulationOutcome"];
+            /** Phase10 Code Version Git Sha */
+            phase10_code_version_git_sha: string;
+            /** Phase6 Lineage Sha256 */
+            phase6_lineage_sha256: string;
+            /** Random Seed */
+            random_seed: number;
+            /** Raw Trial Count */
+            raw_trial_count: number;
+            /** Reason Codes */
+            reason_codes: string[];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /** Research Artifact Sha256 */
+            research_artifact_sha256: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /**
+             * Risk Input Id
+             * Format: uuid
+             */
+            risk_input_id: string;
+            /** Risk Input Sha256 */
+            risk_input_sha256: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /** Simulation Idempotency Key */
+            simulation_idempotency_key: string;
+            /**
+             * Simulation Run Id
+             * Format: uuid
+             */
+            simulation_run_id: string;
+            /** Source Assessment Artifact Sha256 */
+            source_assessment_artifact_sha256: string;
+            /**
+             * Source Assessment Id
+             * Format: uuid
+             */
+            source_assessment_id: string;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Transition Assessment Artifact Sha256 */
+            transition_assessment_artifact_sha256: string;
+            /**
+             * Transition Assessment Id
+             * Format: uuid
+             */
+            transition_assessment_id: string;
+            /** Transition Currentness State Sha256 */
+            transition_currentness_state_sha256: string;
+            transition_revalidation_proof: components["schemas"]["PaperTransitionRevalidationProof"];
+            /** Transition Revocation Set Sha256 */
+            transition_revocation_set_sha256: string;
+        };
+        /** PaperSimulationCheck */
+        PaperSimulationCheck: {
+            /** Check Sha256 */
+            check_sha256: string;
+            code: components["schemas"]["PaperCheckCode"];
+            /** Evidence Sha256S */
+            evidence_sha256s: string[];
+            /** Observed Value */
+            observed_value?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Reason Code */
+            reason_code: string;
+            /**
+             * Schema Version
+             * @default phase10-local-simulation-check-v1
+             * @constant
+             */
+            schema_version: "phase10-local-simulation-check-v1";
+            status: components["schemas"]["PaperCheckStatus"];
+            /** Threshold Value */
+            threshold_value?: string | null;
+        };
+        /** PaperSimulationConfiguration */
+        PaperSimulationConfiguration: {
+            /** Approved Proposed Notional */
+            approved_proposed_notional?: string | null;
+            /**
+             * Available At Utc
+             * Format: date-time
+             */
+            available_at_utc: string;
+            /** Average Daily Volume */
+            average_daily_volume: string;
+            /** Canonical Family */
+            canonical_family: string;
+            /**
+             * Configuration Id
+             * @default phase10-a-local-mock-qa-v1
+             * @constant
+             */
+            configuration_id: "phase10-a-local-mock-qa-v1";
+            /**
+             * Configuration Instance Id
+             * Format: uuid
+             */
+            configuration_instance_id: string;
+            /** Configuration Sha256 */
+            configuration_sha256: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Effective Trial Count */
+            effective_trial_count: string;
+            /**
+             * External Routing Absent
+             * @default true
+             * @constant
+             */
+            external_routing_absent: true;
+            /**
+             * Live Path Absent
+             * @default true
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * Llm Decision Role Absent
+             * @default true
+             * @constant
+             */
+            llm_decision_role_absent: true;
+            /**
+             * Local Cost Model Id
+             * @default phase10-local-transparent-cost-v1
+             * @constant
+             */
+            local_cost_model_id: "phase10-local-transparent-cost-v1";
+            /**
+             * Local Mock Only
+             * @default true
+             * @constant
+             */
+            local_mock_only: true;
+            /**
+             * Local Slippage Model Id
+             * @default phase10-local-transparent-slippage-v1
+             * @constant
+             */
+            local_slippage_model_id: "phase10-local-transparent-slippage-v1";
+            /**
+             * Mock Entity Id
+             * @default SYNTHETIC-ASSET-001
+             * @constant
+             */
+            mock_entity_id: "SYNTHETIC-ASSET-001";
+            /**
+             * Mock Observation Id
+             * Format: uuid
+             */
+            mock_observation_id: string;
+            /** Mock Observation Sha256 */
+            mock_observation_sha256: string;
+            /**
+             * Mock Snapshot Id
+             * Format: uuid
+             */
+            mock_snapshot_id: string;
+            /** Mock Snapshot Sha256 */
+            mock_snapshot_sha256: string;
+            /** Mock Universe Id */
+            mock_universe_id: string;
+            /**
+             * Model Id
+             * @default sector-relative-rank-linear-v1
+             * @constant
+             */
+            model_id: "sector-relative-rank-linear-v1";
+            /**
+             * Observed At Utc
+             * Format: date-time
+             */
+            observed_at_utc: string;
+            /** Random Seed */
+            random_seed: number;
+            /** Raw Trial Count */
+            raw_trial_count: number;
+            /** Reference Price */
+            reference_price: string;
+            /** Requested Quantity */
+            requested_quantity?: string | null;
+            /** Required Audit Fields */
+            required_audit_fields: string[];
+            /** Required Capabilities */
+            required_capabilities: string[];
+            /** Research Artifact Sha256 */
+            research_artifact_sha256: string;
+            /** Research Configuration Id */
+            research_configuration_id: string;
+            /** Research Configuration Sha256 */
+            research_configuration_sha256: string;
+            /**
+             * Research Run Id
+             * Format: uuid
+             */
+            research_run_id: string;
+            /** Research Snapshot Bundle Sha256 */
+            research_snapshot_bundle_sha256: string;
+            /** Research Specification Sha256 */
+            research_specification_sha256: string;
+            /**
+             * Schema Version
+             * @default phase10-local-simulation-configuration-v1
+             * @constant
+             */
+            schema_version: "phase10-local-simulation-configuration-v1";
+            /** Signal Definition Sha256 */
+            signal_definition_sha256: string;
+            /**
+             * Signal Rule Id
+             * @default phase6-a-score-positive-long-flat-v1
+             * @constant
+             */
+            signal_rule_id: "phase6-a-score-positive-long-flat-v1";
+            /** Source Slippage Model Id */
+            source_slippage_model_id: string;
+            /** Source Snapshot Bindings */
+            source_snapshot_bindings: components["schemas"]["PaperSourceSnapshotReference"][];
+            /** Source Transaction Cost Model Id */
+            source_transaction_cost_model_id: string;
+            /** Starting Cash */
+            starting_cash: string;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Synthetic Model Output */
+            synthetic_model_output: string;
+            /** Target Forecast Horizon */
+            target_forecast_horizon: string;
+            /** Volatility */
+            volatility: string;
+        };
+        /** PaperSimulationConflictErrorResponse */
+        PaperSimulationConflictErrorResponse: {
+            /**
+             * Detail
+             * @enum {string}
+             */
+            detail: "Immutable Phase 10 simulation evidence conflicts with persisted lineage." | "The immutable Phase 10 simulation request could not be completed.";
+        };
+        /** PaperSimulationCreateRequest */
+        PaperSimulationCreateRequest: {
+            /**
+             * Approval Assessment Id
+             * Format: uuid
+             */
+            approval_assessment_id: string;
+            /** Simulation Idempotency Key */
+            simulation_idempotency_key: string;
+        };
+        /** PaperSimulationLedgerEntry */
+        PaperSimulationLedgerEntry: {
+            /** Approved Proposed Notional */
+            approved_proposed_notional: string;
+            /**
+             * Available At Utc
+             * Format: date-time
+             */
+            available_at_utc: string;
+            /** Average Daily Volume */
+            average_daily_volume: string;
+            /** Borrow Cost */
+            borrow_cost: string;
+            /** Capacity Cost */
+            capacity_cost: string;
+            /** Cash After */
+            cash_after: string;
+            /** Cash Before */
+            cash_before: string;
+            /** Commission Cost */
+            commission_cost: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * Entity Id
+             * @default SYNTHETIC-ASSET-001
+             * @constant
+             */
+            entity_id: "SYNTHETIC-ASSET-001";
+            /**
+             * External Submission
+             * @default false
+             * @constant
+             */
+            external_submission: false;
+            /**
+             * Fill Status
+             * @default SIMULATED_FILLED
+             * @constant
+             */
+            fill_status: "SIMULATED_FILLED";
+            /** Filled Quantity */
+            filled_quantity: string;
+            /** Impact Cost */
+            impact_cost: string;
+            /** Latency Cost */
+            latency_cost: string;
+            /**
+             * Ledger Entry Id
+             * Format: uuid
+             */
+            ledger_entry_id: string;
+            /** Ledger Entry Sha256 */
+            ledger_entry_sha256: string;
+            /**
+             * Live Path Absent
+             * @default true
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * Local Cost Model Id
+             * @default phase10-local-transparent-cost-v1
+             * @constant
+             */
+            local_cost_model_id: "phase10-local-transparent-cost-v1";
+            /**
+             * Local Mock Only
+             * @default true
+             * @constant
+             */
+            local_mock_only: true;
+            /**
+             * Local Slippage Model Id
+             * @default phase10-local-transparent-slippage-v1
+             * @constant
+             */
+            local_slippage_model_id: "phase10-local-transparent-slippage-v1";
+            /**
+             * Mock Observation Id
+             * Format: uuid
+             */
+            mock_observation_id: string;
+            /** Mock Observation Sha256 */
+            mock_observation_sha256: string;
+            /**
+             * Mock Snapshot Id
+             * Format: uuid
+             */
+            mock_snapshot_id: string;
+            /** Mock Snapshot Sha256 */
+            mock_snapshot_sha256: string;
+            /**
+             * Model Id
+             * @default sector-relative-rank-linear-v1
+             * @constant
+             */
+            model_id: "sector-relative-rank-linear-v1";
+            /**
+             * Observed At Utc
+             * Format: date-time
+             */
+            observed_at_utc: string;
+            /**
+             * Ordinal
+             * @default 1
+             * @constant
+             */
+            ordinal: 1;
+            /** Participation Rate */
+            participation_rate: string;
+            /** Position Quantity After */
+            position_quantity_after: string;
+            /** Position Quantity Before */
+            position_quantity_before: string;
+            /** Reference Price */
+            reference_price: string;
+            /** Regulatory Fee Cost */
+            regulatory_fee_cost: string;
+            /** Rejected Quantity */
+            rejected_quantity: string;
+            /** Requested Quantity */
+            requested_quantity: string;
+            /**
+             * Schema Version
+             * @default phase10-local-simulation-ledger-v1
+             * @constant
+             */
+            schema_version: "phase10-local-simulation-ledger-v1";
+            /**
+             * Signal Rule Id
+             * @default phase6-a-score-positive-long-flat-v1
+             * @constant
+             */
+            signal_rule_id: "phase6-a-score-positive-long-flat-v1";
+            /**
+             * Signal State
+             * @default LONG
+             * @constant
+             */
+            signal_state: "LONG";
+            /** Signal Value */
+            signal_value: string;
+            /** Simulated Fill Price */
+            simulated_fill_price: string;
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Simulated Side
+             * @default BUY
+             * @constant
+             */
+            simulated_side: "BUY";
+            /**
+             * Simulation Run Id
+             * Format: uuid
+             */
+            simulation_run_id: string;
+            /** Source Slippage Model Id */
+            source_slippage_model_id: string;
+            /** Source Transaction Cost Model Id */
+            source_transaction_cost_model_id: string;
+            /** Spread Cost */
+            spread_cost: string;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /** Total Cost */
+            total_cost: string;
+            /** Unfilled Quantity */
+            unfilled_quantity: string;
+            /** Universe Id */
+            universe_id: string;
+            /** Volatility */
+            volatility: string;
+        };
+        /** PaperSimulationNotFoundErrorResponse */
+        PaperSimulationNotFoundErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "The requested immutable Phase 10 simulation evidence was not found.";
+        };
+        /**
+         * PaperSimulationOutcome
+         * @enum {string}
+         */
+        PaperSimulationOutcome: "SIMULATED_COMPLETE" | "BLOCKED";
+        /** PaperSimulationSummary */
+        PaperSimulationSummary: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Configuration Id
+             * @default phase10-a-local-mock-qa-v1
+             * @constant
+             */
+            configuration_id: "phase10-a-local-mock-qa-v1";
+            /**
+             * Created At Utc
+             * Format: date-time
+             */
+            created_at_utc: string;
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /**
+             * External Submission
+             * @default false
+             * @constant
+             */
+            external_submission: false;
+            /**
+             * Live Path Absent
+             * @default true
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * Local Mock Only
+             * @default true
+             * @constant
+             */
+            local_mock_only: true;
+            /**
+             * No Personalized Investment Advice
+             * @default true
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @default true
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            outcome: components["schemas"]["PaperSimulationOutcome"];
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Simulated Paper Only
+             * @default true
+             * @constant
+             */
+            simulated_paper_only: true;
+            /**
+             * Simulation Run Id
+             * Format: uuid
+             */
+            simulation_run_id: string;
+            /**
+             * Source Assessment Id
+             * Format: uuid
+             */
+            source_assessment_id: string;
+            /**
+             * Synthetic
+             * @default true
+             * @constant
+             */
+            synthetic: true;
+            /**
+             * Transition Assessment Id
+             * Format: uuid
+             */
+            transition_assessment_id: string;
+        };
+        /** PaperSimulationValidationErrorResponse */
+        PaperSimulationValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["PaperSimulationValidationIssue"][];
+        };
+        /** PaperSimulationValidationIssue */
+        PaperSimulationValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
+        /** PaperSourceSnapshotReference */
+        PaperSourceSnapshotReference: {
+            /** Binding Sha256 */
+            binding_sha256: string;
+            /** Capability */
+            capability: string;
+            /** Ordinal */
+            ordinal: number;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Snapshot Sha256 */
+            snapshot_sha256: string;
+        };
+        /**
+         * PaperTransitionRevalidationProof
+         * @description Decision-time-bound proof of the fresh Phase 10 authority evaluation.
+         */
+        PaperTransitionRevalidationProof: {
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Phase10 Code Version Git Sha */
+            phase10_code_version_git_sha: string;
+            /**
+             * Revalidation Proof Id
+             * Format: uuid
+             */
+            revalidation_proof_id: string;
+            /** Revalidation Proof Sha256 */
+            revalidation_proof_sha256: string;
+            /**
+             * Schema Version
+             * @default phase10-local-simulation-revalidation-v1
+             * @constant
+             */
+            schema_version: "phase10-local-simulation-revalidation-v1";
+            /** Simulation Idempotency Key */
+            simulation_idempotency_key: string;
+            /** Source Assessment Artifact Sha256 */
+            source_assessment_artifact_sha256: string;
+            /**
+             * Source Assessment Id
+             * Format: uuid
+             */
+            source_assessment_id: string;
+            /** Transition Assessment Artifact Sha256 */
+            transition_assessment_artifact_sha256: string;
+            /**
+             * Transition Assessment Id
+             * Format: uuid
+             */
+            transition_assessment_id: string;
+            /** Transition Currentness State Sha256 */
+            transition_currentness_state_sha256: string;
+            /** Transition Revocation Set Sha256 */
+            transition_revocation_set_sha256: string;
         };
         /** Phase5EvaluationLink */
         Phase5EvaluationLink: {
@@ -6926,6 +7690,147 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_local_simulations_v1_local_simulations_get: {
+        parameters: {
+            query?: {
+                approval_assessment_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationSummary"][];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    create_local_simulation_v1_local_simulations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperSimulationCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_local_simulation_v1_local_simulations__simulation_run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                simulation_run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperSimulationValidationErrorResponse"];
                 };
             };
         };

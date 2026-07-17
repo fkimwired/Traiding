@@ -1,0 +1,233 @@
+{
+  "simulation_run_id": "1b18ccd5-45be-5ca2-8208-3966811f0034",
+  "artifact_schema_version": "phase10-local-paper-simulation-v1",
+  "artifact_sha256": "69d0ce8cdb107a792f5f72f1e7785bed58de636caadf3e4826d81221e3519b59",
+  "request_fingerprint_sha256": "501085391218f9cc12f963449fe69dd4cc227fb39e92bc8ebb6ca1cd736b0e5f",
+  "currentness_state_sha256": "5c7e3d16c78e6d1d2924732615ce2a7a613a6940a7266e3e61ba6ab1ac6013da",
+  "simulation_idempotency_key": "22222222-2222-4222-8222-222222222220",
+  "source_assessment_id": "401ff5fe-be2b-579b-8941-1a515bec3c32",
+  "source_assessment_artifact_sha256": "b26c6c22ce3cc6c59ebd4fa9ce7b39fb298155382f808fbf924fd8ca5211207a",
+  "transition_assessment_id": "035bca90-3b3c-5645-83ac-f11c625895b7",
+  "transition_assessment_artifact_sha256": "242caca08770f540ebee2c62796fa6633e9b5dc4643e2aefcc08c0eb889770c9",
+  "transition_currentness_state_sha256": "b383f800f4edd3412c41f634a0b404932b66f5425d7a04daec2f36a0e6357270",
+  "transition_revocation_set_sha256": "a114250b431483ac9e7f1b01ae43c8917d1292a6d84516796728669e8be5a7d3",
+  "transition_revalidation_proof": {
+    "schema_version": "phase10-local-simulation-revalidation-v1",
+    "revalidation_proof_id": "75e6a8de-8d27-5132-ad78-01a53f92a993",
+    "revalidation_proof_sha256": "60661cc2df470194a6d7393d5da9277802f41874446fdad1c886745f4e284532",
+    "simulation_idempotency_key": "22222222-2222-4222-8222-222222222220",
+    "source_assessment_id": "401ff5fe-be2b-579b-8941-1a515bec3c32",
+    "source_assessment_artifact_sha256": "b26c6c22ce3cc6c59ebd4fa9ce7b39fb298155382f808fbf924fd8ca5211207a",
+    "transition_assessment_id": "035bca90-3b3c-5645-83ac-f11c625895b7",
+    "transition_assessment_artifact_sha256": "242caca08770f540ebee2c62796fa6633e9b5dc4643e2aefcc08c0eb889770c9",
+    "transition_currentness_state_sha256": "b383f800f4edd3412c41f634a0b404932b66f5425d7a04daec2f36a0e6357270",
+    "transition_revocation_set_sha256": "a114250b431483ac9e7f1b01ae43c8917d1292a6d84516796728669e8be5a7d3",
+    "decision_time_utc": "2026-07-17T12:00:00Z",
+    "phase10_code_version_git_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "research_run_id": "c962c3d0-dea4-5b0a-b043-12099cfe50b4",
+  "research_artifact_sha256": "6e7d57bdd578494f58f172d1e116f4d526237b2d0c84584ab009e201d63b1fe2",
+  "phase6_lineage_sha256": "4581a56a656bb98db76a9fe42ccf9d594bac664ffbbb2c978703541d7d1609e0",
+  "approval_policy_version_id": "43aa3441-2b77-54da-bc2e-62b7cb1968c7",
+  "approval_policy_sha256": "7575877dc78a9e3abcd968446b37fee187bdd64a38cc9c1cd5fa3a40f484bd83",
+  "approval_scope_version_id": "e55cb8cf-471f-5e11-b66f-c49b6677ccd0",
+  "approval_scope_sha256": "da82b9c1bdd4ab151fa9d4b1d4576303a25175a8a859226c8797bad429fc5e6d",
+  "human_authorization_evidence_id": "883e7743-9d5f-56d1-81ea-1387c66f1d9b",
+  "authorization_sha256": "ea8e4530f17645a81c71add8fcded3d781e82e468b0c0d2cba6065ddfcdd572e",
+  "risk_input_id": "f9f04753-3024-55c3-8ae3-56ba466a5ea3",
+  "risk_input_sha256": "80664b76825690ee5b6e4ba3ee1a810e1a6d4f360774f8fc784c2ac32a579ee8",
+  "configuration": {
+    "schema_version": "phase10-local-simulation-configuration-v1",
+    "configuration_id": "phase10-a-local-mock-qa-v1",
+    "configuration_instance_id": "14f61adc-228e-555f-80d9-0f80a31bfe19",
+    "configuration_sha256": "27b7b6d244cf55cf67128ca3ed3eab8815893fcd96a9f9c310444462c5c5e36d",
+    "research_run_id": "c962c3d0-dea4-5b0a-b043-12099cfe50b4",
+    "research_artifact_sha256": "6e7d57bdd578494f58f172d1e116f4d526237b2d0c84584ab009e201d63b1fe2",
+    "research_configuration_id": "phase6-a-pass-v2",
+    "research_configuration_sha256": "c24fc60cd138a122f6e69b80a95b6e317d489fe0b671fedf359297a7128ddb73",
+    "research_specification_sha256": "e398ac676dbbf918af692db53a3291e4a31dc0c35792d136c60c00a8b44fa933",
+    "research_snapshot_bundle_sha256": "6f1b53be83a454c65b273c2cf0fa5d341a92cf9297321039dd10dedec9a51321",
+    "source_snapshot_bindings": [
+      {
+        "ordinal": 1,
+        "snapshot_id": "369858b8-c126-56b4-b30e-f5754dcbc5cd",
+        "snapshot_sha256": "c2fe4d029eaaf8cc08e7258c1232670938f33eac974b7c3d5cb0e311ae798ded",
+        "binding_sha256": "0baffe29f9997ed120bd27e9030eee611ed154866e13015f6e444cb9174891e7",
+        "capability": "security_master"
+      }
+    ],
+    "canonical_family": "A_CROSS_SECTIONAL_EQUITY_RANKING",
+    "model_id": "sector-relative-rank-linear-v1",
+    "signal_rule_id": "phase6-a-score-positive-long-flat-v1",
+    "signal_definition_sha256": "967e084ad801d1ef6f2bd3d699e251aac3994213fdcc393ec51999015670301a",
+    "target_forecast_horizon": "two synthetic sessions",
+    "required_capabilities": [
+      "security_master"
+    ],
+    "required_audit_fields": [
+      "audit_field_0",
+      "audit_field_1",
+      "audit_field_2",
+      "audit_field_3",
+      "audit_field_4",
+      "audit_field_5",
+      "audit_field_6",
+      "audit_field_7",
+      "audit_field_8",
+      "audit_field_9",
+      "audit_field_10",
+      "audit_field_11"
+    ],
+    "source_transaction_cost_model_id": "phase5-transparent-cost-v1",
+    "source_slippage_model_id": "phase5-transparent-slippage-v1",
+    "local_cost_model_id": "phase10-local-transparent-cost-v1",
+    "local_slippage_model_id": "phase10-local-transparent-slippage-v1",
+    "mock_snapshot_id": "4d7c18b2-a82a-572a-9b4a-700657a95a98",
+    "mock_snapshot_sha256": "10f6716b79db66a34907d71796d99c1ac54e383caaeeaa360475a05d05a10734",
+    "mock_observation_id": "2cdc64af-9a0d-5f01-8470-e304b1097405",
+    "mock_observation_sha256": "01e209fdd9a37c4863a8642595ac079f06e48f37340730a7a769b26091001a20",
+    "mock_entity_id": "SYNTHETIC-ASSET-001",
+    "mock_universe_id": "phase7-synthetic-universe-v1",
+    "observed_at_utc": "2026-07-17T11:59:58Z",
+    "available_at_utc": "2026-07-17T11:59:59Z",
+    "decision_time_utc": "2026-07-17T12:00:00Z",
+    "synthetic_model_output": "0.25",
+    "reference_price": "100.00",
+    "average_daily_volume": "100000",
+    "volatility": "0.20",
+    "approved_proposed_notional": "50000",
+    "requested_quantity": "5E+2",
+    "starting_cash": "1000000.00",
+    "random_seed": 607,
+    "raw_trial_count": 6,
+    "effective_trial_count": "4",
+    "synthetic": true,
+    "local_mock_only": true,
+    "external_routing_absent": true,
+    "live_path_absent": true,
+    "llm_decision_role_absent": true
+  },
+  "checks": [
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 1,
+      "code": "SOURCE_APPROVAL_EXACT",
+      "status": "PASS",
+      "reason_code": "source_approval_exact",
+      "observed_value": "APPROVED_PAPER",
+      "threshold_value": "APPROVED_PAPER",
+      "evidence_sha256s": [
+        "4581a56a656bb98db76a9fe42ccf9d594bac664ffbbb2c978703541d7d1609e0",
+        "b26c6c22ce3cc6c59ebd4fa9ce7b39fb298155382f808fbf924fd8ca5211207a"
+      ],
+      "check_sha256": "6d4f6827737e60dfedb89c2fdc00892f36abaa6a2ef0c3000e3f3de28251c66f"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 2,
+      "code": "TRANSITION_APPROVAL_FRESH",
+      "status": "BLOCKED",
+      "reason_code": "transition_approval_not_fresh",
+      "observed_value": "FAIL_REJECT",
+      "threshold_value": "APPROVED_PAPER",
+      "evidence_sha256s": [
+        "242caca08770f540ebee2c62796fa6633e9b5dc4643e2aefcc08c0eb889770c9",
+        "60661cc2df470194a6d7393d5da9277802f41874446fdad1c886745f4e284532",
+        "a114250b431483ac9e7f1b01ae43c8917d1292a6d84516796728669e8be5a7d3",
+        "b383f800f4edd3412c41f634a0b404932b66f5425d7a04daec2f36a0e6357270"
+      ],
+      "check_sha256": "4e29a2714faaf3de334f555573f4434d60c8809e784c149c994002923e6b77b1"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 3,
+      "code": "RESEARCH_PREREQUISITES_COMPLETE",
+      "status": "PASS",
+      "reason_code": "research_prerequisites_complete",
+      "observed_value": "PASS_RESEARCH",
+      "threshold_value": "PASS_RESEARCH",
+      "evidence_sha256s": [
+        "13422361d823ee452d2b9005e15bc69e41f16a7c6b4d99fcb468033294c06aca",
+        "6e7d57bdd578494f58f172d1e116f4d526237b2d0c84584ab009e201d63b1fe2",
+        "e398ac676dbbf918af692db53a3291e4a31dc0c35792d136c60c00a8b44fa933"
+      ],
+      "check_sha256": "a555c93ec9e270141646ed3ff2ccfed6335fc3274bcc6141ff7e2f58b04f535f"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 4,
+      "code": "SIMULATION_CONFIGURATION_EXACT",
+      "status": "PASS",
+      "reason_code": "simulation_configuration_exact",
+      "observed_value": "phase10-a-local-mock-qa-v1",
+      "threshold_value": "phase10-a-local-mock-qa-v1",
+      "evidence_sha256s": [
+        "27b7b6d244cf55cf67128ca3ed3eab8815893fcd96a9f9c310444462c5c5e36d",
+        "6e7d57bdd578494f58f172d1e116f4d526237b2d0c84584ab009e201d63b1fe2"
+      ],
+      "check_sha256": "e357ae20be80be248ee75f961480fc5c828daa862aff98619d5fc0a150f7facd"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 5,
+      "code": "RISK_CONTEXT_EXACT",
+      "status": "PASS",
+      "reason_code": "risk_context_exact",
+      "observed_value": "50000",
+      "threshold_value": "50000",
+      "evidence_sha256s": [
+        "27b7b6d244cf55cf67128ca3ed3eab8815893fcd96a9f9c310444462c5c5e36d",
+        "80664b76825690ee5b6e4ba3ee1a810e1a6d4f360774f8fc784c2ac32a579ee8"
+      ],
+      "check_sha256": "2d241901d27ecbe754874364796a75948e2ee49f108eb1e7baf65362bdf8f873"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 6,
+      "code": "COST_SLIPPAGE_COMPLETE",
+      "status": "PASS",
+      "reason_code": "cost_slippage_complete",
+      "observed_value": "phase5-transparent-cost-v1:phase5-transparent-slippage-v1",
+      "threshold_value": "complete_source_and_local_models",
+      "evidence_sha256s": [
+        "27b7b6d244cf55cf67128ca3ed3eab8815893fcd96a9f9c310444462c5c5e36d",
+        "e398ac676dbbf918af692db53a3291e4a31dc0c35792d136c60c00a8b44fa933"
+      ],
+      "check_sha256": "b92a8c84f347d41c8da7d2b8fb989e83a84f715b27736a589aebd7f572eccb8a"
+    },
+    {
+      "schema_version": "phase10-local-simulation-check-v1",
+      "ordinal": 7,
+      "code": "LOCAL_BOUNDARY_ENFORCED",
+      "status": "PASS",
+      "reason_code": "local_boundary_enforced",
+      "observed_value": "local_mock_no_external_routing_no_live_path",
+      "threshold_value": "local_mock_no_external_routing_no_live_path",
+      "evidence_sha256s": [
+        "27b7b6d244cf55cf67128ca3ed3eab8815893fcd96a9f9c310444462c5c5e36d",
+        "cbc2be3c127992ee3c4938c06d5574fbf8b916f867605c8ff50d72e375042456"
+      ],
+      "check_sha256": "5fc9d005659363a28227ea3b0a20a8b5ab078a1a3338897a5073c11bd37d0492"
+    }
+  ],
+  "ledger_entries": [],
+  "outcome": "BLOCKED",
+  "reason_codes": [
+    "transition_approval_not_fresh"
+  ],
+  "phase10_code_version_git_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "random_seed": 607,
+  "raw_trial_count": 6,
+  "effective_trial_count": "4",
+  "decision_time_utc": "2026-07-17T12:00:00Z",
+  "created_at_utc": "2026-07-17T12:00:00Z",
+  "synthetic": true,
+  "simulated_paper_only": true,
+  "local_mock_only": true,
+  "external_submission": false,
+  "external_routing_absent": true,
+  "live_path_absent": true,
+  "no_personalized_investment_advice": true,
+  "no_real_performance_claimed": true,
+  "disclaimer": "Deterministic synthetic local paper simulation only; no external routing, live trading, real performance claim, or personalized investment advice."
+}

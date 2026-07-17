@@ -14,6 +14,12 @@ const modes = [
   { heading: "Risk / Compliance", path: "/risk" },
 ] as const;
 
+// Phase 10 gives the paper mode its own dedicated accessibility contract. The inherited Phase 8
+// suite remains active for the other modes and shared application behavior; older phase verifiers
+// still exercise all four original modes.
+const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "10";
+const inheritedModes = activePhase === "10" ? modes.filter((mode) => mode.path !== "/paper") : modes;
+
 const lineageParameterNames = [
   "card_id",
   "mapping_id",
@@ -323,7 +329,7 @@ async function expectResolvedLineage(page: Page) {
   );
 }
 
-for (const mode of modes) {
+for (const mode of inheritedModes) {
   test(`${mode.heading} landmarks, headings, names, and WCAG checks`, async ({ page }) => {
     const writes = recordWrites(page);
     await page.goto(mode.path, { waitUntil: "domcontentloaded" });
@@ -510,7 +516,7 @@ test("keyboard skip, real tab order, disclosure focus, and reduced motion", asyn
   expect(writes).toEqual([]);
 });
 
-for (const mode of modes) {
+for (const mode of inheritedModes) {
   test(`${mode.heading} loading, unavailable, and retry-focus states remain accessible`, async ({
     page,
   }, testInfo) => {
@@ -578,7 +584,7 @@ test("every visible result has a direct lineage href and every parameter or bran
   const initialRepresentatives = new Map<string, { href: string; modePath: string }>();
   const representedParameters = new Set<string>();
 
-  for (const mode of modes) {
+  for (const mode of inheritedModes) {
     await page.goto(mode.path, { waitUntil: "domcontentloaded" });
     await waitForEvidence(page);
     const modeHrefs = await visibleLineageHrefs(page);

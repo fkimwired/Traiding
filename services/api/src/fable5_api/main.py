@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fable5_api import __version__
 from fable5_api.approvals import (
     ApprovalWorkflowFactory,
-    approval_validation_error_handler,
     assessment_router,
     default_approval_workflow_factory,
     revocation_router,
@@ -32,6 +31,12 @@ from fable5_api.evaluations import (
     report_router as evaluation_report_router,
 )
 from fable5_api.idea_intake import WorkflowFactory, default_workflow_factory, router
+from fable5_api.local_simulations import (
+    PaperSimulationWorkflowFactory,
+    default_paper_simulation_workflow_factory,
+    paper_simulation_validation_error_handler,
+)
+from fable5_api.local_simulations import router as local_simulation_router
 from fable5_api.mappings import (
     MappingWorkflowFactory,
     default_mapping_workflow_factory,
@@ -57,6 +62,9 @@ def create_app(
     evaluation_workflow_factory: EvaluationWorkflowFactory = (default_evaluation_workflow_factory),
     research_workflow_factory: ResearchWorkflowFactory = default_research_workflow_factory,
     approval_workflow_factory: ApprovalWorkflowFactory = default_approval_workflow_factory,
+    paper_simulation_workflow_factory: PaperSimulationWorkflowFactory = (
+        default_paper_simulation_workflow_factory
+    ),
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -71,13 +79,14 @@ def create_app(
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
-    app.add_exception_handler(RequestValidationError, approval_validation_error_handler)
+    app.add_exception_handler(RequestValidationError, paper_simulation_validation_error_handler)
     app.state.idea_intake_workflow = workflow_factory(settings)
     app.state.mapping_workflow = mapping_workflow_factory(settings)
     app.state.snapshot_workflow = snapshot_workflow_factory(settings)
     app.state.evaluation_workflow = evaluation_workflow_factory(settings)
     app.state.research_workflow = research_workflow_factory(settings)
     app.state.approval_workflow = approval_workflow_factory(settings)
+    app.state.paper_simulation_workflow = paper_simulation_workflow_factory(settings)
     app.include_router(router)
     app.include_router(mapping_router)
     app.include_router(data_snapshot_router)
@@ -87,6 +96,7 @@ def create_app(
     app.include_router(research_router)
     app.include_router(assessment_router)
     app.include_router(revocation_router)
+    app.include_router(local_simulation_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

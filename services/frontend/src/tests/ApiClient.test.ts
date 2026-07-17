@@ -206,3 +206,93 @@ describe("generated-contract API client failure states", () => {
     });
   });
 });
+
+describe("Phase 10 local simulation API client", () => {
+  const assessmentId = "10000000-0000-4000-8000-000000000010";
+  const simulationRunId = "20000000-0000-4000-8000-000000000010";
+  const transitionAssessmentId = "30000000-0000-4000-8000-000000000010";
+  const request = {
+    approval_assessment_id: assessmentId,
+    simulation_idempotency_key: "phase10-client-test-idempotency-key",
+  } satisfies components["schemas"]["PaperSimulationCreateRequest"];
+  const summary = {
+    artifact_sha256: "a".repeat(64),
+    configuration_id: "phase10-a-local-mock-qa-v1",
+    created_at_utc: "2026-07-16T12:00:00Z",
+    decision_time_utc: "2026-07-16T11:59:59Z",
+    external_submission: false,
+    live_path_absent: true,
+    local_mock_only: true,
+    no_personalized_investment_advice: true,
+    no_real_performance_claimed: true,
+    outcome: "SIMULATED_COMPLETE",
+    reason_codes: ["simulation_completed"],
+    simulated_paper_only: true,
+    simulation_run_id: simulationRunId,
+    source_assessment_id: assessmentId,
+    synthetic: true,
+    transition_assessment_id: transitionAssessmentId,
+  } satisfies components["schemas"]["PaperSimulationSummary"];
+
+  it("uses the generated routes and submits only the exact reference-only request", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(response(200, [summary]))
+      .mockResolvedValueOnce(response(503))
+      .mockResolvedValueOnce(response(404));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const listed = await fable5Api.listLocalSimulations(undefined, assessmentId, 25);
+    const created = await fable5Api.createLocalSimulation(request);
+    const detail = await fable5Api.getLocalSimulation(simulationRunId);
+
+    expect(listed).toEqual({ data: [summary], ok: true, retrySafe: true, status: 200 });
+    expect(created).toMatchObject({
+      error: { kind: "unavailable", retrySafe: true, status: 503 },
+      ok: false,
+    });
+    expect(detail).toMatchObject({
+      error: { kind: "not-found", retrySafe: true, status: 404 },
+      ok: false,
+    });
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `http://localhost:8000/v1/local-simulations?approval_assessment_id=${assessmentId}&limit=25`,
+    );
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://localhost:8000/v1/local-simulations");
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+      body: JSON.stringify(request),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual(request);
+    expect(fetchMock.mock.calls[2]?.[0]).toBe(
+      `http://localhost:8000/v1/local-simulations/${simulationRunId}`,
+    );
+  });
+
+  it("rejects malformed simulation summaries and full artifacts at the generated boundary", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(response(200, [{}]))
+      .mockResolvedValueOnce(response(201, {}))
+      .mockResolvedValueOnce(response(200, {}));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const malformedSummary = await fable5Api.listLocalSimulations();
+    const malformedCreateArtifact = await fable5Api.createLocalSimulation(request);
+    const malformedDetailArtifact = await fable5Api.getLocalSimulation(simulationRunId);
+
+    expect(malformedSummary).toMatchObject({
+      error: { kind: "malformed" },
+      ok: false,
+    });
+    expect(malformedCreateArtifact).toMatchObject({
+      error: { kind: "malformed", retrySafe: true },
+      ok: false,
+    });
+    expect(malformedDetailArtifact).toMatchObject({
+      error: { kind: "malformed" },
+      ok: false,
+    });
+  });
+});

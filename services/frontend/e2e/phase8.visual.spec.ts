@@ -31,6 +31,12 @@ const modes = [
   },
 ] as const;
 
+// Phase 10 intentionally supersedes the Phase 8 paper surface with one local mock-only
+// simulation control. Its dedicated Phase 10 snapshots own that mode; the inherited suite keeps
+// the other three modes and shared layout pinned to their accepted Phase 8 baselines.
+const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "10";
+const inheritedModes = activePhase === "10" ? modes.filter((mode) => mode.path !== "/paper") : modes;
+
 function dynamicEvidence(page: Page): Locator[] {
   return [
     page.locator("time"),
@@ -67,7 +73,7 @@ async function waitForCorpus(page: Page, target: string) {
   return negativeEvidence;
 }
 
-for (const mode of modes) {
+for (const mode of inheritedModes) {
   test(`${mode.slug} responsive negative-state snapshot`, async ({ page }) => {
     const writes: string[] = [];
     page.on("request", (request) => {

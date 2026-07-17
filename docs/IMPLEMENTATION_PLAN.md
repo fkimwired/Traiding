@@ -19,6 +19,7 @@ Phase 1 control plane
   -> Phase 7 fail-closed approval and pre-order risk assessment
   -> Phase 8 complete product workflows and visual QA
   -> Phase 9 single-flight release-acceptance evidence
+  -> Phase 10 deterministic local mock-only paper simulation
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -37,6 +38,7 @@ do not receive executable scaffolds.
 | 7 | versioned policy, human authorization, revocation, immutable approval and pre-order risk decisions | fail-closed eligibility, currentness, revocation, lineage, and risk-rule tests; no adapter or execution path |
 | 8 | full four-mode workflows and traceability | source-to-audit route in ≤2 clicks; visible gate precedence; accessibility/visual tests |
 | 9 | assertion-preserving release-gate orchestration and evidence | single-flight Windows/Ubuntu runner; verified sanitized manifests at one SHA/tree |
+| 10 | deterministic local mock-only simulation with fresh governance and immutable ledger | direct Windows/Ubuntu verifier; reversible migration, exact completed/blocked artifacts, idempotency, append-only and browser proof |
 
 ## Required handoff template
 
@@ -54,5 +56,6 @@ Every implementer task must include:
 9. **Handoff report.** Files changed, commands/results, known limitations, and the next phase prompt.
 10. **Stop condition.** Stop immediately after the named phase; do not anticipate later behavior.
 
-The Phase 9 closure and cross-platform acceptance boundary is in `docs/handoffs/PHASE_09.md`. It does
-not authorize a later phase, repository publication, or deployment.
+The accepted Phase 9 boundary remains recorded in `docs/handoffs/PHASE_09.md`. The separately
+authorized Phase 10 boundary and direct cross-platform closure gate are in
+`docs/handoffs/PHASE_10.md`; they do not authorize Phase 11 implementation or deployment.

@@ -12,6 +12,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PHASE_8_BASELINE_SHA = "94bcfaabf9de457aec47e49e332865a8dcc74f30"
 EXPECTED_PHASE_8_TREE = "56d2cf38ba0ff3d5427fbf5f20aefa13d5224581"
+PHASE_9_ACCEPTED_SHA = "12a87e9dfb71afd7bb02d1f947ffea63be56a0a3"
+EXPECTED_PHASE_9_TREE = "472792e0f53fc5c29ef8d4d73bdef60d6f25a1c9"
 PHASE_8_ACCESSIBILITY_SPEC = "services/frontend/e2e/phase8.accessibility.spec.ts"
 PHASE_8_LINEAGE_TIMEOUT_BASELINE = b"  test.setTimeout(1_200_000);"
 PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT = (
@@ -114,36 +116,56 @@ def baseline_bytes(path: str) -> bytes:
     ).stdout
 
 
+def phase9_bytes(path: str) -> bytes:
+    return subprocess.run(
+        ["git", "show", f"{PHASE_9_ACCEPTED_SHA}:{path}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
+def phase9_text(path: str) -> str:
+    return phase9_bytes(path).decode("utf-8")
+
+
 def tracked_baseline_paths() -> set[str]:
     return set(git("ls-tree", "-r", "--name-only", PHASE_8_BASELINE_SHA).splitlines())
 
 
-def current_changed_paths() -> set[str]:
-    changed = set(git("diff", "--name-only", PHASE_8_BASELINE_SHA, "--").splitlines())
-    changed.update(git("diff", "--cached", "--name-only", "--").splitlines())
-    changed.update(git("ls-files", "--others", "--exclude-standard", "--").splitlines())
-    return {path.replace("\\", "/") for path in changed if path}
+def accepted_phase9_changed_paths() -> set[str]:
+    return {
+        path.replace("\\", "/")
+        for path in git(
+            "diff", "--name-only", PHASE_8_BASELINE_SHA, PHASE_9_ACCEPTED_SHA, "--"
+        ).splitlines()
+        if path
+    }
 
 
 def test_phase8_baseline_tree_is_the_authorized_source() -> None:
     assert git("show", "-s", "--format=%T", PHASE_8_BASELINE_SHA) == EXPECTED_PHASE_8_TREE
+    assert git("show", "-s", "--format=%T", PHASE_9_ACCEPTED_SHA) == EXPECTED_PHASE_9_TREE
 
 
 def test_phase9_worktree_diff_stays_inside_the_exact_allowlist() -> None:
-    assert current_changed_paths() <= PHASE_9_ALLOWED_WRITES
+    assert accepted_phase9_changed_paths() <= PHASE_9_ALLOWED_WRITES
 
 
 def test_phase9_contracts_and_migrations_are_exact_phase8_bytes() -> None:
-    migration_root = ROOT / "services/api/migrations/versions"
-    assert {
-        path.as_posix().removeprefix(f"{ROOT.as_posix()}/") for path in migration_root.glob("*.py")
-    } == set(MIGRATION_SHA256)
-    assert not list(migration_root.glob("0008*.py"))
+    accepted_paths = set(git("ls-tree", "-r", "--name-only", PHASE_9_ACCEPTED_SHA).splitlines())
+    accepted_migrations = {
+        path
+        for path in accepted_paths
+        if path.startswith("services/api/migrations/versions/") and path.endswith(".py")
+    }
+    assert accepted_migrations == set(MIGRATION_SHA256)
+    assert not any(path.rsplit("/", 1)[-1].startswith("0008") for path in accepted_migrations)
 
     for path, expected_hash in {**CONTRACT_SHA256, **MIGRATION_SHA256}.items():
-        current = (ROOT / path).read_bytes()
-        assert current == baseline_bytes(path)
-        assert hashlib.sha256(current).hexdigest() == expected_hash
+        accepted = phase9_bytes(path)
+        assert accepted == baseline_bytes(path)
+        assert hashlib.sha256(accepted).hexdigest() == expected_hash
 
 
 def test_phase9_fixtures_artifacts_and_all_48_snapshots_are_phase8_bytes() -> None:
@@ -151,9 +173,9 @@ def test_phase9_fixtures_artifacts_and_all_48_snapshots_are_phase8_bytes() -> No
     immutable_paths = sorted(path for path in baseline_paths if path.startswith(IMMUTABLE_PREFIXES))
     assert immutable_paths
     for path in immutable_paths:
-        assert (ROOT / path).read_bytes() == baseline_bytes(path)
+        assert phase9_bytes(path) == baseline_bytes(path)
     for path in IMMUTABLE_ARTIFACTS:
-        assert (ROOT / path).read_bytes() == baseline_bytes(path)
+        assert phase9_bytes(path) == baseline_bytes(path)
 
     snapshot_prefix = IMMUTABLE_PREFIXES[-1]
     snapshots = [path for path in immutable_paths if path.startswith(snapshot_prefix)]
@@ -168,7 +190,7 @@ def test_phase9_phase8_timeout_exception_is_exact_and_verifier_owned(
 ) -> None:
     baseline = baseline_bytes(PHASE_8_ACCESSIBILITY_SPEC)
     assert baseline.count(PHASE_8_LINEAGE_TIMEOUT_BASELINE) == 1
-    assert (ROOT / PHASE_8_ACCESSIBILITY_SPEC).read_bytes() == baseline.replace(
+    assert phase9_bytes(PHASE_8_ACCESSIBILITY_SPEC) == baseline.replace(
         PHASE_8_LINEAGE_TIMEOUT_BASELINE,
         PHASE_9_LINEAGE_TIMEOUT_REPLACEMENT,
         1,
@@ -460,7 +482,7 @@ def test_phase9_linux_playwright_emits_only_allowlisted_failure_identity(
 
 
 def test_phase9_verifier_runs_inherited_static_first_and_full_cleanup_last() -> None:
-    source = (ROOT / "scripts/verify_phase1.py").read_text(encoding="utf-8")
+    source = phase9_text("scripts/verify_phase1.py")
     assert "PHASE_8_BASELINE_SHA" in source
     assert "PHASE_9_ALLOWED_WRITES" in source
     assert "def verify_phase9_static" in source
@@ -500,7 +522,7 @@ def verify_compose_named_calls(source: str) -> list[str]:
 
 def test_phase9_full_verifier_preserves_the_inherited_phase1_8_call_sequence() -> None:
     baseline = baseline_bytes("scripts/verify_phase1.py").decode("utf-8")
-    current = (ROOT / "scripts/verify_phase1.py").read_text(encoding="utf-8")
+    current = phase9_text("scripts/verify_phase1.py")
     baseline_calls = verify_compose_named_calls(baseline)
     phase9_only_calls = {
         "phase9_stage",
@@ -515,7 +537,7 @@ def test_phase9_full_verifier_preserves_the_inherited_phase1_8_call_sequence() -
 
 
 def test_phase9_preserves_serial_browser_configuration() -> None:
-    source = (ROOT / "services/frontend/playwright.config.ts").read_text(encoding="utf-8")
+    source = phase9_text("services/frontend/playwright.config.ts")
     assert "fullyParallel: false" in source
     assert "retries: 0" in source
     assert "workers: 1" in source
@@ -523,20 +545,20 @@ def test_phase9_preserves_serial_browser_configuration() -> None:
 
 def test_phase9_wrappers_default_validate_and_forward_phase9() -> None:
     for path in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
-        source = (ROOT / path).read_text(encoding="utf-8")
+        source = phase9_text(path)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
         assert "9" in source
-    assert "${FABLE5_VERIFY_PHASE:-9}" in (ROOT / "scripts/check.sh").read_text(encoding="utf-8")
-    assert "${FABLE5_VERIFY_PHASE:-9}" in (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert 'else { "9" }' in (ROOT / "scripts/check.ps1").read_text(encoding="utf-8")
+    assert "${FABLE5_VERIFY_PHASE:-9}" in phase9_text("scripts/check.sh")
+    assert "${FABLE5_VERIFY_PHASE:-9}" in phase9_text("Makefile")
+    assert 'else { "9" }' in phase9_text("scripts/check.ps1")
 
     for unchanged in ("scripts/test.ps1", "scripts/test.sh"):
-        assert (ROOT / unchanged).read_bytes() == baseline_bytes(unchanged)
+        assert phase9_bytes(unchanged) == baseline_bytes(unchanged)
 
 
 def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() -> None:
-    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    workflow = phase9_text(".github/workflows/ci.yml")
     assert workflow.startswith("name: phase-9-ci\n")
     assert "permissions:\n  contents: read" in workflow
     assert 'FABLE5_VERIFY_PHASE: "9"' in workflow
@@ -578,7 +600,7 @@ def test_phase9_ci_is_split_pinned_serial_and_uploads_only_sanitized_evidence() 
 
 
 def test_phase9_ci_hydrates_exact_frozen_linux_rolldown_binding_only_for_unit() -> None:
-    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+    lock = json.loads(phase9_text("package-lock.json"))
     binding_version = lock["packages"]["node_modules/rolldown"]["optionalDependencies"][
         "@rolldown/binding-linux-x64-gnu"
     ]
@@ -590,7 +612,7 @@ def test_phase9_ci_hydrates_exact_frozen_linux_rolldown_binding_only_for_unit() 
         "git diff --exit-code -- package.json package-lock.json "
         "packages/contracts/package.json services/frontend/package.json"
     )
-    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    workflow = phase9_text(".github/workflows/ci.yml")
     preflight, remainder = workflow.split("\n  unit:\n", 1)
     unit, compose = remainder.split("\n  phase9-compose:\n", 1)
 
@@ -628,7 +650,7 @@ def test_phase9_only_widens_phase6_transport_patience_and_records_substages() ->
     assert "with phase6_request_timeout_context(phase):" in source
     assert "phase6_run_ids = verify_phase6_api(api_url)" in source
 
-    runner = (ROOT / "scripts/run_phase_gate.py").read_text(encoding="utf-8")
+    runner = phase9_text("scripts/run_phase_gate.py")
     for stage in (
         "phase6_schema_cycle",
         "phase6_api",
@@ -648,7 +670,7 @@ def test_phase9_decisions_and_handoff_keep_the_release_boundary_closed() -> None
         "docs/PHASE_09_RELEASE_ACCEPTANCE_DECISIONS.md",
         "docs/handoffs/PHASE_09.md",
     ):
-        body = (ROOT / path).read_text(encoding="utf-8")
+        body = phase9_text(path)
         assert PHASE_8_BASELINE_SHA in body
         assert "Phase 9" in body
         assert "Ubuntu" in body
@@ -663,7 +685,7 @@ def test_phase9_decisions_and_handoff_keep_the_release_boundary_closed() -> None
 
 
 def test_phase9_expected_contract_hashes_are_documented_verbatim() -> None:
-    decisions = (ROOT / "docs/PHASE_09_RELEASE_ACCEPTANCE_DECISIONS.md").read_text(encoding="utf-8")
+    decisions = phase9_text("docs/PHASE_09_RELEASE_ACCEPTANCE_DECISIONS.md")
     for path, digest in CONTRACT_SHA256.items():
         assert path in decisions
         assert digest in decisions
@@ -671,9 +693,9 @@ def test_phase9_expected_contract_hashes_are_documented_verbatim() -> None:
 
 def test_phase9_snapshot_matrix_names_are_stable_json_safe_strings() -> None:
     names = sorted(
-        path.name
-        for path in (ROOT / "services/frontend/e2e/__screenshots__/phase8.visual.spec.ts").glob(
-            "*.png"
-        )
+        path.rsplit("/", 1)[-1]
+        for path in git("ls-tree", "-r", "--name-only", PHASE_9_ACCEPTED_SHA).splitlines()
+        if path.startswith("services/frontend/e2e/__screenshots__/phase8.visual.spec.ts/")
+        and path.endswith(".png")
     )
     assert json.loads(json.dumps(names)) == names

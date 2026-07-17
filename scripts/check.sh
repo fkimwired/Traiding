@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
-verify_phase="${FABLE5_VERIFY_PHASE:-9}"
+verify_phase="${FABLE5_VERIFY_PHASE:-10}"
 case "$verify_phase" in
-  1|2|3|4|5|6|7|8|9) ;;
+  1|2|3|4|5|6|7|8|9|10) ;;
   *)
-    echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, or 9." >&2
+    echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10." >&2
     exit 2
     ;;
 esac

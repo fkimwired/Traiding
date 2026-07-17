@@ -5,9 +5,9 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 9 implementation status
+## Phase 10 implementation status
 
-The accepted Phase 8 product surface and the Phase 9 release-acceptance tooling include:
+The accepted Phase 9 release boundary and the authorized Phase 10 local simulation surface include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -56,11 +56,18 @@ The accepted Phase 8 product surface and the Phase 9 release-acceptance tooling 
   workflows over generated contracts and immutable Phase 2-7 evidence;
 - serial accessibility and deterministic visual QA across 24 win32 and 24 Linux baselines; and
 - a standard-library, single-flight Phase 9 runner with external raw evidence, a strictly sanitized
-  stage log, atomic manifest, exact SHA/tree/snapshot binding, and independent evidence verification.
+  stage log, atomic manifest, exact SHA/tree/snapshot binding, and independent evidence verification;
+- one synchronous, deterministic, server-owned local mock simulation over a frozen synthetic Family A
+  fixture, with fresh Phase 7 check re-evaluation captured by a decision-time Phase 10 proof;
+- immutable Phase 10 simulation roots, seven ordered checks, and either one exactly reconciled local
+  synthetic ledger entry or a blocked artifact with no ledger; and
+- dedicated completed/blocked Phase 10 accessibility and visual coverage on Windows and Linux, while
+  the unaffected Phase 8 modes and shared layout remain under inherited regression coverage.
 
-Intentionally absent: real-provider implementations, brokers, order submission, fills, positions,
-paper execution, and every live-order capability. `APPROVED_PAPER` is synthetic governance evidence;
-it never authorizes an order and never implies execution readiness.
+Intentionally absent: real-provider implementations, brokers, accounts, credentials, external order
+submission/routing, real fills or positions, and every live-order capability. Phase 10's fill and
+position fields are local synthetic ledger calculations only; no order leaves the process.
+`APPROVED_PAPER` is synthetic governance evidence and never implies general execution readiness.
 
 ## Prerequisites
 
@@ -68,7 +75,7 @@ it never authorizes an order and never implies execution readiness.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 9. Local and CI evidence
+No data-provider, LLM, broker, or commercial credential is needed for Phase 10. Local and CI evidence
 is deterministic and synthetic. LLM use remains limited to structured extraction from text; no LLM
 may emit an approval, label, signal, allocation, risk override, or execution instruction.
 
@@ -130,34 +137,34 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 9 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 10 policy checks:
 
 ```powershell
+$env:FABLE5_VERIFY_PHASE = "10"
 .\scripts\check.ps1
 ```
 
-Run the isolated full-stack Phase 9 verifier through the single-flight runner. The evidence directory
-must be a new absolute path outside this repository:
+Run the complete Phase 10 closure sequence from a clean committed tree. The full Phase 10 verifier is
+direct; the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 10:
 
 ```powershell
-$evidence = Join-Path $env:TEMP ("fable5-phase9-" + [guid]::NewGuid().ToString("N"))
-.\.venv\Scripts\python.exe scripts\run_phase_gate.py run --phase 9 --evidence-dir $evidence --timeout-seconds 6300
-.\.venv\Scripts\python.exe scripts\run_phase_gate.py verify-evidence --evidence-dir $evidence
+$env:FABLE5_VERIFY_PHASE = "10"
+.\scripts\check.ps1
+.\scripts\test.ps1
+npm run build
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 10
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 10
 ```
 
-`follow --evidence-dir $evidence` polls that same run without starting another verifier. Do not retry
-or relaunch a delayed or failed run.
-
-The verifier owns one acceptance-only browser timeout profile: inherited Phase 8 runs keep the
-20-minute exhaustive-lineage test deadline, while Phase 9 selects 35 minutes for that test alone.
-Assertions, coverage, serial order, retries, workers, and application behavior are unchanged.
-On Linux, Phase 9 runs Playwright 1.61.1 in the immutable
+The full verifier fails closed unless the worktree and index are clean before startup and after
+cleanup, binds and reports the same commit SHA/tree at both points, and rejects any pre-existing or
+remaining `fable5_acceptance_*` container, network, or volume. On Linux it runs Playwright 1.61.1 in
+the immutable
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`
-image that matches the frozen Linux visual baselines. The repository mount is read-only, browser
-output stays in the container, and the verifier explicitly forwards only the base URL, Phase 9
-timeout flag, and `CI=true` as acceptance values. Inherited Phase 8 runs and Phase 9 on Windows
-continue to use the native npm command. Ubuntu CI pre-pulls that exact digest before starting the
-single-flight evidence clock; the verifier still runs only the digest-qualified image.
+image that matches the frozen Linux baselines. Normal acceptance mounts the repository read-only and
+keeps browser output inside the container. Phase 10 first rechecks the unaffected inherited Phase 8
+modes/shared layout, then its dedicated completed/blocked paper-simulation suite. Windows uses the
+native pinned Playwright installation. Ubuntu CI pre-pulls and runs the same digest-qualified image.
 
 ### macOS/Linux/CI
 
@@ -212,17 +219,19 @@ observations, constituents, quality findings, and manifests with exact canonical
 blocked outcomes. `0006_phase6` adds immutable research runs and their complete source, feature,
 attempt, score, comparison, extraction, and corroboration lineage. `0007_phase7` adds independently
 versioned policy, scope, human authorization, revocation, risk-input, assessment, and check evidence.
-The acceptance cycles exercise each reversible boundary and prove all prior rows remain byte-identical.
+`0008_phase10` adds only append-only deterministic local simulation roots, checks, and synthetic
+ledger evidence. The acceptance cycles exercise each reversible boundary and prove all prior rows
+remain byte-identical.
 
 ## Architecture
 
 | Component | Current responsibility | Boundary |
 |---|---|---|
-| `frontend` | Complete four-mode workflows, exact lineage, simulation disclosure, and read-only research/risk context | no actionable paper-order controls |
-| `api` | Typed create/read/list authority plus the Phase 8 GET-only evidence timeline | no broker, order, fill, position, or execution endpoint |
+| `frontend` | Complete four-mode workflows, exact lineage, and one deterministic local simulation action | no client-authored trade parameters or real/live controls |
+| `api` | Typed create/read/list authority, Phase 8 evidence timeline, and terminal local-simulation artifacts | no broker, account, credential, external routing, or live endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
-| `postgres` | Immutable Phase 1-7 research, evaluation, approval, and risk evidence | no broker, order, fill, position, or execution records |
+| `postgres` | Immutable Phase 1-7 evidence plus Phase 10 local synthetic simulation/check/ledger artifacts | no external order, broker, account, credential, or live records |
 | `redis` | queue/cache connectivity | no trading queue exists |
 | `packages/contracts` | generated OpenAPI TypeScript | never a second schema authority |
 
@@ -248,6 +257,9 @@ No execution adapter, broker dependency, or order-state abstraction is present.
   CI, and cross-platform acceptance semantics.
 - `docs/handoffs/PHASE_09.md`: local closure and Ubuntu evidence boundary; it authorizes no later
   phase.
+- `docs/PHASE_10_LOCAL_PAPER_DECISIONS.md`: frozen Phase 10 fresh-governance, deterministic fixture,
+  immutable ledger, API, UI, and non-execution semantics.
+- `docs/handoffs/PHASE_10.md`: direct Windows/Ubuntu Phase 10 closure gate and Phase 11 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts, synthetic adapters, quality gate, immutable
@@ -255,6 +267,8 @@ No execution adapter, broker dependency, or order-state abstraction is present.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
+- `services/paper`: deterministic local mock-only simulation and immutable synthetic ledger evidence;
+  no adapter, external request, account, credential, or live path.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -267,8 +281,7 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the local Phase 9 gate and then obtain the required Ubuntu CI evidence at the identical final
-SHA and tree. Windows evidence alone does not accept Phase 9. Without separate repository-publication
-authority, stop after local verification and report Phase 9 as awaiting CI. Do not push, open a pull
-request, merge, tag, publish, deploy, begin a later phase, or add brokers, orders, fills, positions,
-paper execution, or any live capability.
+Complete the direct local Phase 10 gate and obtain the required Ubuntu CI result at the identical
+final SHA and tree. After acceptance, prepare only a read-only Phase 11 decision plan. Do not begin
+Phase 11 implementation without separate user authorization, and do not add real providers/data,
+brokers, accounts, credentials, external routing, deployment, or any live capability.
