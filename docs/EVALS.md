@@ -359,3 +359,37 @@ The Phase 5 handoff must provide commands/tests that prove:
     reason codes and is visible through the API/UI;
 11. identical config/data/code/seed reproduces the artifact hash and metrics within tolerance;
 12. no real performance is claimed and no live execution code exists.
+
+## 15. Phase 15 Family A research-admission specification
+
+Phase 15 freezes the requirements that must be satisfied before a future phase may even attempt to
+admit non-synthetic Family A research data. It does not evaluate observations, create a snapshot,
+open a holdout, run a trial, calculate a return, or grant `PASS_RESEARCH`. Its
+`REQUIREMENTS_FROZEN` outcome means only that the policy contract and current gap ledger are
+complete and internally consistent. `BLOCKED` means the portable artifact failed its own closed
+contract. Neither outcome is research-data eligibility, performance evidence, promotion, paper
+approval, risk clearance, execution authority, or order authority.
+
+The portable artifact binds all Phase 5 requirements that a future non-synthetic policy must resolve:
+
+- the exact Family A signal/action boundary and forecast horizon;
+- complete point-in-time capability, identity, availability, universe, delisting, corporate-action,
+  fundamental-revision, macro, sector, liquidity, and history requirements;
+- snapshot canonicalization, reproducibility, immutable lineage, rights, retention, and derived-data
+  requirements;
+- walk-forward, purge, embargo-applicability, and untouched-holdout rules;
+- complete trial accounting, DSR, PBO, leakage, sample-adequacy, cost, slippage, stress, regime, risk,
+  and reproducibility requirements; and
+- the absence of ingestion, research, promotion, approval, execution, and order authority.
+
+Phase 15 does not reuse the synthetic Phase 5/6 values as production thresholds or evidence. If a
+future approved policy retains an expanding or rolling strictly past-only design, it has no post-test
+training segment and must declare embargo inapplicable. A future policy choosing CPCV or another
+design with later training observations must instead freeze a positive embargo duration before
+opening any holdout. The current applicability decision remains `UNPROVEN`; missing or unapproved
+geometry never receives an optimistic default.
+
+The committed specification is generated deterministically, contains no observed values or metrics,
+and is verified offline with database, network, subprocess, environment-credential, clock, random,
+and filesystem-discovery dependencies absent. It cannot upgrade the existing synthetic evaluation
+engine or make the Phase 4 snapshot workflow accept non-synthetic data.

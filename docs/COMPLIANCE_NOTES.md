@@ -39,6 +39,10 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
 - Phase 14 has no credential or external transport. It may copy only sanitized identity/hash/status
   evidence from an immutable Phase 13 artifact. A Phase 13 rights assertion is not independently
   authenticated ingestion authority and cannot produce positive research eligibility.
+- Phase 15 has no credential, transport, database, provider payload, or data-file input. Its portable
+  artifact freezes required rights fields and the fact that current independent rights evidence is
+  missing; it does not attest that Fable5 has any entitlement or authorize storage, non-display use,
+  derived-data use, display, or redistribution.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -70,3 +74,11 @@ capability projections, twelve closed checks, and false authority fields. It con
 provider body, observation value, research snapshot, return, performance metric, signal, approval,
 risk clearance, order, or fill. `MOCK_PROOF_COMPLETE` proves contract mechanics only; every other
 current input is truthfully `BLOCKED`.
+
+Phase 15 admission-specification evidence is a committed canonical requirements document plus a
+closed gap ledger. It contains policy identifiers, requirement/gap codes, statuses, reason codes,
+hashes, and false authority fields only. It contains no account, credential, provider response,
+entitlement document, contract text, observation value, data snapshot, feature, label, return,
+performance result, approval, risk clearance, order, or fill. `REQUIREMENTS_FROZEN` means the
+engineering contract is complete; it is not counsel review, a license, data eligibility, research
+authority, or evidence that any missing prerequisite has been obtained.

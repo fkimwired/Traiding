@@ -138,6 +138,27 @@ licensed Family A dataset or independently authenticated ingestion authority. Re
 onboarding, macro-regime inputs, sector/liquidity depth, non-synthetic evaluation policy, and current
 human authority require a later separately authorized phase.
 
+### Phase 15 portable admission-specification boundary
+
+Phase 15 freezes a provider-neutral, metadata-only description of the data, temporal, quality,
+licensing, retention, and evaluation evidence a future non-synthetic Family A onboarding phase would
+need. It performs no provider request, loads no credential, accepts no data location, reads no
+licensed observation, creates no Phase 4 snapshot, and approves no provider or entitlement. The
+committed artifact is a deterministic engineering requirements package, not a data package.
+
+Its current gap ledger preserves the full point-in-time dataset, external qualification, historical
+membership and delisting coverage, sector/liquidity/macro history, independent current use rights,
+non-synthetic persistence, and non-synthetic evaluation paths as `MISSING` or `UNPROVEN` where the
+repository has no authoritative evidence. Synthetic Phase 4-6 proofs remain `MOCK_ONLY` and may not
+be relabeled. `REQUIREMENTS_FROZEN` means only that this distinction is complete and hash-bound; it
+does not authorize capture, ingestion, storage, research use, display, derived-data use, or
+redistribution.
+
+Any later onboarding phase must separately name and verify the provider product, schemas, complete
+coverage, independently reviewed rights and retention terms, currentness/revocation evidence, and
+quarantine/normalization behavior. Provider documentation, a token, a Phase 13 sample hash, or a
+Phase 15 requirement hash is insufficient on its own.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

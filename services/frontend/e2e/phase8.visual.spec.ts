@@ -34,8 +34,8 @@ const modes = [
 // Phase 10 intentionally supersedes the Phase 8 paper surface with one local mock-only
 // simulation control. Its dedicated Phase 10 snapshots own that mode; the inherited suite keeps
 // the other three modes and shared layout pinned to their accepted Phase 8 baselines.
-const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "14";
-const inheritedModes = new Set(["10", "11", "12", "13", "14"]).has(activePhase)
+const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "15";
+const inheritedModes = new Set(["10", "11", "12", "13", "14", "15"]).has(activePhase)
   ? modes.filter((mode) => mode.path !== "/paper")
   : modes;
 

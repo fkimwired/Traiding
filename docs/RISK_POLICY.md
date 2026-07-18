@@ -10,7 +10,9 @@ local mock-only simulation with immutable synthetic ledger evidence; it is not b
 Phase 12 adds a short-lived read-only paper-environment readiness observation; it is not strategy
 eligibility, pre-order risk, or order authority. Phase 14 adds only an offline assessment of whether
 immutable Phase 13 evidence satisfies a frozen prerequisite policy for a later separately authorized
-research-ingestion phase.
+research-ingestion phase. Phase 15 adds only a portable Family A admission-requirements specification
+and current-gap ledger; it is not data admission, research eligibility, risk clearance, or execution
+authority.
 
 ## Execution boundary
 
@@ -115,6 +117,26 @@ Every Phase 14 artifact fixes research ingestion, snapshot creation, research ex
 `PASS_RESEARCH`, promotion, paper approval, execution, and order submission to false. Phase 14 may
 not change any Phase 4-7 or Phase 13 row and cannot create a research snapshot, evaluation, approval,
 simulation, intent, order, fill, or reconciliation record.
+
+## Family A research-admission specification (Phase 15)
+
+Phase 15 is a portable engineering-policy freeze, not a risk decision or data-admission decision. It
+records the exact Family A requirements and current gaps without loading a credential, contacting a
+provider, persisting an observation, creating a snapshot, opening a holdout, or running research. Its
+only outcomes are `REQUIREMENTS_FROZEN` and `BLOCKED`.
+
+Every Phase 15 artifact fixes external requests, licensed-payload persistence, ingestion authority,
+snapshot creation, research-data eligibility, research creation/authorization/execution, performance
+calculation, `PASS_RESEARCH`, promotion, paper approval, risk clearance, execution, and order
+submission to false. It also fixes the live path as absent and makes no advice or real-performance
+claim. A `PASS` requirement status means only that one policy requirement is stated completely; it
+does not mean its external prerequisite has been supplied. The separate gap state remains
+authoritative about `MOCK_ONLY`, `MISSING`, `STALE`, or `UNPROVEN` evidence.
+
+The `PRE_ORDER_RISK` gap is intentionally `MOCK_ONLY`: pre-order limits are not a prerequisite for a
+requirements-only Phase 15 artifact and cannot be made real before valid non-synthetic research,
+separate promotion governance, and a later explicitly authorized risk phase. Phase 15 must not import
+or mutate Phase 7, 10, 11, or 12 evidence to manufacture current clearance.
 
 ## Kill switch
 

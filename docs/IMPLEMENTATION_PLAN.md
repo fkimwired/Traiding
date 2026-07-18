@@ -24,6 +24,7 @@ Phase 1 control plane
   -> Phase 12 external-paper shadow readiness (read-only)
   -> Phase 13 point-in-time data qualification (read-only, qualification-only)
   -> Phase 14 research-ingestion eligibility (offline, assessment-only)
+  -> Phase 15 Family A research-admission specification (portable, policy-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -47,6 +48,7 @@ do not receive executable scaffolds.
 | 12 | fixed paper-environment read adapter, deterministic mock, sanitized append-only readiness evidence, local capture, and one historical GET | exact six-read contract; credential/secret/network denial; idempotency/tamper/migration proof; inherited browser and cross-platform cleanup proof; no order path |
 | 13 | frozen Family A PIT qualification profile, deterministic mock, fixed Tiingo candidate reads, sanitized append-only manifests/checks, local capture, and one historical GET | exact six-capability/twelve-check contract; mock-cannot-qualify; rights/credential/secret/network denial; migration/tamper/zero-write/inherited-browser/cross-platform proof; no research ingestion or order path |
 | 14 | offline eligibility assessment over immutable Phase 13 qualification evidence, sanitized projections/checks, explicit local assessment, and one historical GET | exact six-payload/twelve-check contract; mock-complete/blocked only; no positive eligibility state; migration/tamper/zero-write/network-denial/inherited-browser/cross-platform proof; no ingestion, research run, promotion, or order path |
+| 15 | canonical Family A non-synthetic research-admission requirements and a closed current-gap ledger | deterministic generated JSON and offline verification; exact `REQUIREMENTS_FROZEN`/`BLOCKED` outcomes; no migration, API, provider, credential, payload, snapshot, research run, performance result, promotion, execution, or live path |
 
 ## Required handoff template
 
@@ -74,4 +76,9 @@ boundary is in `docs/handoffs/PHASE_12.md`. Phase 12 is formally accepted at com
 `47e8e6a9c878a3a8ca7a4b22be3e23ab0357716f`, tree
 `d4ac6b6f4b6ba28f5359d8ea85c35845bdb9f285`. The authorized Phase 14 offline eligibility boundary
 is in `docs/handoffs/PHASE_14.md`; it authorizes neither external capture, research-data ingestion,
-strategy execution, promotion, approval, risk mutation, nor an order path.
+strategy execution, promotion, approval, risk mutation, nor an order path. Phase 14 is formally
+accepted at commit `513fdfd515599e59db6911441aadf1cc30f7352c`, tree
+`5870fd4c112b7c7bee05f6240c5cbd950eeaff04`. The separately authorized Phase 15 portable
+requirements boundary is in `docs/handoffs/PHASE_15.md`; it freezes an engineering admission
+specification and current gap evidence only, not data rights, research-data eligibility, ingestion,
+research execution, performance, promotion, approval, risk clearance, or order authority.
