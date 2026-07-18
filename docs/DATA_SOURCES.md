@@ -126,6 +126,18 @@ eligibility, strategy promotion, execution, and order authority false. A separat
 sample could at most prove `EXTERNAL_SAMPLE_QUALIFIED`; it would remain qualification evidence, not a
 Phase 4 snapshot or performance result.
 
+### Phase 14 offline eligibility boundary
+
+Phase 14 performs no provider call and does not onboard data. It evaluates only immutable sanitized
+Phase 13 qualification evidence under a frozen local policy. It projects capability identities,
+statuses, ranges/counts, and hashes without copying a provider body or observation value.
+
+The Phase 14 vocabulary contains no positive research-eligibility result. A mock can prove only the
+local contract, and an external sample remains blocked because sample qualification is not a complete
+licensed Family A dataset or independently authenticated ingestion authority. Real point-in-time
+onboarding, macro-regime inputs, sector/liquidity depth, non-synthetic evaluation policy, and current
+human authority require a later separately authorized phase.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

@@ -15,7 +15,6 @@ from fable5_api.config import Settings, get_settings
 from fable5_api.data_qualifications import (
     PointInTimeQualificationRepositoryFactory,
     default_point_in_time_qualification_repository_factory,
-    point_in_time_qualification_validation_error_handler,
 )
 from fable5_api.data_qualifications import router as data_qualification_router
 from fable5_api.data_snapshots import (
@@ -61,6 +60,16 @@ from fable5_api.research import (
     default_research_workflow_factory,
 )
 from fable5_api.research import router as research_router
+from fable5_api.research_ingestion_eligibility import (
+    ResearchIngestionEligibilityRepositoryFactory as ResearchEligibilityRepositoryFactory,
+)
+from fable5_api.research_ingestion_eligibility import (
+    default_research_ingestion_eligibility_repository_factory,
+    research_ingestion_eligibility_validation_error_handler,
+)
+from fable5_api.research_ingestion_eligibility import (
+    router as research_ingestion_eligibility_router,
+)
 from fable5_api.schemas import DependencyStatus, HealthResponse, ReadinessResponse
 
 
@@ -82,6 +91,9 @@ def create_app(
     point_in_time_qualification_repository_factory: PointInTimeQualificationRepositoryFactory = (
         default_point_in_time_qualification_repository_factory
     ),
+    research_ingestion_eligibility_repository_factory: ResearchEligibilityRepositoryFactory = (
+        default_research_ingestion_eligibility_repository_factory
+    ),
 ) -> FastAPI:
     settings = settings_factory()
     app = FastAPI(
@@ -98,7 +110,7 @@ def create_app(
     )
     app.add_exception_handler(
         RequestValidationError,
-        point_in_time_qualification_validation_error_handler,
+        research_ingestion_eligibility_validation_error_handler,
     )
     app.state.idea_intake_workflow = workflow_factory(settings)
     app.state.mapping_workflow = mapping_workflow_factory(settings)
@@ -113,6 +125,9 @@ def create_app(
     app.state.point_in_time_qualification_repository = (
         point_in_time_qualification_repository_factory(settings)
     )
+    app.state.research_ingestion_eligibility_repository = (
+        research_ingestion_eligibility_repository_factory(settings)
+    )
     app.include_router(router)
     app.include_router(mapping_router)
     app.include_router(data_snapshot_router)
@@ -126,6 +141,7 @@ def create_app(
     app.include_router(local_simulation_evidence_router)
     app.include_router(paper_shadow_readiness_router)
     app.include_router(data_qualification_router)
+    app.include_router(research_ingestion_eligibility_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

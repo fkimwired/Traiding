@@ -8,7 +8,9 @@ Phase 1 establishes the policy, paper-only configuration, and immutable audit sp
 only immutable approval and pre-order-risk assessment evidence. Phase 10 adds one deterministic
 local mock-only simulation with immutable synthetic ledger evidence; it is not broker execution.
 Phase 12 adds a short-lived read-only paper-environment readiness observation; it is not strategy
-eligibility, pre-order risk, or order authority.
+eligibility, pre-order risk, or order authority. Phase 14 adds only an offline assessment of whether
+immutable Phase 13 evidence satisfies a frozen prerequisite policy for a later separately authorized
+research-ingestion phase.
 
 ## Execution boundary
 
@@ -96,6 +98,23 @@ membership, delisting-return semantics, revisions, action timing, reconciliation
 determinism blocks the qualification; a hash or superficially complete response cannot override a
 failed/uncomputable check. Even an independently authorized `EXTERNAL_SAMPLE_QUALIFIED` result would
 remain a historical sample assessment and could not supply current risk or execution authority.
+
+## Research-ingestion eligibility (Phase 14)
+
+Phase 14 performs no provider request and persists no provider observation. It revalidates one
+immutable Phase 13 qualification artifact, projects only its sanitized capability evidence, and
+records a frozen twelve-check prerequisite assessment.
+
+The only outcomes are `MOCK_PROOF_COMPLETE` and `BLOCKED`. There is no positive research-eligibility
+state because the repository has no authoritative non-synthetic dataset, policy, evaluation, current
+human authority, or risk evidence capable of supporting one. A Phase 13 mock proves only the local
+contract; external sample metadata remains blocked because it is not a research dataset and its
+rights assertion is not an independently authenticated ingestion authority.
+
+Every Phase 14 artifact fixes research ingestion, snapshot creation, research execution,
+`PASS_RESEARCH`, promotion, paper approval, execution, and order submission to false. Phase 14 may
+not change any Phase 4-7 or Phase 13 row and cannot create a research snapshot, evaluation, approval,
+simulation, intent, order, fill, or reconciliation record.
 
 ## Kill switch
 

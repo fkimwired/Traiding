@@ -23,6 +23,7 @@ Phase 1 control plane
   -> Phase 11 portable deterministic local simulation evidence verification
   -> Phase 12 external-paper shadow readiness (read-only)
   -> Phase 13 point-in-time data qualification (read-only, qualification-only)
+  -> Phase 14 research-ingestion eligibility (offline, assessment-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -45,6 +46,7 @@ do not receive executable scaffolds.
 | 11 | deterministic read-only bundle, GET-only retrieval, local JSON download, and offline verification of existing Phase 10 artifacts | generated contracts; completed/blocked and tamper proof; zero writes; network denial; inherited browser and cross-platform cleanup proof |
 | 12 | fixed paper-environment read adapter, deterministic mock, sanitized append-only readiness evidence, local capture, and one historical GET | exact six-read contract; credential/secret/network denial; idempotency/tamper/migration proof; inherited browser and cross-platform cleanup proof; no order path |
 | 13 | frozen Family A PIT qualification profile, deterministic mock, fixed Tiingo candidate reads, sanitized append-only manifests/checks, local capture, and one historical GET | exact six-capability/twelve-check contract; mock-cannot-qualify; rights/credential/secret/network denial; migration/tamper/zero-write/inherited-browser/cross-platform proof; no research ingestion or order path |
+| 14 | offline eligibility assessment over immutable Phase 13 qualification evidence, sanitized projections/checks, explicit local assessment, and one historical GET | exact six-payload/twelve-check contract; mock-complete/blocked only; no positive eligibility state; migration/tamper/zero-write/network-denial/inherited-browser/cross-platform proof; no ingestion, research run, promotion, or order path |
 
 ## Required handoff template
 
@@ -67,7 +69,9 @@ authorized and accepted Phase 11 read-only boundary and direct cross-platform cl
 `docs/handoffs/PHASE_11.md`. The separately authorized Phase 12 read-only external-paper readiness
 boundary is in `docs/handoffs/PHASE_12.md`. Phase 12 is formally accepted at commit
 `37530a94f841d538a162447cb01ec3e11f375ead`, tree
-`d8d747ffccb76c3d754cdd2cc14b8ec49fb97287`. The authorized Phase 13 qualification-only boundary is
-in `docs/handoffs/PHASE_13.md`; it authorizes neither research-data ingestion nor a credentialed
-external capture, order, publication, or deployment. Phase 14 remains dependency-gated on same-SHA
-Windows and Ubuntu Phase 13 acceptance.
+`d8d747ffccb76c3d754cdd2cc14b8ec49fb97287`. The Phase 13 qualification-only boundary is in
+`docs/handoffs/PHASE_13.md`; Phase 13 is formally accepted at commit
+`47e8e6a9c878a3a8ca7a4b22be3e23ab0357716f`, tree
+`d4ac6b6f4b6ba28f5359d8ea85c35845bdb9f285`. The authorized Phase 14 offline eligibility boundary
+is in `docs/handoffs/PHASE_14.md`; it authorizes neither external capture, research-data ingestion,
+strategy execution, promotion, approval, risk mutation, nor an order path.

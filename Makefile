@@ -21,8 +21,8 @@ contract-check:
 	npm run contracts:check
 
 check: lint typecheck contract-check test
-	@phase="$${FABLE5_VERIFY_PHASE:-13}"; \
-	case "$$phase" in 1|2|3|4|5|6|7|8|9|10|11|12|13) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, or 13." >&2; exit 2 ;; esac; \
+	@phase="$${FABLE5_VERIFY_PHASE:-14}"; \
+	case "$$phase" in 1|2|3|4|5|6|7|8|9|10|11|12|13|14) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, or 14." >&2; exit 2 ;; esac; \
 	python scripts/verify_phase1.py --static-only --phase "$$phase"
 
 up:
@@ -32,6 +32,6 @@ down:
 	docker compose down
 
 smoke:
-	@phase="$${FABLE5_VERIFY_PHASE:-13}"; \
-	case "$$phase" in 1|2|3|4|5|6|7|8|9|10|11|12|13) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, or 13." >&2; exit 2 ;; esac; \
+	@phase="$${FABLE5_VERIFY_PHASE:-14}"; \
+	case "$$phase" in 1|2|3|4|5|6|7|8|9|10|11|12|13|14) ;; *) echo "FABLE5_VERIFY_PHASE must be one of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, or 14." >&2; exit 2 ;; esac; \
 	python scripts/verify_phase1.py --phase "$$phase"

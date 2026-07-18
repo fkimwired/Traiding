@@ -36,6 +36,9 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   qualification command. The complete token/current-rights tuple must validate before transport,
   socket, or database construction. CI clears those variables and proves the mock/blocking paths
   while outbound network is denied.
+- Phase 14 has no credential or external transport. It may copy only sanitized identity/hash/status
+  evidence from an immutable Phase 13 artifact. A Phase 13 rights assertion is not independently
+  authenticated ingestion authority and cannot produce positive research eligibility.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -61,3 +64,9 @@ and licensed observations are neither persisted nor returned. `MOCK_PROOF_COMPLE
 local contract. `EXTERNAL_SAMPLE_QUALIFIED`, if separately authorized and actually proven, would not
 establish full-history coverage, research eligibility, performance, personalized advice, execution
 readiness, or permission to submit an order.
+
+Phase 14 eligibility evidence stores only the Phase 13 identity/hash lineage, six sanitized
+capability projections, twelve closed checks, and false authority fields. It contains no licensed
+provider body, observation value, research snapshot, return, performance metric, signal, approval,
+risk clearance, order, or fill. `MOCK_PROOF_COMPLETE` proves contract mechanics only; every other
+current input is truthfully `BLOCKED`.

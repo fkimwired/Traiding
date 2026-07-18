@@ -5,9 +5,9 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 13 implementation status
+## Phase 14 implementation status
 
-The formally accepted Phase 12 identity and the authorized Phase 13 point-in-time qualification
+The formally accepted Phase 13 identity and the authorized Phase 14 offline eligibility-assessment
 surface include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
@@ -84,7 +84,14 @@ surface include:
 - append-only Phase 13 qualification roots, six ordered capability manifests, and twelve ordered
   checks whose mock evidence can never claim external qualification; and
 - one GET-only `/v1/point-in-time-data-qualifications/{qualification_id}` operation plus an explicit
-  local capture command, with all research, promotion, execution, and order authority held false.
+  local capture command, with all research, promotion, execution, and order authority held false;
+- one database-only Phase 14 assessment that revalidates immutable Phase 13 qualification evidence,
+  projects six sanitized capability payloads, and evaluates twelve frozen prerequisite checks;
+- append-only Phase 14 eligibility roots whose only outcomes are `MOCK_PROOF_COMPLETE` and
+  `BLOCKED`, with no positive research-eligibility state; and
+- one GET-only `/v1/research-ingestion-eligibility/{assessment_id}` operation plus an explicit local
+  assessment command, with no provider call, ingestion, snapshot, research run, promotion, approval,
+  risk mutation, execution, or order path.
 
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
@@ -96,13 +103,13 @@ Phase 11 adds no migration, simulation execution, replay, mutation, signing, pub
 asynchronous work, or deployment. A valid bundle hash is deterministic integrity evidence, not a
 signature, authenticity proof, proof of current authority, or permission to replay or execute.
 
-Phase 12 is formally accepted at commit `37530a94f841d538a162447cb01ec3e11f375ead`, tree
-`d8d747ffccb76c3d754cdd2cc14b8ec49fb97287`, after clean Windows acceptance and successful GitHub
-Actions run `29613639340` (`preflight`, `unit`, and `phase12-compose`) at that exact identity. Phase 13
-is not formally accepted until its complete Windows and Ubuntu gates pass at one later committed
-SHA/tree. Fake-transport or deterministic-mock results prove only local contract behavior; no
-external Tiingo sample, entitlement, full-history coverage, or research eligibility is thereby
-proven.
+Phase 13 is formally accepted at commit `47e8e6a9c878a3a8ca7a4b22be3e23ab0357716f`, tree
+`d4ac6b6f4b6ba28f5359d8ea85c35845bdb9f285`, after clean Windows acceptance and successful GitHub
+Actions run `29623170681` (`preflight`, `unit`, and `phase13-compose`) at that exact identity.
+Fake-transport or deterministic-mock results prove only local contract behavior; no external Tiingo
+sample, entitlement, full-history coverage, research ingestion, or research eligibility is thereby
+proven. Phase 14 remains unaccepted until its complete Windows and Ubuntu gates pass at one later
+committed SHA/tree.
 
 ## Prerequisites
 
@@ -110,8 +117,8 @@ proven.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 13 local or CI
-acceptance. Those paths are deterministic, mock-only, and network-denied. A separately authorized
+No data-provider, LLM, broker, or commercial credential is needed for Phase 14 local or CI
+acceptance. Phase 14 is database-only and network-denied. A separately authorized
 external qualification capture requires an existing token plus independently reviewed current
 use-rights evidence and never falls back to mock evidence.
 LLM use remains limited to structured extraction from text; no LLM may emit an approval, label,
@@ -175,23 +182,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 13 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 14 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "13"
+$env:FABLE5_VERIFY_PHASE = "14"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 13 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 13:
+Run the complete Phase 14 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 14:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "13"
+$env:FABLE5_VERIFY_PHASE = "14"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 13
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 13
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 14
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 14
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -199,10 +206,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 13 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 14 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 13 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 14 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Local evidence verification
 
@@ -284,23 +291,27 @@ reference Phase 7, 10, or 11 artifacts as authority and does not store credentia
 payloads, order details, position details, or raw quote prices. `0010_phase13` adds only append-only
 point-in-time qualification roots, six sanitized capability manifests, and twelve ordered checks.
 It neither changes Phase 4 snapshots nor makes any provider observation research-consumable.
+`0011_phase14` adds only append-only research-ingestion eligibility roots, six sanitized Phase 13
+capability projections, and twelve ordered prerequisite checks. It creates no provider observation,
+research snapshot, performance result, promotion, approval, risk clearance, or execution authority.
 
 ## Architecture
 
 | Component | Current responsibility | Boundary |
 |---|---|---|
 | `frontend` | Complete four-mode workflows, exact lineage, one deterministic local simulation action, and explicit local evidence download | no client-authored trade parameters, server export, or real/live controls |
-| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13 evidence GETs | no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
+| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13/14 evidence GETs | no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
-| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, and sanitized Phase 13 qualification evidence | no credential, raw provider payload, executable order, fill, or live record |
+| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility evidence | no credential, raw provider payload, executable order, fill, or live record |
 | `redis` | queue/cache connectivity | no trading queue exists |
-| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, and Phase 13 qualification contracts | never a second schema authority |
+| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility contracts | never a second schema authority |
 
 No order submission adapter, vendor SDK, execution intent, or order-state abstraction is present.
 The Phase 12 adapter exposes only six fixed paper-readiness inspections. Phase 13 adds a separate
 qualification-only adapter whose candidate origin, methods, paths, queries, and bounded sample plan
-are server-owned and fixed.
+are server-owned and fixed. Phase 14 adds no adapter or transport; it reads immutable Phase 13
+evidence from PostgreSQL only.
 
 ## Repository guide
 
@@ -334,10 +345,13 @@ are server-owned and fixed.
 - `docs/PHASE_13_POINT_IN_TIME_DATA_QUALIFICATION_DECISIONS.md`: frozen qualification profile,
   candidate transport, sanitized evidence, persistence, and false-authority decisions.
 - `docs/handoffs/PHASE_13.md`: Phase 13 implementation/acceptance contract and dependency boundary.
+- `docs/PHASE_14_RESEARCH_INGESTION_ELIGIBILITY_DECISIONS.md`: frozen offline eligibility policy,
+  evidence, persistence, and false-authority decisions.
+- `docs/handoffs/PHASE_14.md`: Phase 14 implementation/acceptance contract and hard stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus the isolated Phase
-  13 point-in-time qualification contracts, mock/candidate adapters, repository, workflow, and tests.
+  13 qualification and Phase 14 offline eligibility contracts, repositories, workflows, and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -356,8 +370,8 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 13 gate from one honest committed SHA/tree, then require same-SHA
-Ubuntu acceptance before Phase 14 implementation begins. Do not open a pull request, tag, sign,
-publish, release, deploy, perform an unauthorized credentialed probe, submit or reconcile an order,
-or add any live capability. Until both Phase 13 gates pass, report Phase 13 as implemented but not
-formally accepted.
+Complete the direct local Phase 14 gate from one honest committed SHA/tree, then require same-SHA
+Ubuntu acceptance. Stop after Phase 14. Do not open a pull request, tag, sign, publish, release,
+deploy, perform an unauthorized credentialed probe, ingest data, run or promote a strategy, submit or
+reconcile an order, begin a later phase, or add any live capability. Until both Phase 14 gates pass,
+report Phase 14 as implemented but not formally accepted.

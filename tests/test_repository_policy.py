@@ -131,25 +131,25 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase13_entrypoints_ci_and_runner_select_the_active_phase() -> None:
+def test_phase14_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
-        assert "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, or 13" in source
+        assert "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, or 14" in source
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-13-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "13"' in workflow
+    assert workflow.startswith("name: phase-14-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "14"' in workflow
     assert 'FABLE5_ALPACA_PAPER_API_KEY_ID: ""' in workflow
     assert 'FABLE5_ALPACA_PAPER_SECRET_KEY: ""' in workflow
     assert "secrets." not in workflow
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase13-compose:" in workflow
+    assert "phase14-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
-    assert "verify_phase1.py --static-only --phase 13" in workflow
-    assert "verify_phase1.py --phase 13" in workflow
+    assert "verify_phase1.py --static-only --phase 14" in workflow
+    assert "verify_phase1.py --phase 14" in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow
@@ -173,8 +173,8 @@ def test_phase13_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         'verify_phase10_acceptance_resource_namespace(\n            "preflight"',
         'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"',
         "name=fable5_acceptance_",
-        "changed_paths - PHASE_13_ALLOWED_WRITES",
-        "if phase in {8, 9, 10, 11, 12, 13}:",
+        "changed_paths - PHASE_14_ALLOWED_WRITES",
+        "if phase in {8, 9, 10, 11, 12, 13, 14}:",
         "verify_phase11_api(",
         "verify_phase11_browser(",
         "verify_phase12_migration_cycle(",
@@ -189,6 +189,12 @@ def test_phase13_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         "verify_phase13_api(",
         "verify_phase13_postgres_acceptance(",
         "verify_phase13_append_only(",
+        "verify_phase14_migration_cycle(",
+        "verify_phase14_offline_network_denial(",
+        "verify_phase14_assessment_cli(",
+        "verify_phase14_api(",
+        "verify_phase14_postgres_acceptance(",
+        "verify_phase14_append_only(",
     ):
         assert closure_control in verifier
     assert (

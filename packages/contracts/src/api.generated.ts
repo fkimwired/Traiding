@@ -486,6 +486,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/research-ingestion-eligibility/{assessment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Research Ingestion Eligibility */
+        get: operations["get_research_ingestion_eligibility_v1_research_ingestion_eligibility__assessment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/research-runs": {
         parameters: {
             query?: never;
@@ -5567,6 +5584,288 @@ export interface components {
             /** Transformed Value */
             transformed_value: string;
         };
+        /** ResearchIngestionEligibilityArtifact */
+        ResearchIngestionEligibilityArtifact: {
+            /** Artifact Sha256 */
+            artifact_sha256: string;
+            /**
+             * Assessment Id
+             * Format: uuid
+             */
+            assessment_id: string;
+            /** Assessment Idempotency Key */
+            assessment_idempotency_key: string;
+            /** Checks */
+            checks: components["schemas"]["ResearchIngestionEligibilityCheck"][];
+            /** Code Version Git Sha */
+            code_version_git_sha: string;
+            /**
+             * Completed At Utc
+             * Format: date-time
+             */
+            completed_at_utc: string;
+            /**
+             * Disclaimer
+             * @constant
+             */
+            disclaimer: "Eligibility-assessment evidence only; no research dataset, research authorization, strategy result, promotion, execution authority, performance claim, or personalized investment advice.";
+            /**
+             * Execution Authorized
+             * @constant
+             */
+            execution_authorized: false;
+            /**
+             * External Request Performed
+             * @constant
+             */
+            external_request_performed: false;
+            /**
+             * Live Path Absent
+             * @constant
+             */
+            live_path_absent: true;
+            /**
+             * No Personalized Investment Advice
+             * @constant
+             */
+            no_personalized_investment_advice: true;
+            /**
+             * No Real Performance Claimed
+             * @constant
+             */
+            no_real_performance_claimed: true;
+            /**
+             * Order Submission Authorized
+             * @constant
+             */
+            order_submission_authorized: false;
+            outcome: components["schemas"]["ResearchIngestionEligibilityOutcome"];
+            /**
+             * Paper Approval Granted
+             * @constant
+             */
+            paper_approval_granted: false;
+            /**
+             * Pass Research Granted
+             * @constant
+             */
+            pass_research_granted: false;
+            /** Payload Manifest Sha256 */
+            payload_manifest_sha256: string;
+            /** Payloads */
+            payloads: components["schemas"]["ResearchIngestionEligibilityPayload"][];
+            /**
+             * Performance Computed
+             * @constant
+             */
+            performance_computed: false;
+            /**
+             * Policy Id
+             * @constant
+             */
+            policy_id: "phase14-research-ingestion-eligibility-policy-v1";
+            /** Policy Sha256 */
+            policy_sha256: string;
+            /**
+             * Provider Payload Persisted
+             * @constant
+             */
+            provider_payload_persisted: false;
+            /** Qualification Artifact Sha256 */
+            qualification_artifact_sha256: string;
+            /** Qualification Capability Manifest Sha256S */
+            qualification_capability_manifest_sha256s: string[];
+            /** Qualification Capture Manifest Sha256 */
+            qualification_capture_manifest_sha256: string;
+            /** Qualification Check Sha256S */
+            qualification_check_sha256s: string[];
+            /** Qualification Code Version Git Sha */
+            qualification_code_version_git_sha: string;
+            /**
+             * Qualification Id
+             * Format: uuid
+             */
+            qualification_id: string;
+            qualification_outcome: components["schemas"]["QualificationOutcome"];
+            /** Qualification Request Fingerprint Sha256 */
+            qualification_request_fingerprint_sha256: string;
+            /** Qualification Rights Attestation Id */
+            qualification_rights_attestation_id?: string | null;
+            /** Qualification Rights Attestation Sha256 */
+            qualification_rights_attestation_sha256?: string | null;
+            qualification_source_kind: components["schemas"]["QualificationSourceKind"];
+            /** Request Fingerprint Sha256 */
+            request_fingerprint_sha256: string;
+            /**
+             * Research Data Eligible
+             * @constant
+             */
+            research_data_eligible: false;
+            /**
+             * Research Executed
+             * @constant
+             */
+            research_executed: false;
+            /**
+             * Research Ingestion Authorized
+             * @constant
+             */
+            research_ingestion_authorized: false;
+            /**
+             * Research Run Authorized
+             * @constant
+             */
+            research_run_authorized: false;
+            /**
+             * Research Run Created
+             * @constant
+             */
+            research_run_created: false;
+            /**
+             * Research Snapshot Created
+             * @constant
+             */
+            research_snapshot_created: false;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "phase14-research-ingestion-eligibility-v1";
+            /**
+             * Started At Utc
+             * Format: date-time
+             */
+            started_at_utc: string;
+            /**
+             * Strategy Execution Eligible
+             * @constant
+             */
+            strategy_execution_eligible: false;
+            /**
+             * Strategy Promotion Authorized
+             * @constant
+             */
+            strategy_promotion_authorized: false;
+        };
+        /** ResearchIngestionEligibilityCheck */
+        ResearchIngestionEligibilityCheck: {
+            /** Check Sha256 */
+            check_sha256: string;
+            code: components["schemas"]["ResearchIngestionEligibilityCheckCode"];
+            /** Evidence Sha256S */
+            evidence_sha256s: string[];
+            /** Observed Value */
+            observed_value?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            reason_code: components["schemas"]["ResearchIngestionEligibilityReasonCode"];
+            /**
+             * Schema Version
+             * @default phase14-research-ingestion-eligibility-check-v1
+             * @constant
+             */
+            schema_version: "phase14-research-ingestion-eligibility-check-v1";
+            status: components["schemas"]["ResearchIngestionEligibilityCheckStatus"];
+            /** Threshold Value */
+            threshold_value?: string | null;
+        };
+        /**
+         * ResearchIngestionEligibilityCheckCode
+         * @enum {string}
+         */
+        ResearchIngestionEligibilityCheckCode: "QUALIFICATION_IDENTITY_INTEGRITY" | "QUALIFICATION_SOURCE_KIND_ALLOWED" | "QUALIFICATION_OUTCOME_ELIGIBLE_OR_MOCK" | "CAPABILITY_MANIFEST_COMPLETE_PASSING" | "QUALIFICATION_CHECKS_COMPLETE_PASSING" | "EXTERNAL_REQUEST_EVIDENCE_COMPLETE_OR_MOCK" | "INDEPENDENT_RIGHTS_REFERENCE_PRESENT_OR_MOCK" | "USE_RIGHTS_CURRENT_OR_MOCK" | "USE_RIGHTS_SCOPE_SUFFICIENT_OR_MOCK" | "LICENSED_PAYLOAD_ABSENT" | "RESEARCH_SNAPSHOT_ABSENT" | "PROMOTION_EXECUTION_AUTHORITY_ABSENT";
+        /**
+         * ResearchIngestionEligibilityCheckStatus
+         * @enum {string}
+         */
+        ResearchIngestionEligibilityCheckStatus: "PASS" | "BLOCKED" | "UNCOMPUTABLE";
+        /** ResearchIngestionEligibilityConflictErrorResponse */
+        ResearchIngestionEligibilityConflictErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "Immutable Phase 14 research-ingestion eligibility evidence conflicts with persisted lineage.";
+        };
+        /** ResearchIngestionEligibilityNotFoundErrorResponse */
+        ResearchIngestionEligibilityNotFoundErrorResponse: {
+            /**
+             * Detail
+             * @constant
+             */
+            detail: "The requested immutable Phase 14 research-ingestion eligibility evidence was not found.";
+        };
+        /**
+         * ResearchIngestionEligibilityOutcome
+         * @enum {string}
+         */
+        ResearchIngestionEligibilityOutcome: "MOCK_PROOF_COMPLETE" | "BLOCKED";
+        /** ResearchIngestionEligibilityPayload */
+        ResearchIngestionEligibilityPayload: {
+            /** Available At Max Utc */
+            available_at_max_utc?: string | null;
+            /** Available At Min Utc */
+            available_at_min_utc?: string | null;
+            capability: components["schemas"]["QualificationCapability"];
+            /**
+             * Decision Time Utc
+             * Format: date-time
+             */
+            decision_time_utc: string;
+            /** Event Time Max Utc */
+            event_time_max_utc?: string | null;
+            /** Event Time Min Utc */
+            event_time_min_utc?: string | null;
+            /** Missingness Count */
+            missingness_count: number;
+            /** Normalized Evidence Sha256 */
+            normalized_evidence_sha256?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Payload Sha256 */
+            payload_sha256: string;
+            /** Raw Evidence Sha256 */
+            raw_evidence_sha256?: string | null;
+            /** Record Count */
+            record_count: number;
+            /** Request Evidence Count */
+            request_evidence_count: number;
+            /** Request Evidence Sha256S */
+            request_evidence_sha256s: string[];
+            /** Revision Count */
+            revision_count: number;
+            /** Schema Identity Sha256 */
+            schema_identity_sha256?: string | null;
+            /**
+             * Schema Version
+             * @default phase14-research-ingestion-eligibility-payload-v1
+             * @constant
+             */
+            schema_version: "phase14-research-ingestion-eligibility-payload-v1";
+            /** Source Capability Manifest Sha256 */
+            source_capability_manifest_sha256: string;
+            source_reason_code: components["schemas"]["QualificationReasonCode"];
+            source_status: components["schemas"]["QualificationCheckStatus"];
+        };
+        /**
+         * ResearchIngestionEligibilityReasonCode
+         * @enum {string}
+         */
+        ResearchIngestionEligibilityReasonCode: "check_passed" | "mock_not_applicable" | "source_kind_not_allowed" | "qualification_outcome_not_eligible" | "capability_manifest_not_passing" | "qualification_checks_not_passing" | "external_request_evidence_incomplete" | "independent_rights_reference_unverified" | "rights_reference_missing" | "rights_not_current" | "rights_scope_insufficient" | "authority_boundary_violation";
+        /** ResearchIngestionEligibilityValidationErrorResponse */
+        ResearchIngestionEligibilityValidationErrorResponse: {
+            /** Detail */
+            detail: components["schemas"]["ResearchIngestionEligibilityValidationIssue"][];
+        };
+        /** ResearchIngestionEligibilityValidationIssue */
+        ResearchIngestionEligibilityValidationIssue: {
+            /** Loc */
+            loc: (string | number)[];
+            /** Msg */
+            msg: string;
+            /** Type */
+            type: string;
+        };
         /** ResearchLedgerCell */
         ResearchLedgerCell: {
             /**
@@ -8809,6 +9108,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PointInTimeQualificationValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    get_research_ingestion_eligibility_v1_research_ingestion_eligibility__assessment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assessment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchIngestionEligibilityArtifact"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchIngestionEligibilityNotFoundErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchIngestionEligibilityConflictErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchIngestionEligibilityValidationErrorResponse"];
                 };
             };
         };

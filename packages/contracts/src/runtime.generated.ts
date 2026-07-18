@@ -62,6 +62,7 @@ export const successfulJsonOperations = [
   "GET /v1/mappings/{mapping_id}",
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}",
   "GET /v1/point-in-time-data-qualifications/{qualification_id}",
+  "GET /v1/research-ingestion-eligibility/{assessment_id}",
   "GET /v1/research-runs",
   "POST /v1/research-runs",
   "GET /v1/research-runs/{run_id}",
@@ -108,6 +109,7 @@ export type SuccessfulJsonResponseByOperation = {
   "GET /v1/mappings/{mapping_id}": paths["/v1/mappings/{mapping_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}": paths["/v1/paper-shadow-readiness/{readiness_assessment_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/point-in-time-data-qualifications/{qualification_id}": paths["/v1/point-in-time-data-qualifications/{qualification_id}"]["get"]["responses"][200]["content"]["application/json"];
+  "GET /v1/research-ingestion-eligibility/{assessment_id}": paths["/v1/research-ingestion-eligibility/{assessment_id}"]["get"]["responses"][200]["content"]["application/json"];
   "GET /v1/research-runs": paths["/v1/research-runs"]["get"]["responses"][200]["content"]["application/json"];
   "POST /v1/research-runs": paths["/v1/research-runs"]["post"]["responses"][201]["content"]["application/json"];
   "GET /v1/research-runs/{run_id}": paths["/v1/research-runs/{run_id}"]["get"]["responses"][200]["content"]["application/json"];
@@ -331,6 +333,11 @@ export const successfulJsonResponseSchemas: Record<
   "GET /v1/point-in-time-data-qualifications/{qualification_id}": {
     "200": {
       "$ref": "#/components/schemas/PointInTimeQualificationArtifact"
+    }
+  },
+  "GET /v1/research-ingestion-eligibility/{assessment_id}": {
+    "200": {
+      "$ref": "#/components/schemas/ResearchIngestionEligibilityArtifact"
     }
   },
   "GET /v1/research-runs": {
@@ -11390,6 +11397,600 @@ export const runtimeComponentSchemas: Record<string, unknown> = {
     ],
     "title": "ResearchFeatureValue",
     "type": "object"
+  },
+  "ResearchIngestionEligibilityArtifact": {
+    "additionalProperties": false,
+    "properties": {
+      "artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Artifact Sha256",
+        "type": "string"
+      },
+      "assessment_id": {
+        "format": "uuid",
+        "title": "Assessment Id",
+        "type": "string"
+      },
+      "assessment_idempotency_key": {
+        "maxLength": 128,
+        "minLength": 8,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+        "title": "Assessment Idempotency Key",
+        "type": "string"
+      },
+      "checks": {
+        "items": {
+          "$ref": "#/components/schemas/ResearchIngestionEligibilityCheck"
+        },
+        "title": "Checks",
+        "type": "array"
+      },
+      "code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Code Version Git Sha",
+        "type": "string"
+      },
+      "completed_at_utc": {
+        "format": "date-time",
+        "title": "Completed At Utc",
+        "type": "string"
+      },
+      "disclaimer": {
+        "const": "Eligibility-assessment evidence only; no research dataset, research authorization, strategy result, promotion, execution authority, performance claim, or personalized investment advice.",
+        "title": "Disclaimer",
+        "type": "string"
+      },
+      "execution_authorized": {
+        "const": false,
+        "title": "Execution Authorized",
+        "type": "boolean"
+      },
+      "external_request_performed": {
+        "const": false,
+        "title": "External Request Performed",
+        "type": "boolean"
+      },
+      "live_path_absent": {
+        "const": true,
+        "title": "Live Path Absent",
+        "type": "boolean"
+      },
+      "no_personalized_investment_advice": {
+        "const": true,
+        "title": "No Personalized Investment Advice",
+        "type": "boolean"
+      },
+      "no_real_performance_claimed": {
+        "const": true,
+        "title": "No Real Performance Claimed",
+        "type": "boolean"
+      },
+      "order_submission_authorized": {
+        "const": false,
+        "title": "Order Submission Authorized",
+        "type": "boolean"
+      },
+      "outcome": {
+        "$ref": "#/components/schemas/ResearchIngestionEligibilityOutcome"
+      },
+      "paper_approval_granted": {
+        "const": false,
+        "title": "Paper Approval Granted",
+        "type": "boolean"
+      },
+      "pass_research_granted": {
+        "const": false,
+        "title": "Pass Research Granted",
+        "type": "boolean"
+      },
+      "payload_manifest_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Payload Manifest Sha256",
+        "type": "string"
+      },
+      "payloads": {
+        "items": {
+          "$ref": "#/components/schemas/ResearchIngestionEligibilityPayload"
+        },
+        "title": "Payloads",
+        "type": "array"
+      },
+      "performance_computed": {
+        "const": false,
+        "title": "Performance Computed",
+        "type": "boolean"
+      },
+      "policy_id": {
+        "const": "phase14-research-ingestion-eligibility-policy-v1",
+        "title": "Policy Id",
+        "type": "string"
+      },
+      "policy_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Policy Sha256",
+        "type": "string"
+      },
+      "provider_payload_persisted": {
+        "const": false,
+        "title": "Provider Payload Persisted",
+        "type": "boolean"
+      },
+      "qualification_artifact_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Qualification Artifact Sha256",
+        "type": "string"
+      },
+      "qualification_capability_manifest_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "title": "Qualification Capability Manifest Sha256S",
+        "type": "array"
+      },
+      "qualification_capture_manifest_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Qualification Capture Manifest Sha256",
+        "type": "string"
+      },
+      "qualification_check_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "title": "Qualification Check Sha256S",
+        "type": "array"
+      },
+      "qualification_code_version_git_sha": {
+        "pattern": "^[0-9a-f]{40}$",
+        "title": "Qualification Code Version Git Sha",
+        "type": "string"
+      },
+      "qualification_id": {
+        "format": "uuid",
+        "title": "Qualification Id",
+        "type": "string"
+      },
+      "qualification_outcome": {
+        "$ref": "#/components/schemas/QualificationOutcome"
+      },
+      "qualification_request_fingerprint_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Qualification Request Fingerprint Sha256",
+        "type": "string"
+      },
+      "qualification_rights_attestation_id": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Qualification Rights Attestation Id"
+      },
+      "qualification_rights_attestation_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Qualification Rights Attestation Sha256"
+      },
+      "qualification_source_kind": {
+        "$ref": "#/components/schemas/QualificationSourceKind"
+      },
+      "request_fingerprint_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Request Fingerprint Sha256",
+        "type": "string"
+      },
+      "research_data_eligible": {
+        "const": false,
+        "title": "Research Data Eligible",
+        "type": "boolean"
+      },
+      "research_executed": {
+        "const": false,
+        "title": "Research Executed",
+        "type": "boolean"
+      },
+      "research_ingestion_authorized": {
+        "const": false,
+        "title": "Research Ingestion Authorized",
+        "type": "boolean"
+      },
+      "research_run_authorized": {
+        "const": false,
+        "title": "Research Run Authorized",
+        "type": "boolean"
+      },
+      "research_run_created": {
+        "const": false,
+        "title": "Research Run Created",
+        "type": "boolean"
+      },
+      "research_snapshot_created": {
+        "const": false,
+        "title": "Research Snapshot Created",
+        "type": "boolean"
+      },
+      "schema_version": {
+        "const": "phase14-research-ingestion-eligibility-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "started_at_utc": {
+        "format": "date-time",
+        "title": "Started At Utc",
+        "type": "string"
+      },
+      "strategy_execution_eligible": {
+        "const": false,
+        "title": "Strategy Execution Eligible",
+        "type": "boolean"
+      },
+      "strategy_promotion_authorized": {
+        "const": false,
+        "title": "Strategy Promotion Authorized",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "schema_version",
+      "assessment_id",
+      "assessment_idempotency_key",
+      "request_fingerprint_sha256",
+      "artifact_sha256",
+      "policy_id",
+      "policy_sha256",
+      "qualification_id",
+      "qualification_request_fingerprint_sha256",
+      "qualification_artifact_sha256",
+      "qualification_capture_manifest_sha256",
+      "qualification_source_kind",
+      "qualification_outcome",
+      "qualification_code_version_git_sha",
+      "qualification_capability_manifest_sha256s",
+      "qualification_check_sha256s",
+      "payload_manifest_sha256",
+      "started_at_utc",
+      "completed_at_utc",
+      "code_version_git_sha",
+      "outcome",
+      "payloads",
+      "checks",
+      "external_request_performed",
+      "provider_payload_persisted",
+      "research_ingestion_authorized",
+      "research_snapshot_created",
+      "research_data_eligible",
+      "research_run_created",
+      "research_run_authorized",
+      "research_executed",
+      "performance_computed",
+      "pass_research_granted",
+      "strategy_promotion_authorized",
+      "paper_approval_granted",
+      "strategy_execution_eligible",
+      "execution_authorized",
+      "order_submission_authorized",
+      "live_path_absent",
+      "no_personalized_investment_advice",
+      "no_real_performance_claimed",
+      "disclaimer"
+    ],
+    "title": "ResearchIngestionEligibilityArtifact",
+    "type": "object"
+  },
+  "ResearchIngestionEligibilityCheck": {
+    "additionalProperties": false,
+    "properties": {
+      "check_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Check Sha256",
+        "type": "string"
+      },
+      "code": {
+        "$ref": "#/components/schemas/ResearchIngestionEligibilityCheckCode"
+      },
+      "evidence_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "title": "Evidence Sha256S",
+        "type": "array"
+      },
+      "observed_value": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Observed Value"
+      },
+      "ordinal": {
+        "maximum": 12,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "reason_code": {
+        "$ref": "#/components/schemas/ResearchIngestionEligibilityReasonCode"
+      },
+      "schema_version": {
+        "const": "phase14-research-ingestion-eligibility-check-v1",
+        "default": "phase14-research-ingestion-eligibility-check-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "status": {
+        "$ref": "#/components/schemas/ResearchIngestionEligibilityCheckStatus"
+      },
+      "threshold_value": {
+        "anyOf": [
+          {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Threshold Value"
+      }
+    },
+    "required": [
+      "ordinal",
+      "code",
+      "status",
+      "reason_code",
+      "evidence_sha256s",
+      "check_sha256"
+    ],
+    "title": "ResearchIngestionEligibilityCheck",
+    "type": "object"
+  },
+  "ResearchIngestionEligibilityCheckCode": {
+    "enum": [
+      "QUALIFICATION_IDENTITY_INTEGRITY",
+      "QUALIFICATION_SOURCE_KIND_ALLOWED",
+      "QUALIFICATION_OUTCOME_ELIGIBLE_OR_MOCK",
+      "CAPABILITY_MANIFEST_COMPLETE_PASSING",
+      "QUALIFICATION_CHECKS_COMPLETE_PASSING",
+      "EXTERNAL_REQUEST_EVIDENCE_COMPLETE_OR_MOCK",
+      "INDEPENDENT_RIGHTS_REFERENCE_PRESENT_OR_MOCK",
+      "USE_RIGHTS_CURRENT_OR_MOCK",
+      "USE_RIGHTS_SCOPE_SUFFICIENT_OR_MOCK",
+      "LICENSED_PAYLOAD_ABSENT",
+      "RESEARCH_SNAPSHOT_ABSENT",
+      "PROMOTION_EXECUTION_AUTHORITY_ABSENT"
+    ],
+    "title": "ResearchIngestionEligibilityCheckCode",
+    "type": "string"
+  },
+  "ResearchIngestionEligibilityCheckStatus": {
+    "enum": [
+      "PASS",
+      "BLOCKED",
+      "UNCOMPUTABLE"
+    ],
+    "title": "ResearchIngestionEligibilityCheckStatus",
+    "type": "string"
+  },
+  "ResearchIngestionEligibilityOutcome": {
+    "enum": [
+      "MOCK_PROOF_COMPLETE",
+      "BLOCKED"
+    ],
+    "title": "ResearchIngestionEligibilityOutcome",
+    "type": "string"
+  },
+  "ResearchIngestionEligibilityPayload": {
+    "additionalProperties": false,
+    "properties": {
+      "available_at_max_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Available At Max Utc"
+      },
+      "available_at_min_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Available At Min Utc"
+      },
+      "capability": {
+        "$ref": "#/components/schemas/QualificationCapability"
+      },
+      "decision_time_utc": {
+        "format": "date-time",
+        "title": "Decision Time Utc",
+        "type": "string"
+      },
+      "event_time_max_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Event Time Max Utc"
+      },
+      "event_time_min_utc": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Event Time Min Utc"
+      },
+      "missingness_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Missingness Count",
+        "type": "integer"
+      },
+      "normalized_evidence_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Normalized Evidence Sha256"
+      },
+      "ordinal": {
+        "maximum": 6,
+        "minimum": 1,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "payload_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Payload Sha256",
+        "type": "string"
+      },
+      "raw_evidence_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Raw Evidence Sha256"
+      },
+      "record_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Record Count",
+        "type": "integer"
+      },
+      "request_evidence_count": {
+        "maximum": 5,
+        "minimum": 0,
+        "title": "Request Evidence Count",
+        "type": "integer"
+      },
+      "request_evidence_sha256s": {
+        "items": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "title": "Request Evidence Sha256S",
+        "type": "array"
+      },
+      "revision_count": {
+        "maximum": 100000,
+        "minimum": 0,
+        "title": "Revision Count",
+        "type": "integer"
+      },
+      "schema_identity_sha256": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Schema Identity Sha256"
+      },
+      "schema_version": {
+        "const": "phase14-research-ingestion-eligibility-payload-v1",
+        "default": "phase14-research-ingestion-eligibility-payload-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "source_capability_manifest_sha256": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Source Capability Manifest Sha256",
+        "type": "string"
+      },
+      "source_reason_code": {
+        "$ref": "#/components/schemas/QualificationReasonCode"
+      },
+      "source_status": {
+        "$ref": "#/components/schemas/QualificationCheckStatus"
+      }
+    },
+    "required": [
+      "ordinal",
+      "capability",
+      "source_status",
+      "source_reason_code",
+      "decision_time_utc",
+      "record_count",
+      "missingness_count",
+      "revision_count",
+      "request_evidence_count",
+      "request_evidence_sha256s",
+      "source_capability_manifest_sha256",
+      "payload_sha256"
+    ],
+    "title": "ResearchIngestionEligibilityPayload",
+    "type": "object"
+  },
+  "ResearchIngestionEligibilityReasonCode": {
+    "enum": [
+      "check_passed",
+      "mock_not_applicable",
+      "source_kind_not_allowed",
+      "qualification_outcome_not_eligible",
+      "capability_manifest_not_passing",
+      "qualification_checks_not_passing",
+      "external_request_evidence_incomplete",
+      "independent_rights_reference_unverified",
+      "rights_reference_missing",
+      "rights_not_current",
+      "rights_scope_insufficient",
+      "authority_boundary_violation"
+    ],
+    "title": "ResearchIngestionEligibilityReasonCode",
+    "type": "string"
   },
   "ResearchLedgerCell": {
     "additionalProperties": false,
