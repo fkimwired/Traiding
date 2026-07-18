@@ -175,6 +175,8 @@ def test_phase14_owns_exactly_seven_functions_and_every_mutation_guard() -> None
     assert "BEFORE UPDATE OR DELETE" in migration
     assert "BEFORE TRUNCATE" in migration
     assert "FOR EACH STATEMENT" in migration
+    assert "CREATE TRIGGER {table}_91_truncate" in migration
+    assert all(len(f"{table}_91_truncate") <= 63 for table in assignment("PHASE14_TABLES"))
 
 
 def test_phase14_persistence_contains_no_transport_payload_research_or_order_storage() -> None:

@@ -1626,7 +1626,7 @@ def _install_append_only_guards() -> None:
         )
         op.execute(
             f"""
-            CREATE TRIGGER {table}_91_append_only_truncate
+            CREATE TRIGGER {table}_91_truncate
             BEFORE TRUNCATE ON {table}
             FOR EACH STATEMENT EXECUTE FUNCTION reject_phase14_eligibility_mutation()
             """

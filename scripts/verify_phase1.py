@@ -11377,7 +11377,7 @@ def verify_phase14_append_only(project: str, environment: dict[str, str]) -> Non
         for table in PHASE_14_TABLES
         for trigger_name in (
             f"{table}_90_append_only_row",
-            f"{table}_91_append_only_truncate",
+            f"{table}_91_truncate",
         )
     )
     expected_triggers = ",".join(
@@ -11386,7 +11386,7 @@ def verify_phase14_append_only(project: str, environment: dict[str, str]) -> Non
             for table in PHASE_14_TABLES
             for trigger in (
                 f"{table}:{table}_90_append_only_row",
-                f"{table}:{table}_91_append_only_truncate",
+                f"{table}:{table}_91_truncate",
             )
         )
     )
