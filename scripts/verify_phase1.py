@@ -10274,17 +10274,13 @@ def verify_phase8_browser(
 
     phase = int(environment.get("FABLE5_VERIFY_PHASE", "8"))
     all_tables = (
-        PHASE_15_INHERITED_TABLES
-        if phase == 15
-        else (
-            "research_audit_events",
-            *PHASE_2_TABLES,
-            *PHASE_3_TABLES,
-            *PHASE_4_TABLES,
-            *PHASE_5_TABLES,
-            *PHASE_6_TABLES,
-            *PHASE_7_TABLES,
-        )
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
     )
     with phase9_stage(phase, "phase8_browser_pre_snapshot"):
         before = snapshot_tables(project, environment, all_tables)
@@ -10545,18 +10541,14 @@ def verify_phase10_browser(
         raise RuntimeError("npm is required for Phase 10 browser verification")
     phase = int(environment.get("FABLE5_VERIFY_PHASE", "10"))
     all_tables = (
-        PHASE_15_INHERITED_TABLES
-        if phase == 15
-        else (
-            "research_audit_events",
-            *PHASE_2_TABLES,
-            *PHASE_3_TABLES,
-            *PHASE_4_TABLES,
-            *PHASE_5_TABLES,
-            *PHASE_6_TABLES,
-            *PHASE_7_TABLES,
-            *PHASE_10_TABLES,
-        )
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
@@ -10634,18 +10626,14 @@ def verify_phase11_browser(
         raise RuntimeError("npm is required for Phase 11 browser verification")
     phase = int(environment.get("FABLE5_VERIFY_PHASE", "11"))
     all_tables = (
-        PHASE_15_INHERITED_TABLES
-        if phase == 15
-        else (
-            "research_audit_events",
-            *PHASE_2_TABLES,
-            *PHASE_3_TABLES,
-            *PHASE_4_TABLES,
-            *PHASE_5_TABLES,
-            *PHASE_6_TABLES,
-            *PHASE_7_TABLES,
-            *PHASE_10_TABLES,
-        )
+        "research_audit_events",
+        *PHASE_2_TABLES,
+        *PHASE_3_TABLES,
+        *PHASE_4_TABLES,
+        *PHASE_5_TABLES,
+        *PHASE_6_TABLES,
+        *PHASE_7_TABLES,
+        *PHASE_10_TABLES,
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
@@ -13995,7 +13983,7 @@ def verify_compose(phase: int = 1) -> None:
                                             )
                                         with phase9_stage(phase, "phase8_timeline_api"):
                                             verify_phase8_evidence_timeline_api(api_url)
-                                        if phase in {8, 9, 10, 11, 12, 13, 14}:
+                                        if phase in {8, 9, 10, 11, 12, 13, 14, 15}:
                                             verify_phase8_browser(
                                                 project,
                                                 environment,
@@ -14030,13 +14018,12 @@ def verify_compose(phase: int = 1) -> None:
                                                     project,
                                                     environment,
                                                 )
-                                            if phase != 15:
-                                                with phase9_stage(phase, "phase10_browser"):
-                                                    verify_phase10_browser(
-                                                        project,
-                                                        environment,
-                                                        frontend_url,
-                                                    )
+                                            with phase9_stage(phase, "phase10_browser"):
+                                                verify_phase10_browser(
+                                                    project,
+                                                    environment,
+                                                    frontend_url,
+                                                )
                                         if phase in {11, 12, 13, 14, 15}:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
@@ -14046,13 +14033,12 @@ def verify_compose(phase: int = 1) -> None:
                                                         api_url,
                                                         phase10_evidence,
                                                     )
-                                                if phase != 15:
-                                                    with phase9_stage(phase, "phase11_browser"):
-                                                        verify_phase11_browser(
-                                                            project,
-                                                            environment,
-                                                            frontend_url,
-                                                        )
+                                                with phase9_stage(phase, "phase11_browser"):
+                                                    verify_phase11_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
                                         if phase in {12, 13, 14, 15}:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
@@ -14179,36 +14165,6 @@ def verify_compose(phase: int = 1) -> None:
                                                     )
                                         if phase == 15:
                                             with phase9_stage(phase, "phase15_acceptance"):
-                                                with phase9_stage(
-                                                    phase,
-                                                    "phase15_inherited_phase8_browser",
-                                                ):
-                                                    verify_phase8_browser(
-                                                        project,
-                                                        environment,
-                                                        frontend_url,
-                                                    )
-                                                    print(
-                                                        "Full Compose Phase 8 verification passed."
-                                                    )
-                                                with phase9_stage(
-                                                    phase,
-                                                    "phase15_inherited_phase10_browser",
-                                                ):
-                                                    verify_phase10_browser(
-                                                        project,
-                                                        environment,
-                                                        frontend_url,
-                                                    )
-                                                with phase9_stage(
-                                                    phase,
-                                                    "phase15_inherited_phase11_browser",
-                                                ):
-                                                    verify_phase11_browser(
-                                                        project,
-                                                        environment,
-                                                        frontend_url,
-                                                    )
                                                 with phase9_stage(
                                                     phase,
                                                     "phase15_portable",

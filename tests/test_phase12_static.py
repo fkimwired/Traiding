@@ -268,8 +268,7 @@ def test_phase12_ci_full_verifier_and_cleanup_are_bound() -> None:
         'print("Full Compose Phase 12 verification passed.")',
     ):
         assert required in verifier
-    assert "if phase in {8, 9, 10, 11, 12, 13, 14}:" in verifier
-    assert '"phase15_inherited_phase8_browser"' in verifier
+    assert "if phase in {8, 9, 10, 11, 12, 13, 14, 15}:" in verifier
     assert "if phase in {10, 11, 12, 13, 14, 15}:" in verifier
     assert "if phase in {11, 12, 13, 14, 15}:" in verifier
     assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "15")' in verifier
