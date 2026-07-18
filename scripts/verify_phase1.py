@@ -13995,7 +13995,7 @@ def verify_compose(phase: int = 1) -> None:
                                             )
                                         with phase9_stage(phase, "phase8_timeline_api"):
                                             verify_phase8_evidence_timeline_api(api_url)
-                                        if phase in {8, 9, 10, 11, 12, 13, 14, 15}:
+                                        if phase in {8, 9, 10, 11, 12, 13, 14}:
                                             verify_phase8_browser(
                                                 project,
                                                 environment,
@@ -14030,12 +14030,13 @@ def verify_compose(phase: int = 1) -> None:
                                                     project,
                                                     environment,
                                                 )
-                                            with phase9_stage(phase, "phase10_browser"):
-                                                verify_phase10_browser(
-                                                    project,
-                                                    environment,
-                                                    frontend_url,
-                                                )
+                                            if phase != 15:
+                                                with phase9_stage(phase, "phase10_browser"):
+                                                    verify_phase10_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
                                         if phase in {11, 12, 13, 14, 15}:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
@@ -14045,12 +14046,13 @@ def verify_compose(phase: int = 1) -> None:
                                                         api_url,
                                                         phase10_evidence,
                                                     )
-                                                with phase9_stage(phase, "phase11_browser"):
-                                                    verify_phase11_browser(
-                                                        project,
-                                                        environment,
-                                                        frontend_url,
-                                                    )
+                                                if phase != 15:
+                                                    with phase9_stage(phase, "phase11_browser"):
+                                                        verify_phase11_browser(
+                                                            project,
+                                                            environment,
+                                                            frontend_url,
+                                                        )
                                         if phase in {12, 13, 14, 15}:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
@@ -14177,6 +14179,36 @@ def verify_compose(phase: int = 1) -> None:
                                                     )
                                         if phase == 15:
                                             with phase9_stage(phase, "phase15_acceptance"):
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase15_inherited_phase8_browser",
+                                                ):
+                                                    verify_phase8_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
+                                                    print(
+                                                        "Full Compose Phase 8 verification passed."
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase15_inherited_phase10_browser",
+                                                ):
+                                                    verify_phase10_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase15_inherited_phase11_browser",
+                                                ):
+                                                    verify_phase11_browser(
+                                                        project,
+                                                        environment,
+                                                        frontend_url,
+                                                    )
                                                 with phase9_stage(
                                                     phase,
                                                     "phase15_portable",

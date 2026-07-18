@@ -458,7 +458,8 @@ def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() ->
         "                        phase=phase,"
     )
     assert post_cleanup_identity in source
-    assert "if phase in {8, 9, 10, 11, 12, 13, 14, 15}:" in source
+    assert "if phase in {8, 9, 10, 11, 12, 13, 14}:" in source
+    assert '"phase15_inherited_phase8_browser"' in source
     assert "spec_paths=PHASE_8_BROWSER_SPECS" in source
 
     accessibility = normalized(ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts")

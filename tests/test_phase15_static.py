@@ -215,7 +215,7 @@ def test_phase15_ci_full_verifier_browser_no_schema_and_cleanup_are_bound() -> N
         "verify_phase15_offline_network_denial(",
         "verify_phase15_no_schema_drift_and_zero_writes(",
         'print("Full Compose Phase 15 verification passed.")',
-        "if phase in {8, 9, 10, 11, 12, 13, 14, 15}:",
+        "if phase in {8, 9, 10, 11, 12, 13, 14}:",
         "if phase in {10, 11, 12, 13, 14, 15}:",
         "if phase in {11, 12, 13, 14, 15}:",
         "if phase in {12, 13, 14, 15}:",
@@ -226,6 +226,27 @@ def test_phase15_ci_full_verifier_browser_no_schema_and_cleanup_are_bound() -> N
         "len(PHASE_15_INHERITED_TABLES) != 57",
     ):
         assert required in verifier
+
+    browser_boundaries = (
+        ("def verify_phase8_browser(", "def phase10_linux_playwright_container_name("),
+        ("def verify_phase10_browser(", "def verify_phase11_browser("),
+        ("def verify_phase11_browser(", "def verify_phase15_portable_acceptance("),
+    )
+    for start_marker, end_marker in browser_boundaries:
+        browser_source = verifier[verifier.index(start_marker) : verifier.index(end_marker)]
+        assert "PHASE_15_INHERITED_TABLES" in browser_source
+        assert "snapshot_tables(project, environment, all_tables)" in browser_source
+
+    delayed_stages = (
+        '"phase15_inherited_phase8_browser"',
+        '"phase15_inherited_phase10_browser"',
+        '"phase15_inherited_phase11_browser"',
+    )
+    delayed_positions = [verifier.index(stage) for stage in delayed_stages]
+    portable_position = verifier.index('"phase15_portable"', delayed_positions[-1])
+    assert delayed_positions == sorted(delayed_positions)
+    assert delayed_positions[-1] < portable_position
+    assert verifier.count("if phase != 15:") == 2
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
     assert workflow.startswith("name: phase-15-ci\n")
