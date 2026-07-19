@@ -393,3 +393,21 @@ The committed specification is generated deterministically, contains no observed
 and is verified offline with database, network, subprocess, environment-credential, clock, random,
 and filesystem-discovery dependencies absent. It cannot upgrade the existing synthetic evaluation
 engine or make the Phase 4 snapshot workflow accept non-synthetic data.
+
+## 16. Phase 16 Family A point-in-time source plan
+
+Phase 16 freezes a source-selection and evidence-acquisition sequence; it does not freeze the
+non-synthetic evaluation policy. All Phase 15 evaluation gaps remain unchanged, including the
+`MISSING` policy/path, `UNPROVEN` embargo applicability, and `MOCK_ONLY` walk-forward, leakage,
+cost/slippage, DSR, and PBO evidence.
+
+A complete policy cannot be defined from public candidate documentation alone. It requires the
+selected products and schemas, exact history and decision calendar, availability/missingness rules,
+full sample boundaries, untouched confirmation interval, calibrated fee/spread/impact/borrow sources
+and vintages, regime inputs, adequacy thresholds, and appropriate risk limits. Phase 5/6 synthetic
+values remain QA evidence and may not be reused as non-synthetic thresholds.
+
+The safe order is: freeze the Phase 16 metadata-only plan; separately select products and review
+current rights; freeze the complete data-specific evaluation policy before observing admitted data
+or opening a holdout; separately authorize bounded qualification and admission; and only then
+consider a non-synthetic research run. `PLAN_FROZEN` is not a policy approval or performance state.

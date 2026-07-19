@@ -12,7 +12,8 @@ eligibility, pre-order risk, or order authority. Phase 14 adds only an offline a
 immutable Phase 13 evidence satisfies a frozen prerequisite policy for a later separately authorized
 research-ingestion phase. Phase 15 adds only a portable Family A admission-requirements specification
 and current-gap ledger; it is not data admission, research eligibility, risk clearance, or execution
-authority.
+authority. Phase 16 adds only a portable Family A point-in-time source plan; it selects no source,
+verifies no right, and creates no data, research, risk, or execution authority.
 
 ## Execution boundary
 
@@ -137,6 +138,20 @@ The `PRE_ORDER_RISK` gap is intentionally `MOCK_ONLY`: pre-order limits are not 
 requirements-only Phase 15 artifact and cannot be made real before valid non-synthetic research,
 separate promotion governance, and a later explicitly authorized risk phase. Phase 15 must not import
 or mutate Phase 7, 10, 11, or 12 evidence to manufacture current clearance.
+
+## Family A point-in-time source plan (Phase 16)
+
+Phase 16 is a portable plan freeze, not a provider, data, evaluation, governance, or risk decision.
+Its candidate rows are unselected and rights-unverified, its seven future steps remain
+`NOT_STARTED`, and all nineteen Phase 15 gap states remain unchanged. `PLAN_FROZEN` states only that
+the source-plan contract is complete.
+
+Every Phase 16 artifact fixes source/provider/product selection, credentials, external verification
+and requests, rights verification/grant, capture, licensed persistence, ingestion, snapshot creation,
+data eligibility, non-synthetic evaluation-policy approval, holdout definition/opening, research,
+performance, promotion, paper approval, risk clearance, execution, and order submission to false.
+It cannot consume Phase 7, 10, 11, or 12 evidence as clearance, and the `PRE_ORDER_RISK` gap remains
+`MOCK_ONLY`.
 
 ## Kill switch
 

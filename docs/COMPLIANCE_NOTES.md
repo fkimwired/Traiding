@@ -43,6 +43,10 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   artifact freezes required rights fields and the fact that current independent rights evidence is
   missing; it does not attest that Fable5 has any entitlement or authorize storage, non-display use,
   derived-data use, display, or redistribution.
+- Phase 16 records only candidate identities, public documentation facts, missing/unproven evidence,
+  and future review steps. It selects no provider or product, performs no external verification,
+  loads no credential, and does not treat public documentation, a Phase 13 artifact, or a canonical
+  hash as an entitlement or independent rights review.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -82,3 +86,10 @@ entitlement document, contract text, observation value, data snapshot, feature, 
 performance result, approval, risk clearance, order, or fill. `REQUIREMENTS_FROZEN` means the
 engineering contract is complete; it is not counsel review, a license, data eligibility, research
 authority, or evidence that any missing prerequisite has been obtained.
+
+Phase 16 source-plan evidence contains only plan requirements, required capability codes,
+candidate-only facts, missing/unproven states, `NOT_STARTED` future steps, unchanged Phase 15 gap
+bindings, identities, hashes, and false authority fields. It contains no provider contract, license,
+credential, payload, observation, dataset, evaluation policy, holdout, performance result, approval,
+risk clearance, order, or fill. `PLAN_FROZEN` is neither legal review nor permission to select,
+contact, capture from, store, normalize, display, derive from, or redistribute any source.

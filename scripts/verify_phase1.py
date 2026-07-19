@@ -1114,6 +1114,251 @@ PHASE_15_BOUNDARY_VALUES = {
     "no_real_performance_claimed": True,
 }
 PHASE_15_FROZEN_AT_UTC = "2026-07-18T00:00:00Z"
+PHASE_16_BASELINE_SHA = "5b3052eb8f020d77cc3750b34190b4b2fa5fc16c"
+EXPECTED_PHASE_16_BASELINE_TREE = "7fab5a2b2eb2f8f821b969d9cb031c806e064d28"
+PHASE_16_ARTIFACT_PATH = "docs/PHASE_16_FAMILY_A_POINT_IN_TIME_SOURCE_PLAN.json"
+PHASE_16_GENERATOR_PATH = "scripts/generate_family_a_point_in_time_source_plan.py"
+PHASE_16_PORTABLE_VERIFIER_PATH = "scripts/verify_family_a_point_in_time_source_plan.py"
+PHASE_16_REQUIRED_PATHS = (
+    "docs/PHASE_16_FAMILY_A_POINT_IN_TIME_SOURCE_PLAN_DECISIONS.md",
+    PHASE_16_ARTIFACT_PATH,
+    "docs/handoffs/PHASE_16.md",
+    PHASE_16_GENERATOR_PATH,
+    PHASE_16_PORTABLE_VERIFIER_PATH,
+    "services/data/src/fable5_data/phase16/__init__.py",
+    "services/data/src/fable5_data/phase16/canonical.py",
+    "services/data/src/fable5_data/phase16/contracts.py",
+    "services/data/src/fable5_data/phase16/plan.py",
+    "services/data/tests/test_phase16_contracts.py",
+    "services/data/tests/test_phase16_plan.py",
+    "services/data/tests/test_phase16_security.py",
+    "tests/test_phase16_portable.py",
+    "tests/test_phase16_static.py",
+)
+PHASE_16_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "README.md",
+        "docs/COMPLIANCE_NOTES.md",
+        "docs/DATA_SOURCES.md",
+        "docs/EVALS.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/PHASE_16_FAMILY_A_POINT_IN_TIME_SOURCE_PLAN.json",
+        "docs/PHASE_16_FAMILY_A_POINT_IN_TIME_SOURCE_PLAN_DECISIONS.md",
+        "docs/RISK_POLICY.md",
+        "docs/handoffs/PHASE_16.md",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        PHASE_16_GENERATOR_PATH,
+        PHASE_16_PORTABLE_VERIFIER_PATH,
+        "scripts/verify_phase1.py",
+        "services/data/src/fable5_data/phase16/__init__.py",
+        "services/data/src/fable5_data/phase16/canonical.py",
+        "services/data/src/fable5_data/phase16/contracts.py",
+        "services/data/src/fable5_data/phase16/plan.py",
+        "services/data/tests/test_phase16_contracts.py",
+        "services/data/tests/test_phase16_plan.py",
+        "services/data/tests/test_phase16_security.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
+        "services/frontend/e2e/phase8.visual.spec.ts",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_static.py",
+        "tests/test_phase10_static.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase12_static.py",
+        "tests/test_phase13_static.py",
+        "tests/test_phase14_static.py",
+        "tests/test_phase15_static.py",
+        "tests/test_phase16_portable.py",
+        "tests/test_phase16_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_16_INHERITED_TABLES = PHASE_15_INHERITED_TABLES
+PHASE_16_ARTIFACT_SCHEMA_VERSION = "phase16-family-a-point-in-time-source-plan-v1"
+PHASE_16_POLICY_ID = "phase16-family-a-point-in-time-source-plan-policy-v1"
+PHASE_16_OUTCOMES = {"PLAN_FROZEN", "BLOCKED"}
+PHASE_16_STATUSES = {"PASS", "BLOCKED", "UNCOMPUTABLE"}
+PHASE_16_COLLECTION_COUNTS = {
+    "requirements": 12,
+    "capabilities": 7,
+    "candidates": 6,
+    "future_steps": 7,
+    "phase15_gap_bindings": 19,
+}
+PHASE_16_EXPECTED_ARTIFACT_ID = "e106a766-5cfe-5a1c-94f6-ee1c2ac68652"
+PHASE_16_EXPECTED_ARTIFACT_SHA256 = (
+    "74ddf4a51d722b494fd494241e2e5927bff6fde034f6932dcfd791bb3a0706bb"
+)
+PHASE_16_EXPECTED_POLICY_SHA256 = "57cfcfd09f2d4a87d9562fd536228b9f05693bb71b7e9d1867618a35da7d4efd"
+PHASE_16_FROZEN_AT_UTC = "2026-07-18T00:00:00Z"
+PHASE_16_PHASE15_ARTIFACT_ID = "c29b8139-da80-556b-b150-a5ca9603d265"
+PHASE_16_PHASE15_ARTIFACT_SHA256 = (
+    "575ce4c51e9102790d75edc4a330c3e9f1d9eb505eb33ccf22d8a9c9e50200d6"
+)
+PHASE_16_PHASE15_POLICY_SHA256 = "ba4603caaffe90d561f3beaa566746b1f3b900e2cf7d5e24b2cd94537597821b"
+PHASE_16_PHASE15_REQUIREMENTS_MANIFEST_SHA256 = (
+    "7743721c6fe46bc0847bb189c4db7dedc4325b4cc05aa6007c7921eb348f73b6"
+)
+PHASE_16_PHASE15_GAPS_MANIFEST_SHA256 = (
+    "9c70f11f85eb66dad6eed15a0a4907dec3fa4edc7b0da3d6adbad768b88b2f86"
+)
+PHASE_16_PHASE6_SPECIFICATION = (
+    "phase6-a_cross_sectional_equity_ranking-research-pipeline",
+    "v2",
+    "3967b3c0dffd6a27c4ac8012773621090b828e8bdc2f242611c34d81420b37bc",
+)
+PHASE_16_REQUIREMENT_CODES = (
+    "PHASE15_ADMISSION_SPECIFICATION_BOUND",
+    "FAMILY_A_CAPABILITY_SET_BOUND",
+    "SECURITY_MASTER_IDENTITY_HISTORY_REQUIRED",
+    "UNIVERSE_MEMBERSHIP_DELISTING_HISTORY_REQUIRED",
+    "RAW_OHLCV_CORPORATE_ACTION_HISTORY_REQUIRED",
+    "AS_REPORTED_FUNDAMENTAL_VINTAGES_REQUIRED",
+    "SECTOR_LIQUIDITY_HISTORY_REQUIRED",
+    "MACRO_VINTAGE_RELEASE_HISTORY_REQUIRED",
+    "TEMPORAL_REVISION_COVERAGE_MANIFEST_REQUIRED",
+    "INDEPENDENT_RIGHTS_CURRENTNESS_REVIEW_REQUIRED",
+    "QUARANTINE_CANONICALIZATION_RECONCILIATION_REQUIRED",
+    "CAPTURE_INGESTION_RESEARCH_EXECUTION_AUTHORITY_ABSENT",
+)
+PHASE_16_CAPABILITY_CODES = (
+    "security_master",
+    "universe_membership",
+    "ohlcv",
+    "corporate_actions",
+    "delistings",
+    "as_reported_fundamentals",
+    "macro_regime_inputs",
+)
+PHASE_16_CANDIDATE_ROWS = (
+    ("TIINGO_PHASE13_BOUNDED_CANDIDATE", "UNPROVEN"),
+    ("MORNINGSTAR_CRSP_US_STOCK_DATABASES_CANDIDATE", "UNPROVEN"),
+    ("MORNINGSTAR_CRSP_COMPUSTAT_MERGED_DATABASE_CANDIDATE", "UNPROVEN"),
+    ("SEC_EDGAR_SUBMISSIONS_XBRL_CANDIDATE", "UNPROVEN"),
+    ("FEDERAL_RESERVE_ALFRED_VINTAGES_CANDIDATE", "UNPROVEN"),
+    ("HISTORICAL_LIQUIDITY_PRODUCT_UNSELECTED", "MISSING"),
+)
+PHASE_16_STEP_CODES = (
+    "SELECT_CANDIDATE_PRODUCTS",
+    "REVIEW_CURRENT_USE_RIGHTS",
+    "QUALIFY_BOUNDED_READ_ONLY_SAMPLES",
+    "PRODUCE_FULL_HISTORY_COVERAGE_MANIFEST",
+    "RECONCILE_TEMPORAL_IDENTITY_REVISION_SEMANTICS",
+    "DESIGN_LOCAL_QUARANTINE_AND_CANONICAL_SNAPSHOT",
+    "REQUEST_SEPARATE_INGESTION_AUTHORITY",
+)
+PHASE_16_STEP_REQUIRED_PRIOR_EVIDENCE = (
+    (),
+    (),
+    (
+        "non_synthetic_evaluation_policy_sha256",
+        "confirmation_holdout_definition_sha256",
+    ),
+    (),
+    (),
+    (),
+    (),
+)
+PHASE_16_GAP_CODES = (
+    "FAMILY_A_SIGNAL_AND_HORIZON",
+    "FULL_POINT_IN_TIME_DATASET",
+    "EXTERNAL_CANDIDATE_QUALIFICATION",
+    "HISTORICAL_MEMBERSHIP_AND_DELISTING",
+    "SECTOR_LIQUIDITY_MACRO_HISTORY",
+    "INDEPENDENT_CURRENT_USE_RIGHTS",
+    "NON_SYNTHETIC_SNAPSHOT_PERSISTENCE",
+    "NON_SYNTHETIC_EVALUATION_POLICY",
+    "NON_SYNTHETIC_EVALUATION_PATH",
+    "PURGED_WALK_FORWARD_MECHANICS",
+    "EMBARGO_APPLICABILITY_DECISION",
+    "LEAKAGE_FREE_RESULT",
+    "MARKET_CALIBRATED_COST_SLIPPAGE",
+    "DSR_PBO_PROMOTION_GATES",
+    "PHASE_15_IMPLEMENTATION_AUTHORITY",
+    "DATA_RIGHTS_AND_RESEARCH_AUTHORITY",
+    "RIGHTS_CURRENTNESS_REVOCATION",
+    "PRE_ORDER_RISK",
+    "IMMUTABLE_AUDIT_SCHEMA",
+)
+PHASE_16_GAP_STATES = (
+    "MOCK_ONLY",
+    "MISSING",
+    "UNPROVEN",
+    "UNPROVEN",
+    "MISSING",
+    "MISSING",
+    "MISSING",
+    "MISSING",
+    "MISSING",
+    "MOCK_ONLY",
+    "UNPROVEN",
+    "MOCK_ONLY",
+    "MOCK_ONLY",
+    "MOCK_ONLY",
+    "PRESENT",
+    "MISSING",
+    "MISSING",
+    "MOCK_ONLY",
+    "PRESENT",
+)
+PHASE_16_GAP_SOURCE_SHA256S = (
+    "29c8594ba865b97d5421c381647bc91773ca3ef48388e65d563a5eaa085319d5",
+    "4ddf94cbdadd7b61f51b97b9105e6adea6a590cc622271e002356a9352c7a49a",
+    "9c110da463f048a8c577ebb16b65fdf4654aec2a93826ab2b5bfd0f1b936d580",
+    "441afc30e509ebfedfbcb888a77537408e3c2d530d32470c98d2c1035636be61",
+    "f36ddc92e8deffcf57bf1e98eeb9c2d0be91807ed0abdbc5690dda22ec97e801",
+    "0472fddba255153f3e7cf3dabc0bc025c05714897762e2912cf3a887e48738ff",
+    "3d0b7e6a74afe8fe70beb8cfa2cc4ae8d15c6a647ba43e45daa1b1c2f14b3c7b",
+    "9a484c0596b92e7f659fac58198a707e9b8c8e372ace7af6f419cb15d31d81bb",
+    "6fdcae7db872a98e629a1e93df9aa6ac75f83ed5902771b7efbce5b08a04102a",
+    "233a469add2a3b0b0a216780f6c4a259e9d2cd9a81dbd0138be91b7fa81dd13a",
+    "352dffce8463b24ae2e4eaba65a207c21d8ab4f53592619061f7e8180c38a73c",
+    "bee9a7ac0ec623281bbc5b0293e349d0f926db5bf59ecf86af6888d0dcae726d",
+    "041d3fdff4a5fc3f8b6f337de729890d3569ec9e619a70c2f06c342ecad53be4",
+    "006adff9e34c540b58c641f84218bfcbbb66323c833da3de800e1e8029a8bf98",
+    "27e71e37a9991fd04e25d61e005f5eeb167804be7adb5d5ef473089f077e0d8f",
+    "f3d4a2625fcedf362a392ab761056a7e75257f9eb2fb51b1d11038060187868d",
+    "870786a3addaf720aca5bbe20ec585643794bb46b78c64003f1a81df7875260a",
+    "9afe4ae29601ccf3891f52719e2b0a7db5573f9ee96d3db7c8878f428dcf4fba",
+    "617881a4d22da3e7e72e6f335519d66e6593c3607fdcfe398d91c28ef9810b20",
+)
+PHASE_16_FALSE_AUTHORITY_FIELDS = (
+    "external_request_performed",
+    "external_verification_performed",
+    "source_selected",
+    "provider_selected",
+    "product_selected",
+    "credentials_loaded",
+    "rights_verified",
+    "rights_granted",
+    "external_data_capture_authorized",
+    "provider_payload_persisted",
+    "licensed_data_persisted",
+    "research_ingestion_authorized",
+    "research_snapshot_created",
+    "evaluation_policy_approved",
+    "confirmation_holdout_defined",
+    "confirmation_holdout_opened",
+    "research_data_eligible",
+    "research_run_created",
+    "research_run_authorized",
+    "research_executed",
+    "performance_computed",
+    "pass_research_granted",
+    "strategy_promotion_authorized",
+    "paper_approval_granted",
+    "risk_clearance_granted",
+    "strategy_execution_eligible",
+    "execution_authorized",
+    "order_submission_authorized",
+)
+PHASE_16_TRUE_BOUNDARY_FIELDS = (
+    "live_path_absent",
+    "no_personalized_investment_advice",
+    "no_real_performance_claimed",
+)
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -1364,11 +1609,11 @@ def phase_number(value: str) -> int:
         phase = int(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
-            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, or 15"
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, or 16"
         ) from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}:
+    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}:
         raise argparse.ArgumentTypeError(
-            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, or 15"
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, or 16"
         )
     return phase
 
@@ -1738,7 +1983,7 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
                 )
         ci = normalized(ROOT / ".github/workflows/ci.yml")
         ci_phases = [
-            int(value) for value in re.findall(r"--phase\s+(15|14|13|12|11|10|[1-9])\b", ci)
+            int(value) for value in re.findall(r"--phase\s+(16|15|14|13|12|11|10|[1-9])\b", ci)
         ]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
@@ -4928,7 +5173,11 @@ def verify_phase14_static(
             raise AssertionError(f"Phase 14 boundary documentation is missing {required}")
 
 
-def verify_phase15_static() -> None:
+def verify_phase15_static(
+    *,
+    release_closure: bool = True,
+    active_phase: int = 15,
+) -> None:
     missing = [path for path in PHASE_15_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 15 paths: {', '.join(missing)}")
@@ -4972,7 +5221,7 @@ def verify_phase15_static() -> None:
         if path
     )
     forbidden_changes = sorted(changed_paths - PHASE_15_ALLOWED_WRITES)
-    if forbidden_changes:
+    if release_closure and forbidden_changes:
         raise AssertionError(
             "Phase 15 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
         )
@@ -5215,7 +5464,7 @@ def verify_phase15_static() -> None:
         raise AssertionError("Phase 9 release runner did not reject Phase 15 with exit 2")
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    if (
+    if release_closure and (
         not workflow.startswith("name: phase-15-ci\n")
         or 'FABLE5_VERIFY_PHASE: "15"' not in workflow
         or "phase15-compose:" not in workflow
@@ -5237,23 +5486,26 @@ def verify_phase15_static() -> None:
     ):
         raise AssertionError("Phase 15 CI consumes authority or widens snapshot/runner behavior")
 
-    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
-        entrypoint_source = normalized(ROOT / entrypoint)
-        if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
-            raise AssertionError(f"{entrypoint} does not forward the active Phase 15 selection")
-        if "14, or 15" not in entrypoint_source:
-            raise AssertionError(f"{entrypoint} does not advertise exact Phase 15 parser support")
-    for browser_path in (
-        ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
-        ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
-    ):
-        browser = normalized(browser_path)
-        if 'process.env.FABLE5_VERIFY_PHASE ?? "15"' not in browser or (
-            'new Set(["10", "11", "12", "13", "14", "15"])' not in browser
+    if release_closure:
+        for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+            entrypoint_source = normalized(ROOT / entrypoint)
+            if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
+                raise AssertionError(f"{entrypoint} does not forward the active Phase 15 selection")
+            if "14, or 15" not in entrypoint_source:
+                raise AssertionError(
+                    f"{entrypoint} does not advertise exact Phase 15 parser support"
+                )
+        for browser_path in (
+            ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
+            ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
         ):
-            raise AssertionError(
-                f"Phase 15 inherited browser coverage is inactive in {browser_path}"
-            )
+            browser = normalized(browser_path)
+            if 'process.env.FABLE5_VERIFY_PHASE ?? "15"' not in browser or (
+                'new Set(["10", "11", "12", "13", "14", "15"])' not in browser
+            ):
+                raise AssertionError(
+                    f"Phase 15 inherited browser coverage is inactive in {browser_path}"
+                )
 
     decisions = normalized(
         ROOT / "docs/PHASE_15_FAMILY_A_RESEARCH_ADMISSION_SPECIFICATION_DECISIONS.md"
@@ -5270,6 +5522,399 @@ def verify_phase15_static() -> None:
     ):
         if required not in decisions + handoff:
             raise AssertionError(f"Phase 15 boundary documentation is missing {required}")
+
+
+def verify_phase16_static() -> None:
+    missing = [path for path in PHASE_16_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 16 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_16_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 15 baseline is unavailable") from exc
+    if (
+        git_text("show", "-s", "--format=%T", PHASE_16_BASELINE_SHA)
+        != EXPECTED_PHASE_16_BASELINE_TREE
+    ):
+        raise AssertionError("The authorized Phase 16 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_16_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 16 HEAD is not descended from the accepted Phase 15 baseline")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_16_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_16_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 16 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    expected_migrations = set(PHASE_1_7_MIGRATION_SHA256) | {
+        "services/api/migrations/versions/0008_phase10_local_paper.py",
+        PHASE_12_MIGRATION,
+        PHASE_13_MIGRATION,
+        PHASE_14_MIGRATION,
+    }
+    actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if actual_migrations != expected_migrations:
+        raise AssertionError("Phase 16 must retain exactly migrations 0001 through 0011")
+    for migration_path in expected_migrations:
+        if (ROOT / migration_path).read_bytes() != git_blob(PHASE_16_BASELINE_SHA, migration_path):
+            raise AssertionError(f"Phase 16 changed inherited migration {migration_path}")
+
+    api_changes = sorted(path for path in changed_paths if path.startswith("services/api/"))
+    if api_changes:
+        raise AssertionError("Phase 16 changed the accepted API surface: " + ", ".join(api_changes))
+    for frozen_path in (
+        "compose.yaml",
+        "package.json",
+        "package-lock.json",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "pyproject.toml",
+        "requirements.lock",
+        "scripts/run_phase_gate.py",
+        "docs/PHASE_15_FAMILY_A_RESEARCH_ADMISSION_SPECIFICATION.json",
+    ):
+        if (ROOT / frozen_path).read_bytes() != git_blob(PHASE_16_BASELINE_SHA, frozen_path):
+            raise AssertionError(f"Phase 16 changed frozen inherited surface {frozen_path}")
+    for phase15_path in sorted((ROOT / "services/data/src/fable5_data/phase15").glob("*.py")):
+        relative_path = phase15_path.relative_to(ROOT).as_posix()
+        if phase15_path.read_bytes() != git_blob(PHASE_16_BASELINE_SHA, relative_path):
+            raise AssertionError(f"Phase 16 changed frozen Phase 15 implementation {relative_path}")
+
+    openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+    if any(
+        "phase16" in path.casefold() or "source-plan" in path.casefold()
+        for path in openapi["paths"]
+    ):
+        raise AssertionError("Phase 16 added an API path")
+    phase5_postgres_tests = normalized(ROOT / "tests/test_phase5_postgres.py")
+    if '"16": "0011_phase14"' not in phase5_postgres_tests:
+        raise AssertionError("Phase 16 PostgreSQL acceptance does not retain head 0011_phase14")
+
+    from fable5_data.phase16.plan import (
+        build_family_a_point_in_time_source_plan,
+        canonical_source_plan_bytes,
+    )
+
+    committed_bytes = (ROOT / PHASE_16_ARTIFACT_PATH).read_bytes()
+    if committed_bytes != canonical_source_plan_bytes():
+        raise AssertionError(
+            "Phase 16 committed source plan is not the canonical generated artifact"
+        )
+    try:
+        committed_payload = json.loads(committed_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AssertionError("Phase 16 committed source plan is not valid JSON") from exc
+    if not isinstance(committed_payload, dict):
+        raise AssertionError("Phase 16 committed source plan is not an object")
+    artifact = build_family_a_point_in_time_source_plan()
+    rendered_artifact = artifact.model_dump(mode="json")
+    if rendered_artifact.get("schema_version") != PHASE_16_ARTIFACT_SCHEMA_VERSION:
+        raise AssertionError("Phase 16 committed source plan has the wrong schema version")
+    if rendered_artifact.get("policy_id") != PHASE_16_POLICY_ID:
+        raise AssertionError("Phase 16 committed source plan has the wrong policy identity")
+    if rendered_artifact.get("outcome") != "PLAN_FROZEN":
+        raise AssertionError("Phase 16 complete source plan does not freeze exactly PLAN_FROZEN")
+    if rendered_artifact.get("outcome") not in PHASE_16_OUTCOMES:
+        raise AssertionError("Phase 16 committed source plan has an unknown outcome")
+    if (
+        str(artifact.artifact_id) != PHASE_16_EXPECTED_ARTIFACT_ID
+        or artifact.artifact_sha256 != PHASE_16_EXPECTED_ARTIFACT_SHA256
+        or artifact.policy_sha256 != PHASE_16_EXPECTED_POLICY_SHA256
+        or artifact.accepted_phase15_commit_sha != PHASE_16_BASELINE_SHA
+        or artifact.accepted_phase15_tree_sha != EXPECTED_PHASE_16_BASELINE_TREE
+        or str(artifact.phase15_artifact_id) != PHASE_16_PHASE15_ARTIFACT_ID
+        or artifact.phase15_artifact_sha256 != PHASE_16_PHASE15_ARTIFACT_SHA256
+        or artifact.phase15_policy_sha256 != PHASE_16_PHASE15_POLICY_SHA256
+        or artifact.phase15_requirements_manifest_sha256
+        != PHASE_16_PHASE15_REQUIREMENTS_MANIFEST_SHA256
+        or artifact.phase15_gaps_manifest_sha256 != PHASE_16_PHASE15_GAPS_MANIFEST_SHA256
+        or (
+            artifact.phase6_specification_id,
+            artifact.phase6_specification_version,
+            artifact.phase6_specification_sha256,
+        )
+        != PHASE_16_PHASE6_SPECIFICATION
+        or artifact.frozen_at_utc.isoformat().replace("+00:00", "Z") != PHASE_16_FROZEN_AT_UTC
+    ):
+        raise AssertionError("Phase 16 source-plan identity or accepted lineage drifted")
+    for collection_name, expected_count in PHASE_16_COLLECTION_COUNTS.items():
+        collection = rendered_artifact.get(collection_name)
+        if not isinstance(collection, list) or len(collection) != expected_count:
+            raise AssertionError(
+                f"Phase 16 source plan requires exactly {expected_count} {collection_name}"
+            )
+    requirement_statuses = {
+        item.get("status") for item in rendered_artifact["requirements"] if isinstance(item, dict)
+    }
+    if requirement_statuses - PHASE_16_STATUSES or requirement_statuses != {"PASS"}:
+        raise AssertionError("Phase 16 complete source-plan requirements are not all PASS")
+    if tuple(item.code.value for item in artifact.requirements) != PHASE_16_REQUIREMENT_CODES:
+        raise AssertionError("Phase 16 source-plan requirement registry or order drifted")
+    if any(
+        item.status.value != "PASS" or item.reason_code.value != "frozen_source_plan_requirement"
+        for item in artifact.requirements
+    ):
+        raise AssertionError("Phase 16 source-plan requirement result semantics drifted")
+    if tuple(item.code.value for item in artifact.capabilities) != PHASE_16_CAPABILITY_CODES:
+        raise AssertionError("Phase 16 source capability registry or order drifted")
+    if any(not item.required or item.source_selected for item in artifact.capabilities):
+        raise AssertionError("Phase 16 source capability invariants drifted")
+    if tuple((item.code.value, item.state.value) for item in artifact.candidates) != (
+        PHASE_16_CANDIDATE_ROWS
+    ):
+        raise AssertionError("Phase 16 candidate registry, order, or frozen states drifted")
+    if any(
+        not item.candidate_only
+        or item.selected
+        or item.rights_verified
+        or item.external_verification_performed
+        for item in artifact.candidates
+    ):
+        raise AssertionError("Phase 16 candidate-only invariants drifted")
+    if tuple(item.code.value for item in artifact.future_steps) != PHASE_16_STEP_CODES:
+        raise AssertionError("Phase 16 future-step registry or order drifted")
+    if tuple(item.required_prior_evidence for item in artifact.future_steps) != (
+        PHASE_16_STEP_REQUIRED_PRIOR_EVIDENCE
+    ):
+        raise AssertionError("Phase 16 future-step prior-evidence sequence drifted")
+    if any(
+        item.state != "NOT_STARTED" or item.external_action_authorized
+        for item in artifact.future_steps
+    ):
+        raise AssertionError("Phase 16 future-step closed-state invariants drifted")
+    if tuple(item.code.value for item in artifact.phase15_gap_bindings) != PHASE_16_GAP_CODES:
+        raise AssertionError("Phase 16 Phase 15 gap registry or order drifted")
+    if tuple(item.state.value for item in artifact.phase15_gap_bindings) != PHASE_16_GAP_STATES:
+        raise AssertionError("Phase 16 changed an accepted Phase 15 gap state")
+    if (
+        tuple(item.source_gap_sha256 for item in artifact.phase15_gap_bindings)
+        != PHASE_16_GAP_SOURCE_SHA256S
+    ):
+        raise AssertionError("Phase 16 changed an accepted Phase 15 gap hash")
+    for field in PHASE_16_FALSE_AUTHORITY_FIELDS:
+        if rendered_artifact.get(field) is not False:
+            raise AssertionError(f"Phase 16 source plan unexpectedly grants {field}")
+    for field in PHASE_16_TRUE_BOUNDARY_FIELDS:
+        if rendered_artifact.get(field) is not True:
+            raise AssertionError(f"Phase 16 source plan does not preserve {field}")
+
+    phase16_root = ROOT / "services/data/src/fable5_data/phase16"
+    production_paths = sorted(phase16_root.glob("*.py"))
+    imported = set().union(*(imported_module_roots(path) for path in production_paths))
+    forbidden_imports = sorted(
+        imported
+        & {
+            "aiohttp",
+            "alpaca",
+            "asyncio",
+            "fastapi",
+            "fable5_paper",
+            "fable5_research",
+            "http",
+            "httpx",
+            "os",
+            "psycopg",
+            "random",
+            "requests",
+            "secrets",
+            "socket",
+            "sqlalchemy",
+            "ssl",
+            "subprocess",
+            "time",
+            "urllib",
+            "websocket",
+            "websockets",
+        }
+    )
+    if forbidden_imports:
+        raise AssertionError(
+            "Phase 16 imports a forbidden ambient/network/database module: "
+            + ", ".join(forbidden_imports)
+        )
+    production_sources = "\n".join(normalized(path).casefold() for path in production_paths)
+    for forbidden in (
+        "create_engine",
+        "datetime.now",
+        "datetime.utcnow",
+        "getenv",
+        "glob(",
+        "rglob(",
+        "uuid4",
+        "submit_order",
+        "place_order",
+        "create_order",
+        "replace_order",
+        "cancel_order",
+        "retry",
+    ):
+        if forbidden in production_sources:
+            raise AssertionError(f"Phase 16 contains forbidden capability {forbidden}")
+
+    generator = normalized(ROOT / PHASE_16_GENERATOR_PATH)
+    portable_verifier = normalized(ROOT / PHASE_16_PORTABLE_VERIFIER_PATH)
+    if "--confirm-plan-only" not in generator or "--plan" not in portable_verifier:
+        raise AssertionError("Phase 16 generator/verifier CLI contract is incomplete")
+    for forbidden in (
+        "--provider",
+        "--product",
+        "--url",
+        "--host",
+        "--credential",
+        "--token",
+        "--secret",
+        "--rights",
+        "--data",
+        "--output",
+        "--authority",
+        "--strategy",
+        "--signal",
+        "--side",
+        "--quantity",
+        "--price",
+        "--allocation",
+        "--broker",
+        "--order",
+        "--retry",
+        "--execution",
+        "--ingestion",
+        "--promotion",
+        "--expected-hash",
+        "--repair",
+    ):
+        if forbidden in generator or forbidden in portable_verifier:
+            raise AssertionError(f"Phase 16 CLI exposes forbidden argument {forbidden}")
+
+    generator_result = subprocess.run(
+        [sys.executable, PHASE_16_GENERATOR_PATH, "--confirm-plan-only"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if generator_result.returncode != 0 or generator_result.stderr:
+        raise AssertionError("Phase 16 generator failed static canonicalization")
+    if generator_result.stdout != committed_bytes:
+        raise AssertionError("Phase 16 generator output does not match the committed artifact")
+    verifier_result = subprocess.run(
+        [sys.executable, PHASE_16_PORTABLE_VERIFIER_PATH, "--plan", PHASE_16_ARTIFACT_PATH],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if verifier_result.returncode != 0 or verifier_result.stderr:
+        raise AssertionError("Phase 16 portable verifier rejected the committed artifact")
+    try:
+        verifier_receipt = json.loads(verifier_result.stdout)
+    except json.JSONDecodeError as exc:
+        raise AssertionError("Phase 16 portable verifier did not return sanitized JSON") from exc
+    if not isinstance(verifier_receipt, dict):
+        raise AssertionError("Phase 16 portable verifier receipt is not an object")
+
+    runner = normalized(ROOT / "scripts/run_phase_gate.py")
+    if "choices=(9,)" not in runner or '"--phase", "16"' in runner:
+        raise AssertionError("Phase 16 widened the Phase 9-only release runner")
+    runner_rejection = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_phase_gate.py",
+            "run",
+            "--phase",
+            "16",
+            "--evidence-dir",
+            str(ROOT.parent / "phase16-forbidden-runner-evidence"),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if runner_rejection.returncode != 2 or runner_rejection.stdout:
+        raise AssertionError("Phase 9 release runner did not reject Phase 16 with exit 2")
+
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-16-ci\n")
+        or 'FABLE5_VERIFY_PHASE: "16"' not in workflow
+        or "phase16-compose:" not in workflow
+        or workflow.count("python scripts/verify_phase1.py --static-only --phase 16") != 1
+        or workflow.count("python scripts/verify_phase1.py --phase 16") != 1
+    ):
+        raise AssertionError("Phase 16 Ubuntu CI does not run the exact static and full verifiers")
+    for environment_name in (*PHASE_12_CREDENTIAL_ENV_NAMES, *PHASE_13_CREDENTIAL_ENV_NAMES):
+        if f'{environment_name}: ""' not in workflow:
+            raise AssertionError(f"Phase 16 CI does not clear {environment_name}")
+    immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
+    if workflow.count(immutable_pull) != 1:
+        raise AssertionError("Phase 16 CI must pre-pull the pinned browser image exactly once")
+    if (
+        "secrets." in workflow
+        or PHASE_10_LINUX_SNAPSHOT_FLAG in workflow
+        or "FABLE5_UPDATE_SNAPSHOTS" in workflow
+        or "run_phase_gate.py run --phase 16" in workflow
+    ):
+        raise AssertionError("Phase 16 CI consumes authority or widens snapshot/runner behavior")
+
+    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+        entrypoint_source = normalized(ROOT / entrypoint)
+        if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
+            raise AssertionError(f"{entrypoint} does not forward the active Phase 16 selection")
+        if "15, or 16" not in entrypoint_source:
+            raise AssertionError(f"{entrypoint} does not advertise exact Phase 16 parser support")
+    for browser_path in (
+        ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
+        ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
+    ):
+        browser = normalized(browser_path)
+        if 'process.env.FABLE5_VERIFY_PHASE ?? "16"' not in browser or (
+            'new Set(["10", "11", "12", "13", "14", "15", "16"])' not in browser
+        ):
+            raise AssertionError(
+                f"Phase 16 inherited browser coverage is inactive in {browser_path}"
+            )
+
+    decisions = normalized(ROOT / "docs/PHASE_16_FAMILY_A_POINT_IN_TIME_SOURCE_PLAN_DECISIONS.md")
+    handoff = normalized(ROOT / "docs/handoffs/PHASE_16.md")
+    for required in (
+        PHASE_16_BASELINE_SHA,
+        EXPECTED_PHASE_16_BASELINE_TREE,
+        PHASE_16_ARTIFACT_PATH,
+        "PLAN_FROZEN",
+        "BLOCKED",
+        "adds no migration",
+        "Stop after Phase 16",
+    ):
+        if required not in decisions + handoff:
+            raise AssertionError(f"Phase 16 boundary documentation is missing {required}")
 
 
 def verify_static(phase: int = 1) -> None:
@@ -5324,6 +5969,17 @@ def verify_static(phase: int = 1) -> None:
         verify_phase14_static(release_closure=False, active_phase=15)
         verify_phase15_static()
         print("Static repository policy checks passed for Phase 15.")
+        return
+    if phase == 16:
+        verify_static_inherited(16, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=16)
+        verify_phase11_static(release_closure=False, active_phase=16)
+        verify_phase12_static(release_closure=False, active_phase=16)
+        verify_phase13_static(release_closure=False, active_phase=16)
+        verify_phase14_static(release_closure=False, active_phase=16)
+        verify_phase15_static(release_closure=False, active_phase=16)
+        verify_phase16_static()
+        print("Static repository policy checks passed for Phase 16.")
         return
     verify_static_inherited(phase)
 
@@ -5404,7 +6060,7 @@ def acceptance_environment(
         ).stdout.strip()
         if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
             raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
-        if phase in {10, 11, 12, 13, 14, 15} and expected_git_identity is not None:
+        if phase in {10, 11, 12, 13, 14, 15, 16} and expected_git_identity is not None:
             git_tree = subprocess.run(
                 ["git", "show", "-s", "--format=%T", "HEAD"],
                 cwd=ROOT,
@@ -6527,7 +7183,7 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
 
 
 def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
-    if phase in {9, 10, 11, 12, 13, 14, 15}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16}:
         return (
             PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
             PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
@@ -10295,11 +10951,11 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase in {9, 10, 11, 12, 13, 14, 15}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
-    linux_phase11 = phase in {11, 12, 13, 14, 15} and sys.platform.startswith("linux")
+    linux_phase11 = phase in {11, 12, 13, 14, 15, 16} and sys.platform.startswith("linux")
     if linux_phase9:
         command = phase9_linux_playwright_command(project, frontend_url)
     elif linux_phase10:
@@ -10319,7 +10975,7 @@ def verify_phase8_browser(
             output_path=f"/tmp/phase{phase}-inherited-playwright-results",
             verify_phase=phase,
         )
-    elif phase in {10, 11, 12, 13, 14, 15}:
+    elif phase in {10, 11, 12, 13, 14, 15, 16}:
         command = [
             npm,
             "--workspace",
@@ -10352,7 +11008,7 @@ def verify_phase8_browser(
         )
     coverage = (
         "unaffected inherited modes and shared layout"
-        if phase in {10, 11, 12, 13, 14, 15}
+        if phase in {10, 11, 12, 13, 14, 15, 16}
         else "all four modes"
     )
     print(
@@ -10552,7 +11208,7 @@ def verify_phase10_browser(
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
-    if phase in {11, 12, 13, 14, 15}:
+    if phase in {11, 12, 13, 14, 15, 16}:
         browser_environment.pop(PHASE_10_LINUX_SNAPSHOT_FLAG, None)
         browser_environment.pop("FABLE5_UPDATE_SNAPSHOTS", None)
         browser_environment.pop("FABLE5_VISUAL_CORPUS", None)
@@ -10573,7 +11229,7 @@ def verify_phase10_browser(
         else frontend_url
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
-    if phase in {11, 12, 13, 14, 15} and linux:
+    if phase in {11, 12, 13, 14, 15, 16} and linux:
         command = phase11_linux_playwright_command(
             project,
             browser_frontend_url,
@@ -10601,7 +11257,7 @@ def verify_phase10_browser(
     try:
         run(command, env=browser_environment)
     finally:
-        if phase in {11, 12, 13, 14, 15} and linux:
+        if phase in {11, 12, 13, 14, 15, 16} and linux:
             cleanup_phase11_linux_playwright_container(project, browser_environment)
         elif linux:
             cleanup_phase10_linux_playwright_container(project, browser_environment)
@@ -10797,6 +11453,7 @@ def verify_phase5_postgres_acceptance(environment: dict[str, str]) -> None:
         f"{environment['POSTGRES_PORT']}/fable5"
     )
     test_environment["FABLE5_CODE_VERSION_GIT_SHA"] = environment["FABLE5_CODE_VERSION_GIT_SHA"]
+    test_environment["FABLE5_VERIFY_PHASE"] = environment["FABLE5_VERIFY_PHASE"]
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/test_phase5_postgres.py", "-q"],
         cwd=ROOT,
@@ -11316,6 +11973,193 @@ def verify_phase15_no_schema_drift_and_zero_writes(
         raise AssertionError(f"Phase 15 portable proof changed migration head: {version_after}")
     print(
         "Phase 15 preserved all 57 nonempty Phase 1-14 tables, the exact table catalog, "
+        "migration head 0011_phase14, and every public function body byte-identically."
+    )
+
+
+def phase16_offline_environment() -> dict[str, str]:
+    test_environment = os.environ.copy()
+    for name in (
+        *PHASE_12_CREDENTIAL_ENV_NAMES,
+        *PHASE_13_CREDENTIAL_ENV_NAMES,
+        "FABLE5_DATABASE_URL",
+        "FABLE5_REDIS_URL",
+    ):
+        test_environment.pop(name, None)
+    test_environment["FABLE5_VERIFY_PHASE"] = "16"
+    return test_environment
+
+
+def verify_phase16_portable_acceptance(environment: dict[str, str]) -> None:
+    del environment
+    test_environment = phase16_offline_environment()
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/test_phase16_portable.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 16 portable generator/verifier tests failed")
+
+    committed = (ROOT / PHASE_16_ARTIFACT_PATH).read_bytes()
+    generator_command = [
+        sys.executable,
+        PHASE_16_GENERATOR_PATH,
+        "--confirm-plan-only",
+    ]
+    generated: list[bytes] = []
+    for _ in range(2):
+        generated_result = subprocess.run(
+            generator_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=test_environment,
+        )
+        if generated_result.returncode != 0 or generated_result.stderr:
+            raise AssertionError("Phase 16 generator failed during portable acceptance")
+        generated.append(generated_result.stdout)
+    if generated != [committed, committed]:
+        raise AssertionError("Phase 16 generator was not byte-identical to the committed artifact")
+
+    verifier_command = [
+        sys.executable,
+        PHASE_16_PORTABLE_VERIFIER_PATH,
+        "--plan",
+        PHASE_16_ARTIFACT_PATH,
+    ]
+    receipts: list[bytes] = []
+    for _ in range(2):
+        verified = subprocess.run(
+            verifier_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=test_environment,
+        )
+        if verified.returncode != 0 or verified.stderr:
+            raise AssertionError("Phase 16 portable verifier rejected the committed artifact")
+        receipts.append(verified.stdout)
+    if receipts[0] != receipts[1]:
+        raise AssertionError("Phase 16 portable verifier receipt was not byte-identical")
+    try:
+        receipt = json.loads(receipts[0])
+    except json.JSONDecodeError as exc:
+        raise AssertionError("Phase 16 portable verifier returned invalid JSON") from exc
+    if not isinstance(receipt, dict):
+        raise AssertionError("Phase 16 portable verifier receipt is not an object")
+    print(
+        "Phase 16 committed-artifact parity, repeated byte-identical generation, and portable "
+        "offline verification proof passed."
+    )
+
+
+def verify_phase16_offline_network_denial(environment: dict[str, str]) -> None:
+    del environment
+    test_environment = phase16_offline_environment()
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "services/data/tests/test_phase16_contracts.py",
+            "services/data/tests/test_phase16_plan.py",
+            "services/data/tests/test_phase16_security.py",
+            "-q",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 16 pure-domain and active network-denial tests failed")
+    print(
+        "Phase 16 exact source-plan, blocked/adversarial tamper, secret-canary, zero-authority, "
+        "database-free, subprocess-free, and active socket-denial proofs passed."
+    )
+
+
+def snapshot_phase16_inherited_state(
+    project: str,
+    environment: dict[str, str],
+) -> tuple[dict[str, tuple[int, str]], str, str, str]:
+    if len(PHASE_16_INHERITED_TABLES) != 57 or len(set(PHASE_16_INHERITED_TABLES)) != 57:
+        raise AssertionError(
+            "Phase 16 verifier does not cover all 57 inherited tables exactly once"
+        )
+    table_snapshot = snapshot_tables(project, environment, PHASE_16_INHERITED_TABLES)
+    empty = sorted(table for table, (count, _) in table_snapshot.items() if count < 1)
+    if empty:
+        raise AssertionError(
+            "Phase 16 zero-write proof requires nonempty inherited evidence: " + ", ".join(empty)
+        )
+    expected_catalog = ",".join(sorted(("alembic_version", *PHASE_16_INHERITED_TABLES)))
+    catalog = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT string_agg(tablename, ',' ORDER BY tablename) FROM pg_tables "
+            "WHERE schemaname = 'public';",
+        ],
+    ).stdout.strip()
+    if catalog != expected_catalog:
+        raise AssertionError("Phase 16 inherited table catalog drifted: " + catalog)
+    version = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT version_num FROM alembic_version;",
+        ],
+    ).stdout.strip()
+    if version != "0011_phase14":
+        raise AssertionError(f"Phase 16 changed the inherited migration head: {version}")
+    return table_snapshot, snapshot_phase15_function_bodies(project, environment), catalog, version
+
+
+def verify_phase16_no_schema_drift_and_zero_writes(
+    project: str,
+    environment: dict[str, str],
+    before: tuple[dict[str, tuple[int, str]], str, str, str],
+) -> None:
+    after = snapshot_phase16_inherited_state(project, environment)
+    assert_snapshots_equal(
+        before[0],
+        after[0],
+        "during Phase 16 portable source-plan acceptance",
+    )
+    if after[1:] != before[1:]:
+        raise AssertionError(
+            "Phase 16 changed an inherited function body, table catalog, or migration head"
+        )
+    print(
+        "Phase 16 preserved all 57 nonempty Phase 1-15 tables, the exact table catalog, "
         "migration head 0011_phase14, and every public function body byte-identically."
     )
 
@@ -13822,12 +14666,12 @@ def verify_phase9_compose_cleanup(
 def verify_compose(phase: int = 1) -> None:
     acceptance_identity = (
         phase10_clean_git_identity("preflight", phase=phase)
-        if phase in {10, 11, 12, 13, 14, 15}
+        if phase in {10, 11, 12, 13, 14, 15, 16}
         else None
     )
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
-    if phase in {10, 11, 12, 13, 14, 15}:
+    if phase in {10, 11, 12, 13, 14, 15, 16}:
         verify_phase10_acceptance_resource_namespace(
             "preflight",
             os.environ.copy(),
@@ -13983,14 +14827,14 @@ def verify_compose(phase: int = 1) -> None:
                                             )
                                         with phase9_stage(phase, "phase8_timeline_api"):
                                             verify_phase8_evidence_timeline_api(api_url)
-                                        if phase in {8, 9, 10, 11, 12, 13, 14, 15}:
+                                        if phase in {8, 9, 10, 11, 12, 13, 14, 15, 16}:
                                             verify_phase8_browser(
                                                 project,
                                                 environment,
                                                 frontend_url,
                                             )
                                             print("Full Compose Phase 8 verification passed.")
-                                    if phase in {10, 11, 12, 13, 14, 15}:
+                                    if phase in {10, 11, 12, 13, 14, 15, 16}:
                                         with phase9_stage(phase, "phase10_acceptance"):
                                             with phase9_stage(phase, "phase10_schema_cycle"):
                                                 verify_phase10_migration_cycle(
@@ -14024,7 +14868,7 @@ def verify_compose(phase: int = 1) -> None:
                                                     environment,
                                                     frontend_url,
                                                 )
-                                        if phase in {11, 12, 13, 14, 15}:
+                                        if phase in {11, 12, 13, 14, 15, 16}:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
                                                     verify_phase11_api(
@@ -14039,7 +14883,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         frontend_url,
                                                     )
-                                        if phase in {12, 13, 14, 15}:
+                                        if phase in {12, 13, 14, 15, 16}:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -14079,7 +14923,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {13, 14, 15}:
+                                        if phase in {13, 14, 15, 16}:
                                             with phase9_stage(phase, "phase13_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -14119,7 +14963,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {14, 15}:
+                                        if phase in {14, 15, 16}:
                                             with phase9_stage(phase, "phase14_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -14163,7 +15007,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase == 15:
+                                        if phase in {15, 16}:
                                             with phase9_stage(phase, "phase15_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -14184,6 +15028,36 @@ def verify_compose(phase: int = 1) -> None:
                                                     verify_phase15_no_schema_drift_and_zero_writes(
                                                         project,
                                                         environment,
+                                                    )
+                                        if phase == 16:
+                                            with phase9_stage(phase, "phase16_acceptance"):
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase16_no_schema_pre_snapshot",
+                                                ):
+                                                    phase16_before = (
+                                                        snapshot_phase16_inherited_state(
+                                                            project,
+                                                            environment,
+                                                        )
+                                                    )
+                                                with phase9_stage(phase, "phase16_portable"):
+                                                    verify_phase16_portable_acceptance(environment)
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase16_offline_network_denial",
+                                                ):
+                                                    verify_phase16_offline_network_denial(
+                                                        environment
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase16_no_schema_drift_zero_write",
+                                                ):
+                                                    verify_phase16_no_schema_drift_and_zero_writes(
+                                                        project,
+                                                        environment,
+                                                        phase16_before,
                                                     )
         else:
             run(
@@ -14225,16 +15099,16 @@ def verify_compose(phase: int = 1) -> None:
                     text=True,
                     env=environment,
                 )
-                if phase in {9, 10, 11, 12, 13, 14, 15}:
+                if phase in {9, 10, 11, 12, 13, 14, 15, 16}:
                     if cleanup.returncode != 0:
                         raise AssertionError(
                             f"Phase {phase} inherited Compose cleanup exited {cleanup.returncode}"
                         )
-                    if phase in {9, 11, 12, 13, 14, 15}:
+                    if phase in {9, 11, 12, 13, 14, 15, 16}:
                         verify_phase9_compose_cleanup(project, environment, phase=phase)
         finally:
             try:
-                if phase in {10, 11, 12, 13, 14, 15}:
+                if phase in {10, 11, 12, 13, 14, 15, 16}:
                     verify_phase10_acceptance_resource_namespace(
                         "post-cleanup",
                         environment,
@@ -14262,6 +15136,8 @@ def verify_compose(phase: int = 1) -> None:
         print("Full Compose Phase 14 verification passed.")
     if phase == 15:
         print("Full Compose Phase 15 verification passed.")
+    if phase == 16:
+        print("Full Compose Phase 16 verification passed.")
 
 
 def main() -> int:
@@ -14272,10 +15148,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "15"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "16"),
         help=(
             "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "
-            "13, 14, or 15 (default: FABLE5_VERIFY_PHASE or 15)."
+            "13, 14, 15, or 16 (default: FABLE5_VERIFY_PHASE or 16)."
         ),
     )
     args = parser.parse_args()

@@ -25,6 +25,7 @@ Phase 1 control plane
   -> Phase 13 point-in-time data qualification (read-only, qualification-only)
   -> Phase 14 research-ingestion eligibility (offline, assessment-only)
   -> Phase 15 Family A research-admission specification (portable, policy-only)
+  -> Phase 16 Family A point-in-time source plan (portable, plan-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -49,6 +50,7 @@ do not receive executable scaffolds.
 | 13 | frozen Family A PIT qualification profile, deterministic mock, fixed Tiingo candidate reads, sanitized append-only manifests/checks, local capture, and one historical GET | exact six-capability/twelve-check contract; mock-cannot-qualify; rights/credential/secret/network denial; migration/tamper/zero-write/inherited-browser/cross-platform proof; no research ingestion or order path |
 | 14 | offline eligibility assessment over immutable Phase 13 qualification evidence, sanitized projections/checks, explicit local assessment, and one historical GET | exact six-payload/twelve-check contract; mock-complete/blocked only; no positive eligibility state; migration/tamper/zero-write/network-denial/inherited-browser/cross-platform proof; no ingestion, research run, promotion, or order path |
 | 15 | canonical Family A non-synthetic research-admission requirements and a closed current-gap ledger | deterministic generated JSON and offline verification; exact `REQUIREMENTS_FROZEN`/`BLOCKED` outcomes; no migration, API, provider, credential, payload, snapshot, research run, performance result, promotion, execution, or live path |
+| 16 | canonical Family A point-in-time source plan with candidate-only facts, ordered future steps, and unchanged Phase 15 gaps | deterministic generated JSON and offline verification; exact `PLAN_FROZEN`/`BLOCKED` outcomes; no source selection, credential, network, data, migration, API, snapshot, evaluation policy, holdout, research, promotion, risk, execution, or live path |
 
 ## Required handoff template
 
@@ -81,4 +83,10 @@ accepted at commit `513fdfd515599e59db6911441aadf1cc30f7352c`, tree
 `5870fd4c112b7c7bee05f6240c5cbd950eeaff04`. The separately authorized Phase 15 portable
 requirements boundary is in `docs/handoffs/PHASE_15.md`; it freezes an engineering admission
 specification and current gap evidence only, not data rights, research-data eligibility, ingestion,
-research execution, performance, promotion, approval, risk clearance, or order authority.
+research execution, performance, promotion, approval, risk clearance, or order authority. Phase 15
+is formally accepted at commit `5b3052eb8f020d77cc3750b34190b4b2fa5fc16c`, tree
+`7fab5a2b2eb2f8f821b969d9cb031c806e064d28`, after clean Windows acceptance and Ubuntu run
+`29661065413` (`preflight`, `unit`, and `phase15-compose`) at that exact identity. The separately
+authorized Phase 16 portable source-plan boundary is in `docs/handoffs/PHASE_16.md`; it names only
+candidate facts and future evidence steps, leaves every Phase 15 gap unchanged, and selects no source
+or product.

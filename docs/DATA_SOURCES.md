@@ -159,6 +159,27 @@ coverage, independently reviewed rights and retention terms, currentness/revocat
 quarantine/normalization behavior. Provider documentation, a token, a Phase 13 sample hash, or a
 Phase 15 requirement hash is insufficient on its own.
 
+### Phase 16 portable point-in-time source-plan boundary
+
+Phase 16 freezes the order and evidence outputs for future Family A source selection without
+performing any of those steps. Its exact candidates are the existing bounded Phase 13 Tiingo
+candidate, Morningstar/CRSP US Stock Databases, Morningstar/CRSP Compustat Merged Database, SEC EDGAR
+submissions/XBRL, Federal Reserve ALFRED vintages, and one explicitly unselected historical-liquidity
+product slot. Candidate order is not a ranking or recommendation.
+
+Morningstar's CRSP acquisition and research-product migration, SEC EDGAR's submissions/XBRL
+surfaces, and Federal Reserve real-time/vintage documentation are official candidate facts only.
+They do not prove current product availability, schemas, complete point-in-time coverage, account
+entitlement, storage/non-display/derived-data rights, retention, redistribution, or fitness for
+Family A. The five named candidate rows remain `UNPROVEN`; the liquidity-product row remains
+`MISSING`. Every row is unselected and rights-unverified.
+
+`PLAN_FROZEN` means only that the exact requirements, seven capabilities, six candidate rows, seven
+future steps, and unchanged Phase 15 gaps reproduce. Phase 16 performs no provider request, loads no
+credential, accepts no data path, reads no observation, and creates no qualification, coverage
+manifest, quarantine, snapshot, evaluation policy, holdout, or research artifact. Future product
+selection, rights review, bounded qualification, and data admission each require separate authority.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,
