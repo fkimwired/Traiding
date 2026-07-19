@@ -411,3 +411,23 @@ The safe order is: freeze the Phase 16 metadata-only plan; separately select pro
 current rights; freeze the complete data-specific evaluation policy before observing admitted data
 or opening a holdout; separately authorize bounded qualification and admission; and only then
 consider a non-synthetic research run. `PLAN_FROZEN` is not a policy approval or performance state.
+
+## 17. Phase 17 Family A candidate-product inventory
+
+Phase 17 freezes the output of Phase 16 Step 1 without evaluating an observation or defining a
+non-synthetic evaluation policy. Its exact documented product identities are selected only for a
+future independent rights review. `OUTPUT_FROZEN` means the Step 1 metadata and
+`candidate_product_inventory_sha256` reproduce; it does not mean operational selection, entitlement,
+coverage, schema fitness, or data eligibility.
+
+The artifact outcome remains `BLOCKED`. CRSP delivery/entitlement details are unproven, LSEG Tick
+History's documented venue/depth/history claims do not prove the exact obtainable Fable5 scope, and
+every candidate still lacks independently reviewed current storage, non-display, derived-data,
+retention, redistribution, and revocation evidence. FRED's current API terms also conflict with
+planned persistence absent separately established permission for the exact series and use.
+
+Phase 17 does not change any Phase 15 evaluation gap or create the required
+`non_synthetic_evaluation_policy_sha256` or `confirmation_holdout_definition_sha256`. Phase 16 Steps
+2-7 remain `NOT_STARTED`. No product documentation, URL, review marker, or inventory hash may
+substitute for point-in-time data, a coverage manifest, a complete trial registry, purged/embargoed
+evaluation, leakage proof, calibrated costs, DSR/PBO gates, untouched holdout, or promotion evidence.

@@ -180,6 +180,31 @@ credential, accepts no data path, reads no observation, and creates no qualifica
 manifest, quarantine, snapshot, evaluation policy, holdout, or research artifact. Future product
 selection, rights review, bounded qualification, and data admission each require separate authority.
 
+### Phase 17 portable candidate-product inventory boundary
+
+Phase 17 attempts only Phase 16 Step 1 and freezes one deterministic metadata inventory with
+`candidate_product_inventory_sha256`. Its Step 1 output is `OUTPUT_FROZEN`, while the artifact
+remains `BLOCKED` because the exact delivery, entitlement, independently reviewed current rights,
+complete coverage, schemas, quality, and Family A fitness are not proven.
+
+The exact identities selected only for independent rights review are Tiingo End-of-Day,
+Fundamentals, Dividend, and Split APIs; Morningstar CRSP US Stock Databases; Morningstar
+CRSP/Compustat Merged Database; SEC EDGAR Submissions/XBRL and bulk surfaces; Federal Reserve FRED
+real-time/vintage surfaces; and
+[LSEG Tick History — Instrument & Venue Access via Web/API](https://www.lseg.com/en/data-analytics/market-data/data-feeds/tick-history).
+LSEG's official page describes 580+ venues and contributors, Level 1/2 history reaching as far back
+as January 1996, and instrument or venue-by-day extracts. Those public descriptions identify a
+review candidate only; they do not prove the Fable5 instrument/venue/field/date scope, delivery
+availability, schema, entitlement, use rights, quality, or point-in-time fitness.
+
+Tiingo's public terms remain internal-use/plan dependent; CCM depends on both CRSP US Stock and
+Compustat Xpressfeed licenses; SEC access remains subject to current fair-access policy; and FRED's
+current terms restrict storage/cache/archive/database use and preserve third-party series owners'
+rights. Each item therefore requires an independent exact-product current-use-rights and
+currentness review. `selected_for_independent_rights_review` is not operational source, provider, or
+product selection and authorizes no credential, provider request, sample, capture, ingestion,
+snapshot, evaluation, holdout, research, performance, promotion, risk, execution, or order.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

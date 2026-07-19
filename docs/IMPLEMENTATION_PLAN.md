@@ -26,6 +26,7 @@ Phase 1 control plane
   -> Phase 14 research-ingestion eligibility (offline, assessment-only)
   -> Phase 15 Family A research-admission specification (portable, policy-only)
   -> Phase 16 Family A point-in-time source plan (portable, plan-only)
+  -> Phase 17 Family A candidate-product inventory (portable, metadata-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -51,6 +52,7 @@ do not receive executable scaffolds.
 | 14 | offline eligibility assessment over immutable Phase 13 qualification evidence, sanitized projections/checks, explicit local assessment, and one historical GET | exact six-payload/twelve-check contract; mock-complete/blocked only; no positive eligibility state; migration/tamper/zero-write/network-denial/inherited-browser/cross-platform proof; no ingestion, research run, promotion, or order path |
 | 15 | canonical Family A non-synthetic research-admission requirements and a closed current-gap ledger | deterministic generated JSON and offline verification; exact `REQUIREMENTS_FROZEN`/`BLOCKED` outcomes; no migration, API, provider, credential, payload, snapshot, research run, performance result, promotion, execution, or live path |
 | 16 | canonical Family A point-in-time source plan with candidate-only facts, ordered future steps, and unchanged Phase 15 gaps | deterministic generated JSON and offline verification; exact `PLAN_FROZEN`/`BLOCKED` outcomes; no source selection, credential, network, data, migration, API, snapshot, evaluation policy, holdout, research, promotion, risk, execution, or live path |
+| 17 | canonical Family A product/reference identities for Phase 16 Step 1 and independent-rights-review routing only | deterministic generated JSON and offline verification; exact Step 1 `OUTPUT_FROZEN` plus overall `BLOCKED`; no operational source/provider/product selection, credential, network, data, migration, API, rights grant, qualification, snapshot, research, risk, execution, or live path |
 
 ## Required handoff template
 
@@ -89,4 +91,10 @@ is formally accepted at commit `5b3052eb8f020d77cc3750b34190b4b2fa5fc16c`, tree
 `29661065413` (`preflight`, `unit`, and `phase15-compose`) at that exact identity. The separately
 authorized Phase 16 portable source-plan boundary is in `docs/handoffs/PHASE_16.md`; it names only
 candidate facts and future evidence steps, leaves every Phase 15 gap unchanged, and selects no source
-or product.
+or product. Phase 16 is formally accepted at commit
+`7c4df26733b4ad13c49c455ea5f28f627012ee44`, tree
+`c69b4a60237ae3588f8544272b75becbf0a763e8`, after clean Windows acceptance and Ubuntu run
+`29675183969` (`preflight`, `unit`, and `phase16-compose`) at that exact identity. The separately
+authorized Phase 17 portable inventory boundary is in `docs/handoffs/PHASE_17.md`; it performs only
+Phase 16 Step 1 metadata output, routes exact official product identities to a future independent
+rights review, and grants no operational selection or external/data authority.

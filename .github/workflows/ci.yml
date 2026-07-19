@@ -1,4 +1,4 @@
-name: phase-16-ci
+name: phase-17-ci
 
 on:
   push:
@@ -8,11 +8,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('phase-16-pr-{0}', github.event.pull_request.number) || format('phase-16-run-{0}', github.run_id) }}
+  group: ${{ github.event_name == 'pull_request' && format('phase-17-pr-{0}', github.event.pull_request.number) || format('phase-17-run-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  FABLE5_VERIFY_PHASE: "16"
+  FABLE5_VERIFY_PHASE: "17"
   FABLE5_ALPACA_PAPER_API_KEY_ID: ""
   FABLE5_ALPACA_PAPER_SECRET_KEY: ""
   FABLE5_TIINGO_RESEARCH_API_TOKEN: ""
@@ -48,7 +48,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run contracts:check
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only --phase 16
+      - run: python scripts/verify_phase1.py --static-only --phase 17
       - run: docker compose config --quiet
 
   unit:
@@ -75,7 +75,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
 
-  phase16-compose:
+  phase17-compose:
     runs-on: ubuntu-latest
     needs: preflight
     timeout-minutes: 180
@@ -95,5 +95,5 @@ jobs:
       - run: npm ci
       - name: Pre-pull immutable browser runtime
         run: docker pull mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48
-      - name: Run Phase 16 Compose acceptance
-        run: python scripts/verify_phase1.py --phase 16
+      - name: Run Phase 17 Compose acceptance
+        run: python scripts/verify_phase1.py --phase 17

@@ -153,6 +153,21 @@ performance, promotion, paper approval, risk clearance, execution, and order sub
 It cannot consume Phase 7, 10, 11, or 12 evidence as clearance, and the `PRE_ORDER_RISK` gap remains
 `MOCK_ONLY`.
 
+## Family A candidate-product inventory (Phase 17)
+
+Phase 17 is portable metadata, not a provider, rights, data, research, governance, or risk decision.
+Its Step 1 `OUTPUT_FROZEN` state means only that exact product/reference identities and
+`candidate_product_inventory_sha256` reproduce. Selection for independent rights review is not
+operational source/provider/product selection and cannot create current authorization or a risk
+input.
+
+The artifact remains `BLOCKED` because delivery, entitlement, rights/currentness, complete coverage,
+schema fitness, and downstream prerequisites are unproven. Every source/provider/product authority,
+credential, external request, capture, licensed persistence, ingestion, snapshot, evaluation-policy
+approval, holdout, research, performance, `PASS_RESEARCH`, promotion, paper approval, risk
+clearance, execution, and order field remains false. Phase 17 cannot consume Phase 7, 10, 11, or 12
+evidence as clearance, and `PRE_ORDER_RISK` remains `MOCK_ONLY`.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

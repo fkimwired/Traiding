@@ -47,6 +47,15 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   and future review steps. It selects no provider or product, performs no external verification,
   loads no credential, and does not treat public documentation, a Phase 13 artifact, or a canonical
   hash as an entitlement or independent rights review.
+- Phase 17 records exact official product/reference identities and marks them only as selected for
+  independent rights review. That marker is not operational source/provider/product selection,
+  procurement, contract acceptance, entitlement, use-rights approval, or permission to contact a
+  provider or obtain data.
+- Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
+  CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
+  fair-access policy; FRED API terms restrict storage/cache/archive/database use and preserve
+  third-party rights; and LSEG Tick History public coverage claims do not establish a Fable5 license,
+  exact delivery, or permitted retained use.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -93,3 +102,12 @@ bindings, identities, hashes, and false authority fields. It contains no provide
 credential, payload, observation, dataset, evaluation policy, holdout, performance result, approval,
 risk clearance, order, or fill. `PLAN_FROZEN` is neither legal review nor permission to select,
 contact, capture from, store, normalize, display, derive from, or redistribute any source.
+
+Phase 17 candidate-product evidence contains only accepted Phase 16 lineage, fixed public product
+names and official URLs, narrow documentation facts, review-routing states, closed reasons, hashes,
+unchanged downstream steps/gaps, and false authority fields. `OUTPUT_FROZEN` proves only the Step 1
+metadata output; the artifact remains `BLOCKED`. It contains no contract body, credential,
+entitlement, provider response, licensed data, observation, schema sample, evaluation policy,
+holdout, performance result, approval, risk clearance, order, or fill. Independent counsel/rights
+review remains required before any access, storage, non-display use, derived-data use, retention,
+redistribution, or revocation conclusion.
