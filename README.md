@@ -5,10 +5,10 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 17 implementation status
+## Phase 18 implementation status
 
-The formally accepted Phase 16 identity and the authorized Phase 17 portable candidate-product
-inventory surface include:
+The formally accepted Phase 17 identity and the authorized Phase 18 portable current-use-rights
+review surface include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -113,7 +113,14 @@ inventory surface include:
   frozen from official documentation for independent rights review only; and
 - a Step 1 `OUTPUT_FROZEN` state with `candidate_product_inventory_sha256`, while the overall
   artifact remains truthfully `BLOCKED` because delivery, entitlement, current-use rights, complete
-  coverage, schema fitness, and every downstream prerequisite remain unproven.
+  coverage, schema fitness, and every downstream prerequisite remain unproven;
+- one canonical technical public-terms review of the exact nine Phase 17 identities, with 24 inert
+  official-source metadata rows frozen at `2026-07-19T15:58:18.5305832Z`;
+- exact five-state classifications for storage, non-display/internal use, derived data,
+  retention/deletion, redistribution, revocation/currentness, delivery, and entitlement; and
+- exact `BLOCKED_NO_OPERATIONAL_SELECTION`, Step 1/2 `OUTPUT_FROZEN`, and Step 3-7 `NOT_STARTED`
+  states, with no operational provider/account/data request, data capture, database write, research,
+  execution, order, or live path.
 
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
@@ -138,9 +145,13 @@ selecting a source or performing any future step. Phase 16 is formally accepted 
 `7c4df26733b4ad13c49c455ea5f28f627012ee44`, tree
 `c69b4a60237ae3588f8544272b75becbf0a763e8`, after clean Windows acceptance and successful GitHub
 Actions run `29675183969` (`preflight`, `unit`, and `phase16-compose`) at that exact identity.
-Phase 17 performs only the separately authorized metadata inventory attempt. Selection for
-independent rights review is not an operational provider/source/product selection and grants no
-external or data authority.
+Phase 17 is formally accepted at commit `fd89d3905e9c2ea12223e30b5822a0fdda795a26`, tree
+`f2eb791785dd10cc9316d174505b65eda919fe71`, after clean Windows acceptance and successful GitHub
+Actions run `29682173053` (`preflight`, `unit`, and `phase17-compose`) at that exact identity.
+Phase 18 performs only the separately authorized technical review of official public terms. Official
+web documentation was read during that review; the generated artifact, verifier, tests, and CI do not
+browse. A public-rights finding, including the SEC row, is not operational provider/source/product
+selection and grants no external-data or later-step authority.
 
 ## Prerequisites
 
@@ -148,8 +159,8 @@ external or data authority.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 17 local or CI
-acceptance. The Phase 17 artifact operations are portable, database-free, and network-denied; the
+No data-provider, LLM, broker, or commercial credential is needed for Phase 18 local or CI
+acceptance. The Phase 18 artifact operations are portable, database-free, and network-denied; the
 full closure gate still starts the inherited Compose/PostgreSQL stack solely to prove zero schema or
 row drift. A separately authorized
 external qualification capture requires an existing token plus independently reviewed current
@@ -215,23 +226,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 17 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 18 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "17"
+$env:FABLE5_VERIFY_PHASE = "18"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 17 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 17:
+Run the complete Phase 18 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 18:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "17"
+$env:FABLE5_VERIFY_PHASE = "18"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 17
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 17
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 18
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 18
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -239,10 +250,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 17 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 18 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 17 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 18 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Family A admission specification
 
@@ -286,6 +297,28 @@ Verify one supplied regular canonical UTF-8 JSON plan offline:
 steps, and unchanged Phase 15 gap bindings reproduce. All candidates remain unselected and
 rights-unverified, every future step remains `NOT_STARTED`, and no credential, network, provider,
 data, database, evaluation, research, risk, broker, or execution dependency is permitted.
+
+### Family A current-use-rights review
+
+Generate the frozen public-terms review to stdout only:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\generate_family_a_current_use_rights_review.py `
+  --confirm-public-terms-review-only
+```
+
+Verify one supplied regular canonical UTF-8 JSON review offline:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_family_a_current_use_rights_review.py `
+  --review .\docs\PHASE_18_FAMILY_A_CURRENT_USE_RIGHTS_REVIEW.json
+```
+
+The official pages were reviewed read-only at the fixed artifact timestamp, but ordinary generation,
+verification, tests, and CI do not browse. `BLOCKED_NO_OPERATIONAL_SELECTION` is the only valid
+aggregate outcome: SEC public reuse support does not prove fitness or selection; FRED prohibits the
+planned non-display software/system/model use and persistence; and all operational authority remains
+false.
 
 ### Local evidence verification
 
@@ -372,7 +405,7 @@ capability projections, and twelve ordered prerequisite checks. It creates no pr
 research snapshot, performance result, promotion, approval, risk clearance, or execution authority.
 Phase 15 adds no migration and keeps Alembic head at `0011_phase14`. Its generator and verifier are
 database-free; acceptance proves the complete inherited schema, rows, SQL functions, OpenAPI, and
-generated contracts remain unchanged. Phases 16 and 17 also add no migration, API, or generated
+generated contracts remain unchanged. Phases 16-18 also add no migration, API, or generated
 contract; their portable operations preserve the same head and all 57 inherited tables/functions.
 
 ## Architecture
@@ -380,12 +413,12 @@ contract; their portable operations preserve the same head and all 57 inherited 
 | Component | Current responsibility | Boundary |
 |---|---|---|
 | `frontend` | Complete four-mode workflows, exact lineage, one deterministic local simulation action, and explicit local evidence download | no client-authored trade parameters, server export, or real/live controls |
-| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13/14 evidence GETs | unchanged by Phases 15-17; no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
+| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13/14 evidence GETs | unchanged by Phases 15-18; no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
-| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility evidence | unchanged by database-free Phases 15-17; no credential, raw provider payload, executable order, fill, or live record |
+| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility evidence | unchanged by database-free Phases 15-18; no credential, raw provider payload, executable order, fill, or live record |
 | `redis` | queue/cache connectivity | no trading queue exists |
-| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility contracts | unchanged by Phases 15-17; never a second schema authority |
+| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility contracts | unchanged by Phases 15-18; never a second schema authority |
 
 No order submission adapter, vendor SDK, execution intent, or order-state abstraction is present.
 The Phase 12 adapter exposes only six fixed paper-readiness inspections. Phase 13 adds a separate
@@ -406,6 +439,11 @@ artifact, and offline generator/verifier commands. Its exact product identities 
 for future independent rights review. It adds no operational provider/source/product selection,
 credential, transport, data, API, database, evaluation, research, risk, paper, or frontend product
 surface.
+
+Phase 18 adds only a pure Family A public-terms rights-review artifact, contracts, and offline
+generator/verifier commands. It freezes a fixed-time technical review and blocked result; it adds no
+operational selection, credential, provider/account/data request, data, API, database, evaluation,
+research, risk, paper, order, or frontend product surface.
 
 ## Repository guide
 
@@ -451,11 +489,15 @@ surface.
 - `docs/PHASE_17_FAMILY_A_CANDIDATE_PRODUCT_INVENTORY_DECISIONS.md`: frozen product identities,
   official-source facts, review-selection semantics, blocked outcome, and no-data decisions.
 - `docs/handoffs/PHASE_17.md`: Phase 17 implementation/acceptance contract and hard stop boundary.
+- `docs/PHASE_18_FAMILY_A_CURRENT_USE_RIGHTS_REVIEW_DECISIONS.md`: fixed official-source metadata,
+  exact rights classifications, blocked outcome, currentness limits, and false-authority decisions.
+- `docs/handoffs/PHASE_18.md`: Phase 18 implementation/acceptance contract and Phase 19 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
   qualification, Phase 14 offline eligibility, and pure Phase 15 portable admission-specification
-  plus Phase 16 portable source-plan and Phase 17 portable candidate-inventory contracts and tests.
+  plus Phase 16 portable source-plan, Phase 17 candidate inventory, and Phase 18 public-terms review
+  contracts and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -474,8 +516,8 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 17 gate from one honest committed SHA/tree, then require same-SHA
-Ubuntu acceptance. Stop after Phase 17. Do not open a pull request, tag, sign, publish, release,
+Complete the direct local Phase 18 gate from one honest committed SHA/tree, then require same-SHA
+Ubuntu acceptance. Stop after Phase 18. Do not open a pull request, tag, sign, publish, release,
 deploy, perform an unauthorized credentialed probe, ingest data, run or promote a strategy, submit or
-reconcile an order, begin a later phase, or add any live capability. Until both Phase 17 gates pass,
-report Phase 17 as implemented but not formally accepted.
+reconcile an order, begin a later phase, or add any live capability. Until both Phase 18 gates pass,
+report Phase 18 as implemented but not formally accepted.

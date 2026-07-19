@@ -1,4 +1,4 @@
-name: phase-17-ci
+name: phase-18-ci
 
 on:
   push:
@@ -8,11 +8,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('phase-17-pr-{0}', github.event.pull_request.number) || format('phase-17-run-{0}', github.run_id) }}
+  group: ${{ github.event_name == 'pull_request' && format('phase-18-pr-{0}', github.event.pull_request.number) || format('phase-18-run-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  FABLE5_VERIFY_PHASE: "17"
+  FABLE5_VERIFY_PHASE: "18"
   FABLE5_ALPACA_PAPER_API_KEY_ID: ""
   FABLE5_ALPACA_PAPER_SECRET_KEY: ""
   FABLE5_TIINGO_RESEARCH_API_TOKEN: ""
@@ -23,6 +23,12 @@ env:
   FABLE5_TIINGO_RESEARCH_STORAGE_ALLOWED: ""
   FABLE5_TIINGO_RESEARCH_NON_DISPLAY_ALLOWED: ""
   FABLE5_TIINGO_RESEARCH_DERIVED_DATA_ALLOWED: ""
+  FABLE5_FRED_API_KEY: ""
+  FABLE5_LSEG_API_KEY: ""
+  FABLE5_LSEG_CLIENT_ID: ""
+  FABLE5_LSEG_CLIENT_SECRET: ""
+  FABLE5_CRSP_USERNAME: ""
+  FABLE5_CRSP_PASSWORD: ""
 
 jobs:
   preflight:
@@ -48,7 +54,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run contracts:check
       - run: npm run build
-      - run: python scripts/verify_phase1.py --static-only --phase 17
+      - run: python scripts/verify_phase1.py --static-only --phase 18
       - run: docker compose config --quiet
 
   unit:
@@ -75,7 +81,7 @@ jobs:
       - run: python -m pytest
       - run: npm test
 
-  phase17-compose:
+  phase18-compose:
     runs-on: ubuntu-latest
     needs: preflight
     timeout-minutes: 180
@@ -95,5 +101,5 @@ jobs:
       - run: npm ci
       - name: Pre-pull immutable browser runtime
         run: docker pull mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48
-      - name: Run Phase 17 Compose acceptance
-        run: python scripts/verify_phase1.py --phase 17
+      - name: Run Phase 18 Compose acceptance
+        run: python scripts/verify_phase1.py --phase 18

@@ -68,9 +68,11 @@ a new integration candidate.
 Official [`data.sec.gov` APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces)
 cover submissions and XBRL JSON without an API key. EDGAR
 [full-text search](https://www.sec.gov/edgar/search/index.html) is a separate interface. Follow the
-SEC's [developer/fair-access guidance](https://www.sec.gov/about/developer-resources), including an
-identifying User-Agent and no more than 10 requests per second. Persist accession and accepted time;
-filing period-end is not availability.
+SEC's [developer/fair-access guidance](https://www.sec.gov/about/developer-resources) and
+[Accessing EDGAR Data](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data).
+The latter requires a declared User-Agent with company name and administrative contact; current
+fair-access guidance limits aggregate access to no more than 10 requests per second. Persist
+accession and accepted time; filing period-end is not availability.
 
 ### FRED and ALFRED
 
@@ -79,8 +81,10 @@ today's historical values can include later revisions. Use
 [real-time periods](https://fred.stlouisfed.org/docs/api/fred/realtime_period.html) and
 [vintage dates](https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html) for point-in-time
 research. An API key is required for Version 1, and the
-[terms](https://fred.stlouisfed.org/docs/api/terms_of_use.html) note that third-party series can have
-additional rights.
+[terms](https://fred.stlouisfed.org/legal/terms/) note that third-party series can have
+additional rights. Current general prohibition (p) and API prohibition (k) also prohibit using FRED
+Services or API content in connection with development or training of software systems or machine-
+learning models; separate provisions prohibit the planned persistent database use.
 
 ### Alpaca paper simulation
 
@@ -199,11 +203,43 @@ availability, schema, entitlement, use rights, quality, or point-in-time fitness
 
 Tiingo's public terms remain internal-use/plan dependent; CCM depends on both CRSP US Stock and
 Compustat Xpressfeed licenses; SEC access remains subject to current fair-access policy; and FRED's
-current terms restrict storage/cache/archive/database use and preserve third-party series owners'
-rights. Each item therefore requires an independent exact-product current-use-rights and
+current terms prohibit the planned software/system/model use, restrict storage/cache/archive/
+database use, and preserve third-party series owners' rights. Each item therefore requires an
+independent exact-product current-use-rights and
 currentness review. `selected_for_independent_rights_review` is not operational source, provider, or
 product selection and authorizes no credential, provider request, sample, capture, ingestion,
 snapshot, evaluation, holdout, research, performance, promotion, risk, execution, or order.
+
+### Phase 18 portable current-use-rights review boundary
+
+Phase 18 performs the technical public-metadata review for Phase 16 Step 2 only. Official first-party
+web pages were accessed read-only and their exact URLs, titles, publishers, stated update dates,
+clause locators, applicable product codes, and conservative facts were frozen at
+`2026-07-19T15:58:18.5305832Z`. Runtime generation, verification, tests, and CI do not browse, and the
+artifact stores no remote HTTP response body, contract, license, entitlement, provider response, or
+data.
+
+The aggregate is `BLOCKED_NO_OPERATIONAL_SELECTION`. Tiingo standard terms prohibit the persistent
+database and derivative-work use required by the planned snapshot and leave account-specific terms
+unverified. Morningstar CRSP and LSEG uses require private product licenses that have not been
+reviewed. FRED public terms prohibit the planned non-display software/system/model use, storage,
+retention, and derivative use. SEC
+public guidance supports reuse of the described public content, but that single rights finding does
+not prove normalized point-in-time coverage, identity/schema/quality fitness, current access-policy
+compliance, or operational selection.
+
+Each product freezes eight dimensions using only `ALLOWED_PUBLIC`,
+`CONDITIONAL_ACCOUNT_LICENSE`, `PRIVATE_LICENSE_REQUIRED`, `PROHIBITED_PUBLIC_TERMS`, or
+`UNPROVEN`: storage, non-display/internal use, derived data, retention/deletion, redistribution,
+revocation/currentness, delivery, and entitlement. These are technical evidence states, not legal
+opinions or grants. Every source requires later revalidation; any exact executed license must bind
+the Fable5 legal entity, SKU, delivery, territory, intended use, third-party rights, persistence,
+non-display, derived, retention/deletion, redistribution, audit, termination, and revocation scope.
+
+Phase 16 Steps 1/2 are `OUTPUT_FROZEN`; Steps 3-7 remain `NOT_STARTED`. Phase 18 performs no
+operational provider/account/data request, credential loading, sample qualification, data capture,
+database write, ingestion, snapshot, evaluation, holdout, research, promotion, risk, execution, or
+order operation. All nineteen inherited Phase 15 gaps remain unchanged.
 
 ## Data-quality acceptance before provider approval
 

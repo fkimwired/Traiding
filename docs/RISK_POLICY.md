@@ -168,6 +168,21 @@ approval, holdout, research, performance, `PASS_RESEARCH`, promotion, paper appr
 clearance, execution, and order field remains false. Phase 17 cannot consume Phase 7, 10, 11, or 12
 evidence as clearance, and `PRE_ORDER_RISK` remains `MOCK_ONLY`.
 
+## Family A current-use-rights review (Phase 18)
+
+Phase 18 is a fixed-time technical public-terms review, not a provider, source, legal, data,
+governance, or risk decision. The exact aggregate is `BLOCKED_NO_OPERATIONAL_SELECTION`; Step 1 and
+Step 2 are `OUTPUT_FROZEN`, while Steps 3-7 remain `NOT_STARTED`. The SEC public-rights row cannot
+be interpreted as operational selection or a risk input. FRED remains incompatible with planned
+non-display software/system/model use and persistence under current public terms, and the Tiingo,
+Morningstar/CRSP, and LSEG blockers remain fail-closed.
+
+Every operational selection, account/credential, entitlement/license verification, currentness,
+provider/account/data request, capture, persistence, ingestion, snapshot, evaluation-policy,
+holdout, research, performance, `PASS_RESEARCH`, promotion, paper approval, risk clearance,
+execution, and order field remains false. Phase 18 cannot consume Phase 7, 10, 11, or 12 evidence as
+clearance; `PRE_ORDER_RISK` remains `MOCK_ONLY`, and no risk limit is computed or mutated.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

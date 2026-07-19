@@ -170,8 +170,8 @@ def test_phase16_baseline_parser_counts_boundaries_and_exact_allowlist_are_froze
     assert verifier.PHASE_16_INHERITED_TABLES == verifier.PHASE_15_INHERITED_TABLES
     assert len(verifier.PHASE_16_INHERITED_TABLES) == 57
     assert len(set(verifier.PHASE_16_INHERITED_TABLES)) == 57
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 18)] == list(range(1, 18))
-    for invalid in ("0", "18", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 19)] == list(range(1, 19))
+    for invalid in ("0", "19", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -300,13 +300,13 @@ def test_phase16_browser_gates_remain_stage_local_and_active() -> None:
         assert "snapshot_tables(project, environment, all_tables)" in browser_source
 
     for required in (
-        "if phase in {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}:",
-        "if phase in {10, 11, 12, 13, 14, 15, 16, 17}:",
-        "if phase in {11, 12, 13, 14, 15, 16, 17}:",
-        "if phase in {12, 13, 14, 15, 16, 17}:",
-        "if phase in {13, 14, 15, 16, 17}:",
-        "if phase in {14, 15, 16, 17}:",
-        "if phase in {15, 16, 17}:",
+        "if phase in {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}:",
+        "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18}:",
+        "if phase in {11, 12, 13, 14, 15, 16, 17, 18}:",
+        "if phase in {12, 13, 14, 15, 16, 17, 18}:",
+        "if phase in {13, 14, 15, 16, 17, 18}:",
+        "if phase in {14, 15, 16, 17, 18}:",
+        "if phase in {15, 16, 17, 18}:",
     ):
         assert required in source
 
@@ -315,8 +315,8 @@ def test_phase16_browser_gates_remain_stage_local_and_active() -> None:
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "17"' in browser
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17"])' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "18"' in browser
+        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18"])' in browser
 
 
 def test_phase16_portable_no_schema_identity_cleanup_and_ci_are_bound(
@@ -356,16 +356,16 @@ def test_phase16_portable_no_schema_identity_cleanup_and_ci_are_bound(
         'verify_phase10_acceptance_resource_namespace(\n            "preflight"',
         'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"',
         'print("Full Compose Phase 16 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "17")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "18")',
     ):
         assert required in source
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-17-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "17"' in workflow
-    assert "phase17-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 17") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 17") == 1
+    assert workflow.startswith("name: phase-18-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "18"' in workflow
+    assert "phase18-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 18") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 18") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     assert "secrets." not in workflow

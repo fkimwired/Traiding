@@ -51,11 +51,25 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   independent rights review. That marker is not operational source/provider/product selection,
   procurement, contract acceptance, entitlement, use-rights approval, or permission to contact a
   provider or obtain data.
+- Phase 18 records a technical fixed-time review of official public terms. Those official pages were
+  accessed read-only during the architecture review;
+  `operational_external_request_performed=false` means no operational provider, account,
+  entitlement, or data request. The generator, verifier, tests, and CI do not browse and store no
+  remote HTTP response body.
+- The Phase 18 aggregate is `BLOCKED_NO_OPERATIONAL_SELECTION`. SEC public reuse support remains
+  subject to current fair-access/security policy and does not prove fitness or selection. Tiingo
+  public terms make internal use conditional and prohibit the planned persistent-database and
+  derived use; FRED public terms prohibit the planned non-display software/system/model use,
+  persistence, and derived use. Morningstar/CRSP and LSEG exact uses require private licenses that
+  were not reviewed. These technical classifications are not
+  legal advice, current entitlement, or authority to contact a provider or obtain data.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
-  fair-access policy; FRED API terms restrict storage/cache/archive/database use and preserve
-  third-party rights; and LSEG Tick History public coverage claims do not establish a Fable5 license,
-  exact delivery, or permitted retained use.
+  fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
+  EDGAR Data; FRED general prohibition (p) and API prohibition (k) prohibit using its content in
+  connection with software-system or machine-learning development/training, while separate terms
+  restrict storage/cache/archive/database use and preserve third-party rights; and LSEG Tick History
+  public coverage claims do not establish a Fable5 license, exact delivery, or permitted retained use.
 - Derived-data rights are provider-specific and require review before external distribution.
 
 ## Scope-change review
@@ -111,3 +125,13 @@ entitlement, provider response, licensed data, observation, schema sample, evalu
 holdout, performance result, approval, risk clearance, order, or fill. Independent counsel/rights
 review remains required before any access, storage, non-display use, derived-data use, retention,
 redistribution, or revocation conclusion.
+
+Phase 18 current-use-rights evidence contains only accepted Phase 17 lineage, 24 inert official-
+source metadata rows, conservative paraphrases, eight technical dimension states per product,
+blocked findings, step states, identities, and hashes. It contains no remote HTTP response body,
+legal opinion,
+executed contract, account, credential, entitlement, provider response, licensed data, observation,
+schema sample, evaluation policy, holdout, performance result, approval, risk clearance, order, or
+fill. Public-source facts were reviewed at `2026-07-19T15:58:18.5305832Z` but are not continuously
+authenticated. Any later action must revalidate current official policy and exact executed rights;
+the artifact itself grants no operational provider/source/product selection or later-step authority.

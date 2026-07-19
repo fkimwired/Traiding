@@ -199,8 +199,8 @@ def test_phase17_parser_baseline_allowlist_and_inherited_release_boundary_are_ex
     assert len(verifier.PHASE_17_ALLOWED_WRITES) == 37
     assert verifier.PHASE_17_INHERITED_TABLES == verifier.PHASE_16_INHERITED_TABLES
     assert len(verifier.PHASE_17_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 18)] == list(range(1, 18))
-    for invalid in ("0", "18", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 19)] == list(range(1, 19))
+    for invalid in ("0", "19", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -208,6 +208,10 @@ def test_phase17_parser_baseline_allowlist_and_inherited_release_boundary_are_ex
     assert tuple(phase16) == ("release_closure", "active_phase")
     assert phase16["release_closure"].default is True
     assert phase16["active_phase"].default == 16
+    phase17 = inspect.signature(verifier.verify_phase17_static).parameters
+    assert tuple(phase17) == ("release_closure", "active_phase")
+    assert phase17["release_closure"].default is True
+    assert phase17["active_phase"].default == 17
     source = normalized(ROOT / "scripts/verify_phase1.py")
     branch = source.split("if phase == 17:", 1)[1].split("verify_static_inherited(phase)", 1)[0]
     for required in (
@@ -463,7 +467,7 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         "verify_phase17_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 17 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "17")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "18")',
     ):
         assert required in source
 
@@ -481,23 +485,18 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-17-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "17"' in workflow
-    assert "phase17-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 17") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 17") == 1
+    assert workflow.startswith("name: phase-18-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "18"' in workflow
+    assert "phase18-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 18") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 18") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
-    for credential_name in (
-        *verifier.PHASE_12_CREDENTIAL_ENV_NAMES,
-        *verifier.PHASE_13_CREDENTIAL_ENV_NAMES,
-    ):
+    for credential_name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES:
         assert f'{credential_name}: ""' in workflow
     for forbidden in (
         "secrets.",
         "FABLE5_UPDATE_SNAPSHOTS",
-        "FRED_API_KEY",
-        "LSEG_",
     ):
         assert forbidden not in workflow
 
@@ -505,15 +504,15 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "17" in wrapper
+        assert "18" in wrapper
 
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "17"' in browser
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17"])' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "18"' in browser
+        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18"])' in browser
 
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
     assert "choices=(9,)" in runner

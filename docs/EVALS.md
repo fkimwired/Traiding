@@ -423,11 +423,35 @@ coverage, schema fitness, or data eligibility.
 The artifact outcome remains `BLOCKED`. CRSP delivery/entitlement details are unproven, LSEG Tick
 History's documented venue/depth/history claims do not prove the exact obtainable Fable5 scope, and
 every candidate still lacks independently reviewed current storage, non-display, derived-data,
-retention, redistribution, and revocation evidence. FRED's current API terms also conflict with
-planned persistence absent separately established permission for the exact series and use.
+retention, redistribution, and revocation evidence. FRED's current terms also prohibit the planned
+software/system/model use and conflict with planned persistence absent separately established
+permission for the exact series and use.
 
 Phase 17 does not change any Phase 15 evaluation gap or create the required
 `non_synthetic_evaluation_policy_sha256` or `confirmation_holdout_definition_sha256`. Phase 16 Steps
 2-7 remain `NOT_STARTED`. No product documentation, URL, review marker, or inventory hash may
 substitute for point-in-time data, a coverage manifest, a complete trial registry, purged/embargoed
 evaluation, leakage proof, calibrated costs, DSR/PBO gates, untouched holdout, or promotion evidence.
+
+## 18. Phase 18 Family A current-use-rights review
+
+Phase 18 freezes only the technical public-metadata review for Phase 16 Step 2. The official pages
+were read at `2026-07-19T15:58:18.5305832Z`, while deterministic generation and verification are
+offline. The aggregate `BLOCKED_NO_OPERATIONAL_SELECTION` result and Step 1/2 `OUTPUT_FROZEN`
+states are integrity evidence, not a passed data, evaluation, or promotion gate.
+
+The SEC row's public reuse support does not prove normalized point-in-time coverage, stable security
+identity, amendment/revision handling, schema quality, data sufficiency, or current policy compliance.
+Tiingo public terms conflict with the planned persistent/derived research snapshot. FRED general
+prohibition (p) and API prohibition (k) prohibit the planned non-display software/system/model use,
+while separate FRED terms prohibit persistence and derived use. Morningstar/CRSP and LSEG uses
+require private product licenses not present in repository evidence.
+No row can supply `non_synthetic_evaluation_policy_sha256`,
+`confirmation_holdout_definition_sha256`, observations, a trial registry, purged/embargoed walk-
+forward evidence, leakage results, calibrated baseline/stress costs or slippage, DSR, PBO, an
+untouched holdout, or promotion evidence.
+
+All nineteen Phase 15 evaluation gaps remain unchanged and Steps 3-7 remain `NOT_STARTED`. Phase 18
+performs no operational provider/account/data request, capture, database write, research run,
+performance computation, `PASS_RESEARCH`, promotion, execution, or order operation. Any forged
+cleared/completed rights outcome or attempted evaluation upgrade is invalid.
