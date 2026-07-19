@@ -63,6 +63,11 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   persistence, and derived use. Morningstar/CRSP and LSEG exact uses require private licenses that
   were not reviewed. These technical classifications are not
   legal advice, current entitlement, or authority to contact a provider or obtain data.
+- Phase 19 is an offline assessment of two missing Phase 16 Step 3 prior-evidence hashes. It produces
+  neither `non_synthetic_evaluation_policy_sha256` nor
+  `confirmation_holdout_definition_sha256`, contacts no provider or counsel, reads no account or
+  data, and cannot convert a public-terms classification into operational selection, permitted use,
+  policy approval, holdout authority, or research authority.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -135,3 +140,12 @@ schema sample, evaluation policy, holdout, performance result, approval, risk cl
 fill. Public-source facts were reviewed at `2026-07-19T15:58:18.5305832Z` but are not continuously
 authenticated. Any later action must revalidate current official policy and exact executed rights;
 the artifact itself grants no operational provider/source/product selection or later-step authority.
+
+Phase 19 Step 3 prerequisite-assessment evidence contains only accepted Phase 18 lineage, fixed
+repository-methodology findings, the two missing prerequisite names without values, unchanged Phase
+15 gap bindings, unchanged Phase 16 step states, identities, hashes, and false authority fields. Its
+`OUTPUT_FROZEN` assessment state proves only that the blocked assessment reproduces. It contains no
+legal opinion, account, credential, entitlement, contract body, provider response, observation,
+dataset, schema sample, complete evaluation policy, approved threshold, exact holdout interval,
+holdout label, feature, signal, return, metric, performance result, approval, risk clearance, order,
+or fill. It does not authorize Step 3 or any external action.

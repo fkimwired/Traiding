@@ -455,3 +455,31 @@ All nineteen Phase 15 evaluation gaps remain unchanged and Steps 3-7 remain `NOT
 performs no operational provider/account/data request, capture, database write, research run,
 performance computation, `PASS_RESEARCH`, promotion, execution, or order operation. Any forged
 cleared/completed rights outcome or attempted evaluation upgrade is invalid.
+
+## 19. Phase 19 Family A Step 3 prerequisite assessment
+
+Phase 19 evaluates only whether the exact prior evidence required before Phase 16 Step 3 exists. The
+truthful conclusion is `BLOCKED_MISSING_EVALUATION_POLICY_AND_HOLDOUT`: neither
+`non_synthetic_evaluation_policy_sha256` nor `confirmation_holdout_definition_sha256` exists. The
+assessment names both missing requirements but never emits a value for either one. Its own canonical
+hashes prove only the integrity of the blocked assessment.
+
+The distinction is mandatory. Phase 5/6 provide deterministic synthetic proof of nested
+chronological evaluation, actual-label-interval purging, conditional embargo mechanics, train-only
+preprocessing, complete trial accounting, DSR/PBO calculation, component cost/stress ledgers,
+leakage blocking, and label-blind holdout isolation. Their registered dates, fold sizes, thresholds,
+calibration identifiers, regimes, limits, and results remain synthetic fixture values. They cannot
+be copied, relabeled, or hashed into a non-synthetic evaluation policy.
+
+A complete policy still requires selected products and schemas, current executed rights, exact
+history/calendar and availability/missingness semantics, full sample boundaries, an exact untouched
+confirmation interval, market-calibrated fee/spread/impact/latency/borrow sources and vintages,
+regimes, sample-adequacy and promotion thresholds, and appropriate risk limits. A holdout protocol
+is not a holdout definition: without an approved exact interval and calendar, both
+`confirmation_holdout_defined` and `confirmation_holdout_opened` remain false, and no label may be
+read.
+
+Phase 19 therefore freezes only an assessment output. All nineteen Phase 15 gaps remain unchanged;
+Phase 16 Steps 1/2 remain `OUTPUT_FROZEN`, Steps 3-7 remain `NOT_STARTED`, and Step 3 receives no
+prior-evidence or output hash. There is no data access, trial, return, metric, performance state,
+`PASS_RESEARCH`, promotion, approval, risk clearance, execution, or order authority.

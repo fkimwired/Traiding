@@ -241,6 +241,29 @@ operational provider/account/data request, credential loading, sample qualificat
 database write, ingestion, snapshot, evaluation, holdout, research, promotion, risk, execution, or
 order operation. All nineteen inherited Phase 15 gaps remain unchanged.
 
+### Phase 19 portable Step 3 prerequisite-assessment boundary
+
+Phase 19 performs no source-plan step and makes no provider, source, or product choice. It binds the
+accepted Phase 18 blocked result and assesses only the two required prior-evidence names for Phase 16
+Step 3. Both remain missing:
+
+```text
+non_synthetic_evaluation_policy_sha256
+confirmation_holdout_definition_sha256
+```
+
+The artifact never supplies a value for either name. Candidate metadata, public-terms findings,
+requirements hashes, synthetic policy hashes, and assessment hashes cannot substitute for the
+missing evidence. Because there is still no operational selection, current executed-rights proof,
+exact schema, full history/calendar coverage, or market calibration, Phase 19 cannot freeze a
+complete data-specific policy. Because there is no approved exact interval/calendar, it cannot
+define or open a non-synthetic confirmation holdout.
+
+Steps 1/2 remain `OUTPUT_FROZEN`; Steps 3-7 remain `NOT_STARTED`; all nineteen Phase 15 gap states
+remain unchanged. Phase 19 performs no provider/account/data request, credential loading, sample
+qualification, capture, persistence, database write, ingestion, snapshot, policy approval, holdout
+access, research, performance, promotion, risk, execution, or order operation.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

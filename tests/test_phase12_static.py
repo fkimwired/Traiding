@@ -59,8 +59,8 @@ def test_phase12_baseline_parser_and_exact_allowlist_are_frozen() -> None:
     assert verifier.PHASE_12_OUTCOMES == OUTCOMES
     assert verifier.PHASE_12_CHECK_CODES == CHECK_CODES
     assert verifier.FORBIDDEN_EXECUTABLE_PATTERNS.search("/v2/orders") is not None
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 19)] == list(range(1, 19))
-    for invalid in ("0", "19", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 20)] == list(range(1, 20))
+    for invalid in ("0", "20", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -242,15 +242,15 @@ def test_phase12_credentials_cli_and_security_are_fail_closed() -> None:
 
 def test_phase12_ci_full_verifier_and_cleanup_are_bound() -> None:
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-18-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "18"' in workflow
+    assert workflow.startswith("name: phase-19-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "19"' in workflow
     assert 'FABLE5_ALPACA_PAPER_API_KEY_ID: ""' in workflow
     assert 'FABLE5_ALPACA_PAPER_SECRET_KEY: ""' in workflow
     assert "secrets." not in workflow
-    assert "phase18-compose:" in workflow
+    assert "phase19-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 18") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 18") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 19") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 19") == 1
     assert "FABLE5_UPDATE_SNAPSHOTS" not in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
 
@@ -268,16 +268,16 @@ def test_phase12_ci_full_verifier_and_cleanup_are_bound() -> None:
         'print("Full Compose Phase 12 verification passed.")',
     ):
         assert required in verifier
-    assert "if phase in {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}:" in verifier
-    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18}:" in verifier
-    assert "if phase in {11, 12, 13, 14, 15, 16, 17, 18}:" in verifier
-    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "18")' in verifier
+    assert "if phase in {" in verifier
+    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:" in verifier
+    assert "if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19}:" in verifier
+    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "19")' in verifier
 
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         source = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "18"' in source
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18"])' in source
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "19"' in source
+        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])' in source
         assert "inheritedModes" in source

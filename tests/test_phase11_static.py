@@ -58,8 +58,8 @@ def test_phase11_baseline_parser_and_exact_allowlist_are_frozen() -> None:
     assert verifier.EXPECTED_PHASE_11_BASELINE_TREE == BASELINE_TREE
     assert verifier.PHASE_11_BUNDLE_SCHEMA_VERSION == BUNDLE_VERSION
     assert verifier.PHASE_11_BUNDLE_PATH == BUNDLE_PATH
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 19)] == list(range(1, 19))
-    for invalid in ("0", "19", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 20)] == list(range(1, 20))
+    for invalid in ("0", "20", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -203,12 +203,12 @@ def test_phase11_linux_browser_is_read_only_pinned_and_never_updates_snapshots()
     assert "FABLE5_VISUAL_CORPUS=synthetic" not in command
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-18-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "18"' in workflow
-    assert "phase18-compose:" in workflow
+    assert workflow.startswith("name: phase-19-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "19"' in workflow
+    assert "phase19-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
     assert workflow.count(f"docker pull {IMMUTABLE_PLAYWRIGHT_IMAGE}") == 1
-    assert workflow.count("python scripts/verify_phase1.py --phase 18") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 19") == 1
     assert "FABLE5_UPDATE_SNAPSHOTS" not in workflow
     assert "--update-snapshots" not in workflow
 
@@ -227,10 +227,10 @@ def test_phase11_full_verifier_binds_zero_write_cleanup_and_same_git_identity() 
         'print("Full Compose Phase 11 verification passed.")',
     ):
         assert required in source
-    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18}:" in source
-    assert "if phase in {11, 12, 13, 14, 15, 16, 17, 18}:" in source
+    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:" in source
+    assert "if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19}:" in source
     assert "verify_phase12_api(" in source
-    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "18")' in source
+    assert 'default=os.environ.get("FABLE5_VERIFY_PHASE", "19")' in source
 
 
 def test_phase11_docs_freeze_integrity_only_and_hard_stop() -> None:

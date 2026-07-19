@@ -183,6 +183,24 @@ holdout, research, performance, `PASS_RESEARCH`, promotion, paper approval, risk
 execution, and order field remains false. Phase 18 cannot consume Phase 7, 10, 11, or 12 evidence as
 clearance; `PRE_ORDER_RISK` remains `MOCK_ONLY`, and no risk limit is computed or mutated.
 
+## Family A Step 3 prerequisite assessment (Phase 19)
+
+Phase 19 is a portable missing-evidence assessment, not an evaluation, data, governance, or risk
+decision. Its exact conclusion is `BLOCKED_MISSING_EVALUATION_POLICY_AND_HOLDOUT`. It records that
+`non_synthetic_evaluation_policy_sha256` and `confirmation_holdout_definition_sha256` do not exist
+and deliberately produces neither value.
+
+No Phase 5/6 synthetic threshold, cost calibration, regime, holdout date, risk limit, `PASS_RESEARCH`
+result, Phase 7 approval, Phase 10 local-simulation artifact, or Phase 12 readiness observation may
+be reinterpreted as non-synthetic policy, holdout, or current clearance. All nineteen Phase 15 gap
+states remain unchanged, including `PRE_ORDER_RISK=MOCK_ONLY`; Steps 1/2 remain `OUTPUT_FROZEN` and
+Steps 3-7 remain `NOT_STARTED`.
+
+Every operational selection, credential, external request, data, ingestion, snapshot, complete-policy
+presence/approval, holdout definition/opening/label access, research, performance, promotion, paper
+approval, risk clearance, execution, and order field remains false. Phase 19 computes and mutates no
+risk limit and grants no authority to begin qualification.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.
