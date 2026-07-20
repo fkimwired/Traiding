@@ -269,13 +269,14 @@ def test_verifier_rejects_symlink_directory_and_pre_post_read_change(
     else:
         _assert_closed_failure(_verify(link))
 
+    descriptor = os.open(target, os.O_RDONLY | getattr(os, "O_CLOEXEC", 0))
     original_fstat = verifier.os.fstat
     calls = 0
 
-    def unstable_fstat(descriptor: int) -> object:
+    def unstable_fstat(open_descriptor: int) -> object:
         nonlocal calls
         calls += 1
-        metadata = original_fstat(descriptor)
+        metadata = original_fstat(open_descriptor)
         if calls == 1:
             return metadata
 
@@ -289,10 +290,13 @@ def test_verifier_rejects_symlink_directory_and_pre_post_read_change(
 
         return ChangedMetadata()
 
-    monkeypatch.setattr(verifier.os, "fstat", unstable_fstat)
-    with pytest.raises(verifier._InvalidRegister):
-        verifier._read_register(target.name)
-    assert calls == 2
+    try:
+        monkeypatch.setattr(verifier.os, "fstat", unstable_fstat)
+        with pytest.raises(verifier._InvalidRegister):
+            verifier._read_descriptor(descriptor)
+        assert calls == 2
+    finally:
+        os.close(descriptor)
 
 
 def test_verifier_rejects_an_intermediate_directory_name_surrogate(tmp_path: Path) -> None:
