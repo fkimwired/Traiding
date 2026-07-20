@@ -112,8 +112,8 @@ def test_phase18_baseline_parser_allowlist_and_inherited_boundaries_are_exact() 
     assert len(verifier.PHASE_18_ALLOWED_WRITES) == 38
     assert verifier.PHASE_18_INHERITED_TABLES == verifier.PHASE_17_INHERITED_TABLES
     assert len(verifier.PHASE_18_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 22)] == list(range(1, 22))
-    for invalid in ("0", "22", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 23)] == list(range(1, 23))
+    for invalid in ("0", "23", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -397,7 +397,7 @@ def test_phase18_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
         "verify_phase18_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 18 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "21")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "22")',
     ):
         assert required in source
     assert verifier.phase18_offline_environment()["FABLE5_VERIFY_PHASE"] == "18"
@@ -407,11 +407,11 @@ def test_phase18_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_18_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-21-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "21"' in workflow
-    assert "phase21-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 21") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 21") == 1
+    assert workflow.startswith("name: phase-22-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "22"' in workflow
+    assert "phase22-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 22") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 22") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     assert "secrets." not in workflow
@@ -421,14 +421,14 @@ def test_phase18_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "20, or 21" in wrapper
+        assert "20, 21, or 22" in wrapper
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "21"' in browser
-        assert '"19",\n  "20",\n  "21",' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "22"' in browser
+        assert '"20",\n  "21",\n  "22",' in browser
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
     assert '"--phase", "18"' not in runner
 

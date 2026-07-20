@@ -541,3 +541,24 @@ The complete twenty-row Phase 20 input registry, both missing Step 3 evidence ro
 qualification hash, observation, trial, return, metric, `PASS_RESEARCH`, promotion, approval, risk
 clearance, execution, or order authority is created. A PR, tag, release, publication, or isolated
 loopback deployment proves artifact identity only and cannot change the blocked result.
+
+## 22. Phase 22 Family A macro-vintage candidate inventory amendment
+
+Phase 22 evaluates only whether one additive metadata candidate is represented deterministically
+without changing accepted Phase 17–21 evidence. The exact result remains `BLOCKED` with
+`CANDIDATE_INVENTORY_AMENDMENT_FROZEN`. The new Philadelphia Fed RTDSM product has one candidate
+capability claim, `macro_regime_inputs`; it is unranked, operationally unselected, not rights-
+verified, and not qualified.
+
+Acceptance requires exact official-source metadata, canonical repeated generation, committed-file
+parity, strict schemas, domain-separated row/manifest/policy/artifact hashes, and rejection of
+missing, duplicate, reordered, substituted, unknown, or fully rehashed rows. Tests must reject any
+attempt to convert public research-use language or documented vintages into persistent-storage,
+model-use, exact-release-time, coverage, schema, current-availability, fitness, selection, or
+external-action evidence.
+
+The verifier remains database-free, network-disabled, subprocess-denied, environment-independent,
+and secret-free. Accepted Phase 17/18/21 artifact bytes, the 57-table database catalog, migration
+head, API/OpenAPI/generated contracts, dependencies, Compose services, and browser baselines must
+remain unchanged. Phase 22 creates no observation, data value, trial, return, metric,
+`PASS_RESEARCH`, promotion, approval, risk clearance, execution, or order authority.

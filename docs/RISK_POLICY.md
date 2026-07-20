@@ -13,7 +13,9 @@ immutable Phase 13 evidence satisfies a frozen prerequisite policy for a later s
 research-ingestion phase. Phase 15 adds only a portable Family A admission-requirements specification
 and current-gap ledger; it is not data admission, research eligibility, risk clearance, or execution
 authority. Phase 16 adds only a portable Family A point-in-time source plan; it selects no source,
-verifies no right, and creates no data, research, risk, or execution authority.
+verifies no right, and creates no data, research, risk, or execution authority. Phase 22 adds only
+an additive metadata inventory entry for later review of a macro-vintage candidate; it neither
+selects that candidate nor changes any risk, research, or execution state.
 
 ## Execution boundary
 
@@ -248,6 +250,21 @@ provider, credential, data, policy, holdout, research, risk, execution, or order
 All eight Phase 21 rules remain future-only and unapplied. Both Step 3 hashes remain missing, Steps
 3-7 remain `NOT_STARTED`, and all nineteen Phase 15 gaps remain unchanged. Phase 21 computes or
 mutates no risk value and creates no execution or order path.
+
+## Family A macro-vintage candidate inventory amendment (Phase 22)
+
+Phase 22 names the Federal Reserve Bank of Philadelphia Real-Time Data Set for Macroeconomists as
+one additional candidate for the `macro_regime_inputs` capability. The entry is candidate-only,
+unranked, operationally unselected, and not current-rights-verified. Its public research-use and
+vintage-history documentation cannot establish persistent-storage, model-use, derived-output,
+exact-release-time, schema, coverage, availability, or fitness requirements.
+
+`CANDIDATE_INVENTORY_AMENDMENT_FROZEN` proves only deterministic amendment integrity. Accepted
+Phase 17 inventory, Phase 18 findings—including the FRED finding—and Phase 21 composition
+requirements remain unchanged. All eight composition values remain absent; rights and fitness
+review and an independent human composition decision remain future prerequisites. Phase 22
+computes or mutates no risk value and creates no credential, provider transport, data, research,
+execution, order, or live path.
 
 ## Kill switch
 

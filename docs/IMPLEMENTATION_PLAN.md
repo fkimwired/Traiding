@@ -31,6 +31,7 @@ Phase 1 control plane
   -> Phase 19 Family A Step 3 prerequisite assessment (portable, assessment-only)
   -> Phase 20 Family A evaluation/holdout input register (portable, input-names-only)
   -> Phase 21 Family A operational-composition decision requirements (portable, requirements-only)
+  -> Phase 22 Family A macro-vintage candidate inventory amendment (portable, metadata-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -61,6 +62,7 @@ do not receive executable scaffolds.
 | 19 | canonical assessment of the two required prior-evidence hashes for Phase 16 Step 3 | deterministic generated JSON and offline verification; exact `BLOCKED`, assessment `OUTPUT_FROZEN`, missing policy/holdout conclusion, unchanged gaps and Steps 1/2 frozen plus 3-7 not started; neither missing hash is produced and no policy, holdout, data, research, execution, order, or live path is added |
 | 20 | canonical register of the exact Family A evaluation/holdout input names and future-only evidence-state transition rules | deterministic generated JSON and offline verification; exact `BLOCKED` / `INPUTS_FROZEN` / `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`; twenty input rows and ten unapplied rules; no input value, missing Step 3 hash, qualification output, policy, holdout, data, research, execution, order, or live path |
 | 21 | canonical requirements for a later explicit Family A operational source/product composition decision | deterministic generated JSON and offline verification; exact `BLOCKED` / `DECISION_REQUIREMENTS_FROZEN` / `BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`; 6 candidate groups, 9 unselected and current-rights-unverified product-rights bindings, 7 unassigned capabilities, 8 absent decision fields, 3 blocked dependencies, 6 blocked gates, 8 unapplied rules, and 10 forbidden substitutes; no selection, provider/counsel contact, credential, data, policy, holdout, Step 3, research, execution, order, or live path |
+| 22 | additive Family A macro-vintage candidate inventory amendment naming the Philadelphia Fed RTDSM for later independent review | deterministic generated JSON and offline verification; exact `BLOCKED` / `CANDIDATE_INVENTORY_AMENDMENT_FROZEN`; one candidate-only, unranked, unselected RTDSM product bound to inert official-source metadata while accepted Phase 17–21 artifacts remain unchanged; no rights grant, operational composition, credential, external data request, capture, persistence, research, execution, order, or live path |
 
 ## Required handoff template
 
@@ -133,3 +135,10 @@ authorized Phase 21 boundary is in `docs/handoffs/PHASE_21.md`; it may freeze on
 composition decision requirements over already committed metadata. It must keep every candidate
 unselected, every capability unassigned, every decision field absent, all inherited gaps/steps
 unchanged, and all provider, rights, data, research, risk, execution, order, and live authority false.
+Phase 21 is formally accepted at commit `a25ffb5cb68014c301a588c0e8cf7c7f18914e0a`, tree
+`8744604b486dd7398cd8c5a003fe7c7b083fde86`, after clean Windows acceptance and Ubuntu run
+`29759697662` (`preflight`, `unit`, and `phase21-compose`) at that exact identity. The separately
+authorized Phase 22 boundary is in `docs/handoffs/PHASE_22.md`; it may add only one metadata-only
+macro-vintage candidate overlay. It does not replace accepted inventories or rights findings, make
+an operational selection, verify a right, load a credential, request or persist data, or advance
+policy, holdout, qualification, research, risk, execution, order, or live authority.

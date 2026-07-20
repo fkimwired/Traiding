@@ -80,6 +80,11 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   remain absent. Phase authorization and any commit, PR, tag, release, publication, or isolated
   deployment identity are forbidden substitutes for explicit selection evidence and current
   account-specific rights.
+- Phase 22 adds one Philadelphia Fed RTDSM metadata candidate for independent rights and fitness
+  review. Public research-use language and downloadable vintage history do not by themselves prove
+  persistent-storage, model-use, derived-output, retention, exact-release-time, coverage, schema,
+  fitness, operational selection, or data-access authority. Accepted Phase 17–21 evidence remains
+  unchanged, including the prior FRED finding and all eight absent composition fields.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -181,3 +186,13 @@ selection, score, rank, recommendation, current executed rights, account, creden
 provider response, observation, dataset, policy, holdout, Step 3 output, performance, approval, risk
 clearance, order, or fill. A published artifact or isolated loopback deployment remains blocked
 metadata and grants no external authority.
+
+Phase 22 macro-vintage candidate-amendment evidence contains only accepted Phase 21 lineage, one
+additive RTDSM candidate group and product, inert official-source metadata, conservative limitation
+rows, unchanged prior-evidence bindings, identities, hashes, and false authority fields.
+`CANDIDATE_INVENTORY_AMENDMENT_FROZEN` proves only deterministic metadata integrity. It contains no
+personal identifier, account, credential, entitlement, contract body, provider response, remote
+content body, observation, dataset, schema sample, selected series, exact release timestamp,
+operational composition, policy, holdout, Step 3 output, performance, approval, risk clearance,
+order, or fill. It grants no provider contact, data access, storage, research, execution, or live
+authority.
