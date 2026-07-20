@@ -514,3 +514,30 @@ own hashes cannot substitute for either one. All nineteen Phase 15 gaps remain u
 Steps 1/2 remain `OUTPUT_FROZEN`, Steps 3-7 remain `NOT_STARTED`, and there is no policy, holdout,
 qualification, data access, trial, return, performance, `PASS_RESEARCH`, promotion, approval, risk
 clearance, execution, or order authority.
+
+## 21. Phase 21 Family A operational-composition decision requirements
+
+Phase 21 evaluates only the repository evidence needed to frame an explicit later operational-
+composition decision. Its exact result is `BLOCKED` / `DECISION_REQUIREMENTS_FROZEN` /
+`BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`. It does not choose a source,
+rank products, recommend a composition, or accept a decision value.
+
+The artifact binds six candidate groups and nine Phase 17 products to their exact Phase 18
+fixed-time rights findings. All nine bindings remain `operationally_selected=false` and
+`current_rights_verified=false`; Phase 21 makes no eligibility conclusion. Those fields describe
+accepted repository state only, not external availability, a permanent rejection, or a legal
+opinion. In particular, the SEC public-use classification does not prove complete point-in-time
+fitness/currentness, and the FRED classification remains fixed-time evidence requiring
+revalidation.
+
+All seven Phase 16 capabilities remain `UNASSIGNED`. All eight Phase 20 operational-composition
+decision fields remain absent. The current-rights/revocation, exact delivery/schema, and declared
+coverage/calendar dependencies remain blocked; all six decision gates fail; all eight future rules
+remain unapplied. Candidate claims and lifecycle hashes cannot be scored or substituted for a
+complete human-authored decision record.
+
+The complete twenty-row Phase 20 input registry, both missing Step 3 evidence rows, nineteen Phase
+15 gap states, and seven Phase 16 steps remain exact. No evaluation-policy value, holdout definition,
+qualification hash, observation, trial, return, metric, `PASS_RESEARCH`, promotion, approval, risk
+clearance, execution, or order authority is created. A PR, tag, release, publication, or isolated
+loopback deployment proves artifact identity only and cannot change the blocked result.

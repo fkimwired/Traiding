@@ -286,6 +286,29 @@ provider/account request, credential loading, sample qualification, data capture
 persistence, ingestion, snapshot creation, policy/holdout creation, research, risk, execution, or
 order operation.
 
+### Phase 21 portable operational-composition decision-requirements boundary
+
+Phase 21 joins only committed Phase 17 candidate claims, Phase 18 fixed-time public-rights findings,
+and the Phase 20 operational-composition field-name requirement. It binds six candidate groups and
+nine products without ranking, recommending, defaulting, or selecting any of them. All seven Phase 16
+capabilities remain `UNASSIGNED`, and all eight composition decision fields remain required but
+absent (`value_present=false`, `evidence_produced=false`).
+
+Every product binding remains `operationally_selected=false` and
+`current_rights_verified=false`. Phase 21 derives no product-eligibility state or count. These fields
+do not assert that a product is commercially unavailable, make a legal conclusion, or permanently
+exclude it. The SEC public-use finding still lacks complete schema, coverage, fitness, currentness,
+and operational-selection evidence. The fixed-time FRED finding and every other public-rights
+classification require fresh review before any later action.
+
+The exact result is `BLOCKED` / `DECISION_REQUIREMENTS_FROZEN` /
+`BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`. Current rights, exact delivery
+and schema, and the complete coverage/calendar contract remain blocked downstream dependencies. A
+Phase 21 artifact, commit, PR, tag, release, publication, or isolated deployment cannot substitute
+for a human decision or current account-specific evidence. Phase 21 performs no browsing,
+provider/counsel contact, credential/account access, sample request, capture, persistence, ingestion,
+snapshot, policy/holdout construction, Step 3 action, research, risk, execution, or order operation.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

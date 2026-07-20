@@ -30,6 +30,7 @@ Phase 1 control plane
   -> Phase 18 Family A current-use-rights review (portable, public-metadata-only)
   -> Phase 19 Family A Step 3 prerequisite assessment (portable, assessment-only)
   -> Phase 20 Family A evaluation/holdout input register (portable, input-names-only)
+  -> Phase 21 Family A operational-composition decision requirements (portable, requirements-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -59,6 +60,7 @@ do not receive executable scaffolds.
 | 18 | canonical technical current-use-rights review of the exact Phase 17 identities and official public-source metadata for Phase 16 Step 2 only | deterministic generated JSON and offline verification; exact Steps 1/2 `OUTPUT_FROZEN`, Steps 3-7 `NOT_STARTED`, and `BLOCKED_NO_OPERATIONAL_SELECTION`; no operational provider/account/data request, credential, migration, API, capture, persistence, research, risk, execution, order, or live path |
 | 19 | canonical assessment of the two required prior-evidence hashes for Phase 16 Step 3 | deterministic generated JSON and offline verification; exact `BLOCKED`, assessment `OUTPUT_FROZEN`, missing policy/holdout conclusion, unchanged gaps and Steps 1/2 frozen plus 3-7 not started; neither missing hash is produced and no policy, holdout, data, research, execution, order, or live path is added |
 | 20 | canonical register of the exact Family A evaluation/holdout input names and future-only evidence-state transition rules | deterministic generated JSON and offline verification; exact `BLOCKED` / `INPUTS_FROZEN` / `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`; twenty input rows and ten unapplied rules; no input value, missing Step 3 hash, qualification output, policy, holdout, data, research, execution, order, or live path |
+| 21 | canonical requirements for a later explicit Family A operational source/product composition decision | deterministic generated JSON and offline verification; exact `BLOCKED` / `DECISION_REQUIREMENTS_FROZEN` / `BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`; 6 candidate groups, 9 unselected and current-rights-unverified product-rights bindings, 7 unassigned capabilities, 8 absent decision fields, 3 blocked dependencies, 6 blocked gates, 8 unapplied rules, and 10 forbidden substitutes; no selection, provider/counsel contact, credential, data, policy, holdout, Step 3, research, execution, order, or live path |
 
 ## Required handoff template
 
@@ -124,3 +126,10 @@ authorized Phase 20 boundary is in `docs/handoffs/PHASE_20.md`; it may freeze on
 names, current evidence classifications, and unapplied future transition rules. It must supply no
 input value, create neither reserved Step 3 hash, preserve every gap and source-plan step, and grant
 no provider, credential, data, research, risk, execution, order, or live authority.
+Phase 20 is formally accepted at commit `01ed1ff17b91ba6961e02cdf1df3aa3e6be4859a`, tree
+`b7a68998f1c99ed8b19ab08ae8a725726f04c423`, after clean Windows acceptance and Ubuntu run
+`29724765420` (`preflight`, `unit`, and `phase20-compose`) at that exact identity. The separately
+authorized Phase 21 boundary is in `docs/handoffs/PHASE_21.md`; it may freeze only operational-
+composition decision requirements over already committed metadata. It must keep every candidate
+unselected, every capability unassigned, every decision field absent, all inherited gaps/steps
+unchanged, and all provider, rights, data, research, risk, execution, order, and live authority false.

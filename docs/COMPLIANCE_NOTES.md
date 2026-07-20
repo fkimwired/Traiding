@@ -73,6 +73,13 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   is not policy or holdout approval, and an artifact or manifest hash cannot replace either missing
   Step 3 hash. It contacts no provider or counsel, reads no account or data, and grants no data,
   research, risk, execution, or order authority.
+- Phase 21 is an offline operational-composition decision-requirements freeze. Candidate enumeration,
+  a public-use finding, and the zero selected/current-rights-verified bindings describe only accepted
+  repository evidence; they are not eligibility conclusions, legal advice, permanent vendor
+  rejections, product recommendations, or external-currentness claims. All eight decision fields
+  remain absent. Phase authorization and any commit, PR, tag, release, publication, or isolated
+  deployment identity are forbidden substitutes for explicit selection evidence and current
+  account-specific rights.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -164,3 +171,13 @@ credential, entitlement, provider response, observation, dataset, calendar/date/
 threshold, cost calibration, regime, risk value, feature, signal, label, return, metric, complete
 policy, holdout definition or label, performance result, approval, order, or fill. It applies no
 state transition and authorizes neither Step 3 nor any external action.
+
+Phase 21 operational-composition decision-requirements evidence contains only accepted Phase 17-20
+lineage, six candidate-group bindings, nine public-rights-finding bindings, seven unassigned
+capabilities, eight absent decision fields, three blocked downstream dependencies, six blocked gates,
+eight unapplied rules, ten forbidden substitutes, and unchanged inherited input/gap/step evidence.
+`DECISION_REQUIREMENTS_FROZEN` proves only deterministic requirements integrity. It contains no
+selection, score, rank, recommendation, current executed rights, account, credential, contract body,
+provider response, observation, dataset, policy, holdout, Step 3 output, performance, approval, risk
+clearance, order, or fill. A published artifact or isolated loopback deployment remains blocked
+metadata and grants no external authority.

@@ -225,6 +225,30 @@ data, ingestion, snapshot, complete-policy presence/approval, holdout definition
 research, performance, promotion, paper approval, risk clearance, execution, and order field remains
 false. Phase 20 computes and mutates no risk value and grants no authority to begin qualification.
 
+## Family A operational-composition decision requirements (Phase 21)
+
+Phase 21 freezes decision requirements, not a source decision, data decision, governance approval,
+or risk decision. Its exact conclusion is
+`BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`. Every candidate remains
+unselected, every Phase 16 capability remains `UNASSIGNED`, and every Phase 20 composition field
+remains absent.
+
+The zero selected and zero current-rights-verified product bindings mean only that no operational
+composition decision or current-rights evidence exists in the accepted repository. Phase 21 makes no
+eligibility conclusion. It is not a vendor recommendation, permanent rejection, current external
+fact, or legal opinion. Public-use metadata, including the SEC finding, cannot satisfy current
+fitness, schema, coverage, currentness, or selection requirements.
+
+`DECISION_REQUIREMENTS_FROZEN` cannot upgrade `PRE_ORDER_RISK=MOCK_ONLY`, satisfy a Phase 7 gate,
+produce current authorization, or make a strategy executable. A phase authorization, artifact hash,
+commit, PR, tag, release, publication, or isolated deployment identity is forbidden as operational
+selection evidence. Even a future valid composition decision would grant neither current rights nor
+provider, credential, data, policy, holdout, research, risk, execution, or order authority.
+
+All eight Phase 21 rules remain future-only and unapplied. Both Step 3 hashes remain missing, Steps
+3-7 remain `NOT_STARTED`, and all nineteen Phase 15 gaps remain unchanged. Phase 21 computes or
+mutates no risk value and creates no execution or order path.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

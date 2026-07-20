@@ -17,10 +17,21 @@ const modes = [
 // Phase 10 gives the paper mode its own dedicated accessibility contract. The inherited Phase 8
 // suite remains active for the other modes and shared application behavior; older phase verifiers
 // still exercise all four original modes.
-const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "20";
-const inheritedModes = new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]).has(
-  activePhase,
-)
+const activePhase = process.env.FABLE5_VERIFY_PHASE ?? "21";
+const inheritedModes = new Set([
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+]).has(activePhase)
   ? modes.filter((mode) => mode.path !== "/paper")
   : modes;
 

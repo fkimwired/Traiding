@@ -124,8 +124,8 @@ def test_phase20_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert len(verifier.PHASE_20_ALLOWED_WRITES) == 40
     assert verifier.PHASE_20_INHERITED_TABLES == verifier.PHASE_19_INHERITED_TABLES
     assert len(verifier.PHASE_20_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 21)] == list(range(1, 21))
-    for invalid in ("0", "21", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 22)] == list(range(1, 22))
+    for invalid in ("0", "22", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -133,6 +133,10 @@ def test_phase20_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert tuple(phase19) == ("release_closure", "active_phase")
     assert phase19["release_closure"].default is True
     assert phase19["active_phase"].default == 19
+    phase20 = inspect.signature(verifier.verify_phase20_static).parameters
+    assert tuple(phase20) == ("release_closure", "active_phase")
+    assert phase20["release_closure"].default is True
+    assert phase20["active_phase"].default == 20
     source = normalized(ROOT / "scripts/verify_phase1.py")
     branch = source.split("if phase == 20:", 1)[1].split("verify_static_inherited(phase)", 1)[0]
     for required in (
@@ -372,7 +376,7 @@ def test_phase20_ast_and_cli_contract_deny_transport_database_and_mutation() -> 
         assert forbidden_option not in portable_verifier
 
 
-def test_phase20_ci_wrappers_browser_zero_write_cleanup_and_phase21_denial_are_active(
+def test_phase20_inherited_ci_wrappers_browser_zero_write_cleanup_and_runner_denial_are_active(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     verifier = verifier_module()
@@ -384,7 +388,7 @@ def test_phase20_ci_wrappers_browser_zero_write_cleanup_and_phase21_denial_are_a
         "verify_phase20_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 20 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "20")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "21")',
     ):
         assert required in source
     assert verifier.phase20_offline_environment()["FABLE5_VERIFY_PHASE"] == "20"
@@ -394,11 +398,11 @@ def test_phase20_ci_wrappers_browser_zero_write_cleanup_and_phase21_denial_are_a
     assert all(name not in acceptance for name in verifier.PHASE_20_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-20-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "20"' in workflow
-    assert "phase20-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 20") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 20") == 1
+    assert workflow.startswith("name: phase-21-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "21"' in workflow
+    assert "phase21-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 21") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 21") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     assert "secrets." not in workflow
@@ -409,17 +413,15 @@ def test_phase20_ci_wrappers_browser_zero_write_cleanup_and_phase21_denial_are_a
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "19, or 20" in wrapper
-        assert "21" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
+        assert "20, or 21" in wrapper
+        assert "22" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "20"' in browser
-        assert (
-            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"])' in browser
-        )
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "21"' in browser
+        assert '"19",\n  "20",\n  "21",' in browser
 
     runner = ROOT / "scripts/run_phase_gate.py"
     for phase in (20, 21):
@@ -442,7 +444,7 @@ def test_phase20_ci_wrappers_browser_zero_write_cleanup_and_phase21_denial_are_a
         assert result.stdout == ""
 
 
-def test_phase20_docs_stop_before_phase21_and_preserve_register_only_semantics() -> None:
+def test_phase20_docs_preserve_register_only_semantics_after_phase21_authorization() -> None:
     decisions = normalized(
         ROOT / "docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER_DECISIONS.md"
     )
@@ -460,5 +462,5 @@ def test_phase20_docs_stop_before_phase21_and_preserve_register_only_semantics()
     ):
         assert required in combined
     assert "do not begin" in " ".join(combined.casefold().split())
-    assert not (ROOT / "docs/handoffs/PHASE_21.md").exists()
-    assert not (ROOT / "services/data/src/fable5_data/phase21").exists()
+    assert (ROOT / "docs/handoffs/PHASE_21.md").exists()
+    assert (ROOT / "services/data/src/fable5_data/phase21").exists()
