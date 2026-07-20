@@ -201,6 +201,30 @@ presence/approval, holdout definition/opening/label access, research, performanc
 approval, risk clearance, execution, and order field remains false. Phase 19 computes and mutates no
 risk limit and grants no authority to begin qualification.
 
+## Family A evaluation/holdout input register (Phase 20)
+
+Phase 20 is a portable input-name and future-rule freeze, not a policy, holdout, governance, data, or
+risk decision. Its exact conclusion is
+`BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`. The `COMPUTABLE_DATA_SPECIFIC_RISK_LIMITS`
+row remains `MOCK_ONLY`; it names the future position, gross, net, sector, turnover, volatility,
+loss, drawdown, and approval fields but supplies no limit or approval value.
+
+`INPUTS_FROZEN` does not upgrade `PRE_ORDER_RISK=MOCK_ONLY`, satisfy a Phase 7 gate, create a current
+authorization, or make a strategy executable. No Phase 5/6 fixture limit, Phase 7 approval, Phase 10
+simulation result, Phase 12 readiness evidence, input-register hash, or operator assertion may be
+substituted for a complete independently approved non-synthetic policy or current risk evidence.
+
+All ten evidence-state transition rules are future-only and `applied=false`. In particular, a mock,
+missing, unproven, or stale risk input cannot become present without the applicable complete,
+approved, independently verified, current evidence, and later evidence becoming stale fails closed.
+Both reserved Step 3 hashes remain missing; Steps 3-7 remain `NOT_STARTED`; all nineteen Phase 15 gap
+states remain unchanged.
+
+Every operational selection, credential, external request, actual input value, transition application,
+data, ingestion, snapshot, complete-policy presence/approval, holdout definition/opening/consumption,
+research, performance, promotion, paper approval, risk clearance, execution, and order field remains
+false. Phase 20 computes and mutates no risk value and grants no authority to begin qualification.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

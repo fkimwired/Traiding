@@ -133,8 +133,8 @@ def test_phase19_baseline_parser_allowlist_and_inherited_boundaries_are_exact() 
     assert len(verifier.PHASE_19_ALLOWED_WRITES) == 39
     assert verifier.PHASE_19_INHERITED_TABLES == verifier.PHASE_18_INHERITED_TABLES
     assert len(verifier.PHASE_19_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 20)] == list(range(1, 20))
-    for invalid in ("0", "20", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 21)] == list(range(1, 21))
+    for invalid in ("0", "21", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -142,6 +142,10 @@ def test_phase19_baseline_parser_allowlist_and_inherited_boundaries_are_exact() 
     assert tuple(phase18) == ("release_closure", "active_phase")
     assert phase18["release_closure"].default is True
     assert phase18["active_phase"].default == 18
+    phase19 = inspect.signature(verifier.verify_phase19_static).parameters
+    assert tuple(phase19) == ("release_closure", "active_phase")
+    assert phase19["release_closure"].default is True
+    assert phase19["active_phase"].default == 19
     source = normalized(ROOT / "scripts/verify_phase1.py")
     branch = source.split("if phase == 19:", 1)[1].split("verify_static_inherited(phase)", 1)[0]
     for required in (
@@ -389,7 +393,7 @@ def test_phase19_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
         "verify_phase19_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 19 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "19")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "20")',
     ):
         assert required in source
     assert verifier.phase19_offline_environment()["FABLE5_VERIFY_PHASE"] == "19"
@@ -399,11 +403,11 @@ def test_phase19_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_19_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-19-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "19"' in workflow
-    assert "phase19-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 19") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 19") == 1
+    assert workflow.startswith("name: phase-20-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "20"' in workflow
+    assert "phase20-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 20") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 20") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     assert "secrets." not in workflow
@@ -414,14 +418,16 @@ def test_phase19_ci_wrappers_browser_zero_write_and_secret_denial_are_active(
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "18, or 19" in wrapper
+        assert "19, or 20" in wrapper
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "19"' in browser
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "20"' in browser
+        assert (
+            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"])' in browser
+        )
 
 
 def test_phase19_docs_stop_before_phase20_and_preserve_assessment_only_semantics() -> None:
@@ -443,4 +449,5 @@ def test_phase19_docs_stop_before_phase20_and_preserve_assessment_only_semantics
         "Phase 20",
     ):
         assert required in combined
-    assert not (ROOT / "docs/handoffs/PHASE_20.md").exists()
+    assert (ROOT / "docs/handoffs/PHASE_20.md").exists()
+    assert (ROOT / "services/data/src/fable5_data/phase20").exists()

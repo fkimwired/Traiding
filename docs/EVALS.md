@@ -483,3 +483,34 @@ Phase 19 therefore freezes only an assessment output. All nineteen Phase 15 gaps
 Phase 16 Steps 1/2 remain `OUTPUT_FROZEN`, Steps 3-7 remain `NOT_STARTED`, and Step 3 receives no
 prior-evidence or output hash. There is no data access, trial, return, metric, performance state,
 `PASS_RESEARCH`, promotion, approval, risk clearance, execution, or order authority.
+
+## 20. Phase 20 Family A evaluation/holdout input register
+
+Phase 20 freezes the exact names of twenty still-required inputs and ten future-only evidence-state
+transition rules. Its truthful result is `BLOCKED` / `INPUTS_FROZEN` /
+`BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`. A named field is a requirement, not a value;
+an unapplied transition rule is not a state change. The only satisfied row is the existing immutable
+audit schema, which cannot complete a policy or holdout.
+
+The register covers exact operational product composition; executed rights/currentness; delivery
+and schema; target coverage/calendar/availability/missingness; signal, label, features, and train-only
+preprocessing; walk-forward/purge/embargo geometry; sample and trial accounting; DSR/PBO; leakage and
+data-quality blocks; market-calibrated costs/slippage/capacity; stress gates; regimes/crisis windows;
+data-specific risk; reproducibility; source/calendar-bound holdout geometry; label-boundary
+exclusions; single-use holdout governance; and independent approval. It supplies no product, schema,
+date, interval, fold size, threshold, cost/calibration, regime, risk, signal, feature, label, return,
+metric, or approval value.
+
+The ten transition rules fail closed: mock, missing, unproven, or stale inputs may become present
+only through complete approved non-synthetic evidence, independent verification, or fresh
+revalidation as applicable; present evidence becomes stale on currentness/version drift; a holdout
+requires exact source/schema/calendar binding and zero observation/label access; a policy requires
+all applicable inputs and an unopened holdout reference; and Step 3 still requires both reserved
+hashes plus later separate external-action authority. Phase 20 applies none of those transitions.
+
+Both `non_synthetic_evaluation_policy_sha256` and
+`confirmation_holdout_definition_sha256` remain structurally missing without values. The register's
+own hashes cannot substitute for either one. All nineteen Phase 15 gaps remain unchanged; Phase 16
+Steps 1/2 remain `OUTPUT_FROZEN`, Steps 3-7 remain `NOT_STARTED`, and there is no policy, holdout,
+qualification, data access, trial, return, performance, `PASS_RESEARCH`, promotion, approval, risk
+clearance, execution, or order authority.

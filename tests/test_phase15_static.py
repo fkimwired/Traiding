@@ -68,8 +68,8 @@ def test_phase15_baseline_parser_registries_and_exact_allowlist_are_frozen() -> 
     )
     assert len(verifier.PHASE_15_INHERITED_TABLES) == 57
     assert len(set(verifier.PHASE_15_INHERITED_TABLES)) == 57
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 20)] == list(range(1, 20))
-    for invalid in ("0", "20", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 21)] == list(range(1, 21))
+    for invalid in ("0", "21", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -216,12 +216,12 @@ def test_phase15_ci_full_verifier_browser_no_schema_and_cleanup_are_bound() -> N
         "verify_phase15_no_schema_drift_and_zero_writes(",
         'print("Full Compose Phase 15 verification passed.")',
         "if phase in {",
-        "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:",
-        "if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19}:",
-        "if phase in {12, 13, 14, 15, 16, 17, 18, 19}:",
-        "if phase in {13, 14, 15, 16, 17, 18, 19}:",
-        "if phase in {14, 15, 16, 17, 18, 19}:",
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "19")',
+        "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:",
+        "if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:",
+        "if phase in {12, 13, 14, 15, 16, 17, 18, 19, 20}:",
+        "if phase in {13, 14, 15, 16, 17, 18, 19, 20}:",
+        "if phase in {14, 15, 16, 17, 18, 19, 20}:",
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "20")',
         'version_before != "0011_phase14"',
         "len(PHASE_15_INHERITED_TABLES) != 57",
     ):
@@ -238,11 +238,11 @@ def test_phase15_ci_full_verifier_browser_no_schema_and_cleanup_are_bound() -> N
         assert "snapshot_tables(project, environment, all_tables)" in browser_source
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-19-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "19"' in workflow
-    assert "phase19-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 19") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 19") == 1
+    assert workflow.startswith("name: phase-20-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "20"' in workflow
+    assert "phase20-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 20") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 20") == 1
     assert "secrets." not in workflow
     assert "FABLE5_UPDATE_SNAPSHOTS" not in workflow
 
@@ -251,8 +251,10 @@ def test_phase15_ci_full_verifier_browser_no_schema_and_cleanup_are_bound() -> N
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         source = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "19"' in source
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])' in source
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "20"' in source
+        assert (
+            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"])' in source
+        )
 
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
     assert "choices=(9,)" in runner

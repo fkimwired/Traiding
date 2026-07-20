@@ -5,10 +5,10 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 19 implementation status
+## Phase 20 implementation status
 
-The formally accepted Phase 18 identity and the authorized Phase 19 portable Step 3 prerequisite-
-assessment surface include:
+The formally accepted Phase 19 identity and the authorized Phase 20 portable Family A evaluation/
+holdout input-register surface include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -127,7 +127,14 @@ assessment surface include:
   and
 - explicit proof that Phase 19 produces neither a complete non-synthetic evaluation-policy hash nor
   a confirmation-holdout-definition hash, leaves all nineteen Phase 15 gaps unchanged, and keeps
-  Steps 3-7 `NOT_STARTED`.
+  Steps 3-7 `NOT_STARTED`;
+- one canonical Family A evaluation/holdout input register with twenty ordered input-name rows, ten
+  unapplied future-evidence transition rules, six blocked dependency groups, six blocked
+  pre-observation construction gates, and eight forbidden substitute classes; and
+- exact `BLOCKED`, register `INPUTS_FROZEN`, and
+  `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS` states while every input value remains
+  absent, both Step 3 future-evidence hashes remain missing, all Phase 15 gaps remain unchanged, and
+  Steps 3-7 remain `NOT_STARTED`.
 
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
@@ -163,7 +170,13 @@ commit `16aac187fc3dbd6015306603c18be6e08cea8e4e`, tree
 `b36ae615f13f39d0e661f18d1cc61e009b1aacf7`, after clean Windows acceptance and successful GitHub
 Actions run `29698090468` (`preflight`, `unit`, and `phase18-compose`) at that exact identity.
 Phase 19 assesses only the still-missing Step 3 prerequisites; it does not freeze an incomplete
-policy or holdout and cannot start qualification.
+policy or holdout and cannot start qualification. Phase 19 is formally accepted at commit
+`86ddcafacff43b42fe56346745d7e6f08eaf3a52`, tree
+`6b6c2693a969e80cac9013d441ba607565d8914a`, after clean Windows acceptance and successful GitHub
+Actions run `29705348113` (`preflight`, `unit`, and `phase19-compose`) at that exact identity. Phase
+20 names only missing operational/data-specific inputs and future transition constraints; it
+supplies no value, applies no transition, creates neither reserved evidence hash, and cannot start
+qualification.
 
 ## Prerequisites
 
@@ -171,8 +184,8 @@ policy or holdout and cannot start qualification.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 19 local or CI
-acceptance. The Phase 19 artifact operations are portable, database-free, and network-denied; the
+No data-provider, LLM, broker, or commercial credential is needed for Phase 20 local or CI
+acceptance. The Phase 20 artifact operations are portable, database-free, and network-denied; the
 full closure gate still starts the inherited Compose/PostgreSQL stack solely to prove zero schema or
 row drift. A separately authorized
 external qualification capture requires an existing token plus independently reviewed current
@@ -238,23 +251,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 19 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 20 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "19"
+$env:FABLE5_VERIFY_PHASE = "20"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 19 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 19:
+Run the complete Phase 20 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 20:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "19"
+$env:FABLE5_VERIFY_PHASE = "20"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 19
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 19
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 20
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 20
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -262,10 +275,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 19 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 20 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 19 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 20 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Family A admission specification
 
@@ -353,6 +366,28 @@ The only valid conclusion is `BLOCKED_MISSING_EVALUATION_POLICY_AND_HOLDOUT`. Th
 future evidence and supplies no value for either. It leaves all Phase 15 gap states unchanged,
 Steps 1/2 `OUTPUT_FROZEN`, Steps 3-7 `NOT_STARTED`, and every data/research/execution authority false.
 
+### Family A evaluation/holdout input register
+
+Generate the frozen blocked input register to stdout only:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\generate_family_a_evaluation_holdout_input_register.py `
+  --confirm-input-register-only
+```
+
+Verify one supplied regular canonical UTF-8 JSON register offline:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_family_a_evaluation_holdout_input_register.py `
+  --register .\docs\PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER.json
+```
+
+The only valid conclusion is `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS` with
+`register_state=INPUTS_FROZEN`. The artifact carries twenty field-name-only input requirements, ten
+unapplied transition rules, blocked construction dependencies/gates, and forbidden substitutions.
+It supplies no input value or reserved Step 3 hash, preserves every Phase 15 gap and Phase 16 step,
+and grants no external-data, research, risk, execution, or order authority.
+
 ### Local evidence verification
 
 Prepare an evidence bundle with the GET-only API or the explicit browser download. Verify the local
@@ -438,7 +473,7 @@ capability projections, and twelve ordered prerequisite checks. It creates no pr
 research snapshot, performance result, promotion, approval, risk clearance, or execution authority.
 Phase 15 adds no migration and keeps Alembic head at `0011_phase14`. Its generator and verifier are
 database-free; acceptance proves the complete inherited schema, rows, SQL functions, OpenAPI, and
-generated contracts remain unchanged. Phases 16-18 also add no migration, API, or generated
+generated contracts remain unchanged. Phases 16-20 also add no migration, API, or generated
 contract; their portable operations preserve the same head and all 57 inherited tables/functions.
 
 ## Architecture
@@ -446,12 +481,12 @@ contract; their portable operations preserve the same head and all 57 inherited 
 | Component | Current responsibility | Boundary |
 |---|---|---|
 | `frontend` | Complete four-mode workflows, exact lineage, one deterministic local simulation action, and explicit local evidence download | no client-authored trade parameters, server export, or real/live controls |
-| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13/14 evidence GETs | unchanged by Phases 15-18; no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
+| `api` | Typed create/read/list authority, Phase 8 evidence timeline, terminal local-simulation artifacts, and read-only Phase 11/12/13/14 evidence GETs | unchanged by Phases 15-20; no credential loading, vendor call, qualification mutation, order, external routing, or live endpoint |
 | `migrate` | one-shot Alembic upgrade | API never creates schema at startup |
 | `worker` | deterministic extraction on the `research` queue | no trading or execution queue |
-| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility evidence | unchanged by database-free Phases 15-19; no credential, raw provider payload, executable order, fill, or live record |
+| `postgres` | Immutable Phase 1-7 evidence, Phase 10 local simulation/check/ledger artifacts, sanitized Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility evidence | unchanged by database-free Phases 15-20; no credential, raw provider payload, executable order, fill, or live record |
 | `redis` | queue/cache connectivity | no trading queue exists |
-| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility contracts | unchanged by Phases 15-19; never a second schema authority |
+| `packages/contracts` | generated OpenAPI TypeScript, including strict Phase 11 bundle, Phase 12 readiness, Phase 13 qualification, and Phase 14 eligibility contracts | unchanged by Phases 15-20; never a second schema authority |
 
 No order submission adapter, vendor SDK, execution intent, or order-state abstraction is present.
 The Phase 12 adapter exposes only six fixed paper-readiness inspections. Phase 13 adds a separate
@@ -482,6 +517,13 @@ Phase 19 adds only a pure Family A Step 3 prerequisite-assessment artifact, cont
 generator/verifier commands. It freezes the truthful absence of the complete evaluation-policy and
 holdout-definition hashes; it adds no policy, holdout, data, API, database, research, risk, paper,
 order, or frontend product surface.
+
+Phase 20 adds only a pure Family A evaluation/holdout input register, a committed canonical JSON
+artifact, and offline generator/verifier commands. It freezes twenty required-input names and ten
+future-only transition rules while supplying no input value and applying no transition. Its exact
+result is `BLOCKED` / `INPUTS_FROZEN` /
+`BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`; it adds no policy, holdout, provider,
+credential, data, API, database, research, risk, paper, order, or frontend product surface.
 
 ## Repository guide
 
@@ -533,12 +575,16 @@ order, or frontend product surface.
 - `docs/PHASE_19_FAMILY_A_STEP3_PREREQUISITE_ASSESSMENT_DECISIONS.md`: exact missing-prerequisite,
   unchanged-gap/step, assessment-only, and false-authority decisions.
 - `docs/handoffs/PHASE_19.md`: Phase 19 implementation/acceptance contract and Phase 20 stop boundary.
+- `docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER_DECISIONS.md`: exact input-name,
+  future-transition, unchanged-gap/step, register-only, and false-authority decisions.
+- `docs/handoffs/PHASE_20.md`: Phase 20 implementation/acceptance contract and Phase 21 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
   qualification, Phase 14 offline eligibility, and pure Phase 15 portable admission-specification
   plus Phase 16 portable source-plan, Phase 17 candidate inventory, Phase 18 public-terms review,
-  and Phase 19 Step 3 prerequisite-assessment contracts and tests.
+  Phase 19 Step 3 prerequisite assessment, and Phase 20 evaluation/holdout input-register contracts
+  and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -557,8 +603,8 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 19 gate from one honest committed SHA/tree, then require same-SHA
-Ubuntu acceptance. Stop after Phase 19. Do not open a pull request, tag, sign, publish, release,
+Complete the direct local Phase 20 gate from one honest committed SHA/tree, then require same-SHA
+Ubuntu acceptance. Stop after Phase 20. Do not open a pull request, tag, sign, publish, release,
 deploy, perform an unauthorized credentialed probe, ingest data, run or promote a strategy, submit or
-reconcile an order, begin a later phase, or add any live capability. Until both Phase 19 gates pass,
-report Phase 19 as implemented but not formally accepted.
+reconcile an order, begin a later phase, or add any live capability. Until both Phase 20 gates pass,
+report Phase 20 as implemented but not formally accepted.

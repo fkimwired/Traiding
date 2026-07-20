@@ -264,6 +264,28 @@ remain unchanged. Phase 19 performs no provider/account/data request, credential
 qualification, capture, persistence, database write, ingestion, snapshot, policy approval, holdout
 access, research, performance, promotion, risk, execution, or order operation.
 
+### Phase 20 portable evaluation/holdout input-register boundary
+
+Phase 20 records only the exact names and current evidence classes of twenty inputs needed before a
+complete non-synthetic policy and unopened holdout could be frozen. The four upstream-context rows
+remain `MISSING` or `UNPROVEN`: operational source/product composition, current executed rights and
+revocation evidence, exact delivery/schema versions, and a declared point-in-time coverage/calendar/
+availability/missingness contract. Phase 20 chooses no candidate, provider, product, delivery,
+schema, instrument scope, history range, calendar, availability rule, or missingness value.
+
+The input register is not a provider qualification or data manifest. A future field name such as a
+schema version, source binding, history boundary, or calibration vintage contains no value and proves
+no availability, entitlement, coverage, quality, or fitness. The accepted Phase 17 product inventory,
+Phase 18 public-terms findings, Phase 19 assessment, and Phase 20 row/manifest hashes cannot substitute
+for current account-specific rights, exact schemas, or data-specific evidence.
+
+The result remains `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`. Both reserved Step 3
+evidence hashes remain missing without values, Steps 1/2 remain `OUTPUT_FROZEN`, Steps 3-7 remain
+`NOT_STARTED`, and all nineteen Phase 15 gaps remain unchanged. Phase 20 performs no browsing,
+provider/account request, credential loading, sample qualification, data capture, payload or database
+persistence, ingestion, snapshot creation, policy/holdout creation, research, risk, execution, or
+order operation.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

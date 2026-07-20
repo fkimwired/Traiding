@@ -199,8 +199,8 @@ def test_phase17_parser_baseline_allowlist_and_inherited_release_boundary_are_ex
     assert len(verifier.PHASE_17_ALLOWED_WRITES) == 37
     assert verifier.PHASE_17_INHERITED_TABLES == verifier.PHASE_16_INHERITED_TABLES
     assert len(verifier.PHASE_17_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 20)] == list(range(1, 20))
-    for invalid in ("0", "20", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 21)] == list(range(1, 21))
+    for invalid in ("0", "21", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -467,7 +467,7 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         "verify_phase17_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 17 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "19")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "20")',
     ):
         assert required in source
 
@@ -485,11 +485,11 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-19-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "19"' in workflow
-    assert "phase19-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 19") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 19") == 1
+    assert workflow.startswith("name: phase-20-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "20"' in workflow
+    assert "phase20-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 20") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 20") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     for credential_name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES:
@@ -511,8 +511,10 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "19"' in browser
-        assert 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "20"' in browser
+        assert (
+            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"])' in browser
+        )
 
     runner = normalized(ROOT / "scripts/run_phase_gate.py")
     assert "choices=(9,)" in runner

@@ -29,6 +29,7 @@ Phase 1 control plane
   -> Phase 17 Family A candidate-product inventory (portable, metadata-only)
   -> Phase 18 Family A current-use-rights review (portable, public-metadata-only)
   -> Phase 19 Family A Step 3 prerequisite assessment (portable, assessment-only)
+  -> Phase 20 Family A evaluation/holdout input register (portable, input-names-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -57,6 +58,7 @@ do not receive executable scaffolds.
 | 17 | canonical Family A product/reference identities for Phase 16 Step 1 and independent-rights-review routing only | deterministic generated JSON and offline verification; exact Step 1 `OUTPUT_FROZEN` plus overall `BLOCKED`; no operational source/provider/product selection, credential, network, data, migration, API, rights grant, qualification, snapshot, research, risk, execution, or live path |
 | 18 | canonical technical current-use-rights review of the exact Phase 17 identities and official public-source metadata for Phase 16 Step 2 only | deterministic generated JSON and offline verification; exact Steps 1/2 `OUTPUT_FROZEN`, Steps 3-7 `NOT_STARTED`, and `BLOCKED_NO_OPERATIONAL_SELECTION`; no operational provider/account/data request, credential, migration, API, capture, persistence, research, risk, execution, order, or live path |
 | 19 | canonical assessment of the two required prior-evidence hashes for Phase 16 Step 3 | deterministic generated JSON and offline verification; exact `BLOCKED`, assessment `OUTPUT_FROZEN`, missing policy/holdout conclusion, unchanged gaps and Steps 1/2 frozen plus 3-7 not started; neither missing hash is produced and no policy, holdout, data, research, execution, order, or live path is added |
+| 20 | canonical register of the exact Family A evaluation/holdout input names and future-only evidence-state transition rules | deterministic generated JSON and offline verification; exact `BLOCKED` / `INPUTS_FROZEN` / `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`; twenty input rows and ten unapplied rules; no input value, missing Step 3 hash, qualification output, policy, holdout, data, research, execution, order, or live path |
 
 ## Required handoff template
 
@@ -114,4 +116,11 @@ order authority. Phase 18 is formally accepted at commit
 authorized Phase 19 boundary is in `docs/handoffs/PHASE_19.md`; it assesses only whether the two
 required Phase 16 Step 3 prior-evidence hashes exist. It must report both missing, preserve all gap
 and step states, and must not manufacture a non-synthetic evaluation policy, define/open a holdout,
-or grant external-data, research, risk, execution, or order authority.
+or grant external-data, research, risk, execution, or order authority. Phase 19 is formally accepted
+at commit `86ddcafacff43b42fe56346745d7e6f08eaf3a52`, tree
+`6b6c2693a969e80cac9013d441ba607565d8914a`, after clean Windows acceptance and Ubuntu run
+`29705348113` (`preflight`, `unit`, and `phase19-compose`) at that exact identity. The separately
+authorized Phase 20 boundary is in `docs/handoffs/PHASE_20.md`; it may freeze only required input
+names, current evidence classifications, and unapplied future transition rules. It must supply no
+input value, create neither reserved Step 3 hash, preserve every gap and source-plan step, and grant
+no provider, credential, data, research, risk, execution, order, or live authority.

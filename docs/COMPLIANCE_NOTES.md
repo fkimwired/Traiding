@@ -68,6 +68,11 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   `confirmation_holdout_definition_sha256`, contacts no provider or counsel, reads no account or
   data, and cannot convert a public-terms classification into operational selection, permitted use,
   policy approval, holdout authority, or research authority.
+- Phase 20 is an offline register of required input names and unapplied future transition rules. A
+  field name is not an operational/product/license/schema/calendar/threshold value, `INPUTS_FROZEN`
+  is not policy or holdout approval, and an artifact or manifest hash cannot replace either missing
+  Step 3 hash. It contacts no provider or counsel, reads no account or data, and grants no data,
+  research, risk, execution, or order authority.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -149,3 +154,13 @@ legal opinion, account, credential, entitlement, contract body, provider respons
 dataset, schema sample, complete evaluation policy, approved threshold, exact holdout interval,
 holdout label, feature, signal, return, metric, performance result, approval, risk clearance, order,
 or fill. It does not authorize Step 3 or any external action.
+
+Phase 20 evaluation/holdout input-register evidence contains only accepted Phase 19 lineage, twenty
+required input-name rows, ten unapplied future-only transition rules, two missing prerequisite names
+without values, unchanged Phase 15 gap bindings, unchanged Phase 16 step states, identities, hashes,
+and false authority fields. `INPUTS_FROZEN` proves only that the blocked register reproduces. It
+contains no selected provider/product/delivery/schema, legal opinion, executed contract, account,
+credential, entitlement, provider response, observation, dataset, calendar/date/interval value,
+threshold, cost calibration, regime, risk value, feature, signal, label, return, metric, complete
+policy, holdout definition or label, performance result, approval, order, or fill. It applies no
+state transition and authorizes neither Step 3 nor any external action.

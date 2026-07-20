@@ -1660,6 +1660,77 @@ PHASE_19_ARTIFACT_SCHEMA_VERSION = "phase19-family-a-step3-prerequisite-assessme
 PHASE_19_ASSESSMENT_POLICY_ID = "phase19-family-a-step3-prerequisite-assessment-policy-v1"
 PHASE_19_FROZEN_AT_UTC = "2026-07-19T20:01:39.9672350Z"
 PHASE_19_CONCLUSION = "BLOCKED_MISSING_EVALUATION_POLICY_AND_HOLDOUT"
+PHASE_20_BASELINE_SHA = "86ddcafacff43b42fe56346745d7e6f08eaf3a52"
+EXPECTED_PHASE_20_BASELINE_TREE = "6b6c2693a969e80cac9013d441ba607565d8914a"
+PHASE_20_ARTIFACT_PATH = "docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER.json"
+PHASE_20_GENERATOR_PATH = "scripts/generate_family_a_evaluation_holdout_input_register.py"
+PHASE_20_PORTABLE_VERIFIER_PATH = "scripts/verify_family_a_evaluation_holdout_input_register.py"
+PHASE_20_REQUIRED_PATHS = (
+    "docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER_DECISIONS.md",
+    PHASE_20_ARTIFACT_PATH,
+    "docs/handoffs/PHASE_20.md",
+    PHASE_20_GENERATOR_PATH,
+    PHASE_20_PORTABLE_VERIFIER_PATH,
+    "services/data/src/fable5_data/phase20/__init__.py",
+    "services/data/src/fable5_data/phase20/canonical.py",
+    "services/data/src/fable5_data/phase20/contracts.py",
+    "services/data/src/fable5_data/phase20/input_register.py",
+    "services/data/tests/test_phase20_contracts.py",
+    "services/data/tests/test_phase20_input_register.py",
+    "services/data/tests/test_phase20_security.py",
+    "tests/test_phase20_portable.py",
+    "tests/test_phase20_static.py",
+)
+PHASE_20_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "Makefile",
+        "README.md",
+        "docs/COMPLIANCE_NOTES.md",
+        "docs/DATA_SOURCES.md",
+        "docs/EVALS.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        PHASE_20_ARTIFACT_PATH,
+        "docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER_DECISIONS.md",
+        "docs/RISK_POLICY.md",
+        "docs/handoffs/PHASE_20.md",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        PHASE_20_GENERATOR_PATH,
+        PHASE_20_PORTABLE_VERIFIER_PATH,
+        "scripts/verify_phase1.py",
+        "services/data/src/fable5_data/phase20/__init__.py",
+        "services/data/src/fable5_data/phase20/canonical.py",
+        "services/data/src/fable5_data/phase20/contracts.py",
+        "services/data/src/fable5_data/phase20/input_register.py",
+        "services/data/tests/test_phase20_contracts.py",
+        "services/data/tests/test_phase20_input_register.py",
+        "services/data/tests/test_phase20_security.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
+        "services/frontend/e2e/phase8.visual.spec.ts",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_static.py",
+        "tests/test_phase10_static.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase12_static.py",
+        "tests/test_phase13_static.py",
+        "tests/test_phase14_static.py",
+        "tests/test_phase15_static.py",
+        "tests/test_phase16_static.py",
+        "tests/test_phase17_static.py",
+        "tests/test_phase18_static.py",
+        "tests/test_phase19_static.py",
+        "tests/test_phase20_portable.py",
+        "tests/test_phase20_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_20_INHERITED_TABLES = PHASE_19_INHERITED_TABLES
+PHASE_20_CREDENTIAL_ENV_NAMES = PHASE_19_CREDENTIAL_ENV_NAMES
+PHASE_20_ARTIFACT_SCHEMA_VERSION = "phase20-family-a-evaluation-holdout-input-register-v1"
+PHASE_20_INPUT_REGISTER_POLICY_ID = "phase20-family-a-evaluation-holdout-input-register-policy-v1"
+PHASE_20_REGISTER_STATE = "INPUTS_FROZEN"
+PHASE_20_CONCLUSION = "BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS"
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -1910,11 +1981,32 @@ def phase_number(value: str) -> int:
         phase = int(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
-            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, or 19"
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, or 20"
         ) from exc
-    if phase not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    if phase not in {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+    }:
         raise argparse.ArgumentTypeError(
-            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, or 19"
+            "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, or 20"
         )
     return phase
 
@@ -2285,7 +2377,7 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
         ci = normalized(ROOT / ".github/workflows/ci.yml")
         ci_phases = [
             int(value)
-            for value in re.findall(r"--phase\s+(19|18|17|16|15|14|13|12|11|10|[1-9])\b", ci)
+            for value in re.findall(r"--phase\s+(20|19|18|17|16|15|14|13|12|11|10|[1-9])\b", ci)
         ]
         if sum(selected >= phase for selected in ci_phases) < 2:
             raise AssertionError(
@@ -5827,9 +5919,9 @@ def verify_phase15_static(
 
 
 def verify_phase16_static(*, release_closure: bool = True, active_phase: int = 16) -> None:
-    if active_phase not in {16, 17, 18, 19}:
+    if active_phase not in {16, 17, 18, 19, 20}:
         raise AssertionError(
-            "Phase 16 inherited static checks support only phases 16, 17, 18, and 19"
+            "Phase 16 inherited static checks support only phases 16, 17, 18, 19, and 20"
         )
     missing = [path for path in PHASE_16_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -6227,8 +6319,10 @@ def verify_phase16_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase17_static(*, release_closure: bool = True, active_phase: int = 17) -> None:
-    if active_phase not in {17, 18, 19}:
-        raise AssertionError("Phase 17 inherited static checks support only phases 17, 18, and 19")
+    if active_phase not in {17, 18, 19, 20}:
+        raise AssertionError(
+            "Phase 17 inherited static checks support only phases 17, 18, 19, and 20"
+        )
     missing = [path for path in PHASE_17_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 17 paths: {', '.join(missing)}")
@@ -6679,8 +6773,8 @@ def verify_phase17_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase18_static(*, release_closure: bool = True, active_phase: int = 18) -> None:
-    if active_phase not in {18, 19}:
-        raise AssertionError("Phase 18 inherited static checks support only phases 18 and 19")
+    if active_phase not in {18, 19, 20}:
+        raise AssertionError("Phase 18 inherited static checks support only phases 18, 19, and 20")
     missing = [path for path in PHASE_18_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 18 paths: {', '.join(missing)}")
@@ -7121,7 +7215,9 @@ def verify_phase18_static(*, release_closure: bool = True, active_phase: int = 1
             raise AssertionError(f"Phase 18 boundary documentation is missing {required}")
 
 
-def verify_phase19_static() -> None:
+def verify_phase19_static(*, release_closure: bool = True, active_phase: int = 19) -> None:
+    if active_phase not in {19, 20}:
+        raise AssertionError("Phase 19 inherited static checks support only phases 19 and 20")
     missing = [path for path in PHASE_19_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 19 paths: {', '.join(missing)}")
@@ -7164,7 +7260,7 @@ def verify_phase19_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
-    forbidden_changes = sorted(changed_paths - PHASE_19_ALLOWED_WRITES)
+    forbidden_changes = sorted(changed_paths - PHASE_19_ALLOWED_WRITES) if release_closure else []
     if forbidden_changes:
         raise AssertionError(
             "Phase 19 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
@@ -7498,7 +7594,7 @@ def verify_phase19_static() -> None:
         raise AssertionError("Phase 9 release runner did not reject Phase 19 with exit 2")
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    if (
+    if release_closure and (
         not workflow.startswith("name: phase-19-ci\n")
         or 'FABLE5_VERIFY_PHASE: "19"' not in workflow
         or "phase19-compose:" not in workflow
@@ -7507,12 +7603,12 @@ def verify_phase19_static() -> None:
     ):
         raise AssertionError("Phase 19 Ubuntu CI does not run the exact static and full verifiers")
     for environment_name in PHASE_19_CREDENTIAL_ENV_NAMES:
-        if f'{environment_name}: ""' not in workflow:
+        if release_closure and f'{environment_name}: ""' not in workflow:
             raise AssertionError(f"Phase 19 CI does not clear {environment_name}")
     immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
-    if workflow.count(immutable_pull) != 1:
+    if release_closure and workflow.count(immutable_pull) != 1:
         raise AssertionError("Phase 19 CI must pre-pull the pinned browser image exactly once")
-    if (
+    if release_closure and (
         "secrets." in workflow
         or PHASE_10_LINUX_SNAPSHOT_FLAG in workflow
         or "FABLE5_UPDATE_SNAPSHOTS" in workflow
@@ -7521,17 +7617,21 @@ def verify_phase19_static() -> None:
         raise AssertionError("Phase 19 CI consumes authority or widens snapshot/runner behavior")
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         entrypoint_source = normalized(ROOT / entrypoint)
-        if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
+        if release_closure and (
+            "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source
+        ):
             raise AssertionError(f"{entrypoint} does not forward the active Phase 19 selection")
-        if "18, or 19" not in entrypoint_source:
+        if release_closure and "18, or 19" not in entrypoint_source:
             raise AssertionError(f"{entrypoint} does not advertise exact Phase 19 parser support")
     for browser_path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(browser_path)
-        if 'process.env.FABLE5_VERIFY_PHASE ?? "19"' not in browser or (
-            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])' not in browser
+        if release_closure and (
+            'process.env.FABLE5_VERIFY_PHASE ?? "19"' not in browser
+            or 'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19"])'
+            not in browser
         ):
             raise AssertionError(
                 f"Phase 19 inherited browser coverage is inactive in {browser_path}"
@@ -7552,6 +7652,497 @@ def verify_phase19_static() -> None:
     ):
         if required not in decisions + handoff:
             raise AssertionError(f"Phase 19 boundary documentation is missing {required}")
+
+
+def verify_phase20_static() -> None:
+    missing = [path for path in PHASE_20_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 20 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_20_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 19 baseline is unavailable") from exc
+    if (
+        git_text("show", "-s", "--format=%T", PHASE_20_BASELINE_SHA)
+        != EXPECTED_PHASE_20_BASELINE_TREE
+    ):
+        raise AssertionError("The authorized Phase 20 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_20_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 20 HEAD is not descended from the accepted Phase 19 baseline")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_20_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_20_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 20 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    expected_migrations = set(PHASE_1_7_MIGRATION_SHA256) | {
+        "services/api/migrations/versions/0008_phase10_local_paper.py",
+        PHASE_12_MIGRATION,
+        PHASE_13_MIGRATION,
+        PHASE_14_MIGRATION,
+    }
+    actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if actual_migrations != expected_migrations:
+        raise AssertionError("Phase 20 must retain exactly migrations 0001 through 0011")
+    for migration_path in expected_migrations:
+        if (ROOT / migration_path).read_bytes() != git_blob(PHASE_20_BASELINE_SHA, migration_path):
+            raise AssertionError(f"Phase 20 changed inherited migration {migration_path}")
+
+    api_changes = sorted(path for path in changed_paths if path.startswith("services/api/"))
+    if api_changes:
+        raise AssertionError("Phase 20 changed the accepted API surface: " + ", ".join(api_changes))
+    for frozen_path in (
+        "compose.yaml",
+        "package.json",
+        "package-lock.json",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "pyproject.toml",
+        "requirements.lock",
+        "scripts/run_phase_gate.py",
+        PHASE_19_ARTIFACT_PATH,
+    ):
+        if (ROOT / frozen_path).read_bytes() != git_blob(PHASE_20_BASELINE_SHA, frozen_path):
+            raise AssertionError(f"Phase 20 changed frozen inherited surface {frozen_path}")
+    for phase19_path in sorted((ROOT / "services/data/src/fable5_data/phase19").glob("*.py")):
+        relative_path = phase19_path.relative_to(ROOT).as_posix()
+        if phase19_path.read_bytes() != git_blob(PHASE_20_BASELINE_SHA, relative_path):
+            raise AssertionError(f"Phase 20 changed frozen Phase 19 implementation {relative_path}")
+
+    openapi = json.loads((ROOT / "packages/contracts/openapi.json").read_text(encoding="utf-8"))
+    if any(
+        "phase20" in path.casefold()
+        or "input-register" in path.casefold()
+        or "evaluation-holdout" in path.casefold()
+        for path in openapi["paths"]
+    ):
+        raise AssertionError("Phase 20 added an API path")
+    if '"20": "0011_phase14"' not in normalized(ROOT / "tests/test_phase5_postgres.py"):
+        raise AssertionError("Phase 20 PostgreSQL acceptance does not retain head 0011_phase14")
+
+    from fable5_data.phase20.canonical import (
+        PHASE20_ACCEPTED_PHASE19_COMMIT_SHA,
+        PHASE20_ACCEPTED_PHASE19_TREE_SHA,
+        PHASE20_AGGREGATE_CONCLUSION,
+        PHASE20_ARTIFACT_SCHEMA_VERSION,
+        PHASE20_BOUNDARY_VALUES,
+        PHASE20_FUTURE_EVIDENCE_ROWS,
+        PHASE20_INPUT_REQUIREMENT_ROWS,
+        PHASE20_OUTCOME,
+        PHASE20_REGISTER_POLICY_ID,
+        PHASE20_REGISTER_STATE,
+        PHASE20_TRANSITION_RULE_ROWS,
+    )
+    from fable5_data.phase20.input_register import (
+        build_family_a_evaluation_holdout_input_register,
+        canonical_evaluation_holdout_input_register_bytes,
+    )
+
+    committed_bytes = (ROOT / PHASE_20_ARTIFACT_PATH).read_bytes()
+    if committed_bytes != canonical_evaluation_holdout_input_register_bytes():
+        raise AssertionError("Phase 20 committed input register is not the canonical artifact")
+    try:
+        committed_payload = json.loads(committed_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AssertionError("Phase 20 committed input register is not valid JSON") from exc
+    if not isinstance(committed_payload, dict):
+        raise AssertionError("Phase 20 committed input register is not an object")
+    artifact = build_family_a_evaluation_holdout_input_register()
+    rendered = artifact.model_dump(mode="json")
+    if committed_payload != rendered:
+        raise AssertionError("Phase 20 committed input register differs from its strict model")
+    if (
+        rendered.get("schema_version") != PHASE20_ARTIFACT_SCHEMA_VERSION
+        or rendered.get("input_register_policy_id") != PHASE20_REGISTER_POLICY_ID
+        or rendered.get("accepted_phase19_commit_sha") != PHASE20_ACCEPTED_PHASE19_COMMIT_SHA
+        or rendered.get("accepted_phase19_tree_sha") != PHASE20_ACCEPTED_PHASE19_TREE_SHA
+        or rendered.get("outcome") != PHASE20_OUTCOME
+        or rendered.get("register_state") != PHASE20_REGISTER_STATE
+        or rendered.get("aggregate_conclusion") != PHASE20_AGGREGATE_CONCLUSION
+    ):
+        raise AssertionError("Phase 20 input-register identity or blocked result drifted")
+    if (
+        PHASE20_ACCEPTED_PHASE19_COMMIT_SHA != PHASE_20_BASELINE_SHA
+        or PHASE20_ACCEPTED_PHASE19_TREE_SHA != EXPECTED_PHASE_20_BASELINE_TREE
+        or PHASE20_ARTIFACT_SCHEMA_VERSION != PHASE_20_ARTIFACT_SCHEMA_VERSION
+        or PHASE20_REGISTER_POLICY_ID != PHASE_20_INPUT_REGISTER_POLICY_ID
+        or PHASE20_REGISTER_STATE != PHASE_20_REGISTER_STATE
+        or PHASE20_AGGREGATE_CONCLUSION != PHASE_20_CONCLUSION
+    ):
+        raise AssertionError("Phase 20 integration constants conflict with the frozen domain")
+
+    inputs = rendered.get("input_requirements")
+    transitions = rendered.get("transition_rules")
+    required_evidence = rendered.get("required_prior_evidence")
+    inherited_prerequisites = rendered.get("inherited_phase19_prerequisites")
+    dependency_groups = rendered.get("construction_dependency_groups")
+    construction_gates = rendered.get("construction_gates")
+    forbidden_substitutes = rendered.get("forbidden_substitutes")
+    gap_bindings = rendered.get("phase15_gap_bindings")
+    steps = rendered.get("source_plan_steps")
+    if not isinstance(inputs, list) or len(inputs) != 20:
+        raise AssertionError("Phase 20 input-requirement count drifted")
+    if tuple(item.get("code") for item in inputs) != tuple(
+        row[1] for row in PHASE20_INPUT_REQUIREMENT_ROWS
+    ):
+        raise AssertionError("Phase 20 input-requirement registry or order drifted")
+    if tuple(item.get("evidence_state") for item in inputs) != tuple(
+        row[3] for row in PHASE20_INPUT_REQUIREMENT_ROWS
+    ):
+        raise AssertionError("Phase 20 input evidence states drifted")
+    if any(item.get("input_value_present") is not False for item in inputs) or any(
+        item.get("resolves_reserved_evidence") is not False for item in inputs
+    ):
+        raise AssertionError("Phase 20 populated a required input or reserved evidence")
+    if not isinstance(transitions, list) or len(transitions) != 10:
+        raise AssertionError("Phase 20 transition-rule count drifted")
+    if tuple(item.get("code") for item in transitions) != tuple(
+        row[0] for row in PHASE20_TRANSITION_RULE_ROWS
+    ) or any(item.get("applied") is not False for item in transitions):
+        raise AssertionError("Phase 20 transition rules drifted or were applied")
+    if (
+        not isinstance(required_evidence, list)
+        or tuple(
+            (item.get("name"), item.get("state"), item.get("produced"), item.get("reason_code"))
+            for item in required_evidence
+        )
+        != PHASE20_FUTURE_EVIDENCE_ROWS
+    ):
+        raise AssertionError("Phase 20 required-prior-evidence registry drifted")
+    if any(
+        {"value", "evidence_sha256", "produced_sha256", "output_sha256"}.intersection(item)
+        for item in required_evidence
+    ):
+        raise AssertionError("Phase 20 emitted a value for missing Step 3 prior evidence")
+    if not isinstance(inherited_prerequisites, list) or len(inherited_prerequisites) != 19:
+        raise AssertionError("Phase 20 did not bind all 19 Phase 19 prerequisites")
+    if any(item.get("unchanged") is not True for item in inherited_prerequisites):
+        raise AssertionError("Phase 20 changed an inherited Phase 19 prerequisite")
+    if (
+        not isinstance(dependency_groups, list)
+        or len(dependency_groups) != 6
+        or any(item.get("state") != "BLOCKED" for item in dependency_groups)
+    ):
+        raise AssertionError("Phase 20 construction dependency groups drifted")
+    if (
+        not isinstance(construction_gates, list)
+        or len(construction_gates) != 6
+        or any(
+            item.get("state") != "BLOCKED" or item.get("passed") is not False
+            for item in construction_gates
+        )
+    ):
+        raise AssertionError("Phase 20 construction gates drifted")
+    if (
+        not isinstance(forbidden_substitutes, list)
+        or len(forbidden_substitutes) != 8
+        or any(item.get("forbidden") is not True for item in forbidden_substitutes)
+    ):
+        raise AssertionError("Phase 20 forbidden-substitute registry drifted")
+    if not isinstance(gap_bindings, list) or len(gap_bindings) != 19:
+        raise AssertionError("Phase 20 did not bind all 19 Phase 15 gaps")
+    if any(item.get("changed_in_phase20") is not False for item in gap_bindings):
+        raise AssertionError("Phase 20 changed an inherited Phase 15 gap")
+    if not isinstance(steps, list) or len(steps) != 7:
+        raise AssertionError("Phase 20 source-plan step registry drifted")
+    if any(item.get("changed_in_phase20") is not False for item in steps) or any(
+        item.get("external_action_authorized") is not False for item in steps
+    ):
+        raise AssertionError("Phase 20 changed an inherited source-plan step")
+    if tuple(item.get("state") for item in steps) != (
+        "OUTPUT_FROZEN",
+        "OUTPUT_FROZEN",
+        "NOT_STARTED",
+        "NOT_STARTED",
+        "NOT_STARTED",
+        "NOT_STARTED",
+        "NOT_STARTED",
+    ):
+        raise AssertionError("Phase 20 source-plan states drifted")
+    rendered_text = json.dumps(rendered, sort_keys=True)
+    if "qualification_artifact_set_sha256" in rendered_text:
+        raise AssertionError("Phase 20 emitted a Step 3 qualification output")
+    if "non_synthetic_evaluation_policy_sha256" in rendered or (
+        "confirmation_holdout_definition_sha256" in rendered
+    ):
+        raise AssertionError("Phase 20 emitted a reserved Step 3 evidence hash at the root")
+    for field, expected in PHASE20_BOUNDARY_VALUES.items():
+        if rendered.get(field) is not expected:
+            raise AssertionError(f"Phase 20 input register unexpectedly changed {field}")
+
+    phase20_root = ROOT / "services/data/src/fable5_data/phase20"
+    production_paths = sorted(phase20_root.glob("*.py"))
+    imported = set().union(*(imported_module_roots(path) for path in production_paths))
+    forbidden_imports = sorted(
+        imported
+        & {
+            "aiohttp",
+            "alpaca",
+            "asyncio",
+            "fastapi",
+            "fable5_api",
+            "fable5_backtester",
+            "fable5_paper",
+            "fable5_research",
+            "http",
+            "httpx",
+            "os",
+            "psycopg",
+            "random",
+            "requests",
+            "secrets",
+            "socket",
+            "sqlalchemy",
+            "ssl",
+            "subprocess",
+            "time",
+            "urllib",
+            "websocket",
+            "websockets",
+        }
+    )
+    if forbidden_imports:
+        raise AssertionError(
+            "Phase 20 imports a forbidden ambient/network/database module: "
+            + ", ".join(forbidden_imports)
+        )
+    production_sources = "\n".join(normalized(path).casefold() for path in production_paths)
+    for forbidden in (
+        "create_engine",
+        "datetime.now",
+        "datetime.utcnow",
+        "getenv",
+        "glob(",
+        "rglob(",
+        "uuid4",
+        "submit_order",
+        "place_order",
+        "create_order",
+        "replace_order",
+        "cancel_order",
+        "retry",
+    ):
+        if forbidden in production_sources:
+            raise AssertionError(f"Phase 20 contains forbidden capability {forbidden}")
+
+    generator = normalized(ROOT / PHASE_20_GENERATOR_PATH)
+    portable_verifier = normalized(ROOT / PHASE_20_PORTABLE_VERIFIER_PATH)
+    if (
+        generator.count('"--confirm-input-register-only"') != 1
+        or portable_verifier.count('"--register"') != 1
+    ):
+        raise AssertionError("Phase 20 generator/verifier CLI contract is incomplete")
+    for path, source in (
+        (PHASE_20_GENERATOR_PATH, generator),
+        (PHASE_20_PORTABLE_VERIFIER_PATH, portable_verifier),
+    ):
+        for required_boundary in (
+            'event.startswith("socket.")',
+            'frozenset({"os.system", "subprocess.Popen"})',
+            "sys.addaudithook(_offline_audit_hook)",
+            "_install_offline_boundary()",
+            "_prove_socket_construction_is_denied()",
+            "_prove_subprocess_construction_is_denied()",
+        ):
+            if required_boundary not in source:
+                raise AssertionError(f"Phase 20 CLI {path} lacks active offline denial proof")
+        main_index = source.index("def main")
+        parser_index = source.index("_parser().parse_args", main_index)
+        if (
+            source.index("_install_offline_boundary()", main_index) >= parser_index
+            or source.index("_prove_socket_construction_is_denied()", main_index) >= parser_index
+            or source.index("_prove_subprocess_construction_is_denied()", main_index)
+            >= parser_index
+        ):
+            raise AssertionError(f"Phase 20 CLI {path} installs its denial boundary too late")
+        for forbidden_call in (
+            "os.getenv(",
+            "os.environ",
+            "os.system(",
+            "subprocess.run(",
+        ):
+            if forbidden_call in source:
+                raise AssertionError(f"Phase 20 CLI {path} contains forbidden ambient execution")
+        if source.count("subprocess.Popen(") != 1:
+            raise AssertionError(
+                f"Phase 20 CLI {path} must use one denied subprocess-construction self-proof"
+            )
+    for forbidden in (
+        "--provider",
+        "--product",
+        "--url",
+        "--credential",
+        "--token",
+        "--secret",
+        "--rights",
+        "--data",
+        "--output",
+        "--authority",
+        "--policy",
+        "--threshold",
+        "--interval",
+        "--holdout",
+        "--strategy",
+        "--signal",
+        "--side",
+        "--quantity",
+        "--broker",
+        "--order",
+        "--execution",
+        "--ingestion",
+        "--promotion",
+        "--expected-hash",
+        "--repair",
+    ):
+        if forbidden in generator or forbidden in portable_verifier:
+            raise AssertionError(f"Phase 20 CLI exposes forbidden argument {forbidden}")
+
+    generated = subprocess.run(
+        [sys.executable, PHASE_20_GENERATOR_PATH, "--confirm-input-register-only"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if generated.returncode != 0 or generated.stderr or generated.stdout != committed_bytes:
+        raise AssertionError("Phase 20 generator failed exact static canonicalization")
+    verified = subprocess.run(
+        [sys.executable, PHASE_20_PORTABLE_VERIFIER_PATH, "--register", PHASE_20_ARTIFACT_PATH],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if verified.returncode != 0 or verified.stderr:
+        raise AssertionError("Phase 20 portable verifier rejected the committed artifact")
+    try:
+        receipt = json.loads(verified.stdout)
+    except json.JSONDecodeError as exc:
+        raise AssertionError("Phase 20 portable verifier did not return sanitized JSON") from exc
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("register_state") != PHASE_20_REGISTER_STATE
+        or receipt.get("aggregate_conclusion") != PHASE_20_CONCLUSION
+        or receipt.get("input_requirement_count") != 20
+        or receipt.get("transition_rule_count") != 10
+        or receipt.get("outcome") != "BLOCKED"
+        or receipt.get("step3_eligible") is not False
+        or receipt.get("status") != "valid"
+    ):
+        raise AssertionError("Phase 20 portable verifier receipt is incomplete")
+
+    runner = normalized(ROOT / "scripts/run_phase_gate.py")
+    if "choices=(9,)" not in runner or '"--phase", "20"' in runner:
+        raise AssertionError("Phase 20 widened the Phase 9-only release runner")
+    for rejected_phase in (20, 21):
+        runner_rejection = subprocess.run(
+            [
+                sys.executable,
+                "scripts/run_phase_gate.py",
+                "run",
+                "--phase",
+                str(rejected_phase),
+                "--evidence-dir",
+                str(ROOT.parent / f"phase{rejected_phase}-forbidden-runner-evidence"),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if runner_rejection.returncode != 2 or runner_rejection.stdout:
+            raise AssertionError(
+                f"Phase 9 release runner did not reject Phase {rejected_phase} with exit 2"
+            )
+
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-20-ci\n")
+        or 'FABLE5_VERIFY_PHASE: "20"' not in workflow
+        or "phase20-compose:" not in workflow
+        or workflow.count("python scripts/verify_phase1.py --static-only --phase 20") != 1
+        or workflow.count("python scripts/verify_phase1.py --phase 20") != 1
+    ):
+        raise AssertionError("Phase 20 Ubuntu CI does not run the exact static and full verifiers")
+    for environment_name in PHASE_20_CREDENTIAL_ENV_NAMES:
+        if f'{environment_name}: ""' not in workflow:
+            raise AssertionError(f"Phase 20 CI does not clear {environment_name}")
+    immutable_pull = f"docker pull {PHASE_9_LINUX_PLAYWRIGHT_IMAGE}"
+    if workflow.count(immutable_pull) != 1:
+        raise AssertionError("Phase 20 CI must pre-pull the pinned browser image exactly once")
+    if (
+        "secrets." in workflow
+        or PHASE_10_LINUX_SNAPSHOT_FLAG in workflow
+        or "FABLE5_UPDATE_SNAPSHOTS" in workflow
+        or "run_phase_gate.py run --phase 20" in workflow
+    ):
+        raise AssertionError("Phase 20 CI consumes authority or widens snapshot/runner behavior")
+    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+        entrypoint_source = normalized(ROOT / entrypoint)
+        if "FABLE5_VERIFY_PHASE" not in entrypoint_source or "--phase" not in entrypoint_source:
+            raise AssertionError(f"{entrypoint} does not forward the active Phase 20 selection")
+        if "19, or 20" not in entrypoint_source:
+            raise AssertionError(f"{entrypoint} does not advertise exact Phase 20 parser support")
+    for browser_path in (
+        ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
+        ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
+    ):
+        browser = normalized(browser_path)
+        if 'process.env.FABLE5_VERIFY_PHASE ?? "20"' not in browser or (
+            'new Set(["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"])'
+            not in browser
+        ):
+            raise AssertionError(
+                f"Phase 20 inherited browser coverage is inactive in {browser_path}"
+            )
+    decisions = normalized(
+        ROOT / "docs/PHASE_20_FAMILY_A_EVALUATION_HOLDOUT_INPUT_REGISTER_DECISIONS.md"
+    )
+    handoff = normalized(ROOT / "docs/handoffs/PHASE_20.md")
+    for required in (
+        PHASE_20_BASELINE_SHA,
+        EXPECTED_PHASE_20_BASELINE_TREE,
+        PHASE_20_ARTIFACT_PATH,
+        "INPUTS_FROZEN",
+        "BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS",
+        "adds no migration",
+        "Stop after Phase 20",
+    ):
+        if required not in decisions + handoff:
+            raise AssertionError(f"Phase 20 boundary documentation is missing {required}")
+    if (ROOT / "docs/handoffs/PHASE_21.md").exists() or (
+        ROOT / "services/data/src/fable5_data/phase21"
+    ).exists():
+        raise AssertionError("Phase 20 introduced an unauthorized Phase 21 surface")
 
 
 def verify_static(phase: int = 1) -> None:
@@ -7657,6 +8248,21 @@ def verify_static(phase: int = 1) -> None:
         verify_phase19_static()
         print("Static repository policy checks passed for Phase 19.")
         return
+    if phase == 20:
+        verify_static_inherited(20, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=20)
+        verify_phase11_static(release_closure=False, active_phase=20)
+        verify_phase12_static(release_closure=False, active_phase=20)
+        verify_phase13_static(release_closure=False, active_phase=20)
+        verify_phase14_static(release_closure=False, active_phase=20)
+        verify_phase15_static(release_closure=False, active_phase=20)
+        verify_phase16_static(release_closure=False, active_phase=20)
+        verify_phase17_static(release_closure=False, active_phase=20)
+        verify_phase18_static(release_closure=False, active_phase=20)
+        verify_phase19_static(release_closure=False, active_phase=20)
+        verify_phase20_static()
+        print("Static repository policy checks passed for Phase 20.")
+        return
     verify_static_inherited(phase)
 
 
@@ -7739,7 +8345,10 @@ def acceptance_environment(
         ).stdout.strip()
         if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
             raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
-        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19} and expected_git_identity is not None:
+        if (
+            phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+            and expected_git_identity is not None
+        ):
             git_tree = subprocess.run(
                 ["git", "show", "-s", "--format=%T", "HEAD"],
                 cwd=ROOT,
@@ -8862,7 +9471,7 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
 
 
 def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
-    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
         return (
             PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
             PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
@@ -12630,11 +13239,11 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
-    linux_phase11 = phase in {11, 12, 13, 14, 15, 16, 17, 18, 19} and sys.platform.startswith(
+    linux_phase11 = phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20} and sys.platform.startswith(
         "linux"
     )
     if linux_phase9:
@@ -12656,7 +13265,7 @@ def verify_phase8_browser(
             output_path=f"/tmp/phase{phase}-inherited-playwright-results",
             verify_phase=phase,
         )
-    elif phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    elif phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
         command = [
             npm,
             "--workspace",
@@ -12689,7 +13298,7 @@ def verify_phase8_browser(
         )
     coverage = (
         "unaffected inherited modes and shared layout"
-        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
+        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
         else "all four modes"
     )
     print(
@@ -12889,7 +13498,7 @@ def verify_phase10_browser(
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
-    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
         browser_environment.pop(PHASE_10_LINUX_SNAPSHOT_FLAG, None)
         browser_environment.pop("FABLE5_UPDATE_SNAPSHOTS", None)
         browser_environment.pop("FABLE5_VISUAL_CORPUS", None)
@@ -12910,7 +13519,7 @@ def verify_phase10_browser(
         else frontend_url
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
-    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19} and linux:
+    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20} and linux:
         command = phase11_linux_playwright_command(
             project,
             browser_frontend_url,
@@ -12938,7 +13547,7 @@ def verify_phase10_browser(
     try:
         run(command, env=browser_environment)
     finally:
-        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19} and linux:
+        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20} and linux:
             cleanup_phase11_linux_playwright_container(project, browser_environment)
         elif linux:
             cleanup_phase10_linux_playwright_container(project, browser_environment)
@@ -14411,6 +15020,202 @@ def verify_phase19_no_schema_drift_and_zero_writes(
         )
     print(
         "Phase 19 preserved all 57 nonempty Phase 1-18 tables, the exact table catalog, "
+        "migration head 0011_phase14, and every public function body byte-identically."
+    )
+
+
+def phase20_offline_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    environment["FABLE5_VERIFY_PHASE"] = "20"
+    environment.pop("FABLE5_DATABASE_URL", None)
+    environment.pop("FABLE5_REDIS_URL", None)
+    for name in PHASE_20_CREDENTIAL_ENV_NAMES:
+        environment.pop(name, None)
+    return environment
+
+
+def verify_phase20_portable_acceptance(environment: dict[str, str]) -> None:
+    del environment
+    test_environment = phase20_offline_environment()
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/test_phase20_portable.py", "-q"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 20 portable generator/verifier tests failed")
+
+    committed = (ROOT / PHASE_20_ARTIFACT_PATH).read_bytes()
+    generator_command = [
+        sys.executable,
+        PHASE_20_GENERATOR_PATH,
+        "--confirm-input-register-only",
+    ]
+    generated: list[bytes] = []
+    for _ in range(2):
+        generated_result = subprocess.run(
+            generator_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=test_environment,
+        )
+        if generated_result.returncode != 0 or generated_result.stderr:
+            raise AssertionError("Phase 20 generator failed during portable acceptance")
+        generated.append(generated_result.stdout)
+    if generated != [committed, committed]:
+        raise AssertionError("Phase 20 generator was not byte-identical to the committed artifact")
+
+    verifier_command = [
+        sys.executable,
+        PHASE_20_PORTABLE_VERIFIER_PATH,
+        "--register",
+        PHASE_20_ARTIFACT_PATH,
+    ]
+    receipts: list[bytes] = []
+    for _ in range(2):
+        verified = subprocess.run(
+            verifier_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=test_environment,
+        )
+        if verified.returncode != 0 or verified.stderr:
+            raise AssertionError("Phase 20 portable verifier rejected the committed artifact")
+        receipts.append(verified.stdout)
+    if receipts[0] != receipts[1]:
+        raise AssertionError("Phase 20 portable verifier receipt was not byte-identical")
+    try:
+        receipt = json.loads(receipts[0])
+    except json.JSONDecodeError as exc:
+        raise AssertionError("Phase 20 portable verifier returned invalid JSON") from exc
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("register_state") != PHASE_20_REGISTER_STATE
+        or receipt.get("aggregate_conclusion") != PHASE_20_CONCLUSION
+        or receipt.get("network") != "disabled"
+        or receipt.get("outcome") != "BLOCKED"
+        or receipt.get("input_requirement_count") != 20
+        or receipt.get("transition_rule_count") != 10
+        or receipt.get("required_prior_evidence") != "missing"
+        or receipt.get("step3_eligible") is not False
+        or receipt.get("status") != "valid"
+    ):
+        raise AssertionError("Phase 20 portable verifier receipt is incomplete")
+    print(
+        "Phase 20 committed-artifact parity, repeated byte-identical generation, and portable "
+        "offline verification proof passed."
+    )
+
+
+def verify_phase20_offline_network_denial(environment: dict[str, str]) -> None:
+    del environment
+    test_environment = phase20_offline_environment()
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "services/data/tests/test_phase20_contracts.py",
+            "services/data/tests/test_phase20_input_register.py",
+            "services/data/tests/test_phase20_security.py",
+            "-q",
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=test_environment,
+    )
+    if result.stdout:
+        print(result.stdout.rstrip())
+    if result.stderr:
+        print(result.stderr.rstrip(), file=sys.stderr)
+    if result.returncode != 0:
+        raise AssertionError("Phase 20 pure-domain and active network-denial tests failed")
+    print(
+        "Phase 20 exact evaluation/holdout input register, blocked/adversarial tamper, "
+        "secret-canary, zero-authority, database-free, subprocess-free, and active "
+        "socket-denial proofs passed."
+    )
+
+
+def snapshot_phase20_inherited_state(
+    project: str,
+    environment: dict[str, str],
+) -> tuple[dict[str, tuple[int, str]], str, str, str]:
+    if len(PHASE_20_INHERITED_TABLES) != 57 or len(set(PHASE_20_INHERITED_TABLES)) != 57:
+        raise AssertionError(
+            "Phase 20 verifier does not cover all 57 inherited tables exactly once"
+        )
+    table_snapshot = snapshot_tables(project, environment, PHASE_20_INHERITED_TABLES)
+    empty = sorted(table for table, (count, _) in table_snapshot.items() if count < 1)
+    if empty:
+        raise AssertionError(
+            "Phase 20 zero-write proof requires nonempty inherited evidence: " + ", ".join(empty)
+        )
+    expected_catalog = ",".join(sorted(("alembic_version", *PHASE_20_INHERITED_TABLES)))
+    catalog = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT string_agg(tablename, ',' ORDER BY tablename) FROM pg_tables "
+            "WHERE schemaname = 'public';",
+        ],
+    ).stdout.strip()
+    if catalog != expected_catalog:
+        raise AssertionError("Phase 20 inherited table catalog drifted: " + catalog)
+    version = compose_exec(
+        project,
+        environment,
+        "postgres",
+        [
+            "psql",
+            "-U",
+            "fable5",
+            "-d",
+            "fable5",
+            "-tAc",
+            "SELECT version_num FROM alembic_version;",
+        ],
+    ).stdout.strip()
+    if version != "0011_phase14":
+        raise AssertionError(f"Phase 20 changed the inherited migration head: {version}")
+    return table_snapshot, snapshot_phase15_function_bodies(project, environment), catalog, version
+
+
+def verify_phase20_no_schema_drift_and_zero_writes(
+    project: str,
+    environment: dict[str, str],
+    before: tuple[dict[str, tuple[int, str]], str, str, str],
+) -> None:
+    after = snapshot_phase20_inherited_state(project, environment)
+    assert_snapshots_equal(
+        before[0],
+        after[0],
+        "during Phase 20 portable evaluation/holdout input-register acceptance",
+    )
+    if after[1:] != before[1:]:
+        raise AssertionError(
+            "Phase 20 changed an inherited function body, table catalog, or migration head"
+        )
+    print(
+        "Phase 20 preserved all 57 nonempty Phase 1-19 tables, the exact table catalog, "
         "migration head 0011_phase14, and every public function body byte-identically."
     )
 
@@ -16917,12 +17722,12 @@ def verify_phase9_compose_cleanup(
 def verify_compose(phase: int = 1) -> None:
     acceptance_identity = (
         phase10_clean_git_identity("preflight", phase=phase)
-        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
+        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
         else None
     )
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
-    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
         verify_phase10_acceptance_resource_namespace(
             "preflight",
             os.environ.copy(),
@@ -17091,6 +17896,7 @@ def verify_compose(phase: int = 1) -> None:
                                             17,
                                             18,
                                             19,
+                                            20,
                                         }:
                                             verify_phase8_browser(
                                                 project,
@@ -17098,7 +17904,7 @@ def verify_compose(phase: int = 1) -> None:
                                                 frontend_url,
                                             )
                                             print("Full Compose Phase 8 verification passed.")
-                                    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+                                    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
                                         with phase9_stage(phase, "phase10_acceptance"):
                                             with phase9_stage(phase, "phase10_schema_cycle"):
                                                 verify_phase10_migration_cycle(
@@ -17132,7 +17938,7 @@ def verify_compose(phase: int = 1) -> None:
                                                     environment,
                                                     frontend_url,
                                                 )
-                                        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19}:
+                                        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
                                                     verify_phase11_api(
@@ -17147,7 +17953,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         frontend_url,
                                                     )
-                                        if phase in {12, 13, 14, 15, 16, 17, 18, 19}:
+                                        if phase in {12, 13, 14, 15, 16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17187,7 +17993,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {13, 14, 15, 16, 17, 18, 19}:
+                                        if phase in {13, 14, 15, 16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase13_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17227,7 +18033,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {14, 15, 16, 17, 18, 19}:
+                                        if phase in {14, 15, 16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase14_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17271,7 +18077,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {15, 16, 17, 18, 19}:
+                                        if phase in {15, 16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase15_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17293,7 +18099,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {16, 17, 18, 19}:
+                                        if phase in {16, 17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase16_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17323,7 +18129,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase16_before,
                                                     )
-                                        if phase in {17, 18, 19}:
+                                        if phase in {17, 18, 19, 20}:
                                             with phase9_stage(phase, "phase17_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17353,7 +18159,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase17_before,
                                                     )
-                                        if phase in {18, 19}:
+                                        if phase in {18, 19, 20}:
                                             with phase9_stage(phase, "phase18_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17383,7 +18189,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase18_before,
                                                     )
-                                        if phase == 19:
+                                        if phase in {19, 20}:
                                             with phase9_stage(phase, "phase19_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -17412,6 +18218,36 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                         phase19_before,
+                                                    )
+                                        if phase == 20:
+                                            with phase9_stage(phase, "phase20_acceptance"):
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase20_no_schema_pre_snapshot",
+                                                ):
+                                                    phase20_before = (
+                                                        snapshot_phase20_inherited_state(
+                                                            project,
+                                                            environment,
+                                                        )
+                                                    )
+                                                with phase9_stage(phase, "phase20_portable"):
+                                                    verify_phase20_portable_acceptance(environment)
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase20_offline_network_denial",
+                                                ):
+                                                    verify_phase20_offline_network_denial(
+                                                        environment
+                                                    )
+                                                with phase9_stage(
+                                                    phase,
+                                                    "phase20_no_schema_drift_zero_write",
+                                                ):
+                                                    verify_phase20_no_schema_drift_and_zero_writes(
+                                                        project,
+                                                        environment,
+                                                        phase20_before,
                                                     )
         else:
             run(
@@ -17453,16 +18289,16 @@ def verify_compose(phase: int = 1) -> None:
                     text=True,
                     env=environment,
                 )
-                if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+                if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
                     if cleanup.returncode != 0:
                         raise AssertionError(
                             f"Phase {phase} inherited Compose cleanup exited {cleanup.returncode}"
                         )
-                    if phase in {9, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+                    if phase in {9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
                         verify_phase9_compose_cleanup(project, environment, phase=phase)
         finally:
             try:
-                if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19}:
+                if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}:
                     verify_phase10_acceptance_resource_namespace(
                         "post-cleanup",
                         environment,
@@ -17498,6 +18334,8 @@ def verify_compose(phase: int = 1) -> None:
         print("Full Compose Phase 18 verification passed.")
     if phase == 19:
         print("Full Compose Phase 19 verification passed.")
+    if phase == 20:
+        print("Full Compose Phase 20 verification passed.")
 
 
 def main() -> int:
@@ -17508,10 +18346,10 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "19"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "20"),
         help=(
             "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "
-            "13, 14, 15, 16, 17, 18, or 19 (default: FABLE5_VERIFY_PHASE or 19)."
+            "13, 14, 15, 16, 17, 18, 19, or 20 (default: FABLE5_VERIFY_PHASE or 20)."
         ),
     )
     args = parser.parse_args()
