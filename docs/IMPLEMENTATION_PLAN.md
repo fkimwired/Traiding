@@ -33,6 +33,7 @@ Phase 1 control plane
   -> Phase 21 Family A operational-composition decision requirements (portable, requirements-only)
   -> Phase 22 Family A macro-vintage candidate inventory amendment (portable, metadata-only)
   -> Phase 23 Family A RTDSM current-use-rights review (portable, public-terms-only)
+  -> Phase 24 Family A RTDSM rights-clarification requirements (portable, requirements-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -66,6 +67,8 @@ do not receive executable scaffolds.
 | 22 | additive Family A macro-vintage candidate inventory amendment naming the Philadelphia Fed RTDSM for later independent review | deterministic generated JSON and offline verification; exact `BLOCKED` / `CANDIDATE_INVENTORY_AMENDMENT_FROZEN`; one candidate-only, unranked, unselected RTDSM product bound to inert official-source metadata while accepted Phase 17–21 artifacts remain unchanged; no rights grant, operational composition, credential, external data request, capture, persistence, research, execution, order, or live path |
 
 | 23 | technical current-use-rights review of the exact Phase 22 RTDSM candidate using official public terms only | deterministic generated JSON and offline verification; exact `BLOCKED` / `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN` / `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`; three inert citations, one conservative finding, and four requirement states; no legal opinion, rights grant, credential, data request, qualification, composition, research, execution, order, or live path |
+
+| 24 | exact clarification requirements for the blocked Phase 23 RTDSM current-use-rights finding | deterministic generated JSON and offline verification; exact `BLOCKED` / `RIGHTS_CLARIFICATION_REQUIREMENTS_FROZEN` / `BLOCKED_AWAITING_INDEPENDENT_CURRENT_USE_RIGHTS_CLARIFICATION`; 8 proposed-not-authorized disclosures, 10 unanswered questions, 6 missing evidence requirements, and 7 unapplied fail-closed rules; no outreach, answer, rights grant, credential, data request, qualification, composition, research, execution, order, or live path |
 
 ## Required handoff template
 

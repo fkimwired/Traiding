@@ -278,6 +278,19 @@ No risk input, threshold, exposure, authorization, revocation state, or order co
 finding grants no credential, provider/data access, research eligibility, strategy promotion,
 execution, order, or live authority.
 
+## Family A RTDSM rights-clarification requirements (Phase 24)
+
+Phase 24 freezes requirements for a later independent rights clarification. It does not perform or
+approve outreach and cannot upgrade the Phase 23 blocked finding. All ten questions remain
+`UNANSWERED`, all six evidence requirements remain `MISSING`, and all seven transition rules remain
+unapplied.
+
+No risk input, threshold, exposure, authorization, currentness, revocation, or order control
+changes. A packet, commit, PR, approval, public citation, or credential cannot establish current
+rights. Any later prohibited, ambiguous, stale, conflicting, or conditionally permitted answer
+without enforceable controls fails closed and grants no data, research, execution, order, or live
+authority.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

@@ -576,3 +576,18 @@ and merged Phase 22 tree, canonical repeated generation, committed-file parity, 
 hashes, all authority fields false, offline operation, zero database/schema drift, and rejection of
 any positive-rights, entitlement, selection, data-access, fitness, research, execution, or order
 upgrade. No observation, signal, trial, return, performance metric, or promotion decision exists.
+
+## 24. Phase 24 Family A RTDSM rights-clarification requirements
+
+Phase 24 evaluates only whether the exact disclosure, question, evidence, and transition-rule
+inputs for a later independent rights clarification are complete and deterministic. The expected
+result is `BLOCKED` / `RIGHTS_CLARIFICATION_REQUIREMENTS_FROZEN` /
+`BLOCKED_AWAITING_INDEPENDENT_CURRENT_USE_RIGHTS_CLARIFICATION`.
+
+Acceptance requires exact 8/10/6/7 registries, strict lineage to the accepted and merged Phase 23
+tree, repeated canonical generation, committed-file parity, domain-separated hashes, every
+question `UNANSWERED`, every evidence requirement `MISSING`, every rule unapplied, all external
+authority fields false, offline operation, zero database/schema drift, and rejection of any
+contact, answer, rights, entitlement, selection, data, fitness, research, execution, or order
+upgrade. The artifact creates no observation, signal, trial, return, metric, policy, holdout, or
+promotion decision.

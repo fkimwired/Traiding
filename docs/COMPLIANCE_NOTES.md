@@ -90,6 +90,11 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   derived data, retention/deletion, attribution, or third-party content. The exact result is
   `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`; it is not legal advice, a
   rights grant, entitlement, product selection, or permission to request or retain data.
+- Phase 24 freezes the exact RTDSM proposed-use disclosures, clarification questions, acceptable
+  evidence, and fail-closed transition rules. It performs no outreach and records no response. All
+  uses remain proposed-not-authorized, all questions unanswered, all evidence missing, and all
+  transitions unapplied. The packet is not legal advice, current rights evidence, or permission to
+  contact a rights holder, access an account, request data, or persist a payload.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -201,3 +206,12 @@ content body, observation, dataset, schema sample, selected series, exact releas
 operational composition, policy, holdout, Step 3 output, performance, approval, risk clearance,
 order, or fill. It grants no provider contact, data access, storage, research, execution, or live
 authority.
+
+Phase 24 rights-clarification requirements evidence contains only accepted Phase 23 lineage, eight
+proposed-use disclosures, ten unanswered questions, six missing evidence requirements, seven
+unapplied transition rules, identities, hashes, and false authority fields.
+`RIGHTS_CLARIFICATION_REQUIREMENTS_FROZEN` proves only deterministic packet integrity. It contains
+no provider/counsel/BLS contact, sent request, response, legal opinion, executed terms, account,
+credential, entitlement, provider payload, observation, dataset, schema sample, selected delivery,
+verified right, operational composition, policy, holdout, performance, approval, risk clearance,
+order, or fill.
