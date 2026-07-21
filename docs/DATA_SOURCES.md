@@ -309,6 +309,30 @@ for a human decision or current account-specific evidence. Phase 21 performs no 
 provider/counsel contact, credential/account access, sample request, capture, persistence, ingestion,
 snapshot, policy/holdout construction, Step 3 action, research, risk, execution, or order operation.
 
+### Phase 22 portable macro-vintage candidate inventory amendment
+
+Phase 22 adds one overlay entry without changing the accepted Phase 17 inventory, Phase 18 rights
+findings, or Phase 21 requirements. The sole new product identity is the Federal Reserve Bank of
+Philadelphia Real-Time Data Set for Macroeconomists, mapped only to the candidate claim
+`macro_regime_inputs`. Official documentation states that RTDSM provides downloadable vintages of
+major macroeconomic variables for research and is updated monthly. The PCPI documentation reports
+monthly Consumer Price Index vintages beginning in `1998:M11`, which is candidate evidence for the
+user's requested post-2000 boundary but not a selected coverage contract.
+
+The Philadelphia Fed's online terms permit informational, educational, and research use while
+warning that some content may carry third-party copyright. They do not independently establish the
+planned persistent database, software/model, derived-output, retention, or termination rights.
+Monthly vintage labels are not exact release timestamps; any later qualification must reconcile
+source-agency release archives, including BLS release evidence where applicable. Exact series,
+delivery bytes, schema, field coverage, availability times, missingness, and fitness all remain
+unproven.
+
+The exact Phase 22 result remains `BLOCKED` with
+`CANDIDATE_INVENTORY_AMENDMENT_FROZEN`. The new entry is candidate-only, unranked, unselected, and
+not current-rights-verified. No account, credential, provider request, data capture, persistence,
+ingestion, snapshot, composition value, policy/holdout, Step 3 action, research, risk, execution, or
+order operation is introduced.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

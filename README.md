@@ -5,10 +5,10 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 21 implementation status
+## Phase 22 implementation status
 
-The formally accepted Phase 20 identity and the authorized Phase 21 portable Family A operational-
-composition decision-requirements surface include:
+The formally accepted Phase 21 identity and the authorized Phase 22 portable Family A macro-vintage
+candidate inventory amendment include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -141,7 +141,12 @@ composition decision-requirements surface include:
 - exact `BLOCKED`, `DECISION_REQUIREMENTS_FROZEN`, and
   `BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION` states with every product
   unselected and current-rights-unverified, three downstream dependencies and six gates blocked,
-  eight future rules unapplied, and all inherited inputs, Step 3 hashes, gaps, and steps unchanged.
+  eight future rules unapplied, and all inherited inputs, Step 3 hashes, gaps, and steps unchanged;
+- one additive Philadelphia Fed RTDSM product and candidate-group metadata overlay for later
+  independent rights and fitness review, mapped only to `macro_regime_inputs`; and
+- exact `BLOCKED` and `CANDIDATE_INVENTORY_AMENDMENT_FROZEN` semantics with the added candidate
+  unranked, operationally unselected, current-rights-unverified, and unqualified while every
+  accepted Phase 17–21 artifact remains unchanged.
 
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
@@ -189,7 +194,10 @@ qualification. Phase 20 is formally accepted at commit
 Actions run `29724765420` (`preflight`, `unit`, and `phase20-compose`) at that exact identity.
 Phase 21 interprets only committed evidence. Its zero selected and zero current-rights-verified
 bindings do not claim external unavailability, make an eligibility/legal conclusion, or permanently
-reject any product.
+reject any product. Phase 21 is formally accepted at commit
+`a25ffb5cb68014c301a588c0e8cf7c7f18914e0a`, tree
+`8744604b486dd7398cd8c5a003fe7c7b083fde86`, after clean Windows acceptance and successful GitHub
+Actions run `29759697662` (`preflight`, `unit`, and `phase21-compose`) at that exact identity.
 
 ## Prerequisites
 
@@ -197,8 +205,8 @@ reject any product.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 21 local or CI
-acceptance. The Phase 21 artifact operations are portable, database-free, and network-denied; the
+No data-provider, LLM, broker, or commercial credential is needed for Phase 22 local or CI
+acceptance. The Phase 22 artifact operations are portable, database-free, and network-denied; the
 full closure gate still starts the inherited Compose/PostgreSQL stack solely to prove zero schema or
 row drift. A separately authorized
 external qualification capture requires an existing token plus independently reviewed current
@@ -264,23 +272,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 21 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 22 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "21"
+$env:FABLE5_VERIFY_PHASE = "22"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 21 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 21:
+Run the complete Phase 22 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 22:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "21"
+$env:FABLE5_VERIFY_PHASE = "22"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 21
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 21
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 22
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 22
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -288,10 +296,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 21 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 22 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 21 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 22 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Family A admission specification
 
@@ -428,6 +436,31 @@ remain absent. The zero selected and zero current-rights-verified bindings descr
 repository evidence only; they are not a recommendation, eligibility/legal conclusion, or
 external-currentness claim. No lifecycle identity can substitute for a human decision or authorize
 provider, data, policy, holdout, research, risk, execution, or order activity.
+
+### Family A macro-vintage candidate inventory amendment
+
+Generate the frozen blocked amendment artifact to stdout only:
+
+```powershell
+.\.venv\Scripts\python.exe `
+  scripts\generate_family_a_macro_vintage_candidate_inventory_amendment.py `
+  --confirm-candidate-inventory-amendment-only
+```
+
+Verify one supplied regular canonical UTF-8 JSON artifact offline:
+
+```powershell
+.\.venv\Scripts\python.exe `
+  scripts\verify_family_a_macro_vintage_candidate_inventory_amendment.py `
+  --amendment `
+  .\docs\PHASE_22_FAMILY_A_MACRO_VINTAGE_CANDIDATE_INVENTORY_AMENDMENT.json
+```
+
+The only valid result is `BLOCKED` with
+`amendment_state=CANDIDATE_INVENTORY_AMENDMENT_FROZEN`. The sole RTDSM entry is candidate-only,
+unranked, operationally unselected, current-rights-unverified, and unqualified. Validity proves
+portable metadata integrity only; it grants no product recommendation, entitlement, data access,
+composition value, research, execution, or order authority.
 
 ### Local evidence verification
 
@@ -630,13 +663,18 @@ surface.
   candidate/right bindings, unassigned capabilities, absent decision fields, blocked dependencies,
   future rules, lifecycle non-substitution, and false-authority decisions.
 - `docs/handoffs/PHASE_21.md`: Phase 21 implementation/acceptance contract and Phase 22 stop boundary.
+- `docs/PHASE_22_FAMILY_A_MACRO_VINTAGE_CANDIDATE_INVENTORY_AMENDMENT_DECISIONS.md`: exact
+  additive RTDSM candidate, official-source metadata, conservative limitations, unchanged-prior-
+  evidence, blocked-result, and false-authority decisions.
+- `docs/handoffs/PHASE_22.md`: Phase 22 implementation/acceptance contract and Phase 23 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
   qualification, Phase 14 offline eligibility, and pure Phase 15 portable admission-specification
   plus Phase 16 portable source-plan, Phase 17 candidate inventory, Phase 18 public-terms review,
   Phase 19 Step 3 prerequisite assessment, Phase 20 evaluation/holdout input-register, and Phase 21
-  operational-composition decision-requirements contracts and tests.
+  operational-composition decision-requirements plus the Phase 22 additive macro-vintage candidate
+  inventory-amendment contracts and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -655,12 +693,10 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 21 gate from one honest committed SHA/tree, then require same-SHA
-Ubuntu acceptance. Only after both pass may the explicitly authorized PR, tag, release, and
-publication expose the exact blocked artifact. Any deployment is limited to a temporary isolated
-loopback Compose instance at that accepted identity and must be fully cleaned up. Stop after Phase
-21. Do not submit an operational composition, contact a provider or counsel, load credentials,
-inspect an account/license, request or ingest data, create a policy/holdout/Step 3 output, run or
-promote research, mutate risk, submit or reconcile an order, begin Phase 22, create an external or
-production deployment, or add any live capability. Until both Phase 21 gates pass, report Phase 21
-as implemented but not formally accepted.
+Complete the direct local Phase 22 gate from one honest committed SHA/tree, then require separately
+authorized same-SHA Ubuntu acceptance before formal acceptance. Stop after Phase 22. Do not treat
+the RTDSM metadata row as an operational selection or rights/fitness proof; contact a provider,
+load credentials, inspect an account/license, request or ingest data, create a policy/holdout/Step 3
+output, run or promote research, mutate risk, submit or reconcile an order, begin Phase 23, push,
+open a PR, tag, release, publish, deploy externally, or add any live capability without separate
+authority. Until both Phase 22 gates pass, report Phase 22 as implemented but not formally accepted.
