@@ -266,6 +266,18 @@ review and an independent human composition decision remain future prerequisites
 computes or mutates no risk value and creates no credential, provider transport, data, research,
 execution, order, or live path.
 
+## Family A RTDSM current-use-rights review (Phase 23)
+
+Phase 23 freezes a public-terms technical finding, not a legal opinion or operational approval. The
+RTDSM candidate remains unselected and unqualified. Its exact conclusion is
+`BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE` because the public pages do
+not expressly establish every storage, model, derived-data, retention/deletion, attribution, and
+third-party-content right required by the intended use.
+
+No risk input, threshold, exposure, authorization, revocation state, or order control changes. The
+finding grants no credential, provider/data access, research eligibility, strategy promotion,
+execution, order, or live authority.
+
 ## Kill switch
 
 Global, strategy, and data-quality control states are independently supplied, immutable evidence.

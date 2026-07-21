@@ -131,18 +131,18 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase22_entrypoints_ci_and_runner_select_the_active_phase() -> None:
+def test_phase23_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
         assert (
-            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, or 22"
+            "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, or 23"
             in source
         )
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-22-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "22"' in workflow
+    assert workflow.startswith("name: phase-23-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "23"' in workflow
     assert 'FABLE5_ALPACA_PAPER_API_KEY_ID: ""' in workflow
     assert 'FABLE5_ALPACA_PAPER_SECRET_KEY: ""' in workflow
     for credential_name in (
@@ -158,10 +158,10 @@ def test_phase22_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase22-compose:" in workflow
+    assert "phase23-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
-    assert "verify_phase1.py --static-only --phase 22" in workflow
-    assert "verify_phase1.py --phase 22" in workflow
+    assert "verify_phase1.py --static-only --phase 23" in workflow
+    assert "verify_phase1.py --phase 23" in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow
@@ -185,7 +185,7 @@ def test_phase22_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         'verify_phase10_acceptance_resource_namespace(\n            "preflight"',
         'verify_phase10_acceptance_resource_namespace(\n                        "post-cleanup"',
         "name=fable5_acceptance_",
-        "changed_paths - PHASE_22_ALLOWED_WRITES",
+        "changed_paths - PHASE_23_ALLOWED_WRITES",
         "verify_phase11_api(",
         "verify_phase11_browser(",
         "verify_phase12_migration_cycle(",
@@ -230,6 +230,9 @@ def test_phase22_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         "verify_phase22_portable_acceptance(",
         "verify_phase22_offline_network_denial(",
         "verify_phase22_no_schema_drift_and_zero_writes(",
+        "verify_phase23_portable_acceptance(",
+        "verify_phase23_offline_network_denial(",
+        "verify_phase23_no_schema_drift_and_zero_writes(",
     ):
         assert closure_control in verifier
     assert (
