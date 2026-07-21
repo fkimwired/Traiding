@@ -689,6 +689,10 @@ retention/deletion, attribution, and third-party-content rights needed for opera
 - `docs/PHASE_24_FAMILY_A_RTDSM_RIGHTS_CLARIFICATION_REQUIREMENTS_DECISIONS.md`: exact proposed-use,
   clarification-question, acceptable-evidence, transition-rule, and false-authority decisions.
 - `docs/handoffs/PHASE_24.md`: Phase 24 implementation/acceptance contract and Phase 25 stop boundary.
+- `docs/PHASE_25_FAMILY_A_RTDSM_RIGHTS_RESPONSE_AND_ADAPTER_PATTERNS_DECISIONS.md`: strict
+  rights-response authority/scope evaluation, public source evidence, provider-neutral adapter
+  patterns, Yahoo boundary, and fail-closed transition decisions.
+- `docs/handoffs/PHASE_25.md`: Phase 25 implementation/acceptance contract and Phase 26 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
@@ -696,8 +700,9 @@ retention/deletion, attribution, and third-party-content rights needed for opera
   plus Phase 16 portable source-plan, Phase 17 candidate inventory, Phase 18 public-terms review,
   Phase 19 Step 3 prerequisite assessment, Phase 20 evaluation/holdout input-register, and Phase 21
   operational-composition decision-requirements, the Phase 22 additive macro-vintage candidate
-  inventory amendment, the Phase 23 RTDSM public-terms rights review, and the Phase 24 RTDSM
-  rights-clarification requirements contracts and tests.
+  inventory amendment, the Phase 23 RTDSM public-terms rights review, the Phase 24 RTDSM
+  rights-clarification requirements, and the Phase 25 rights-response evidence-intake and
+  adapter-pattern feasibility contracts and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -716,11 +721,12 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Phase 23 is formally accepted at commit `d8d8d63a79457c7a54e0a3738a75f4eb613c602f`, tree
-`4f3da35d31f352ea92d5f715149e0e439a57af3b`, and merge commit
-`53d9f8641d98c729447661af9b7e561073a52226`. Complete the direct local Phase 24 gate from one
-honest committed SHA/tree, then require same-SHA Ubuntu acceptance before formal acceptance. Stop
-after Phase 24; do not send the clarification packet, contact a provider/rights holder/BLS/counsel,
-claim rights, use credentials, inspect or request data, perform fitness or BLS reconciliation,
-select an operational composition, run research, mutate risk, submit an order, begin Phase 25,
-publish Phase 24, or add any live capability without separate authority.
+Phase 24 is accepted at implementation commit `c1dad09f08b18a5a7d527579ca677633b49184fb`, tree
+`27392b6eb3239e01e533d07d42d164124fb7aa18`, and merge commit
+`145f67f188befae46443d061d029c243858841b4`. Complete the direct local Phase 25 gate from one
+honest committed SHA/tree, then require same-SHA Ubuntu acceptance before formal acceptance. The
+canonical rights result remains `BLOCKED`. Stop after Phase 25; do not contact a provider, download
+or persist RTDSM/Yahoo observations, load credentials, select or activate an operational provider,
+create a non-synthetic snapshot, run research, compute performance, promote a strategy, change risk,
+submit an order, begin Phase 26, publish Phase 25, or add any live capability without separate
+authority.

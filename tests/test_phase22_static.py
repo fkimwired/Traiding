@@ -126,8 +126,8 @@ def test_phase22_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert len(verifier.PHASE_22_ALLOWED_WRITES) == 42
     assert verifier.PHASE_22_INHERITED_TABLES == verifier.PHASE_21_INHERITED_TABLES
     assert len(verifier.PHASE_22_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 25)] == list(range(1, 25))
-    for invalid in ("0", "25", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 26)] == list(range(1, 26))
+    for invalid in ("0", "26", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -334,7 +334,7 @@ def test_phase22_ci_wrappers_browser_zero_write_cleanup_and_phase23_denial_are_a
         "verify_phase22_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 22 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "24")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "25")',
     ):
         assert required in source
     assert verifier.phase22_offline_environment()["FABLE5_VERIFY_PHASE"] == "22"
@@ -344,11 +344,11 @@ def test_phase22_ci_wrappers_browser_zero_write_cleanup_and_phase23_denial_are_a
     assert all(name not in acceptance for name in verifier.PHASE_22_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-24-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "24"' in workflow
-    assert "phase24-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 24") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 24") == 1
+    assert workflow.startswith("name: phase-25-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
+    assert "phase25-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 25") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 25") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     assert "secrets." not in workflow
@@ -359,18 +359,18 @@ def test_phase22_ci_wrappers_browser_zero_write_cleanup_and_phase23_denial_are_a
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "22, 23, or 24" in wrapper
-        assert "25" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
+        assert "23, 24, or 25" in wrapper
+        assert "26" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "24"' in browser
-        assert '"22",\n  "23",\n  "24",' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "25"' in browser
+        assert '"23",\n  "24",\n  "25",' in browser
     assert re.search(
         r"if phase in \{\s*8,\s*9,\s*10,\s*11,\s*12,\s*13,\s*14,\s*15,\s*"
-        r"16,\s*17,\s*18,\s*19,\s*20,\s*21,\s*22,\s*23,\s*24,\s*\}:\s*"
+        r"16,\s*17,\s*18,\s*19,\s*20,\s*21,\s*22,\s*23,\s*24,\s*25,\s*\}:\s*"
         r"verify_phase8_browser\(",
         source,
     )

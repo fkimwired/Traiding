@@ -632,7 +632,7 @@ def test_phase9_through_phase12_widen_phase6_transport_patience_and_record_subst
     verifier = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(verifier)
 
-    for inherited_phase in (6, 7, 8, 25):
+    for inherited_phase in (6, 7, 8, 26):
         assert verifier.phase6_request_timeout_profile(inherited_phase) == (240, 60, 10)
     assert verifier.PHASE_6_TIMEOUT_PHASE.get() == 6
     for closure_phase in (
@@ -652,6 +652,7 @@ def test_phase9_through_phase12_widen_phase6_transport_patience_and_record_subst
         22,
         23,
         24,
+        25,
     ):
         assert verifier.phase6_request_timeout_profile(closure_phase) == (480, 180, 30)
         with verifier.phase6_request_timeout_context(closure_phase):

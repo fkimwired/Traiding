@@ -591,3 +591,19 @@ authority fields false, offline operation, zero database/schema drift, and rejec
 contact, answer, rights, entitlement, selection, data, fitness, research, execution, or order
 upgrade. The artifact creates no observation, signal, trial, return, metric, policy, holdout, or
 promotion decision.
+
+## 25. Phase 25 RTDSM rights-response evidence and adapter-pattern feasibility
+
+Phase 25 evaluates sanitized metadata from a rights-clarification response and records reusable
+public adapter patterns without acquiring provider observations or activating an adapter. The
+canonical no-response result is `BLOCKED / RIGHTS_RESPONSE_EVIDENCE_MISSING`.
+
+Acceptance requires strict Pydantic validation; authenticated and independently verified authority
+metadata; exact evaluation of all ten Phase 24 questions and nineteen scope elements using `PASS`,
+`FAIL`, `CONDITIONAL`, or `MISSING`; enforceable controls plus passed tests for every condition;
+ten immutable source-evidence rows; eleven documentation-only provider-neutral patterns; repeated
+canonical generation; committed-file parity; sanitized failures; offline generation, verification,
+and tests; unchanged Phase 24 bytes; no vendor dependency/runtime import; and no provider body,
+credential, observation, database, API, research, strategy, risk, paper-order, execution, or live
+surface. Yahoo remains `RIGHTS_UNVERIFIED`. Even a complete synthetic positive evidence test only
+proves the response gate and still requires separately authorized acquisition work.

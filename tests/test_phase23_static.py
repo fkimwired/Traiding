@@ -66,8 +66,8 @@ def test_phase23_baseline_parser_and_static_dispatch_are_exact() -> None:
     assert set(verifier.PHASE_23_REQUIRED_PATHS) <= verifier.PHASE_23_ALLOWED_WRITES
     assert verifier.PHASE_23_INHERITED_TABLES == verifier.PHASE_22_INHERITED_TABLES
     assert len(verifier.PHASE_23_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 25)] == list(range(1, 25))
-    for invalid in ("0", "25", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 26)] == list(range(1, 26))
+    for invalid in ("0", "26", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -221,7 +221,7 @@ def test_phase23_ci_wrappers_full_gate_and_docs_are_active(
         "snapshot_phase23_inherited_state(",
         "verify_phase23_no_schema_drift_and_zero_writes(",
         'print("Full Compose Phase 23 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "24")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "25")',
     ):
         assert required in source
     assert verifier.phase23_offline_environment()["FABLE5_VERIFY_PHASE"] == "23"
@@ -231,23 +231,23 @@ def test_phase23_ci_wrappers_full_gate_and_docs_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_23_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-24-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "24"' in workflow
-    assert "phase24-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 24") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 24") == 1
+    assert workflow.startswith("name: phase-25-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
+    assert "phase25-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 25") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 25") == 1
     assert "secrets." not in workflow
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
-        assert "22, 23, or 24" in wrapper
+        assert "23, 24, or 25" in wrapper
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "24"' in browser
-        assert '"22",\n  "23",\n  "24",' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "25"' in browser
+        assert '"23",\n  "24",\n  "25",' in browser
 
     decisions = normalized(
         ROOT / "docs/PHASE_23_FAMILY_A_RTDSM_CURRENT_USE_RIGHTS_REVIEW_DECISIONS.md"
