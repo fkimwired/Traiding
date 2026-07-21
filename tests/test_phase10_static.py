@@ -554,7 +554,7 @@ def test_phase10_resource_inventory_is_global_and_fail_closed(
 
 def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() -> None:
     source = normalized(ROOT / "scripts/verify_phase1.py")
-    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23}" in source
+    assert "if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}" in source
     assert 'phase10_clean_git_identity("preflight", phase=phase)' in source
     assert 'verify_phase10_acceptance_resource_namespace(\n            "preflight"' in source
     post_cleanup_resources = (
@@ -573,5 +573,5 @@ def test_phase10_full_verifier_binds_identity_cleanup_and_inherited_browser() ->
     accessibility = normalized(ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts")
     visual = normalized(ROOT / "services/frontend/e2e/phase8.visual.spec.ts")
     for spec in (accessibility, visual):
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "23"' in spec
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "24"' in spec
         assert "inheritedModes" in spec

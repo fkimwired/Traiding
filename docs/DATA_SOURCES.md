@@ -347,6 +347,22 @@ spreadsheet, observation, credential, account, provider payload, delivery, schem
 availability timestamp, or fitness evidence is captured. The Phase 22 candidate and artifact remain
 unchanged, and all later qualification, BLS reconciliation, and composition work remains blocked.
 
+### Phase 24 portable RTDSM rights-clarification requirements
+
+Phase 24 converts the Phase 23 ambiguity into a deterministic requirements packet without
+performing outreach. Eight proposed-use disclosures are explicitly `PROPOSED_NOT_AUTHORIZED`; ten
+product-specific questions are `UNANSWERED`; six evidence requirements are `MISSING`; and seven
+fail-closed transition rules are unapplied. The packet requires authenticated rights-holder
+authority, exact product/series/delivery/account/use scope, current governing terms, upstream BLS
+coverage, and enforceable retention/deletion/revocation conditions before any permission state can
+change.
+
+The exact result is `BLOCKED_AWAITING_INDEPENDENT_CURRENT_USE_RIGHTS_CLARIFICATION`. No public page,
+credential, commit, artifact, or generic research statement can substitute for verified current
+permission. Phase 24 performs no contact, request, response capture, data download, persistence,
+qualification, BLS reconciliation, source/product composition, research, risk, execution, or order
+operation.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,
