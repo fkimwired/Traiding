@@ -562,3 +562,17 @@ and secret-free. Accepted Phase 17/18/21 artifact bytes, the 57-table database c
 head, API/OpenAPI/generated contracts, dependencies, Compose services, and browser baselines must
 remain unchanged. Phase 22 creates no observation, data value, trial, return, metric,
 `PASS_RESEARCH`, promotion, approval, risk clearance, execution, or order authority.
+
+## 23. Phase 23 Family A RTDSM current-use-rights review
+
+Phase 23 evaluates only whether the exact Phase 22 RTDSM candidate can be affirmatively cleared for
+the intended persistent automated-model use from current public terms. It cannot: the public pages
+support a research-purpose classification but leave required storage, model, derived-data,
+retention/deletion, attribution, and third-party-content questions unresolved. The expected domain
+result is therefore `BLOCKED` with `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN`.
+
+Acceptance requires exact 3/1/4 source/finding/requirement registries, strict lineage to the accepted
+and merged Phase 22 tree, canonical repeated generation, committed-file parity, domain-separated
+hashes, all authority fields false, offline operation, zero database/schema drift, and rejection of
+any positive-rights, entitlement, selection, data-access, fitness, research, execution, or order
+upgrade. No observation, signal, trial, return, performance metric, or promotion decision exists.

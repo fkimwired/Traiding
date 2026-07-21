@@ -32,6 +32,7 @@ Phase 1 control plane
   -> Phase 20 Family A evaluation/holdout input register (portable, input-names-only)
   -> Phase 21 Family A operational-composition decision requirements (portable, requirements-only)
   -> Phase 22 Family A macro-vintage candidate inventory amendment (portable, metadata-only)
+  -> Phase 23 Family A RTDSM current-use-rights review (portable, public-terms-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -63,6 +64,8 @@ do not receive executable scaffolds.
 | 20 | canonical register of the exact Family A evaluation/holdout input names and future-only evidence-state transition rules | deterministic generated JSON and offline verification; exact `BLOCKED` / `INPUTS_FROZEN` / `BLOCKED_MISSING_OPERATIONAL_AND_DATA_SPECIFIC_INPUTS`; twenty input rows and ten unapplied rules; no input value, missing Step 3 hash, qualification output, policy, holdout, data, research, execution, order, or live path |
 | 21 | canonical requirements for a later explicit Family A operational source/product composition decision | deterministic generated JSON and offline verification; exact `BLOCKED` / `DECISION_REQUIREMENTS_FROZEN` / `BLOCKED_AWAITING_EXPLICIT_OPERATIONAL_SOURCE_PRODUCT_COMPOSITION`; 6 candidate groups, 9 unselected and current-rights-unverified product-rights bindings, 7 unassigned capabilities, 8 absent decision fields, 3 blocked dependencies, 6 blocked gates, 8 unapplied rules, and 10 forbidden substitutes; no selection, provider/counsel contact, credential, data, policy, holdout, Step 3, research, execution, order, or live path |
 | 22 | additive Family A macro-vintage candidate inventory amendment naming the Philadelphia Fed RTDSM for later independent review | deterministic generated JSON and offline verification; exact `BLOCKED` / `CANDIDATE_INVENTORY_AMENDMENT_FROZEN`; one candidate-only, unranked, unselected RTDSM product bound to inert official-source metadata while accepted Phase 17–21 artifacts remain unchanged; no rights grant, operational composition, credential, external data request, capture, persistence, research, execution, order, or live path |
+
+| 23 | technical current-use-rights review of the exact Phase 22 RTDSM candidate using official public terms only | deterministic generated JSON and offline verification; exact `BLOCKED` / `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN` / `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`; three inert citations, one conservative finding, and four requirement states; no legal opinion, rights grant, credential, data request, qualification, composition, research, execution, order, or live path |
 
 ## Required handoff template
 
@@ -142,3 +145,8 @@ authorized Phase 22 boundary is in `docs/handoffs/PHASE_22.md`; it may add only 
 macro-vintage candidate overlay. It does not replace accepted inventories or rights findings, make
 an operational selection, verify a right, load a credential, request or persist data, or advance
 policy, holdout, qualification, research, risk, execution, order, or live authority.
+Phase 22 is formally accepted at commit `1c07fbe8e23950e8c9f910b30473c900c0bf3e21`, tree
+`1261f5a9da883e14a894b33e583068681f8cf459`, and merged as
+`7f3bf3df029a894660f0e47dda1056bd32dca297` with the same tree. The authorized Phase 23 boundary is
+in `docs/handoffs/PHASE_23.md`; it may freeze only a public-terms technical review of the RTDSM
+candidate. It grants no right, entitlement, product selection, data access, or later-step authority.

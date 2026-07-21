@@ -85,6 +85,11 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   persistent-storage, model-use, derived-output, retention, exact-release-time, coverage, schema,
   fitness, operational selection, or data-access authority. Accepted Phase 17–21 evidence remains
   unchanged, including the prior FRED finding and all eight absent composition fields.
+- Phase 23 freezes a technical review of three current public Philadelphia Fed citations. Research-
+  purpose language is not converted into permission for persistent storage, automated model use,
+  derived data, retention/deletion, attribution, or third-party content. The exact result is
+  `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`; it is not legal advice, a
+  rights grant, entitlement, product selection, or permission to request or retain data.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing

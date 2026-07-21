@@ -333,6 +333,20 @@ not current-rights-verified. No account, credential, provider request, data capt
 ingestion, snapshot, composition value, policy/holdout, Step 3 action, research, risk, execution, or
 order operation is introduced.
 
+### Phase 23 portable RTDSM current-use-rights review
+
+Phase 23 reviews only three inert official Philadelphia Fed citations for the exact Phase 22 RTDSM
+candidate. Public documentation supports a research-purpose classification, but does not expressly
+resolve persistent storage, automated internal-model use, derived data, retention/deletion,
+redistribution, attribution, or all third-party-content rights for Fable5's intended use. Terms may
+change without notice, so currentness must be revalidated.
+
+The exact result is `BLOCKED` / `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN` /
+`BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`. No remote response body,
+spreadsheet, observation, credential, account, provider payload, delivery, schema, coverage,
+availability timestamp, or fitness evidence is captured. The Phase 22 candidate and artifact remain
+unchanged, and all later qualification, BLS reconciliation, and composition work remains blocked.
+
 ## Data-quality acceptance before provider approval
 
 For a representative universe including ticker changes, mergers, delistings, late filings, amendments,

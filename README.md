@@ -5,10 +5,10 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 22 implementation status
+## Phase 23 implementation status
 
-The formally accepted Phase 21 identity and the authorized Phase 22 portable Family A macro-vintage
-candidate inventory amendment include:
+The formally accepted Phase 22 identity and the authorized Phase 23 portable Family A RTDSM
+current-use-rights review include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -148,6 +148,12 @@ candidate inventory amendment include:
   unranked, operationally unselected, current-rights-unverified, and unqualified while every
   accepted Phase 17–21 artifact remains unchanged.
 
+- one canonical public-terms-only technical review of the RTDSM candidate, with three inert official
+  citations, one conservative rights finding, and four ordered future-requirement states; and
+- exact `BLOCKED`, `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN`, and
+  `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE` semantics, with no rights
+  grant, entitlement, product selection, data access, qualification, research, order, or live path.
+
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
 capability. Phase 10's fill and position fields are local synthetic ledger calculations only; no
@@ -198,6 +204,10 @@ reject any product. Phase 21 is formally accepted at commit
 `a25ffb5cb68014c301a588c0e8cf7c7f18914e0a`, tree
 `8744604b486dd7398cd8c5a003fe7c7b083fde86`, after clean Windows acceptance and successful GitHub
 Actions run `29759697662` (`preflight`, `unit`, and `phase21-compose`) at that exact identity.
+Phase 22 is formally accepted at commit `1c07fbe8e23950e8c9f910b30473c900c0bf3e21`, tree
+`1261f5a9da883e14a894b33e583068681f8cf459`, after clean Windows acceptance and successful push and
+pull-request Ubuntu workflows (`29782670821` and `29782755681`). PR #2 was merged to `main` as
+`7f3bf3df029a894660f0e47dda1056bd32dca297`, whose tree is byte-identical to the accepted tree.
 
 ## Prerequisites
 
@@ -205,8 +215,8 @@ Actions run `29759697662` (`preflight`, `unit`, and `phase21-compose`) at that e
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 22 local or CI
-acceptance. The Phase 22 artifact operations are portable, database-free, and network-denied; the
+No data-provider, LLM, broker, or commercial credential is needed for Phase 23 local or CI
+acceptance. The Phase 23 artifact operations are portable, database-free, and network-denied; the
 full closure gate still starts the inherited Compose/PostgreSQL stack solely to prove zero schema or
 row drift. A separately authorized
 external qualification capture requires an existing token plus independently reviewed current
@@ -272,23 +282,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 22 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 23 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "22"
+$env:FABLE5_VERIFY_PHASE = "23"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 22 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 22:
+Run the complete Phase 23 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 23:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "22"
+$env:FABLE5_VERIFY_PHASE = "23"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 22
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 22
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 23
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 23
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -296,10 +306,10 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 22 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 23 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 22 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 23 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
 
 ### Family A admission specification
 
@@ -606,6 +616,11 @@ It adds no provider, counsel, credential, account, license, data, policy, holdou
 database, research, risk, paper, order, runtime, deployment configuration, or frontend product
 surface.
 
+Phase 22 adds only the accepted RTDSM candidate metadata overlay. Phase 23 adds only its
+public-terms technical rights review. The Phase 23 result is conservatively blocked because the
+public pages do not expressly resolve the exact persistent-storage, automated-model, derived-data,
+retention/deletion, attribution, and third-party-content rights needed for operational use.
+
 ## Repository guide
 
 - `AGENTS.md` / `CLAUDE.md`: exact hard gates, followed by durable build conventions.
@@ -667,14 +682,18 @@ surface.
   additive RTDSM candidate, official-source metadata, conservative limitations, unchanged-prior-
   evidence, blocked-result, and false-authority decisions.
 - `docs/handoffs/PHASE_22.md`: Phase 22 implementation/acceptance contract and Phase 23 stop boundary.
+- `docs/PHASE_23_FAMILY_A_RTDSM_CURRENT_USE_RIGHTS_REVIEW_DECISIONS.md`: exact public-terms
+  evidence, conservative classifications, blocked result, deterministic identities, and
+  false-authority boundary.
+- `docs/handoffs/PHASE_23.md`: Phase 23 implementation/acceptance contract and Phase 24 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
   qualification, Phase 14 offline eligibility, and pure Phase 15 portable admission-specification
   plus Phase 16 portable source-plan, Phase 17 candidate inventory, Phase 18 public-terms review,
   Phase 19 Step 3 prerequisite assessment, Phase 20 evaluation/holdout input-register, and Phase 21
-  operational-composition decision-requirements plus the Phase 22 additive macro-vintage candidate
-  inventory-amendment contracts and tests.
+  operational-composition decision-requirements, the Phase 22 additive macro-vintage candidate
+  inventory amendment, and the Phase 23 RTDSM public-terms rights-review contracts and tests.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -693,10 +712,11 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Complete the direct local Phase 22 gate from one honest committed SHA/tree, then require separately
-authorized same-SHA Ubuntu acceptance before formal acceptance. Stop after Phase 22. Do not treat
-the RTDSM metadata row as an operational selection or rights/fitness proof; contact a provider,
-load credentials, inspect an account/license, request or ingest data, create a policy/holdout/Step 3
-output, run or promote research, mutate risk, submit or reconcile an order, begin Phase 23, push,
-open a PR, tag, release, publish, deploy externally, or add any live capability without separate
-authority. Until both Phase 22 gates pass, report Phase 22 as implemented but not formally accepted.
+Complete the direct local Phase 23 gate from one honest committed SHA/tree, then require same-SHA
+Ubuntu acceptance before formal acceptance. Stop after Phase 23. Do not treat the blocked technical
+review as a legal opinion, rights grant, product selection, or fitness proof; contact a provider or
+counsel, load credentials, inspect an account/license, request or ingest data, perform data fitness
+or BLS reconciliation, create a policy/holdout/Step 3 output, run or promote research, mutate risk,
+submit or reconcile an order, begin Phase 24, publish Phase 23, or add any live capability without
+separate authority. Until both Phase 23 gates pass, report Phase 23 as implemented but not formally
+accepted.
