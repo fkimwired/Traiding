@@ -59,6 +59,7 @@ _UNSAFE_MARKER_PATTERN: Final = re.compile(
     r"(?:fable5[_-]?alpaca|canary[_-]?(?:key|secret))", re.IGNORECASE
 )
 _UPPERCASE_TOKEN_PATTERN: Final = re.compile(r"(?<![A-Z0-9])[A-Z0-9]{20,}(?![A-Z0-9])")
+_T004_GENERATED_IDEMPOTENCY_KEY_PATTERN: Final = re.compile(r"^phase12-t004-\d{8}T\d{12}Z$")
 _RENDERED_AT_UTC_PATTERN: Final = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
@@ -320,6 +321,17 @@ def _assert_safe_value(value: object) -> None:
             _assert_safe_value(item)
 
 
+def _assert_safe_artifact_source(artifact: PaperShadowReadinessArtifact) -> None:
+    source = artifact.model_dump(mode="python")
+    idempotency_key = source.get("readiness_idempotency_key")
+    if (
+        isinstance(idempotency_key, str)
+        and _T004_GENERATED_IDEMPOTENCY_KEY_PATTERN.fullmatch(idempotency_key) is not None
+    ):
+        source["readiness_idempotency_key"] = "phase12-t004-generated-utc"
+    _assert_safe_value(source)
+
+
 def _report_body_payload(report: ReadinessReportBody) -> dict[str, object]:
     body = report.model_dump(mode="python", exclude={"report_sha256"})
     if body.get("mock_notice") is None:
@@ -340,8 +352,7 @@ def _project_artifact(
 ) -> ReadinessReport:
     try:
         validated = PaperShadowReadinessArtifact.model_validate(artifact)
-        source = validated.model_dump(mode="python")
-        _assert_safe_value(source)
+        _assert_safe_artifact_source(validated)
         body = ReadinessReportBody(
             readiness_assessment_id=validated.readiness_assessment_id,
             source_kind=validated.source_kind,

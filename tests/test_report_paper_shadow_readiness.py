@@ -65,15 +65,15 @@ class _MemoryCreationStore:
         )
 
 
-def _mock_artifact() -> PaperShadowReadinessArtifact:
+def _mock_artifact(
+    idempotency_key: str = "phase12-t002-mock-evidence",
+) -> PaperShadowReadinessArtifact:
     return PaperShadowReadinessWorkflow(
         adapter=DeterministicMockPaperBrokerAdapter(),
         store=_MemoryCreationStore(),
         phase12_code_version_git_sha=GIT_SHA,
         clock=lambda: datetime(2024, 1, 2, 15, 0, tzinfo=UTC),
-    ).create_readiness(
-        PaperShadowReadinessCreateRequest(readiness_idempotency_key="phase12-t002-mock-evidence")
-    )
+    ).create_readiness(PaperShadowReadinessCreateRequest(readiness_idempotency_key=idempotency_key))
 
 
 class _AuditedReadRepository:
@@ -397,6 +397,36 @@ def test_canary_in_disallowed_source_position_fails_closed_with_fixed_error(
 
     assert str(raised.value) == report_cli.PROJECTION_FAILURE_MESSAGE
     assert canary not in str(raised.value)
+
+
+def test_exact_t004_generated_idempotency_key_is_accepted_but_not_projected() -> None:
+    generated_key = "phase12-t004-20260722T174427844057Z"
+    artifact = _mock_artifact(generated_key)
+
+    report = report_cli._project_artifact(artifact, FIXED_RENDER_TIME)
+    rendered = canonical_json_bytes(report_cli._report_payload(report)).decode("utf-8")
+
+    assert generated_key not in rendered
+    assert "readiness_idempotency_key" not in rendered
+
+
+@pytest.mark.parametrize(
+    "unsafe_key",
+    (
+        "phase12-t004-20260722T17442784405AZ",
+        "phase12-t004-ABCDEFGHIJKLMNOPQRST",
+    ),
+)
+def test_t004_like_idempotency_key_must_match_the_exact_generated_grammar(
+    unsafe_key: str,
+) -> None:
+    artifact = _mock_artifact(unsafe_key)
+
+    with pytest.raises(report_cli.ReportProjectionError) as raised:
+        report_cli._project_artifact(artifact, FIXED_RENDER_TIME)
+
+    assert str(raised.value) == report_cli.PROJECTION_FAILURE_MESSAGE
+    assert unsafe_key not in str(raised.value)
 
 
 def test_invalid_nested_canary_emits_no_warning_or_input_echo() -> None:
