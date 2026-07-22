@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Final
 
@@ -145,8 +146,12 @@ def _prepare_stub_root(tmp_path: Path) -> tuple[Path, Path]:
     scripts.mkdir(parents=True)
     venv_scripts.mkdir(parents=True)
     shutil.copy2(SCRIPT_PATH, scripts / SCRIPT_PATH.name)
-    shutil.copy2(PYTHON_LAUNCHER, venv_scripts / "python.exe")
-    shutil.copy2(PYVENV_CONFIG, smoke_root / ".venv" / "pyvenv.cfg")
+    stub_launcher = venv_scripts / "python.exe"
+    if PYTHON_LAUNCHER.is_file():
+        shutil.copy2(PYTHON_LAUNCHER, stub_launcher)
+        shutil.copy2(PYVENV_CONFIG, smoke_root / ".venv" / "pyvenv.cfg")
+    else:
+        stub_launcher.symlink_to(Path(sys.executable).resolve())
     for name in (
         "preflight_paper_smoke.py",
         "capture_paper_shadow_readiness.py",
