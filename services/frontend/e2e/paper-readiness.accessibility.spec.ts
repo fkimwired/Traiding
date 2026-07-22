@@ -174,7 +174,10 @@ test("one keyboard action performs one GET and renders the exact paper-only evid
     workspace.getByText("MOCK — local contract proof only", { exact: true }),
   ).toBeVisible();
   await expect(
-    workspace.getByText("EXPIRED — historical evidence only", { exact: true }),
+    workspace.getByText("HISTORICAL READINESS EVIDENCE", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    workspace.getByText(/Browser time is not authority for currentness or expiry/),
   ).toBeVisible();
   await expect(
     workspace.getByText(paperReadinessFixture.outcome, { exact: true }),

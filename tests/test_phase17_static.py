@@ -23,6 +23,18 @@ from fable5_data.phase17.inventory import (
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE_SHA = "7c4df26733b4ad13c49c455ea5f28f627012ee44"
 BASELINE_TREE = "c69b4a60237ae3588f8544272b75becbf0a763e8"
+ACCEPTED_PHASE17_SHA = "fd89d3905e9c2ea12223e30b5822a0fdda795a26"
+ACCEPTED_PHASE17_TREE = "f2eb791785dd10cc9316d174505b65eda919fe71"
+T003_FRONTEND_MAINTENANCE_OVERLAY_PATHS = frozenset(
+    {
+        "services/frontend/src/app/paper/readiness/PaperReadinessWorkspace.module.css",
+        "services/frontend/src/app/paper/readiness/PaperReadinessWorkspace.tsx",
+        "services/frontend/src/app/paper/readiness/page.tsx",
+        "services/frontend/src/app/paper/readiness/readiness-api.ts",
+        "services/frontend/src/tests/PaperReadinessWorkspace.test.tsx",
+        "services/frontend/src/tests/paper-readiness-fixture.ts",
+    }
+)
 PHASE16_ARTIFACT_ID = "e106a766-5cfe-5a1c-94f6-ee1c2ac68652"
 PHASE16_ARTIFACT_SHA256 = "74ddf4a51d722b494fd494241e2e5927bff6fde034f6932dcfd791bb3a0706bb"
 PHASE16_POLICY_SHA256 = "57cfcfd09f2d4a87d9562fd536228b9f05693bb71b7e9d1867618a35da7d4efd"
@@ -199,8 +211,8 @@ def test_phase17_parser_baseline_allowlist_and_inherited_release_boundary_are_ex
     assert len(verifier.PHASE_17_ALLOWED_WRITES) == 37
     assert verifier.PHASE_17_INHERITED_TABLES == verifier.PHASE_16_INHERITED_TABLES
     assert len(verifier.PHASE_17_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 26)] == list(range(1, 26))
-    for invalid in ("0", "26", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 27)] == list(range(1, 27))
+    for invalid in ("0", "27", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -329,9 +341,7 @@ def test_phase16_portable_surface_is_byte_frozen() -> None:
         assert actual == expected, relative
 
 
-def test_phase17_adds_no_migration_api_openapi_contract_dependency_compose_or_runner_drift() -> (
-    None
-):
+def test_accepted_phase17_boundary_and_later_t003_overlay_are_exact() -> None:
     frozen_scopes = (
         "compose.yaml",
         "package-lock.json",
@@ -343,13 +353,58 @@ def test_phase17_adds_no_migration_api_openapi_contract_dependency_compose_or_ru
         "services/frontend/src",
     )
     result = subprocess.run(
-        ["git", "diff", "--name-only", BASELINE_SHA, "--", *frozen_scopes],
+        [
+            "git",
+            "diff",
+            "--name-only",
+            BASELINE_SHA,
+            ACCEPTED_PHASE17_SHA,
+            "--",
+            *frozen_scopes,
+        ],
         cwd=ROOT,
         capture_output=True,
         check=True,
         text=True,
     )
     assert result.stdout == ""
+    accepted_tree = subprocess.run(
+        ["git", "show", "-s", "--format=%T", ACCEPTED_PHASE17_SHA],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    assert accepted_tree.stdout.strip() == ACCEPTED_PHASE17_TREE
+
+    current_tracked = subprocess.run(
+        ["git", "diff", "--name-only", BASELINE_SHA, "--", *frozen_scopes],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    current_untracked = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "--",
+            *frozen_scopes,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    current_paths = {
+        path.replace("\\", "/")
+        for path in (*current_tracked.stdout.splitlines(), *current_untracked.stdout.splitlines())
+        if path
+    }
+    assert current_paths == T003_FRONTEND_MAINTENANCE_OVERLAY_PATHS
+    assert T003_FRONTEND_MAINTENANCE_OVERLAY_PATHS.isdisjoint(ALLOWED_WRITES)
     assert not any("alembic" in path.casefold() for path in ALLOWED_WRITES)
     assert "scripts/run_phase_gate.py" not in ALLOWED_WRITES
     assert not any(path.startswith("packages/contracts/") for path in ALLOWED_WRITES)
@@ -467,7 +522,7 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         "verify_phase17_no_schema_drift_and_zero_writes(",
         'version != "0011_phase14"',
         'print("Full Compose Phase 17 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "25")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "26")',
     ):
         assert required in source
 
@@ -485,11 +540,11 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
     assert all(name not in acceptance for name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES)
 
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-25-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
-    assert "phase25-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --phase 25") == 1
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 25") == 1
+    assert workflow.startswith("name: phase-26-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "26"' in workflow
+    assert "phase26-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --phase 26") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 26") == 1
     assert "timeout-minutes: 180" in workflow
     assert "fetch-depth: 0" in workflow
     for credential_name in verifier.PHASE_17_CREDENTIAL_ENV_NAMES:
@@ -511,7 +566,7 @@ def test_phase17_ci_wrappers_browser_ranges_and_secret_denial_are_active(
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         browser = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "25"' in browser
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "26"' in browser
         assert '"20",\n  "21",\n  "22",' in browser
 
     runner = normalized(ROOT / "scripts/run_phase_gate.py")

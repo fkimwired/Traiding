@@ -215,3 +215,11 @@ no provider/counsel/BLS contact, sent request, response, legal opinion, executed
 credential, entitlement, provider payload, observation, dataset, schema sample, selected delivery,
 verified right, operational composition, policy, holdout, performance, approval, risk clearance,
 order, or fill.
+
+Phase 26 operational-composition evidence contains only the explicit human decision, exact source,
+product, delivery, scope, decision-evidence hash, three selected-product bindings, seven complete
+capability assignments, three blocked post-selection dependencies, six decision gates, and audit
+identities. It contains no account, credential, entitlement, executed agreement, provider response,
+observation, dataset, schema sample, research output, performance, approval, risk clearance, order,
+or fill. `OPERATIONAL_COMPOSITION_SELECTED` is not acquisition authority; all provider data paths
+remain absent and the only execution mode remains paper.

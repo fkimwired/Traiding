@@ -283,13 +283,8 @@
 }
 
 .scopeNotice[data-tone="paper"],
-.expiryNotice[data-tone="current"] {
+.expiryNotice[data-tone="historical"] {
   border-left-color: var(--ready-accent);
-}
-
-.expiryNotice[data-tone="expired"] {
-  background: var(--ready-danger-soft);
-  border-left-color: var(--ready-danger);
 }
 
 .blocker {

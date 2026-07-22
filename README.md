@@ -5,7 +5,7 @@ research, rejects leakage and cost-fragile results, and allows only manually app
 a clearly simulated paper environment. It is **not** a live trading bot, does not provide personalized
 investment advice, and contains no real-money order path.
 
-## Phase 23 implementation status
+## Implementation status
 
 The formally accepted Phase 22 identity and the authorized Phase 23 portable Family A RTDSM
 current-use-rights review include:
@@ -693,6 +693,9 @@ retention/deletion, attribution, and third-party-content rights needed for opera
   rights-response authority/scope evaluation, public source evidence, provider-neutral adapter
   patterns, Yahoo boundary, and fail-closed transition decisions.
 - `docs/handoffs/PHASE_25.md`: Phase 25 implementation/acceptance contract and Phase 26 stop boundary.
+- `docs/PHASE_26_FAMILY_A_OPERATIONAL_DATA_COMPOSITION_DECISIONS.md`: exact CRSP/SEC/RTDSM
+  product, delivery, capability-assignment, rights-block, and false-authority decisions.
+- `docs/handoffs/PHASE_26.md`: Phase 26 implementation/acceptance contract and Phase 27 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
@@ -701,8 +704,9 @@ retention/deletion, attribution, and third-party-content rights needed for opera
   Phase 19 Step 3 prerequisite assessment, Phase 20 evaluation/holdout input-register, and Phase 21
   operational-composition decision-requirements, the Phase 22 additive macro-vintage candidate
   inventory amendment, the Phase 23 RTDSM public-terms rights review, the Phase 24 RTDSM
-  rights-clarification requirements, and the Phase 25 rights-response evidence-intake and
-  adapter-pattern feasibility contracts and tests.
+  rights-clarification requirements, the Phase 25 rights-response evidence-intake and
+  adapter-pattern feasibility contracts and tests, and the Phase 26 exact operational
+  CRSP/SEC/RTDSM composition decision.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -723,10 +727,26 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 Phase 24 is accepted at implementation commit `c1dad09f08b18a5a7d527579ca677633b49184fb`, tree
 `27392b6eb3239e01e533d07d42d164124fb7aa18`, and merge commit
-`145f67f188befae46443d061d029c243858841b4`. Complete the direct local Phase 25 gate from one
-honest committed SHA/tree, then require same-SHA Ubuntu acceptance before formal acceptance. The
-canonical rights result remains `BLOCKED`. Stop after Phase 25; do not contact a provider, download
-or persist RTDSM/Yahoo observations, load credentials, select or activate an operational provider,
-create a non-synthetic snapshot, run research, compute performance, promote a strategy, change risk,
-submit an order, begin Phase 26, publish Phase 25, or add any live capability without separate
-authority.
+`145f67f188befae46443d061d029c243858841b4`. Phase 25 is implemented at local commit
+`4d70b823947fd61d0ea17df14c9f1ff9f93fd45b` on branch
+`codex/phase-25-rtdsm-rights-response-adapter-patterns`; this repository records no same-SHA Ubuntu
+acceptance run for Phase 25, so Phase 25 is implemented but not formally accepted. The Phase 26
+operational data-composition decision (`FAMILY_A_CRSP_SEC_RTDSM_V1`) exists only as uncommitted
+work in this working tree; its local gates (the Phase 26 pytest suites, the artifact verifier, and
+`verify_phase1.py --static-only --phase 26`) passed on 2026-07-21, but Phase 26 has no committed
+SHA, no CI run, and no formal acceptance evidence, and must not be described as accepted.
+
+Immediate sequence: (1) commit the Phase 26 working-tree changes at one honest SHA/tree without
+discarding any of them, and commit the separately authorized 2026-07-21 planning documents
+(`AGENTS.md` additions, `DEVELOPMENT.md`) as a distinct follow-up commit — the Phase 26 static
+gate's path allowlist intentionally flags those two paths, so Phase 26 acceptance must bind the
+implementation commit's SHA (see `DEVELOPMENT.md` § Validation record); (2) complete the direct
+local Phase 25 and Phase 26 gates and same-SHA
+Ubuntu acceptance before calling either phase formally accepted; (3) the planned 2026-07-22
+external live-data paper test is an operator acceptance activity under the already accepted
+Phase 12 read-only boundary (see `DEVELOPMENT.md`), not a phase advance and not Family A progress.
+The canonical Family A rights result remains `BLOCKED`. Do not contact a provider, download or
+persist provider observations, load credentials outside the documented Phase 12/13 capture
+commands, select or activate an operational data adapter, create a non-synthetic snapshot, run
+research on non-qualified data, compute performance, promote a strategy, change risk, submit an
+order, or add any live capability without separate authority.

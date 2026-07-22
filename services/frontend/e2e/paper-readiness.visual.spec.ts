@@ -99,7 +99,10 @@ for (const scenario of scenarios) {
         workspace.getByText("MOCK — local contract proof only", { exact: true }),
       ).toBeVisible();
       await expect(
-        workspace.getByText("EXPIRED — historical evidence only", { exact: true }),
+        workspace.getByText("HISTORICAL READINESS EVIDENCE", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        workspace.getByText(/Browser time is not authority for currentness or expiry/),
       ).toBeVisible();
       await expect(
         workspace.getByText(scenario.artifact.outcome, { exact: true }).first(),
@@ -126,6 +129,8 @@ for (const scenario of scenarios) {
       await expectNoHorizontalPageOverflow(page);
 
       await page.evaluate(() => {
+        document.querySelectorAll("nextjs-portal").forEach((portal) => portal.remove());
+        document.querySelector(".skipLink")?.remove();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
         window.scrollTo({ behavior: "auto", top: 0 });
       });

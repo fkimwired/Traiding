@@ -1,6 +1,7 @@
 # Data-source and adapter policy
 
-**Landscape reviewed:** 2026-07-17
+**Landscape reviewed:** 2026-07-17; free-source candidate matrix re-verified 2026-07-21 UTC (final
+section).
 **Readiness posture:** No commercial entitlement or credential is proven by repository tests. Vendor names
 below are candidates to evaluate, not configured dependencies or endorsements.
 
@@ -379,3 +380,218 @@ and corporate actions, an adapter must demonstrate:
 
 An adapter that supplies current dashboards but cannot reconstruct what was knowable historically is
 not approved for strategy validation.
+
+## Phase 26 selected operational composition
+
+The closed Family A target is `FAMILY_A_CRSP_SEC_RTDSM_V1`: Morningstar CRSP U.S. Stock Databases
+via the selected Linux flat-file variant supply the point-in-time equity spine; SEC EDGAR nightly
+submissions and companyfacts bulk archives supply filing-availability-lagged as-filed fundamentals;
+and Philadelphia Fed RTDSM PCPI monthly vintages supply the macro-regime input after exact BLS
+release-time reconciliation.
+
+Selection does not establish availability, rights, entitlement, schema, or fitness. CRSP requires
+an exact executed product/delivery entitlement, RTDSM remains blocked pending authenticated
+exact-scope rights evidence, and SEC policy/currentness plus data fitness require revalidation. No
+provider request, credential, observation, payload, cache, snapshot, or adapter is authorized.
+
+## Current free-source candidate matrix (2026-07-21 UTC)
+
+Method: first-party documentation and terms pages only, fetched read-only on 2026-07-21 UTC. No
+account was created, no API key used or requested, no data endpoint called, and no data archive
+downloaded. Each source's load-bearing claims were independently re-verified against the cited
+first-party pages in a second adversarial pass (81 claims checked; 3 corrected, incorporated
+below). Items that no first-party page states are marked UNVERIFIED and must not be assumed.
+Statuses: `TOMORROW_READ_ONLY_CANDIDATE`, `OPERATIONAL_MONITORING_CANDIDATE`,
+`RESEARCH_ADMISSION_BLOCKED`, `RIGHTS_UNVERIFIED`, `POINT_IN_TIME_INADEQUATE`, `DEFERRED`,
+`REJECTED`. A status describes fitness for a named use only; none is a rights grant.
+
+### Free price/telemetry (Track A demonstration surface)
+
+**Alpaca Paper Trading + Basic (free) market data, IEX feed** — publisher Alpaca (AlpacaDB, Inc.).
+Status: `TOMORROW_READ_ONLY_CANDIDATE` (inside the accepted Phase 12 boundary only);
+`POINT_IN_TIME_INADEQUATE` and `RESEARCH_ADMISSION_BLOCKED` for any research use.
+
+- Paper trading is free for all Alpaca users; paper host `https://paper-api.alpaca.markets` with a
+  **separate paper API key pair**; the disclosures page states the Paper Trading API "does not
+  require real money or permit a user to transact in real securities."
+- Basic market-data plan: $0/month; 200 API calls/min; real-time equities from **IEX only**
+  (indicative feed for options); historical queries exclude the latest 15 minutes (SIP embargo).
+  History depth: the docs plan table says "Since 2016" while alpaca.markets/data says "7+ years" —
+  both first-party, mutually inconsistent; record both and rely on neither. Websocket on Basic: 30
+  equity symbols (concurrent-connection count for Basic specifically: UNVERIFIED); paid Algo
+  Trader Plus ($99/mo): 10,000 calls/min per docs (marketing says "unlimited" — docs figure
+  governs), unlimited equities websocket symbols, full SIP.
+- Alpaca's own FAQ quantifies the IEX slice: AAPL on 2023-09-29 traded 923,134 shares on IEX vs
+  51,861,083 consolidated — first-party support for treating free quotes as
+  connectivity/monitoring telemetry, not research-grade consolidated data.
+- Corporate-actions endpoint enumerates 15 action types; "no guarantees on the creation time of
+  corporate actions"; endpoint history depth and Basic-plan inclusion: UNVERIFIED; no documented
+  delisted-symbol/survivorship coverage; no point-in-time or vintage guarantee anywhere in the
+  fetched documents.
+- Terms: Content is "exclusively for personal and noncommercial access and use"; no copying,
+  republishing, mirroring, or distribution without written consent; Alpaca may suspend or
+  terminate access and modify content **without notice**; the T&C PDF displays no
+  version/effective date (currency UNVERIFIED). No IEX-feed-specific data terms exist in the
+  disclosure library, and the NYSE/NASDAQ exchange subscriber agreements textually bind only the
+  paid ("Pro") plan — so the free feed's storage/derived-data/retention rights rest on the general
+  T&C alone and are largely silent. Paper account/positions/orders responses are themselves
+  restricted "Content" under the T&C, which supports Fable5's sanitized-hash-only persistence
+  posture. No attribution requirement found. Paper-account Trading-API numeric rate limit:
+  UNVERIFIED (only `X-RateLimit-*` headers and 429 semantics are documented); the 200/min figure
+  is documented for the market-data plan.
+- Citations (all retrieved 2026-07-21 UTC): docs.alpaca.markets/docs/paper-trading;
+  docs.alpaca.markets/docs/about-market-data-api; docs.alpaca.markets/docs/historical-stock-data-1;
+  docs.alpaca.markets/docs/market-data-faq; alpaca.markets/data; alpaca.markets/disclosures;
+  files.alpaca.markets/disclosures/library/TermsAndConditions.pdf.
+
+### Filing/fundamental data
+
+**SEC EDGAR (data.sec.gov APIs, archives, bulk data)** — publisher U.S. SEC. Status: selected in
+the Phase 26 composition for `as_reported_fundamentals`; `RESEARCH_ADMISSION_BLOCKED` pending the
+Phase 26 policy-revalidation/schema/PIT gates; `OPERATIONAL_MONITORING_CANDIDATE` for filing-event
+monitoring.
+
+- No authentication or API keys ("These APIs do not require any authentication or API keys"). A
+  declared User-Agent (`Company Name AdminContact@domain.com`) is required; enforcement observed
+  directly on 2026-07-21 (undeclared fetches received 403).
+- Fair access: "no more than 10 requests per second" total per user, "regardless of the number of
+  machines"; brief IP limiting on violation; the policy text is explicitly labeled current
+  guidance and changeable.
+- Freshness: submissions API typically <1 s after dissemination; XBRL APIs typically <1 min;
+  filings on sec.gov typically 1–3 min after acceptance (not guaranteed); bulk
+  `companyfacts.zip`/`submissions.zip` republished nightly ≈3:00 a.m. ET; daily indexes build
+  nightly from ≈10:00 p.m. ET; full/quarterly indexes rebuilt weekly incorporating post-acceptance
+  corrections.
+- Rights: "Information presented on sec.gov is considered public information and may be copied or
+  further distributed by users of the web site without the SEC's permission"; citation is a
+  courtesy request. Edge cases: sec.gov stock art; the CUSIP-encumbered 13(f) PDF list.
+- Point-in-time: every submission carries `ACCEPTANCE-DATETIME` (EST) in its SGML header;
+  accession numbers are immutable; CIKs are never recycled; delisted/defunct filers remain —
+  survivorship-safe by construction. **Trap:** `frames`/`companyfacts` return latest-filed
+  (restated) values, not as-first-reported snapshots; PIT research must reconstruct from daily
+  indexes + acceptance datetimes. data.sec.gov has no CORS (server-side calls only). Whether
+  data.sec.gov enforces a separate numeric limit distinct from the 10 req/s guideline: UNVERIFIED.
+- Citations (2026-07-21 UTC): sec.gov/search-filings/edgar-application-programming-interfaces;
+  sec.gov/os/accessing-edgar-data; sec.gov/about/developer-resources;
+  sec.gov/about/webmaster-frequently-asked-questions; sec.gov/about/privacy-information.
+
+### Macro/release data
+
+**BLS Public Data API v1/v2** — publisher U.S. Bureau of Labor Statistics. Status:
+`OPERATIONAL_MONITORING_CANDIDATE` (release-time corroboration only);
+`POINT_IN_TIME_INADEQUATE` for research (current revised values only — not an RTDSM substitute).
+
+- v2 (registered; key emailed after email+organization registration, renewed at least yearly):
+  500 queries/day, 50 series/query, 20 years/query. v1 (unregistered): 25 queries/day, 25
+  series/query, 10 years/query. Both: 50 requests per 10 seconds; HTTP 429 on excess; BLS may
+  block violators. No fee is mentioned anywhere; an affirmative "free" statement is UNVERIFIED.
+- The v2 payload carries only year/period/value/footnotes (+optional flags): **no release
+  timestamps, no vintage/as-of parameter** — current-value only. Preliminary status appears only
+  as a footnote code.
+- Release times come from the separate official schedule pages: CPI news releases at 08:30 a.m. ET
+  on scheduled dates (e.g., June 2026 CPI released 2026-07-14); all calendar times Eastern; a
+  subscribable `.ics` feed exists. API refresh latency after a release, per-series total history
+  depth, discontinued-series retrievability, and rate-limit enforcement scope (per key vs per IP):
+  all UNVERIFIED.
+- Rights: BLS publications are public domain; free to redistribute without permission; users
+  "should cite the date that data were accessed" and must carry the verbatim cannot-vouch
+  disclaimer; content may not be modified and still attributed to BLS.gov. bls.gov blocks
+  non-browser clients (403 observed); api.bls.gov is the sanctioned programmatic channel.
+- Citations (2026-07-21 UTC): bls.gov/developers/api_faqs.htm;
+  bls.gov/developers/termsOfService.htm; bls.gov/developers/api_signature_v2.htm;
+  bls.gov/schedule/news_release/cpi.htm; bls.gov/schedule/; bls.gov/opub/copyright-information.htm.
+
+### Point-in-time research data
+
+**Philadelphia Fed RTDSM (incl. PCPI monthly CPI vintages)** — publisher Federal Reserve Bank of
+Philadelphia. Status: `RIGHTS_UNVERIFIED` and `RESEARCH_ADMISSION_BLOCKED` (the Phase 23–25
+blocked rights finding stands); technically the canonical free U.S. macro point-in-time source.
+
+- Free static Excel workbook downloads, no authentication; "All data are updated at the end of
+  each month." Verified vintage ranges: ROUTPUT quarterly from 1965:Q4; CPI quarterly from
+  1994:Q3; PCPI monthly from 1998:M11. Discontinued series remain available (no survivorship
+  removal). Note: the monthly PCPI page states the vintage-availability guarantee; the quarterly
+  CPI page does not carry the same sentence (per-variable wording varies).
+- Rights: the site-wide Online Terms of Use permit "informational, educational, and research
+  purposes only," warn some content may be third-party copyrighted, and are **silent** on
+  persistent storage, automated/model use, derived data, retention, and redistribution — exactly
+  the ambiguity Phases 23–25 recorded; terms may change without notice. Additionally UNVERIFIED:
+  commercial-use permissibility, automated/scripted download permissibility (the site returned 403
+  to non-browser fetch tooling with no published bot policy), and whether the numeric data are
+  U.S.-government public domain versus Bank-copyrighted compilation.
+- Monthly vintage labels are not exact release timestamps; BLS release-schedule corroboration
+  remains the reconciliation path (see Phase 26 dependency wording).
+- Citations (2026-07-21 UTC): philadelphiafed.org/surveys-and-data/real-time-data-research/
+  real-time-data-set-for-macroeconomists; …/real-time-data-set-full-time-series-history; …/pcpi;
+  …/cpi; …/routput; philadelphiafed.org/about-us/privacy-notice.
+
+**CRSP U.S. Stock Databases (Morningstar)** — publisher CRSP/Morningstar. Status:
+`RIGHTS_UNVERIFIED` and `RESEARCH_ADMISSION_BLOCKED`; not free; the Phase 26 equity-spine
+selection pending entitlement.
+
+- Institutional license only; no self-serve signup, no public API, no public pricing (obtainable
+  only via the subscription-information request). Entitlement = an executed "CRSP Standard Data
+  Subscription Agreement"; use limited to Authorized Users on institutionally owned machines; all
+  storage/derived/redistribution rights live in the unpublished agreement.
+- Morningstar completed the CRSP acquisition 2026-02-02 ($365M). **crsp.org states all CRSP.org
+  content migrates to the Morningstar Indexes site beginning 2026-07-28** — one week after this
+  review — so product URLs, documentation locations, and delivery assumptions (including the
+  Phase 26 "Linux flat file" target) must be revalidated at entitlement time. Delivery options
+  named first-party: Snowflake Marketplace, WRDS, MOVEit file transfer, flat files (legacy Format
+  1.0 "SIZ" and current Flat File Format 2.0 "CIZ").
+- Content: daily/monthly market data and corporate actions, 36,000+ active and inactive U.S.
+  securities back to 1925, PERMNO/PERMCO permanent identifiers, dedicated delisting-return files —
+  survivorship-bias-free by design. Per-exchange history start dates: UNVERIFIED on live
+  first-party pages.
+- Citations (2026-07-21 UTC): crsp.org; indexes.morningstar.com/research-data-products/
+  crsp-us-stock-databases; crsp.org/subscription-information/; crsp.org/about-us/; Morningstar
+  newsroom acquisition-completion release.
+
+### Unsuitable or rights-blocked convenience sources
+
+**FRED / ALFRED** — publisher Federal Reserve Bank of St. Louis. Status: `REJECTED` for the
+planned persistent/automated/model use (re-verify terms before any revisit).
+
+- Confirmed still present on 2026-07-21: the prohibition on use "in connection with the
+  development or training of software systems or machine-learning models" (Summarized ToU
+  Prohibited Use final bullet; full ToU Services clause (p); API clause (k)); the
+  storage/cache/archive/database prohibition (Services (q); API (l)); the third-party-series
+  permission requirement; destroy-all-copies on termination; revocable license changeable without
+  notice. ALFRED's vintage capability (`realtime_start`/`realtime_end`, `vintage_dates`,
+  initial-release-only output) is technically excellent, which is why the terms outcome — not
+  capability — is the rejection reason. API key required; numeric rate limit UNVERIFIED (not
+  published); per-series ALFRED vintage depth UNVERIFIED. The ToU displays no effective date, so
+  clause currentness is pinned only to the 2026-07-21 retrieval, and the exact scope of the
+  software/model clause versus ordinary application development is ambiguous — independent legal
+  review is required before any reliance. Note: the standalone API terms page omits these clauses
+  but incorporates the site Legal Terms, which contain them.
+- Citations (2026-07-21 UTC): fred.stlouisfed.org/docs/api/terms_of_use.html;
+  fred.stlouisfed.org/legal/terms/; …/docs/api/fred/realtime_period.html;
+  …/docs/api/fred/fred_vs_alfred.html.
+
+**Yahoo Finance via yfinance** — data publisher Yahoo Inc.; software publisher independent
+(ranaroussi/yfinance). Status: `REJECTED` operationally; `RIGHTS_UNVERIFIED`; architectural
+reference only (consistent with the Phase 25 finding).
+
+- yfinance is Apache-2.0 **software**; the license conveys zero data rights, and the project's own
+  README says it is unaffiliated with Yahoo, research/educational, personal-use oriented.
+- Yahoo offers **no** finance/market-data API: the Yahoo Developer Network currently lists only
+  OAuth, Fantasy Sports, and Sign In With Yahoo. The general ToS prohibits automated collection
+  without permission (§2.4(j)), grants a personal revocable license (§2.9), bars commercial
+  exploitation (§2.8); Yahoo's finance help page says the data is "not intended for trading or
+  investing purposes" and must not be redistributed. Terms change effective on posting; services
+  and endpoints can be discontinued without notice. History depth, rate limits, delisted coverage,
+  and adjustment methodology: all UNVERIFIED first-party.
+- Citations (2026-07-21 UTC): legal.yahoo.com/us/en/yahoo/terms/otos/index.html;
+  legal.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.html;
+  github.com/ranaroussi/yfinance; developer.yahoo.com/api/; help.yahoo.com/kb/SLN2310.html.
+
+### Matrix-to-plan mapping
+
+For 2026-07-22 (Track A) the only fit-for-purpose source is the Alpaca paper environment plus the
+frozen IEX connectivity probe, entirely inside the accepted Phase 12 boundary. For operational
+monitoring, SEC EDGAR filing events and BLS release-calendar corroboration are candidates under
+their documented fair-access/usage rules. For research and point-in-time backtesting, only the
+Phase 26 composition (CRSP + SEC EDGAR + RTDSM) is planned, and every element remains blocked
+behind its rights/entitlement, schema, and qualification gates. No source in this matrix becomes
+research-qualified by virtue of being free, reachable, or demonstrated.

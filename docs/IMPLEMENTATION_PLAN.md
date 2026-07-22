@@ -34,6 +34,8 @@ Phase 1 control plane
   -> Phase 22 Family A macro-vintage candidate inventory amendment (portable, metadata-only)
   -> Phase 23 Family A RTDSM current-use-rights review (portable, public-terms-only)
   -> Phase 24 Family A RTDSM rights-clarification requirements (portable, requirements-only)
+  -> Phase 25 RTDSM rights-response evidence intake and adapter-pattern feasibility
+  -> Phase 26 Family A operational data-composition decision (portable, selection-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -69,6 +71,10 @@ do not receive executable scaffolds.
 | 23 | technical current-use-rights review of the exact Phase 22 RTDSM candidate using official public terms only | deterministic generated JSON and offline verification; exact `BLOCKED` / `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN` / `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE`; three inert citations, one conservative finding, and four requirement states; no legal opinion, rights grant, credential, data request, qualification, composition, research, execution, order, or live path |
 
 | 24 | exact clarification requirements for the blocked Phase 23 RTDSM current-use-rights finding | deterministic generated JSON and offline verification; exact `BLOCKED` / `RIGHTS_CLARIFICATION_REQUIREMENTS_FROZEN` / `BLOCKED_AWAITING_INDEPENDENT_CURRENT_USE_RIGHTS_CLARIFICATION`; 8 proposed-not-authorized disclosures, 10 unanswered questions, 6 missing evidence requirements, and 7 unapplied fail-closed rules; no outreach, answer, rights grant, credential, data request, qualification, composition, research, execution, order, or live path |
+
+| 25 | authenticated RTDSM rights-response evaluation and provider-neutral adapter-pattern feasibility | deterministic generated JSON and offline verification; exact blocked no-response result, strict authority and exact-scope evaluation, and no provider observation, credential, production adapter, research, execution, order, or live path |
+
+| 26 | one exact closed Family A operational data composition | deterministic generated JSON and offline verification; `FAMILY_A_CRSP_SEC_RTDSM_V1` assigns all seven required capabilities across CRSP U.S. Stock Databases, SEC EDGAR bulk archives, and Philadelphia Fed RTDSM PCPI; composition selected while rights, entitlement, schema, and PIT qualification stay blocked; no credential, data acquisition, adapter activation, research, performance, execution, order, or live path |
 
 ## Required handoff template
 
@@ -153,3 +159,40 @@ Phase 22 is formally accepted at commit `1c07fbe8e23950e8c9f910b30473c900c0bf3e2
 `7f3bf3df029a894660f0e47dda1056bd32dca297` with the same tree. The authorized Phase 23 boundary is
 in `docs/handoffs/PHASE_23.md`; it may freeze only a public-terms technical review of the RTDSM
 candidate. It grants no right, entitlement, product selection, data access, or later-step authority.
+The Phase 24 boundary is in `docs/handoffs/PHASE_24.md`; Phase 24 is accepted at implementation
+commit `c1dad09f08b18a5a7d527579ca677633b49184fb`, tree
+`27392b6eb3239e01e533d07d42d164124fb7aa18`, merge `145f67f188befae46443d061d029c243858841b4`. The
+Phase 25 boundary is in `docs/handoffs/PHASE_25.md`; Phase 25 is implemented at local commit
+`4d70b823947fd61d0ea17df14c9f1ff9f93fd45b`, and this repository records no same-SHA Ubuntu
+acceptance run, so Phase 25 is implemented but not formally accepted. The Phase 26 boundary is in
+`docs/handoffs/PHASE_26.md`; the Phase 26 composition decision exists only as uncommitted
+working-tree changes whose local gates passed on 2026-07-21, with no committed SHA, CI run, or
+formal acceptance evidence. Statements elsewhere that describe Phase 25 as "accepted" are not
+supported by recorded acceptance evidence in this repository and must be treated as pending until a
+same-SHA Ubuntu run is recorded here.
+
+## Proposed next phase (requires separate authorization; not yet authorized)
+
+Exactly one next phase is proposed. **Phase 27 — Family A composition rights-and-entitlement
+evidence intake (portable, evidence-only).** It extends the accepted Phase 25 evidence-intake
+pattern from the single RTDSM candidate to the full Phase 26 composition, recording and offline-
+verifying only independently authenticated evidence for the three blocked post-selection
+dependencies named by Phase 26:
+
+1. current executed CRSP U.S. Stock Databases use rights and the exact Linux flat-file delivery
+   entitlement;
+2. the authenticated RTDSM exact-scope rights response answering all ten Phase 24 questions; and
+3. a current SEC EDGAR fair-access/reuse policy revalidation with exact URLs and UTC retrieval
+   dates.
+
+Phase 27 performs no provider outreach itself, loads no credential, requests, downloads, or
+persists no provider observation, activates no adapter, creates no snapshot, defines no evaluation
+policy or holdout, and cannot produce research admission. Its only positive outcome is
+verified-evidence-recorded, and even that outcome leaves data acquisition requiring separate
+authorization. Phase 27 must not be confused with feature implementation, data acquisition, or
+research admission, and it must not begin before Phase 26 is committed and formally accepted.
+
+The planned 2026-07-22 external live-data paper test is not Phase 27 and advances no Family A step.
+It is an operator acceptance activity conducted entirely inside the formally accepted Phase 12
+read-only boundary (six allowlisted GETs, sanitized append-only evidence, explicit local capture
+command); its scope, runbook, and go/no-go conditions are defined in `DEVELOPMENT.md`.

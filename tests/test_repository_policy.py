@@ -2,15 +2,97 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.util
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+T003_BASELINE_SHA = "4d70b823947fd61d0ea17df14c9f1ff9f93fd45b"
+T003_INITIAL_COMMIT_SHA = "c11e899a25732b49d9d7b3a95e2d12c4b6eff215"
+T003_INITIAL_TREE_SHA = "3ef241a4818608686799931d109598bc9f0cdf94"
+T003_MAINTENANCE_SCOPES = (
+    "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts",
+    "services/frontend/e2e/paper-readiness.accessibility.spec.ts",
+    "services/frontend/e2e/paper-readiness.visual.spec.ts",
+    "services/frontend/src/app/paper/readiness",
+    "services/frontend/src/tests/PaperReadinessWorkspace.test.tsx",
+    "services/frontend/src/tests/paper-readiness-fixture.ts",
+)
+T003_MAINTENANCE_PATHS = frozenset(
+    {
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-dark-desktop-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-dark-mobile-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-dark-tablet-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-light-desktop-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-light-mobile-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-blocked-light-tablet-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-dark-desktop-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-dark-mobile-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-dark-tablet-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-light-desktop-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-light-mobile-win32.png",
+        "services/frontend/e2e/__screenshots__/paper-readiness.visual.spec.ts/paper-readiness-mock-complete-light-tablet-win32.png",
+        "services/frontend/e2e/paper-readiness.accessibility.spec.ts",
+        "services/frontend/e2e/paper-readiness.visual.spec.ts",
+        "services/frontend/src/app/paper/readiness/PaperReadinessWorkspace.module.css",
+        "services/frontend/src/app/paper/readiness/PaperReadinessWorkspace.tsx",
+        "services/frontend/src/app/paper/readiness/page.tsx",
+        "services/frontend/src/app/paper/readiness/readiness-api.ts",
+        "services/frontend/src/tests/PaperReadinessWorkspace.test.tsx",
+        "services/frontend/src/tests/paper-readiness-fixture.ts",
+    }
+)
+T003_CLOCK_AUTHORITY_REPAIR_PATHS = T003_MAINTENANCE_PATHS - {
+    "services/frontend/src/app/paper/readiness/page.tsx",
+    "services/frontend/src/tests/paper-readiness-fixture.ts",
+}
+T003_FORBIDDEN_CLOCK_OR_POLLING_TOKENS = (
+    "Date.now(",
+    "Date.parse(",
+    "new Date(",
+    "performance.now(",
+    "setTimeout(",
+    "setInterval(",
+    "requestAnimationFrame(",
+    "EventSource(",
+    "WebSocket(",
+)
+T003_TIMESTAMP_COMPARISON_PATTERNS = (
+    re.compile(
+        r"(?:[A-Za-z_$][\w$]*\.)*[A-Za-z_$][\w$]*"
+        r"(?:_at_utc|_time_utc|timestamp_utc)\s*(?:[<>]=?|===?|!==?)"
+    ),
+    re.compile(
+        r"(?:[<>]=?|===?|!==?)\s*(?:[A-Za-z_$][\w$]*\.)*[A-Za-z_$][\w$]*"
+        r"(?:_at_utc|_time_utc|timestamp_utc)"
+    ),
+)
 
 
 def normalized(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def phase26_verifier_module():
+    spec = importlib.util.spec_from_file_location(
+        "verify_phase1_phase26_maintenance", ROOT / "scripts/verify_phase1.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def prohibited_nested_surface_findings(sources: dict[str, str]) -> set[str]:
+    forbidden = ("POST /v2/orders", "api.alpaca.markets")
+    return {
+        f"{path}:{token}"
+        for path, source in sources.items()
+        for token in forbidden
+        if token in source
+    }
 
 
 def enum_string_values(path: Path, class_name: str) -> set[str]:
@@ -25,6 +107,245 @@ def enum_string_values(path: Path, class_name: str) -> set[str]:
                 and isinstance(child.value.value, str)
             }
     raise AssertionError(f"missing {class_name}")
+
+
+def t003_overlay_delta(changed_paths: set[str]) -> tuple[set[str], set[str]]:
+    return (
+        set(T003_MAINTENANCE_PATHS - changed_paths),
+        set(changed_paths - T003_MAINTENANCE_PATHS),
+    )
+
+
+def t003_clock_or_polling_findings(sources: dict[str, str]) -> set[str]:
+    token_findings = {
+        f"{path}:{token}"
+        for path, source in sources.items()
+        for token in T003_FORBIDDEN_CLOCK_OR_POLLING_TOKENS
+        if token in source
+    }
+    comparison_findings = {
+        f"{path}:timestamp-comparison"
+        for path, source in sources.items()
+        if any(pattern.search(source) for pattern in T003_TIMESTAMP_COMPARISON_PATTERNS)
+    }
+    return token_findings | comparison_findings
+
+
+def test_t003_route_has_no_browser_clock_timer_or_polling_authority() -> None:
+    route_root = ROOT / "services/frontend/src/app/paper/readiness"
+    sources = {
+        path.relative_to(ROOT).as_posix(): normalized(path)
+        for pattern in ("*.ts", "*.tsx")
+        for path in route_root.rglob(pattern)
+    }
+    assert sources
+    assert t003_clock_or_polling_findings(sources) == set()
+
+
+def test_t003_clock_timer_and_polling_guard_detects_every_forbidden_primitive() -> None:
+    for token in T003_FORBIDDEN_CLOCK_OR_POLLING_TOKENS:
+        planted = {"planted-readiness-client.tsx": f"const forbidden = {token}value);"}
+        assert t003_clock_or_polling_findings(planted) == {f"planted-readiness-client.tsx:{token}"}
+    planted_comparisons = {
+        "left-comparison.tsx": "artifact.expires_at_utc <= server_now_utc",
+        "right-comparison.tsx": "server_now_utc > artifact.completed_at_utc",
+    }
+    assert t003_clock_or_polling_findings(planted_comparisons) == {
+        "left-comparison.tsx:timestamp-comparison",
+        "right-comparison.tsx:timestamp-comparison",
+    }
+
+
+def test_t003_maintenance_overlay_has_exact_lineage_and_paths() -> None:
+    initial_identity = subprocess.run(
+        ["git", "show", "-s", "--format=%T %P", T003_INITIAL_COMMIT_SHA],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    assert initial_identity.stdout.strip() == f"{T003_INITIAL_TREE_SHA} {T003_BASELINE_SHA}"
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", T003_INITIAL_COMMIT_SHA, "HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert ancestry.returncode == 0
+
+    initial_paths_result = subprocess.run(
+        ["git", "diff", "--name-only", T003_BASELINE_SHA, T003_INITIAL_COMMIT_SHA],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    initial_paths = {
+        path.replace("\\", "/") for path in initial_paths_result.stdout.splitlines() if path
+    }
+    assert initial_paths == T003_MAINTENANCE_PATHS
+
+    tracked = subprocess.run(
+        ["git", "diff", "--name-only", T003_BASELINE_SHA, "--", *T003_MAINTENANCE_SCOPES],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    untracked = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "--",
+            *T003_MAINTENANCE_SCOPES,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in (*tracked.stdout.splitlines(), *untracked.stdout.splitlines())
+        if path
+    }
+    missing, unexpected = t003_overlay_delta(changed_paths)
+    assert missing == set()
+    assert unexpected == set()
+    assert all((ROOT / path).is_file() for path in T003_MAINTENANCE_PATHS)
+
+    repair_result = subprocess.run(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            T003_INITIAL_COMMIT_SHA,
+            "--",
+            *T003_MAINTENANCE_SCOPES,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    repair_paths = {path.replace("\\", "/") for path in repair_result.stdout.splitlines() if path}
+    assert repair_paths == T003_CLOCK_AUTHORITY_REPAIR_PATHS
+
+
+def test_order_capable_alpaca_cli_is_outside_fable5_checkout() -> None:
+    assert not (ROOT / "cli").exists(), "order-capable Alpaca CLI must remain outside Fable5"
+
+
+def test_prohibited_openalice_checkout_is_outside_fable5() -> None:
+    assert not (ROOT / "OpenAlice").exists(), (
+        "order/live-capable OpenAlice must remain outside Fable5"
+    )
+
+
+def test_prohibited_nested_surface_guard_rejects_literal_order_and_live_canaries() -> None:
+    planted = {
+        "nested/order-client.ts": "POST /v2/orders",
+        "nested/live-client.ts": "https://api.alpaca.markets/v2/account",
+    }
+    assert prohibited_nested_surface_findings(planted) == {
+        "nested/live-client.ts:api.alpaca.markets",
+        "nested/order-client.ts:POST /v2/orders",
+    }
+
+
+def test_phase26_maintenance_overlay_is_exact_content_pinned_and_current() -> None:
+    verifier = phase26_verifier_module()
+    assert verifier.PHASE_26_BASELINE_SHA == T003_BASELINE_SHA
+    assert verifier.EXPECTED_PHASE_26_BASELINE_TREE == ("84426ba04f4dbb686878852357410880327b5713")
+    assert {
+        group: len(paths) for group, paths in verifier.PHASE_26_MAINTENANCE_OVERLAY_GROUPS.items()
+    } == {"governance": 2, "T-001": 2, "T-002": 2, "T-003": 20, "T-004": 2, "T-005": 1}
+    assert len(verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS) == 29
+    assert not (verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS & verifier.PHASE_26_ALLOWED_WRITES)
+    assert (
+        verifier.phase26_maintenance_path_manifest_sha256(
+            verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS
+        )
+        == verifier.PHASE_26_MAINTENANCE_PATH_MANIFEST_SHA256
+        == "0874d85ecaecfe93db347703f04104e3da65df14ee35e6ec96bf379ba49e0a54"
+    )
+    actual_sha256 = {
+        path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        for path in verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS
+    }
+    assert verifier.phase26_maintenance_content_findings(actual_sha256) == (set(), set(), set())
+    assert (
+        verifier.phase26_maintenance_content_manifest_sha256(actual_sha256)
+        == verifier.PHASE_26_MAINTENANCE_CONTENT_MANIFEST_SHA256
+    )
+
+
+def test_phase26_maintenance_overlay_matches_the_current_baseline_delta() -> None:
+    verifier = phase26_verifier_module()
+    changed_paths: set[str] = set()
+    for command in (
+        ["git", "diff", "--name-only", verifier.PHASE_26_BASELINE_SHA, "--"],
+        ["git", "diff", "--cached", "--name-only", "--"],
+        ["git", "ls-files", "--others", "--exclude-standard", "--"],
+    ):
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+        changed_paths.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
+    assert verifier.phase26_maintenance_overlay_delta(changed_paths) == (set(), set())
+
+
+def test_phase26_maintenance_overlay_rejects_a_missing_path() -> None:
+    verifier = phase26_verifier_module()
+    removed = "DEVELOPMENT.md"
+    changed = set(verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS) - {removed}
+    assert verifier.phase26_maintenance_overlay_delta(changed) == ({removed}, set())
+
+
+def test_phase26_maintenance_overlay_rejects_any_thirtieth_path() -> None:
+    verifier = phase26_verifier_module()
+    planted = "docs/THIRTIETH_MAINTENANCE_PATH.md"
+    changed = set(verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS) | {planted}
+    assert verifier.phase26_maintenance_overlay_delta(changed) == (set(), {planted})
+
+
+def test_phase26_maintenance_overlay_rejects_a_live_order_surface() -> None:
+    verifier = phase26_verifier_module()
+    planted = "services/api/live_order_submit.py"
+    changed = set(verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS) | {planted}
+    assert verifier.phase26_maintenance_overlay_delta(changed) == (set(), {planted})
+
+
+def test_phase26_maintenance_overlay_rejects_content_drift() -> None:
+    verifier = phase26_verifier_module()
+    planted = dict(verifier.PHASE_26_MAINTENANCE_FILE_SHA256)
+    planted["AGENTS.md"] = "0" * 64
+    assert verifier.phase26_maintenance_content_findings(planted) == (
+        set(),
+        set(),
+        {"AGENTS.md"},
+    )
+
+
+def test_t003_maintenance_overlay_guard_detects_an_unlisted_order_surface() -> None:
+    planted = "services/frontend/src/app/paper/readiness/order-submit.ts"
+    missing, unexpected = t003_overlay_delta(set(T003_MAINTENANCE_PATHS) | {planted})
+    assert missing == set()
+    assert unexpected == {planted}
+
+
+def test_t003_maintenance_overlay_guard_detects_a_missing_accepted_path() -> None:
+    removed = "services/frontend/src/app/paper/readiness/page.tsx"
+    missing, unexpected = t003_overlay_delta(set(T003_MAINTENANCE_PATHS) - {removed})
+    assert missing == {removed}
+    assert unexpected == set()
 
 
 def test_hard_gates_are_exact_file_prefixes() -> None:
@@ -138,11 +459,11 @@ def test_phase25_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         assert "--phase" in source
         assert (
             "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, "
-            "20, 21, 22, 23, 24, or 25" in source
+            "20, 21, 22, 23, 24, 25, or 26" in source
         )
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-25-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
+    assert workflow.startswith("name: phase-26-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "26"' in workflow
     assert 'FABLE5_ALPACA_PAPER_API_KEY_ID: ""' in workflow
     assert 'FABLE5_ALPACA_PAPER_SECRET_KEY: ""' in workflow
     for credential_name in (
@@ -158,10 +479,10 @@ def test_phase25_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase25-compose:" in workflow
+    assert "phase26-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
-    assert "verify_phase1.py --static-only --phase 25" in workflow
-    assert "verify_phase1.py --phase 25" in workflow
+    assert "verify_phase1.py --static-only --phase 26" in workflow
+    assert "verify_phase1.py --phase 26" in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow

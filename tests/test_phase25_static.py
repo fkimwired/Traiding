@@ -40,8 +40,8 @@ def test_phase25_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
     assert set(verifier.PHASE_25_REQUIRED_PATHS) <= verifier.PHASE_25_ALLOWED_WRITES
     assert verifier.PHASE_25_INHERITED_TABLES == verifier.PHASE_24_INHERITED_TABLES
     assert len(verifier.PHASE_25_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 26)] == list(range(1, 26))
-    for invalid in ("0", "26", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 27)] == list(range(1, 27))
+    for invalid in ("0", "27", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
     assert (
@@ -200,32 +200,32 @@ def test_phase25_source_registry_and_pattern_inventory_preserve_evidence() -> No
     assert all(row["status"] == "DOCUMENTED_NOT_IMPLEMENTED" for row in payload["adapter_patterns"])
 
 
-def test_phase25_dispatch_ci_wrappers_docs_and_next_phase_denial_are_active() -> None:
+def test_phase25_is_frozen_while_phase26_dispatch_is_active() -> None:
     verifier = normalized(ROOT / "scripts/verify_phase1.py")
     for required in (
         "def verify_phase25_static()",
         "verify_phase25_static()",
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "25")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "26")',
         'print("Static repository policy checks passed for Phase 25.")',
         'print("Full Compose Phase 25 verification passed.")',
     ):
         assert required in verifier
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-25-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
-    assert "phase25-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 25") == 1
-    assert workflow.count("python scripts/verify_phase1.py --phase 25") == 1
+    assert workflow.startswith("name: phase-26-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "26"' in workflow
+    assert "phase26-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 26") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 26") == 1
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source and "--phase" in source
-        assert "23, 24, or 25" in source
+        assert "24, 25, or 26" in source
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         source = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "25"' in source
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "26"' in source
         assert '"23",\n  "24",\n  "25",' in source
     combined = normalized(
         ROOT / "docs/PHASE_25_FAMILY_A_RTDSM_RIGHTS_RESPONSE_AND_ADAPTER_PATTERNS_DECISIONS.md"
@@ -240,5 +240,7 @@ def test_phase25_dispatch_ci_wrappers_docs_and_next_phase_denial_are_active() ->
         "Stop after Phase 25",
     ):
         assert required in combined
-    assert not (ROOT / "docs/handoffs/PHASE_26.md").exists()
-    assert not (ROOT / "services/data/src/fable5_data/phase26").exists()
+    assert (ROOT / "docs/handoffs/PHASE_26.md").is_file()
+    assert (ROOT / "services/data/src/fable5_data/phase26").is_dir()
+    assert not (ROOT / "docs/handoffs/PHASE_27.md").exists()
+    assert not (ROOT / "services/data/src/fable5_data/phase27").exists()

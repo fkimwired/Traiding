@@ -40,8 +40,8 @@ def test_phase24_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert set(verifier.PHASE_24_REQUIRED_PATHS) <= verifier.PHASE_24_ALLOWED_WRITES
     assert verifier.PHASE_24_INHERITED_TABLES == verifier.PHASE_23_INHERITED_TABLES
     assert len(verifier.PHASE_24_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 26)] == list(range(1, 26))
-    for invalid in ("0", "26", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 27)] == list(range(1, 27))
+    for invalid in ("0", "27", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
     assert (
@@ -178,7 +178,7 @@ def test_phase24_verifier_dispatch_and_zero_write_acceptance_are_bound() -> None
         "def snapshot_phase24_inherited_state(",
         "def verify_phase24_no_schema_drift_and_zero_writes(",
         'print("Full Compose Phase 24 verification passed.")',
-        'default=os.environ.get("FABLE5_VERIFY_PHASE", "25")',
+        'default=os.environ.get("FABLE5_VERIFY_PHASE", "26")',
     ):
         assert required in source
     assert re.search(
@@ -189,11 +189,11 @@ def test_phase24_verifier_dispatch_and_zero_write_acceptance_are_bound() -> None
     )
     assert verifier_module().phase24_offline_environment()["FABLE5_VERIFY_PHASE"] == "24"
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-25-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "25"' in workflow
-    assert "phase25-compose:" in workflow
-    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 25") == 1
-    assert workflow.count("python scripts/verify_phase1.py --phase 25") == 1
+    assert workflow.startswith("name: phase-26-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "26"' in workflow
+    assert "phase26-compose:" in workflow
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 26") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 26") == 1
     assert "timeout-minutes: 180" in workflow and "fetch-depth: 0" in workflow
     assert "secrets." not in workflow and "FABLE5_UPDATE_SNAPSHOTS" not in workflow
 
@@ -202,14 +202,14 @@ def test_phase24_is_frozen_while_phase25_wrappers_and_browser_inheritance_are_ac
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source and "--phase" in source
-        assert "23, 24, or 25" in source
-        assert "26" not in source.split("must be one of", 1)[1].split(".", 1)[0]
+        assert "24, 25, or 26" in source
+        assert "27" not in source.split("must be one of", 1)[1].split(".", 1)[0]
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
     ):
         source = normalized(path)
-        assert 'process.env.FABLE5_VERIFY_PHASE ?? "25"' in source
+        assert 'process.env.FABLE5_VERIFY_PHASE ?? "26"' in source
         assert '"23",\n  "24",\n  "25",' in source
     combined = normalized(
         ROOT / "docs/PHASE_24_FAMILY_A_RTDSM_RIGHTS_CLARIFICATION_REQUIREMENTS_DECISIONS.md"

@@ -51,7 +51,6 @@ function submitAssessment() {
 beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
-  vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-07-22T12:00:00Z"));
 });
 
 afterEach(() => {
@@ -121,7 +120,10 @@ describe("paper shadow-readiness workspace", () => {
     expect(options?.body).toBeUndefined();
 
     expect(screen.getByText("MOCK — local contract proof only")).toBeVisible();
-    expect(screen.getByText("EXPIRED — historical evidence only")).toBeVisible();
+    expect(screen.getByText("HISTORICAL READINESS EVIDENCE")).toBeVisible();
+    expect(
+      screen.getByText(/Browser time is not authority for currentness or expiry/),
+    ).toBeVisible();
     expect(screen.getByText("MOCK_PROOF_COMPLETE")).toBeVisible();
     expect(screen.getByRole("heading", { name: "OPEN" })).toBeVisible();
     const quoteObservation = screen
@@ -155,29 +157,27 @@ describe("paper shadow-readiness workspace", () => {
     expect(fetchMock.mock.calls.map((call) => call[1]?.method)).toEqual(["GET", "GET"]);
   });
 
-  it("captures expiry state once at the response and never auto-flips on a later rerender", async () => {
-    vi.mocked(Date.now).mockReturnValue(Date.parse("2024-01-02T15:00:30Z"));
+  it("renders the recorded expiry without inferring currentness from browser time", async () => {
     fetchMock.mockResolvedValue(response(200, paperReadinessFixture));
     render(<PaperReadinessWorkspace />);
     setAssessmentId(PAPER_READINESS_ASSESSMENT_ID);
 
     submitAssessment();
 
+    expect(await screen.findByText("HISTORICAL READINESS EVIDENCE")).toBeVisible();
     expect(
-      await screen.findByText("EXPIRY TIMESTAMP — no execution authority"),
-    ).toBeVisible();
-    expect(
-      screen.queryByText("EXPIRED — historical evidence only"),
-    ).not.toBeInTheDocument();
+      screen.getByText(/Browser time is not authority for currentness or expiry/),
+    ).toHaveTextContent(
+      "Currentness requires a fresh accepted observation or an explicitly time-bound server/CLI report.",
+    );
+    expect(screen.getAllByText(paperReadinessFixture.expires_at_utc)).toHaveLength(2);
+    expect(screen.queryByText(/EXPIRED —/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/CURRENT —/)).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    vi.mocked(Date.now).mockReturnValue(Date.parse("2024-01-02T15:02:00Z"));
     setAssessmentId(`${PAPER_READINESS_ASSESSMENT_ID} `);
 
-    expect(screen.getByText("EXPIRY TIMESTAMP — no execution authority")).toBeVisible();
-    expect(
-      screen.queryByText("EXPIRED — historical evidence only"),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("HISTORICAL READINESS EVIDENCE")).toBeVisible();
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

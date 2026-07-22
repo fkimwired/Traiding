@@ -13,11 +13,7 @@ type ViewState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "error"; error: ReadinessFailure }
-  | {
-      status: "success";
-      artifact: PaperShadowReadinessArtifact;
-      observedAtMillis: number;
-    };
+  | { status: "success"; artifact: PaperShadowReadinessArtifact };
 
 const failureTitles: Record<ReadinessFailure["kind"], string> = {
   conflict: "Conflict (409)",
@@ -31,11 +27,6 @@ function booleanText(value: boolean) {
   return value ? "true" : "false";
 }
 
-function expiryState(artifact: PaperShadowReadinessArtifact, observedAtMillis: number) {
-  const expiresAt = Date.parse(artifact.expires_at_utc);
-  return !Number.isFinite(expiresAt) || observedAtMillis >= expiresAt ? "expired" : "current";
-}
-
 function checkTone(status: string) {
   if (status === "PASS") return "pass";
   if (status === "BLOCKED") return "blocked";
@@ -46,15 +37,8 @@ function EvidenceTime({ value }: Readonly<{ value: string }>) {
   return <time dateTime={value}>{value}</time>;
 }
 
-function ReadinessEvidence({
-  artifact,
-  observedAtMillis,
-}: Readonly<{
-  artifact: PaperShadowReadinessArtifact;
-  observedAtMillis: number;
-}>) {
+function ReadinessEvidence({ artifact }: Readonly<{ artifact: PaperShadowReadinessArtifact }>) {
   const isMock = artifact.source_kind === "DETERMINISTIC_MOCK";
-  const isExpired = expiryState(artifact, observedAtMillis) === "expired";
 
   return (
     <section className={styles.evidence} aria-labelledby="readiness-result-heading">
@@ -77,13 +61,13 @@ function ReadinessEvidence({
               : "This artifact records historical paper-environment observations only."}
           </span>
         </p>
-        <p className={styles.expiryNotice} data-tone={isExpired ? "expired" : "current"}>
-          <strong>
-            {isExpired
-              ? "EXPIRED — historical evidence only"
-              : "EXPIRY TIMESTAMP — no execution authority"}
-          </strong>
-          <EvidenceTime value={artifact.expires_at_utc} />
+        <p className={styles.expiryNotice} data-tone="historical">
+          <strong>HISTORICAL READINESS EVIDENCE</strong>
+          <span>
+            Historical readiness evidence. Browser time is not authority for currentness or
+            expiry. Recorded expiry: <EvidenceTime value={artifact.expires_at_utc} />. Currentness
+            requires a fresh accepted observation or an explicitly time-bound server/CLI report.
+          </span>
         </p>
       </div>
 
@@ -290,7 +274,6 @@ export function PaperReadinessWorkspace() {
         ? {
             status: "success",
             artifact: result.artifact,
-            observedAtMillis: Date.now(),
           }
         : { status: "error", error: result.error },
     );
@@ -362,10 +345,7 @@ export function PaperReadinessWorkspace() {
       ) : null}
       {state.status === "success" ? (
         <div ref={resultRegion} tabIndex={-1} className={styles.resultFocus}>
-          <ReadinessEvidence
-            artifact={state.artifact}
-            observedAtMillis={state.observedAtMillis}
-          />
+          <ReadinessEvidence artifact={state.artifact} />
         </div>
       ) : null}
     </div>

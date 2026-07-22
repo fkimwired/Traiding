@@ -607,3 +607,16 @@ and tests; unchanged Phase 24 bytes; no vendor dependency/runtime import; and no
 credential, observation, database, API, research, strategy, risk, paper-order, execution, or live
 surface. Yahoo remains `RIGHTS_UNVERIFIED`. Even a complete synthetic positive evidence test only
 proves the response gate and still requires separately authorized acquisition work.
+
+## 26. Phase 26 Family A operational data-composition decision
+
+Phase 26 must reproduce one closed composition, `FAMILY_A_CRSP_SEC_RTDSM_V1`, with three selected
+products, four exact target deliveries, and all seven required capability assignments. The explicit
+human decision, single-composition, complete-assignment, and independent-evidence gates pass.
+
+The expected domain outcome remains `BLOCKED`, with decision state
+`OPERATIONAL_COMPOSITION_SELECTED`, because current CRSP entitlement, authenticated RTDSM
+exact-scope rights, SEC policy revalidation, exact schemas, and point-in-time qualification are not
+complete. Acceptance rejects reordered or substituted products, reassigned capabilities, upgraded
+rights/dependencies, acquisition authority, credentials, provider observations, production adapter
+activation, research, performance, execution, order, or live behavior.

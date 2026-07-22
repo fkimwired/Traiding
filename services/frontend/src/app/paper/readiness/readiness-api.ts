@@ -4,7 +4,7 @@ import {
   validateOpenApiResponse,
 } from "@fable5/contracts";
 
-import { API_REQUEST_TIMEOUT_MS, apiHref } from "../../../lib/api";
+import { apiHref } from "../../../lib/api";
 
 export const READINESS_OPERATION =
   "GET /v1/paper-shadow-readiness/{readiness_assessment_id}" satisfies SuccessfulJsonOperation;
@@ -60,20 +60,15 @@ function failureForStatus(status: number): ReadinessFailure {
 
 export async function loadPaperShadowReadiness(
   assessmentId: string,
-  parentSignal?: AbortSignal,
+  signal?: AbortSignal,
 ): Promise<ReadinessResult> {
-  const controller = new AbortController();
-  const forwardAbort = () => controller.abort();
-  if (parentSignal?.aborted) forwardAbort();
-  else parentSignal?.addEventListener("abort", forwardAbort, { once: true });
-  const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
   try {
     const path = `/v1/paper-shadow-readiness/${encodeURIComponent(assessmentId)}`;
     const response = await fetch(apiHref(path), {
       headers: { Accept: "application/json" },
       credentials: "omit",
       method: "GET",
-      signal: controller.signal,
+      signal,
     });
     if (!response.ok) return { ok: false, error: failureForStatus(response.status) };
 
@@ -122,8 +117,5 @@ export async function loadPaperShadowReadiness(
         message: "The read-only readiness evidence service could not be reached.",
       },
     };
-  } finally {
-    clearTimeout(timeoutId);
-    parentSignal?.removeEventListener("abort", forwardAbort);
   }
 }

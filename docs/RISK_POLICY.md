@@ -309,3 +309,14 @@ must not weaken immutability. Secrets and licensed payload text are referenced, 
 Re-evaluation and approval review are required after material model/config change, source/provider or
 schema change, point-in-time correction, cost calibration change, new regime failure, DSR/PBO or trial
 registry change, risk limit breach, stale data, or later explicitly authorized simulator behavior.
+
+## Family A operational data composition (Phase 26)
+
+Phase 26 closes the data-composition choice as `FAMILY_A_CRSP_SEC_RTDSM_V1` without changing any
+risk limit or granting execution authority. CRSP supplies the equity spine, SEC EDGAR supplies
+as-filed fundamentals, and RTDSM PCPI supplies the macro-regime input. Current rights, exact
+entitlement, schema, and point-in-time qualification remain fail-closed dependencies.
+
+No strategy may consume this composition until those dependencies pass and the later required
+cost, slippage, purged/embargoed walk-forward, leakage, risk-limit, and audit gates remain satisfied.
+No live path exists; simulated paper trading remains the only permitted execution mode.
