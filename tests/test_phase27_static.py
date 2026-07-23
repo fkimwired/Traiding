@@ -4,6 +4,7 @@ import argparse
 import ast
 import hashlib
 import importlib.util
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -36,6 +37,37 @@ EXPECTED_T009_DOCUMENTATION_OWNERSHIP_PATHS = frozenset(
         "scripts/verify_phase1.py",
         "tests/test_phase27_static.py",
         "tests/test_repository_policy.py",
+    }
+)
+T007_BASELINE_SHA = "1d8aa00f80fdd60b2b5ab3d431448de28a872c17"
+T007_BASELINE_TREE = "d5e8ba303c03525aaa4cee65ddd090c858c2d2d6"
+T007_BASELINE_PARENT_SHA = T009_BASELINE_SHA
+T007_DOCUMENTATION_PATH = "docs/PLAN_SEC_EDGAR_QUALIFICATION.md"
+T007_DOCUMENTATION_FILE_SHA256 = "255bd1777085416d13017d5cd16ff67ca453314930c7cd0e028c10c6b41bee91"
+T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "0b3125a55780cb3f092a203968bd6e4f5f528cacdaeeca02e2dedeb78adf4049"
+)
+T007_DOCUMENTATION_CONFIG_SHA256 = (
+    "cb3f9beae309cb346a76b626cb2c292189c6c4edb877d7f85f889c01b4201afd"
+)
+T007_DOCUMENTATION_ARTIFACT_ID = "ecdd57a5-a500-5cac-bd74-74848f6997b7"
+EXPECTED_T007_DOCUMENTATION_OWNERSHIP_PATHS = frozenset(
+    {
+        T007_DOCUMENTATION_PATH,
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+EXPECTED_T007_DOCUMENTATION_URLS = frozenset(
+    {
+        "https://www.sec.gov/about/developer-resources",
+        "https://www.sec.gov/about/privacy-information",
+        "https://www.sec.gov/about/webmaster-frequently-asked-questions",
+        "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip",
+        "https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip",
+        "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+        "https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data",
     }
 )
 EXPECTED_PHASE27_ALLOWED_WRITES = frozenset(
@@ -134,6 +166,25 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
     assert len(verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS) == 4
     assert not (verifier.T009_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
     assert verifier.T009_DOCUMENTATION_MECHANISM_PATHS <= verifier.PHASE_27_ALLOWED_WRITES
+    assert verifier.T007_DOCUMENTATION_BASELINE_SHA == T007_BASELINE_SHA
+    assert verifier.EXPECTED_T007_DOCUMENTATION_BASELINE_TREE == T007_BASELINE_TREE
+    assert verifier.T007_DOCUMENTATION_BASELINE_PARENT_SHA == T007_BASELINE_PARENT_SHA
+    assert verifier.T007_DOCUMENTATION_PATH == T007_DOCUMENTATION_PATH
+    assert (
+        verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS == EXPECTED_T007_DOCUMENTATION_OWNERSHIP_PATHS
+    )
+    assert verifier.T007_DOCUMENTATION_OVERLAY_PATHS == {T007_DOCUMENTATION_PATH}
+    assert len(verifier.T007_DOCUMENTATION_OVERLAY_PATHS) == 1
+    assert len(verifier.T007_DOCUMENTATION_MECHANISM_PATHS) == 3
+    assert len(verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS) == 4
+    assert not (verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert not (
+        verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
+    assert verifier.T007_DOCUMENTATION_MECHANISM_PATHS == (
+        verifier.T009_DOCUMENTATION_MECHANISM_PATHS
+    )
+    assert verifier.T007_DOCUMENTATION_REQUIRED_URLS == EXPECTED_T007_DOCUMENTATION_URLS
     assert verifier.PHASE_27_INHERITED_TABLES == verifier.PHASE_26_INHERITED_TABLES
     assert len(verifier.PHASE_27_INHERITED_TABLES) == 57
     assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
@@ -170,6 +221,26 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
         ).stdout.strip()
         == T009_BASELINE_PARENT_SHA
     )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%T", T007_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T007_BASELINE_TREE
+    )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%P", T007_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T007_BASELINE_PARENT_SHA
+    )
 
 
 def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
@@ -183,10 +254,14 @@ def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
     assert not (
-        changed - verifier.PHASE_27_ALLOWED_WRITES - verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        changed
+        - verifier.PHASE_27_ALLOWED_WRITES
+        - verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
     )
     assert not verifier.PHASE_27_ALLOWED_WRITES - changed
     assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS <= changed
+    assert verifier.T007_DOCUMENTATION_OVERLAY_PATHS <= changed
     assert "services/api/live_order_submit.py" not in verifier.PHASE_27_ALLOWED_WRITES
     assert "docs/handoffs/PHASE_28.md" not in verifier.PHASE_27_ALLOWED_WRITES
 
@@ -211,7 +286,9 @@ def test_t009_documentation_ownership_is_exact_and_content_pinned() -> None:
     ):
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
-    assert verifier.t009_documentation_ownership_delta(changed) == (set(), set())
+    assert verifier.t009_documentation_ownership_delta(
+        changed - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+    ) == (set(), set())
     document = ROOT / T009_DOCUMENTATION_PATH
     assert document.is_file()
     assert not document.is_symlink()
@@ -280,6 +357,178 @@ def test_t009_documentation_rejects_external_action_and_positive_authority_canar
     )
     for expected, canary in canaries:
         assert verifier.t009_documentation_prohibited_findings(canary) == {expected}
+
+
+def test_t007_documentation_ownership_is_exact_and_content_pinned() -> None:
+    verifier = verifier_module()
+    assert (
+        verifier.T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+        == T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    assert (
+        verifier.t007_documentation_path_manifest_sha256(
+            verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS
+        )
+        == T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    changed: set[str] = set()
+    for command in (
+        ["git", "diff", "--name-only", T007_BASELINE_SHA, "--"],
+        ["git", "diff", "--cached", "--name-only", "--"],
+        ["git", "ls-files", "--others", "--exclude-standard", "--"],
+    ):
+        result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
+        changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
+    assert verifier.t007_documentation_ownership_delta(changed) == (set(), set())
+    document = ROOT / T007_DOCUMENTATION_PATH
+    assert document.is_file()
+    assert not document.is_symlink()
+    assert verifier.T007_DOCUMENTATION_FILE_SHA256 == T007_DOCUMENTATION_FILE_SHA256
+    raw = document.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == T007_DOCUMENTATION_FILE_SHA256
+    assert hashlib.sha256(raw + b"\n").hexdigest() != T007_DOCUMENTATION_FILE_SHA256
+    assert verifier.t007_documentation_config_sha256() == T007_DOCUMENTATION_CONFIG_SHA256
+    assert verifier.T007_DOCUMENTATION_CONFIG_SHA256 == T007_DOCUMENTATION_CONFIG_SHA256
+    assert verifier.t007_documentation_artifact_id() == T007_DOCUMENTATION_ARTIFACT_ID
+    assert verifier.T007_DOCUMENTATION_ARTIFACT_ID == T007_DOCUMENTATION_ARTIFACT_ID
+    source = raw.decode("utf-8")
+    expected_config_block = (
+        "```json\n"
+        + json.dumps(
+            verifier.T007_DOCUMENTATION_CONFIG,
+            ensure_ascii=True,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n```"
+    )
+    assert expected_config_block in source
+    assert f"`{T007_DOCUMENTATION_CONFIG_SHA256}`" in source
+    assert f"`{T007_DOCUMENTATION_ARTIFACT_ID}`" in source
+    assert PHASE27_ARTIFACT.relative_to(ROOT).as_posix() not in (
+        verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS
+    )
+    assert T009_DOCUMENTATION_PATH not in verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS
+    accepted_phase27_artifact = subprocess.run(
+        ["git", "show", f"{T007_BASELINE_SHA}:{PHASE27_ARTIFACT.relative_to(ROOT).as_posix()}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert PHASE27_ARTIFACT.read_bytes() == accepted_phase27_artifact
+    accepted_t009_document = subprocess.run(
+        ["git", "show", f"{T007_BASELINE_SHA}:{T009_DOCUMENTATION_PATH}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert (ROOT / T009_DOCUMENTATION_PATH).read_bytes() == accepted_t009_document
+
+
+def test_t007_historical_retrieval_metadata_is_unverified_sanitized_and_exact() -> None:
+    source = (ROOT / T007_DOCUMENTATION_PATH).read_text(encoding="utf-8")
+    normalized_source = " ".join(source.split())
+    for required_literal in (
+        "## Operator-supplied historical assistant retrieval metadata (2026-07-23 18:12 UTC)",
+        "An operator-supplied working note reports",
+        "unverified historical context",
+        "This subsection records **sanitized retrieval metadata**",
+        "No response body or page-content hash is persisted here",
+        "The reported observations are **not** independent verification",
+        "raw contact details and contact-derived identifiers are intentionally excluded",
+        "Raw response bodies must never be persisted or committed.",
+        "unverified working-note hashes must not be promoted as evidence",
+        "T-007 records and authorizes no bulk, archive, filing, or EDGAR data-API request",
+    ):
+        assert required_literal in normalized_source
+    for prohibited_literal in (
+        "Agent independent re-retrieval",
+        "**timestamps only**",
+        "No page body, no new content hash",
+        "28cc20d265e1d4e66956f3171928fe18c7b494cba0e7c11714c0a810832eb1b7",
+        "No request, download, archive",
+        "content hashes for this re-retrieval exist only",
+    ):
+        assert prohibited_literal not in normalized_source
+    assert re.findall(
+        r"^\| S[1-5] \| `([^`]+)` \| `(2026-07-23T18:12:[^`]+Z)` \| 200 \|$",
+        source,
+        re.MULTILINE,
+    ) == [
+        ("SEC_PRIVACY_AND_DISSEMINATION", "2026-07-23T18:12:10.935359Z"),
+        ("SEC_WEBMASTER_REUSE_FAQ", "2026-07-23T18:12:12.746169Z"),
+        ("SEC_EDGAR_APIS", "2026-07-23T18:12:14.577776Z"),
+        ("SEC_DEVELOPER_RESOURCES", "2026-07-23T18:12:16.395838Z"),
+        ("SEC_ACCESSING_EDGAR", "2026-07-23T18:12:18.425454Z"),
+    ]
+
+
+def test_t007_documentation_ownership_rejects_missing_and_prohibited_paths() -> None:
+    verifier = verifier_module()
+    missing = set(verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS) - {T007_DOCUMENTATION_PATH}
+    assert verifier.t007_documentation_ownership_delta(missing) == (
+        {T007_DOCUMENTATION_PATH},
+        set(),
+    )
+    live_path = "services/api/live_order_submit.py"
+    planted = set(verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS) | {live_path}
+    assert verifier.t007_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path},
+    )
+    second_doc = "docs/T007_UNOWNED_COMPANION.md"
+    planted.add(second_doc)
+    assert verifier.t007_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path, second_doc},
+    )
+    phase28_path = "docs/handoffs/PHASE_28.md"
+    planted.add(phase28_path)
+    assert verifier.t007_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path, phase28_path, second_doc},
+    )
+
+
+def test_t007_documentation_allows_only_exact_sec_citations_and_rejects_action_canaries() -> None:
+    verifier = verifier_module()
+    document = (ROOT / T007_DOCUMENTATION_PATH).read_text(encoding="utf-8")
+    assert verifier.t007_documentation_prohibited_findings(document) == set()
+    assert verifier.t007_documentation_urls(document) == EXPECTED_T007_DOCUMENTATION_URLS
+    allowed_url = next(iter(EXPECTED_T007_DOCUMENTATION_URLS))
+    assert verifier.t007_documentation_urls(f"<{allowed_url}>") == {allowed_url}
+    removed_url = next(iter(EXPECTED_T007_DOCUMENTATION_URLS))
+    assert verifier.t007_documentation_prohibited_findings(
+        document.replace(removed_url, "REMOVED_REQUIRED_URL", 1)
+    ) == {"missing-required-url"}
+    canaries = (
+        ("external-url", "https://provider.invalid/archive.zip"),
+        ("external-url", "http://provider.invalid/archive.zip"),
+        ("external-url", "[archive](//provider.invalid/archive.zip)"),
+        ("external-url", "https://www.sec.gov/unowned-surface"),
+        ("external-email", "mailto:admin@example.invalid"),
+        ("network-command", "Invoke-WebRequest https://www.sec.gov/about/developer-resources"),
+        ("network-command", "iwr https://www.sec.gov/about/developer-resources"),
+        ("network-call", "requests.get(policy_url)"),
+        ("network-call", "urllib.request.urlopen(policy_url)"),
+        ("credential-assignment", "$env:FABLE5_SEC_API_KEY = 'canary'"),
+        ("credential-assignment", "FABLE5_SEC_API_KEY: canary"),
+        ("http-mutation", "POST /v1/orders"),
+        ("positive-authority", "outcome: PASS"),
+        ("positive-authority", "- outcome: PASS"),
+        ("positive-authority", "verified_evidence_recorded: true"),
+        ("positive-authority", "acquisition_authorized: true"),
+        ("positive-authority", "| acquisition_authorized: true |"),
+        ("positive-authority", "exact_schema_qualified: true"),
+        ("positive-authority", "point_in_time_qualified: true"),
+        ("positive-authority", "execution_authorized: true"),
+        ("positive-authority", "order_submission_authorized: true"),
+        ("positive-authority", "live_path_absent: false"),
+        ("positive-authority", "paper_only: false"),
+    )
+    for expected, canary in canaries:
+        findings = verifier.t007_documentation_prohibited_findings(f"{document}\n{canary}")
+        assert expected in findings
 
 
 def test_phase27_freezes_phase26_and_all_but_the_governance_overlay_delta() -> None:

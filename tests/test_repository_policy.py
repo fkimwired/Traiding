@@ -293,7 +293,7 @@ def test_phase26_maintenance_overlay_is_exact_and_phase27_changes_only_developme
     )
 
 
-def test_phase26_overlay_stays_closed_while_phase27_and_t009_own_the_later_delta() -> None:
+def test_phase26_overlay_stays_closed_while_later_documentation_owners_are_exact() -> None:
     verifier = phase26_verifier_module()
     accepted_phase27_identity = subprocess.run(
         [
@@ -311,6 +311,23 @@ def test_phase26_overlay_stays_closed_while_phase27_and_t009_own_the_later_delta
     assert accepted_phase27_identity == (
         f"{verifier.EXPECTED_T009_DOCUMENTATION_BASELINE_TREE} "
         f"{verifier.T009_DOCUMENTATION_BASELINE_PARENT_SHA}"
+    )
+    accepted_t009_identity = subprocess.run(
+        [
+            "git",
+            "show",
+            "-s",
+            "--format=%T %P",
+            verifier.T007_DOCUMENTATION_BASELINE_SHA,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.strip()
+    assert accepted_t009_identity == (
+        f"{verifier.EXPECTED_T007_DOCUMENTATION_BASELINE_TREE} "
+        f"{verifier.T007_DOCUMENTATION_BASELINE_PARENT_SHA}"
     )
     changed_paths: set[str] = set()
     for command in (
@@ -336,13 +353,32 @@ def test_phase26_overlay_stays_closed_while_phase27_and_t009_own_the_later_delta
     assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS == {
         "docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md"
     }
+    assert verifier.T007_DOCUMENTATION_OVERLAY_PATHS == {"docs/PLAN_SEC_EDGAR_QUALIFICATION.md"}
     assert not (verifier.T009_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert not (verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert not (
+        verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
     assert unexpected <= (
-        verifier.PHASE_27_ALLOWED_WRITES | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        verifier.PHASE_27_ALLOWED_WRITES
+        | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
     )
     assert (
-        unexpected - verifier.PHASE_27_ALLOWED_WRITES == verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        unexpected - verifier.PHASE_27_ALLOWED_WRITES
+        == verifier.T009_DOCUMENTATION_OVERLAY_PATHS | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
     )
+    accepted_t009_document = subprocess.run(
+        [
+            "git",
+            "show",
+            f"{verifier.T007_DOCUMENTATION_BASELINE_SHA}:{verifier.T009_DOCUMENTATION_PATH}",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    ).stdout
+    assert (ROOT / verifier.T009_DOCUMENTATION_PATH).read_bytes() == accepted_t009_document
 
 
 def test_phase26_maintenance_overlay_rejects_a_missing_path() -> None:

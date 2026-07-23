@@ -2384,6 +2384,133 @@ T009_DOCUMENTATION_PROHIBITED_PATTERNS = (
         ),
     ),
 )
+T007_DOCUMENTATION_BASELINE_SHA = "1d8aa00f80fdd60b2b5ab3d431448de28a872c17"
+EXPECTED_T007_DOCUMENTATION_BASELINE_TREE = "d5e8ba303c03525aaa4cee65ddd090c858c2d2d6"
+T007_DOCUMENTATION_BASELINE_PARENT_SHA = T009_DOCUMENTATION_BASELINE_SHA
+T007_DOCUMENTATION_PATH = "docs/PLAN_SEC_EDGAR_QUALIFICATION.md"
+T007_DOCUMENTATION_OVERLAY_PATHS = frozenset({T007_DOCUMENTATION_PATH})
+T007_DOCUMENTATION_MECHANISM_PATHS = frozenset(
+    {
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+T007_DOCUMENTATION_OWNERSHIP_PATHS = (
+    T007_DOCUMENTATION_OVERLAY_PATHS | T007_DOCUMENTATION_MECHANISM_PATHS
+)
+T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "0b3125a55780cb3f092a203968bd6e4f5f528cacdaeeca02e2dedeb78adf4049"
+)
+T007_DOCUMENTATION_FILE_SHA256 = "255bd1777085416d13017d5cd16ff67ca453314930c7cd0e028c10c6b41bee91"
+T007_DOCUMENTATION_CONFIG = {
+    "accepted_source_codes": (
+        "SEC_PRIVACY_AND_DISSEMINATION",
+        "SEC_WEBMASTER_REUSE_FAQ",
+        "SEC_EDGAR_APIS",
+        "SEC_DEVELOPER_RESOURCES",
+        "SEC_ACCESSING_EDGAR",
+    ),
+    "boundary": "T-007_DOCUMENTATION_ONLY",
+    "delivery_ids": (
+        "SEC_EDGAR_NIGHTLY_SUBMISSIONS_BULK_ARCHIVE",
+        "SEC_EDGAR_NIGHTLY_COMPANYFACTS_BULK_ARCHIVE",
+    ),
+    "phase26_product_id": "SEC_EDGAR_SUBMISSIONS_AND_XBRL_DATA_APIS",
+    "requirement_codes": (
+        "OFFICIAL_FIRST_PARTY_POLICY_PROVENANCE",
+        "EXACT_SELECTED_BULK_PRODUCTS_AND_SURFACES",
+        "POLICY_VERSION_EFFECTIVE_DATE_AND_CURRENTNESS",
+        "FAIR_ACCESS_AGGREGATE_RATE",
+        "DECLARED_USER_AGENT_AND_ADMIN_CONTACT",
+        "AUTOMATED_BULK_RETRIEVAL",
+        "PERSISTENT_STORAGE_BACKUPS_AND_INTERNAL_USE",
+        "NORMALIZATION_DERIVED_OUTPUTS_AND_NON_DISPLAY_USE",
+        "ATTRIBUTION_DISPLAY_AND_REDISTRIBUTION",
+        "RETENTION_REVOCATION_AND_CHANGE_MONITORING",
+        "CITATION_SEAL_LOGO_AND_NONAFFILIATION",
+        "THIRD_PARTY_AND_CONTENT_SPECIFIC_EXCEPTIONS",
+    ),
+    "schema_version": "t007-sec-edgar-qualification-plan-v1",
+    "task_id": "T-007",
+}
+T007_DOCUMENTATION_CONFIG_SHA256 = (
+    "cb3f9beae309cb346a76b626cb2c292189c6c4edb877d7f85f889c01b4201afd"
+)
+T007_DOCUMENTATION_ARTIFACT_ID = "ecdd57a5-a500-5cac-bd74-74848f6997b7"
+T007_DOCUMENTATION_ARTIFACT_NAME_PREFIX = "fable5:t007-sec-edgar-qualification-plan:"
+T007_DOCUMENTATION_REQUIRED_URLS = frozenset(
+    {
+        "https://www.sec.gov/about/developer-resources",
+        "https://www.sec.gov/about/privacy-information",
+        "https://www.sec.gov/about/webmaster-frequently-asked-questions",
+        "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip",
+        "https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip",
+        "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+        "https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data",
+    }
+)
+T007_DOCUMENTATION_URL_PATTERN = re.compile(
+    r"\b[a-z][a-z0-9+.-]*://[^\s<>()`\[\]{}\"'|]+"
+    r"|(?<!:)//[^\s<>()`\[\]{}\"'|]+",
+    re.IGNORECASE,
+)
+T007_DOCUMENTATION_PROHIBITED_PATTERNS = (
+    (
+        "external-email",
+        re.compile(r"(?:mailto:|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})", re.IGNORECASE),
+    ),
+    (
+        "network-command",
+        re.compile(
+            r"(?<![\w-])(?:curl|wget|iwr|irm|Invoke-WebRequest|Invoke-RestMethod"
+            r"|Start-BitsTransfer)(?![\w-])",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "network-call",
+        re.compile(
+            r"\b(?:requests|httpx)\s*\.\s*(?:get|post|put|patch|delete|request)\s*\("
+            r"|\burllib(?:\s*\.\s*request)?\s*\.\s*(?:urlopen|urlretrieve)\s*\("
+            r"|\bfetch\s*\(",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "credential-assignment",
+        re.compile(
+            r"^[\s|>*+\-`]*(?:\$env:|export\s+|set\s+)?"
+            r"[`\"']?[A-Z0-9_]*(?:API_KEY|SECRET|TOKEN|PASSWORD)[A-Z0-9_]*"
+            r"[`\"']?\s*(?:=|:|\|)",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+    (
+        "http-mutation",
+        re.compile(
+            r"^[\s|>*+\-`]*(?:POST|PUT|PATCH|DELETE)[` \t|]+(?:https?://|/)",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+    (
+        "positive-authority",
+        re.compile(
+            r"^[\s|>*+\-`]*(?:outcome:\s*(?:PASS|READY)"
+            r"|verified_evidence_recorded:\s*true"
+            r"|acquisition_authorized:\s*true"
+            r"|external_data_capture_authorized:\s*true"
+            r"|current_rights_evidence_for_exact_composition:\s*true"
+            r"|research_ingestion_authorized:\s*true"
+            r"|exact_schema_qualified:\s*true"
+            r"|point_in_time_qualified:\s*true"
+            r"|execution_authorized:\s*true"
+            r"|order_submission_authorized:\s*true"
+            r"|live_path_absent:\s*false|paper_only:\s*false)[\s|`]*$",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+)
 PHASE_27_INHERITED_TABLES = PHASE_26_INHERITED_TABLES
 PHASE_27_CREDENTIAL_ENV_NAMES = PHASE_26_CREDENTIAL_ENV_NAMES
 PHASE_27_ARTIFACT_SCHEMA_VERSION = "phase27-family-a-composition-rights-entitlement-evidence-v1"
@@ -11037,6 +11164,59 @@ def t009_documentation_prohibited_findings(source: str) -> set[str]:
     }
 
 
+def t007_documentation_path_manifest_sha256(paths: set[str] | frozenset[str]) -> str:
+    return hashlib.sha256(("\n".join(sorted(paths)) + "\n").encode("utf-8")).hexdigest()
+
+
+def t007_documentation_ownership_delta(
+    changed_paths: set[str],
+) -> tuple[set[str], set[str]]:
+    return (
+        set(T007_DOCUMENTATION_OWNERSHIP_PATHS - changed_paths),
+        set(changed_paths - T007_DOCUMENTATION_OWNERSHIP_PATHS),
+    )
+
+
+def t007_documentation_config_bytes() -> bytes:
+    return json.dumps(
+        T007_DOCUMENTATION_CONFIG,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def t007_documentation_config_sha256() -> str:
+    return hashlib.sha256(t007_documentation_config_bytes()).hexdigest()
+
+
+def t007_documentation_artifact_id() -> str:
+    return str(
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            T007_DOCUMENTATION_ARTIFACT_NAME_PREFIX + t007_documentation_config_sha256(),
+        )
+    )
+
+
+def t007_documentation_urls(source: str) -> frozenset[str]:
+    return frozenset(
+        match.rstrip(".,;:!?") for match in T007_DOCUMENTATION_URL_PATTERN.findall(source)
+    )
+
+
+def t007_documentation_prohibited_findings(source: str) -> set[str]:
+    findings = {
+        code for code, pattern in T007_DOCUMENTATION_PROHIBITED_PATTERNS if pattern.search(source)
+    }
+    urls = t007_documentation_urls(source)
+    if urls - T007_DOCUMENTATION_REQUIRED_URLS:
+        findings.add("external-url")
+    if T007_DOCUMENTATION_REQUIRED_URLS - urls:
+        findings.add("missing-required-url")
+    return findings
+
+
 def verify_phase27_static() -> None:
     missing = [path for path in PHASE_27_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -11090,6 +11270,32 @@ def verify_phase27_static() -> None:
     if t009_ancestry.returncode != 0:
         raise AssertionError("T-009 HEAD is not descended from accepted Phase 27")
 
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{T007_DOCUMENTATION_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted T-009 baseline is unavailable") from exc
+    if git_text("show", "-s", "--format=%T", T007_DOCUMENTATION_BASELINE_SHA) != (
+        EXPECTED_T007_DOCUMENTATION_BASELINE_TREE
+    ):
+        raise AssertionError("The accepted T-009 baseline tree does not match")
+    if git_text("show", "-s", "--format=%P", T007_DOCUMENTATION_BASELINE_SHA) != (
+        T007_DOCUMENTATION_BASELINE_PARENT_SHA
+    ):
+        raise AssertionError("The accepted T-009 baseline parent does not match")
+    t007_ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", T007_DOCUMENTATION_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if t007_ancestry.returncode != 0:
+        raise AssertionError("T-007 HEAD is not descended from accepted T-009")
+
     changed_paths = {
         path.replace("\\", "/")
         for path in git_text("diff", "--name-only", PHASE_27_BASELINE_SHA, "--").splitlines()
@@ -11127,6 +11333,38 @@ def verify_phase27_static() -> None:
     ):
         raise AssertionError("T-009 documentation ownership path manifest has drifted")
 
+    if T007_DOCUMENTATION_OVERLAY_PATHS & PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-007 documentation overlay rewrote the Phase 27 allowlist")
+    if T007_DOCUMENTATION_OVERLAY_PATHS & T009_DOCUMENTATION_OVERLAY_PATHS:
+        raise AssertionError("T-007 documentation overlay rewrote the T-009 overlay")
+    if T007_DOCUMENTATION_MECHANISM_PATHS != T009_DOCUMENTATION_MECHANISM_PATHS:
+        raise AssertionError("T-007 documentation mechanism drifted from its authorization")
+    if not T007_DOCUMENTATION_MECHANISM_PATHS <= PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-007 mechanism is outside the accepted maintenance paths")
+    if (
+        len(T007_DOCUMENTATION_OVERLAY_PATHS) != 1
+        or len(T007_DOCUMENTATION_MECHANISM_PATHS) != 3
+        or len(T007_DOCUMENTATION_OWNERSHIP_PATHS) != 4
+    ):
+        raise AssertionError("T-007 documentation ownership cardinality has drifted")
+    if PHASE_27_ARTIFACT_PATH in T007_DOCUMENTATION_OWNERSHIP_PATHS:
+        raise AssertionError("T-007 documentation ownership includes the Phase 27 artifact")
+    if T009_DOCUMENTATION_PATH in T007_DOCUMENTATION_OWNERSHIP_PATHS:
+        raise AssertionError("T-007 documentation ownership includes the accepted T-009 document")
+    if (ROOT / PHASE_27_ARTIFACT_PATH).read_bytes() != git_blob(
+        T007_DOCUMENTATION_BASELINE_SHA, PHASE_27_ARTIFACT_PATH
+    ):
+        raise AssertionError("T-007 changed the accepted Phase 27 artifact")
+    if (ROOT / T009_DOCUMENTATION_PATH).read_bytes() != git_blob(
+        T007_DOCUMENTATION_BASELINE_SHA, T009_DOCUMENTATION_PATH
+    ):
+        raise AssertionError("T-007 changed the accepted T-009 document")
+    if (
+        t007_documentation_path_manifest_sha256(T007_DOCUMENTATION_OWNERSHIP_PATHS)
+        != T007_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    ):
+        raise AssertionError("T-007 documentation ownership path manifest has drifted")
+
     t009_changed_paths = {
         path.replace("\\", "/")
         for path in git_text(
@@ -11144,7 +11382,9 @@ def verify_phase27_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
-    missing_t009, forbidden_t009 = t009_documentation_ownership_delta(t009_changed_paths)
+    missing_t009, forbidden_t009 = t009_documentation_ownership_delta(
+        t009_changed_paths - T007_DOCUMENTATION_OVERLAY_PATHS
+    )
     if missing_t009:
         raise AssertionError(
             "T-009 documentation ownership is missing paths: " + ", ".join(sorted(missing_t009))
@@ -11170,8 +11410,76 @@ def verify_phase27_static() -> None:
             + ", ".join(sorted(prohibited_findings))
         )
 
+    t007_changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text(
+            "diff", "--name-only", T007_DOCUMENTATION_BASELINE_SHA, "--"
+        ).splitlines()
+        if path
+    }
+    t007_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    t007_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    missing_t007, forbidden_t007 = t007_documentation_ownership_delta(t007_changed_paths)
+    if missing_t007:
+        raise AssertionError(
+            "T-007 documentation ownership is missing paths: " + ", ".join(sorted(missing_t007))
+        )
+    if forbidden_t007:
+        raise AssertionError(
+            "T-007 changed paths outside the exact documentation ownership policy: "
+            + ", ".join(sorted(forbidden_t007))
+        )
+    t007_document = ROOT / T007_DOCUMENTATION_PATH
+    if not t007_document.is_file() or t007_document.is_symlink():
+        raise AssertionError("T-007 documentation path is not a file")
+    if hashlib.sha256(t007_document.read_bytes()).hexdigest() != T007_DOCUMENTATION_FILE_SHA256:
+        raise AssertionError("T-007 documentation content hash does not match")
+    try:
+        t007_source = t007_document.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssertionError("T-007 documentation is not valid UTF-8") from exc
+    if t007_documentation_config_sha256() != T007_DOCUMENTATION_CONFIG_SHA256:
+        raise AssertionError("T-007 documentation configuration hash has drifted")
+    if t007_documentation_artifact_id() != T007_DOCUMENTATION_ARTIFACT_ID:
+        raise AssertionError("T-007 documentation artifact identity has drifted")
+    expected_config_block = (
+        "```json\n"
+        + json.dumps(
+            T007_DOCUMENTATION_CONFIG,
+            ensure_ascii=True,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n```"
+    )
+    if expected_config_block not in t007_source:
+        raise AssertionError("T-007 documentation lacks its canonical configuration payload")
+    for expected_identity in (
+        T007_DOCUMENTATION_CONFIG_SHA256,
+        T007_DOCUMENTATION_ARTIFACT_ID,
+    ):
+        if f"`{expected_identity}`" not in t007_source:
+            raise AssertionError("T-007 documentation lacks a recomputed plan identity")
+    prohibited_findings = t007_documentation_prohibited_findings(t007_source)
+    if prohibited_findings:
+        raise AssertionError(
+            "T-007 documentation contains prohibited source, action, or authority patterns: "
+            + ", ".join(sorted(prohibited_findings))
+        )
+
     forbidden_changes = sorted(
-        changed_paths - PHASE_27_ALLOWED_WRITES - T009_DOCUMENTATION_OVERLAY_PATHS
+        changed_paths
+        - PHASE_27_ALLOWED_WRITES
+        - T009_DOCUMENTATION_OVERLAY_PATHS
+        - T007_DOCUMENTATION_OVERLAY_PATHS
     )
     if forbidden_changes:
         raise AssertionError(
