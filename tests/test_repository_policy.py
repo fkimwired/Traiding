@@ -256,7 +256,7 @@ def test_prohibited_nested_surface_guard_rejects_literal_order_and_live_canaries
     }
 
 
-def test_phase26_maintenance_overlay_is_exact_content_pinned_and_current() -> None:
+def test_phase26_maintenance_overlay_is_exact_and_phase27_changes_only_development() -> None:
     verifier = phase26_verifier_module()
     assert verifier.PHASE_26_BASELINE_SHA == T003_BASELINE_SHA
     assert verifier.EXPECTED_PHASE_26_BASELINE_TREE == ("84426ba04f4dbb686878852357410880327b5713")
@@ -276,14 +276,24 @@ def test_phase26_maintenance_overlay_is_exact_content_pinned_and_current() -> No
         path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
         for path in verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS
     }
-    assert verifier.phase26_maintenance_content_findings(actual_sha256) == (set(), set(), set())
+    assert verifier.phase26_maintenance_content_findings(actual_sha256) == (
+        set(),
+        set(),
+        {"DEVELOPMENT.md"},
+    )
+    baseline_development = subprocess.run(
+        ["git", "show", f"{verifier.PHASE_27_BASELINE_SHA}:DEVELOPMENT.md"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    ).stdout
     assert (
-        verifier.phase26_maintenance_content_manifest_sha256(actual_sha256)
-        == verifier.PHASE_26_MAINTENANCE_CONTENT_MANIFEST_SHA256
+        hashlib.sha256(baseline_development).hexdigest()
+        == (verifier.PHASE_26_MAINTENANCE_FILE_SHA256["DEVELOPMENT.md"])
     )
 
 
-def test_phase26_maintenance_overlay_matches_the_current_baseline_delta() -> None:
+def test_phase26_overlay_stays_closed_while_phase27_owns_the_later_delta() -> None:
     verifier = phase26_verifier_module()
     changed_paths: set[str] = set()
     for command in (
@@ -299,7 +309,14 @@ def test_phase26_maintenance_overlay_matches_the_current_baseline_delta() -> Non
             text=True,
         )
         changed_paths.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
-    assert verifier.phase26_maintenance_overlay_delta(changed_paths) == (set(), set())
+    missing, unexpected = verifier.phase26_maintenance_overlay_delta(changed_paths)
+    assert missing == set()
+    assert unexpected == (
+        changed_paths
+        - verifier.PHASE_26_ALLOWED_WRITES
+        - verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS
+    )
+    assert unexpected <= verifier.PHASE_27_ALLOWED_WRITES
 
 
 def test_phase26_maintenance_overlay_rejects_a_missing_path() -> None:
@@ -452,18 +469,18 @@ def test_phase2_migration_is_reversible_append_only_and_preserves_phase1_parent(
     assert "supplied_at_utc" not in version_insert
 
 
-def test_phase25_entrypoints_ci_and_runner_select_the_active_phase() -> None:
+def test_phase27_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source
         assert "--phase" in source
         assert (
             "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, "
-            "20, 21, 22, 23, 24, 25, or 26" in source
+            "20, 21, 22, 23, 24, 25, 26, or 27" in source
         )
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
-    assert workflow.startswith("name: phase-26-ci\n")
-    assert 'FABLE5_VERIFY_PHASE: "26"' in workflow
+    assert workflow.startswith("name: phase-27-ci\n")
+    assert 'FABLE5_VERIFY_PHASE: "27"' in workflow
     assert 'FABLE5_ALPACA_PAPER_API_KEY_ID: ""' in workflow
     assert 'FABLE5_ALPACA_PAPER_SECRET_KEY: ""' in workflow
     for credential_name in (
@@ -479,10 +496,10 @@ def test_phase25_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     assert "fetch-depth: 0" in workflow
     assert "preflight:" in workflow
     assert "unit:" in workflow
-    assert "phase26-compose:" in workflow
+    assert "phase27-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
-    assert "verify_phase1.py --static-only --phase 26" in workflow
-    assert "verify_phase1.py --phase 26" in workflow
+    assert "verify_phase1.py --static-only --phase 27" in workflow
+    assert "verify_phase1.py --phase 27" in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow

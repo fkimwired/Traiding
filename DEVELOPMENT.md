@@ -8,33 +8,31 @@ accepted phase decision document. No task in this file authorizes an order path,
 credential outside the documented capture commands, provider-data persistence, or any Family A
 research-admission step.
 
-## 1. Current verified baseline (2026-07-21)
+## 1. Current verified baseline (2026-07-22)
 
-- Branch: `codex/phase-25-rtdsm-rights-response-adapter-patterns`. The Phase 25 baseline is
-  `4d70b823947fd61d0ea17df14c9f1ff9f93fd45b` ("Implement Phase 25 rights evidence and adapter
-  patterns"); current committed HEAD is `c11e899a25732b49d9d7b3a95e2d12c4b6eff215` ("Add
-  read-only paper readiness view").
-- Formal acceptance ladder recorded in-repo: Phases 1–22 accepted with exact commit/tree (and,
-  from Phase 14 on, same-SHA Ubuntu run IDs); Phase 24 accepted at
-  `c1dad09f08b18a5a7d527579ca677633b49184fb` (merge `145f67f1…`). Phase 12 — the boundary Track A
-  uses — is formally accepted at commit `37530a94f841d538a162447cb01ec3e11f375ead`.
-- Phase 25 is implemented at its baseline commit but has **no recorded same-SHA acceptance run**:
-  implemented, not formally accepted.
-- Phase 26 (`FAMILY_A_CRSP_SEC_RTDSM_V1` composition decision) exists **only as uncommitted
-  working-tree changes**. On 2026-07-21 its local gates passed:
-  `pytest services/data/tests/test_phase26_composition.py tests/test_phase26_portable.py`
-  (18 passed), `scripts/verify_family_a_operational_data_composition_decision.py` (verified true),
-  and `scripts/verify_phase1.py --static-only --phase 26` (passed). It has no committed SHA, no CI
-  run, and no formal acceptance evidence. **These working-tree changes must be preserved exactly.**
+- Branch: `codex/phase-27-family-a-rights-entitlement-intake`. Its accepted input baseline is
+  Phase 26 commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
+  `d1b74532704708e97047e4abf704532102ba510a`.
+- Phase 26 is formally accepted at that exact SHA/tree with same-SHA Ubuntu run `29952642818`;
+  `preflight`, `unit`, and `phase26-compose` all passed. The acceptance proves the repository and
+  closed-composition boundary only. It supplies no CRSP entitlement, RTDSM rights response, SEC
+  policy currentness, provider data, schema/PIT qualification, research, or execution authority.
+- Phase 25 remains implemented at `4d70b823947fd61d0ea17df14c9f1ff9f93fd45b` without its own
+  recorded same-SHA Ubuntu acceptance run. Phase 26's later acceptance does not convert the missing
+  Phase 25 RTDSM response into verified rights evidence.
+- Phase 27 is separately authorized and implemented on this branch over the accepted Phase 26
+  baseline. It must remain an offline metadata-only intake with the truthful
+  `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` result until independently verified
+  evidence is actually supplied in a separately reviewed workflow.
 - What the product can demonstrate today, locally, with no credentials: the full Compose stack;
   four-mode frontend over immutable Phase 2–14 evidence; deterministic local mock paper simulation
   (Phase 10) with evidence bundles and offline verification (Phase 11); deterministic mock paper
   shadow-readiness capture (Phase 12); and the portable Family A artifacts (Phases 15–26).
 - The accepted Phase 12 credentialed external-readiness capture
   (`scripts/capture_paper_shadow_readiness.py`) and historical GET
-  (`GET /v1/paper-shadow-readiness/{readiness_assessment_id}`) now have uncommitted maintenance
-  overlays for preflight, reporting, a read-only frontend consumer, a smoke harness, and static
-  policy sweeps (T-001–T-005). These overlays do not change Phase 12 authority.
+  (`GET /v1/paper-shadow-readiness/{readiness_assessment_id}`) retain the accepted preflight,
+  reporting, read-only frontend, smoke-harness, and static-policy maintenance overlays (T-001–T-005).
+  Those overlays do not change Phase 12 authority.
 - The frontend already carries a persistent simulation banner ("Paper status is historical and
   simulated.", `services/frontend/src/app/layout.tsx`) and simulated-boundary notices in the Paper
   Status workspace.
@@ -143,6 +141,48 @@ an external-readiness result. The operator must still satisfy H1-H4, rerun prefl
 accepted market-clock window and paper-only credentials, and perform no more than the separately
 authorized one-shot read-only observation. This closeout did not read credentials, contact Alpaca,
 or infer provider readiness from local tests.
+
+### Phase 27 authorization and current state (2026-07-22)
+
+Phase 26 is formally accepted at commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
+`d1b74532704708e97047e4abf704532102ba510a`, with successful same-SHA Ubuntu workflow run
+`29952642818`. This acceptance closes the prerequisite named by the Phase 26 handoff; it does not
+establish any provider right, entitlement, policy currentness, data fitness, or acquisition authority.
+
+The repository owner separately authorized **Phase 27 - Family A Selected-Composition Rights and
+Entitlement Evidence Intake**. Phase 27 adds an offline portable metadata intake/evaluator and its
+stdout-only generator, bounded verifier, focused tests, canonical no-input artifact, and
+documentation; the `P27-DOC` unit is documentation-only and governed by
+`docs/PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE_DECISIONS.md` and
+`docs/handoffs/PHASE_27.md`. It freezes the exact evidence requirements for:
+
+1. current executed CRSP U.S. Stock Databases rights and the exact Linux flat-file entitlement;
+2. an authenticated RTDSM exact-scope response satisfying all ten Phase 24 questions and all
+   nineteen Phase 25 scope rows; and
+3. current first-party SEC fair-access/reuse/security policy evidence for the two selected nightly
+   EDGAR bulk archives.
+
+No qualifying evidence was supplied. The truthful current result is `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`, with `verified_evidence_recorded=false`. A later
+verified evidence set may use only determination
+`VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORITY`; outcome remains `BLOCKED`,
+and exact-schema authority remains false.
+
+**P27-DOC - selected-composition evidence-intake contract.** Governing phase: Phase 27 only.
+Allowed writes are the Phase 27 decisions and handoff plus status reconciliation in `README.md`,
+this file, `docs/COMPLIANCE_NOTES.md`, `docs/DATA_SOURCES.md`, `docs/EVALS.md`,
+`docs/IMPLEMENTATION_PLAN.md`, and `docs/RISK_POLICY.md`. Acceptance commands are `git diff
+--check` and the focused repository-policy command in the handoff. Literal negative assertion:
+Phase 27 authorizes no credential loading, provider outreach, terms acceptance, provider observation
+request/download/persistence, acquisition, schema/PIT qualification, adapter, snapshot, research,
+candidate screen, performance claim, recommendation, risk mutation, order, execution, or live path.
+The canonical package must contain config/policy hash, artifact/evidence IDs and SHA-256 values,
+accepted Phase 26 lineage, git SHA, seed/trial count `0/0`, UTC timestamps, independently verified
+evidence references, and explicit false authority fields. Stop `P27-DOC` after the documents; do not
+use this unit to change the separately owned offline evaluator, generator, verifier, tests, or CI,
+and do not create provider evidence or an external request. Only sanitized metadata is accepted;
+provider-supplied intake and evidence bodies are not committed. Phase 28 requires separate
+authorization.
 
 ### Historical known condition before the 2026-07-22 reconciliation
 
@@ -321,8 +361,8 @@ gate.**
 Common invariants for every task below: only execution mode `paper` exists; no live enum, endpoint,
 credential, or dormant path may be introduced; no order submission/replacement/cancellation/
 liquidation/close code; no LLM trade instruction, size, or buy/sell output; secrets never printed,
-logged, persisted, or committed; raw provider payloads never persisted; the uncommitted Phase 26
-working-tree changes are preserved exactly; every evidence artifact carries config hash,
+logged, persisted, or committed; raw provider payloads never persisted; the accepted Phase 26
+artifacts and behavior are preserved exactly; every evidence artifact carries config hash,
 snapshot/evidence ID, git SHA, seed and trial count where applicable, and UTC timestamp. Every task
 stops at its named boundary; none authorizes a commit or push by Codex.
 
@@ -634,7 +674,8 @@ stops at its named boundary; none authorizes a commit or push by Codex.
 
 - **Task ID**: T-007
 - **Title**: `docs/PLAN_SEC_EDGAR_QUALIFICATION.md`
-- **Target phase/boundary**: documentation feeding the proposed Phase 27; no implementation
+- **Target phase/boundary**: documentation supplementing the implemented Phase 27 metadata intake
+  and feeding a later separately authorized acquisition/schema-qualification phase; no implementation
 - **Priority**: P1
 - **Estimated effort**: 2–4 h
 - **User-visible outcome**: a plan any later authorized phase can execute to revalidate SEC policy
@@ -643,7 +684,7 @@ stops at its named boundary; none authorizes a commit or push by Codex.
   products (nightly `submissions.zip`, `companyfacts.zip`, indexes), documented fair-access limits
   and declared User-Agent policy, update cadence, acceptance-datetime semantics as the
   point-in-time availability field, the planned schema-freeze method (JSON Schema snapshots +
-  hashes), and the exact evidence rows a Phase 27 intake would require.
+  hashes), and the exact evidence rows the implemented Phase 27 intake requires.
 - **Explicit exclusions**: no bulk download; no schema capture; no code; no claim that policy
   review equals qualification.
 - **Prerequisite evidence**: `docs/DATA_SOURCES.md` candidate matrix (2026-07-21).
@@ -659,7 +700,7 @@ stops at its named boundary; none authorizes a commit or push by Codex.
 - **Positive assertions (literal)**: the document contains a "What this plan does NOT do" section
   naming download, persistence, and qualification.
 - **Negative/adversarial assertions (literal)**: the document contains no instruction to fetch
-  bulk data before Phase 27 authorization.
+  bulk data before a later separately authorized acquisition/schema-qualification phase.
 - **Audit evidence**: citations with UTC dates.
 - **Definition of done**: plan complete, cited, consistent with Phase 26 dependency 3.
 - **Stop condition**: stop at the document.
@@ -708,8 +749,8 @@ stops at its named boundary; none authorizes a commit or push by Codex.
 
 - **Task ID**: T-009
 - **Title**: `docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md`
-- **Target phase/boundary**: documentation feeding the proposed Phase 27; no outreach, no
-  implementation
+- **Target phase/boundary**: documentation companion to the implemented Phase 27 metadata intake;
+  no outreach, no implementation
 - **Priority**: P1
 - **Estimated effort**: 3–4 h
 - **User-visible outcome**: the repository owner gets exact checklists of what evidence to obtain
@@ -776,7 +817,7 @@ stops at its named boundary; none authorizes a commit or push by Codex.
 - **Positive assertions (literal)**: both files still start with the gate text whose SHA-256 is
   `1c6586b54c77c5a9df8e9838638631127cb2e5bc0af1c813b27b7f6af355d672`.
 - **Negative/adversarial assertions (literal)**: temporarily renaming a copy of
-  `docs/handoffs/PHASE_26.md` to `PHASE_27.md` in a tmp fixture makes the currency assertion fail.
+  `docs/handoffs/PHASE_27.md` to `PHASE_28.md` in a tmp fixture makes the currency assertion fail.
 - **Audit evidence**: pytest output.
 - **Definition of done**: tests pass; mirror applied; no other doc changed.
 - **Stop condition**: stop after the test and mirror.

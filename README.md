@@ -7,8 +7,8 @@ investment advice, and contains no real-money order path.
 
 ## Implementation status
 
-The formally accepted Phase 22 identity and the authorized Phase 23 portable Family A RTDSM
-current-use-rights review include:
+The formally accepted Phase 26 identity and the authorized Phase 27 Family A selected-composition
+rights-and-entitlement evidence-intake evaluator and documentation include:
 
 - Docker Compose control plane with PostgreSQL, Redis, one-shot migrations, FastAPI, an RQ research
   worker, and Next.js;
@@ -153,6 +153,15 @@ current-use-rights review include:
 - exact `BLOCKED`, `PUBLIC_TERMS_RIGHTS_REVIEW_FROZEN`, and
   `BLOCKED_PUBLIC_TERMS_INSUFFICIENT_FOR_PERSISTENT_AUTOMATED_MODEL_USE` semantics, with no rights
   grant, entitlement, product selection, data access, qualification, research, order, or live path.
+- one exact Phase 24 RTDSM clarification-requirements packet and one Phase 25 authenticated-response
+  intake pattern whose committed no-response result remains blocked;
+- one exact Phase 26 composition, `FAMILY_A_CRSP_SEC_RTDSM_V1`, assigning CRSP U.S. Stock Databases,
+  SEC EDGAR nightly bulk archives, and RTDSM PCPI to all seven Family A capabilities while rights,
+  delivery/schema, and point-in-time qualification remain blocked; and
+- one offline, metadata-only Phase 27 evidence-intake evaluator and documentation contract requiring
+  current executed CRSP rights and Linux flat-file entitlement, an authenticated RTDSM exact-scope
+  response, and current SEC policy evidence. No evidence was supplied, so its truthful result remains
+  `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`.
 
 Intentionally absent: order intent, order submission/routing, cancellation, reconciliation, real
 fills, position mutation, executable strategy parameters, schedulers, retries, and every live-order
@@ -209,18 +218,23 @@ Phase 22 is formally accepted at commit `1c07fbe8e23950e8c9f910b30473c900c0bf3e2
 pull-request Ubuntu workflows (`29782670821` and `29782755681`). PR #2 was merged to `main` as
 `7f3bf3df029a894660f0e47dda1056bd32dca297`, whose tree is byte-identical to the accepted tree.
 
+Phase 26 is formally accepted at commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
+`d1b74532704708e97047e4abf704532102ba510a`, after the complete Windows gate and successful same-SHA
+Ubuntu workflow run `29952642818`. That acceptance proves the composition decision and repository
+boundary only; it is not CRSP entitlement, RTDSM rights, SEC policy currentness, data acquisition,
+schema or point-in-time qualification, research admission, performance, or execution authority.
+
 ## Prerequisites
 
 - Docker Desktop or another Docker Engine with Compose v2.
 - For host-side development: Python 3.12 and Node.js 22.14 or newer.
 - PowerShell on Windows, or `make`/POSIX shell on macOS/Linux.
 
-No data-provider, LLM, broker, or commercial credential is needed for Phase 23 local or CI
-acceptance. The Phase 23 artifact operations are portable, database-free, and network-denied; the
+No data-provider, LLM, broker, or commercial credential is needed for Phase 27 local or CI
+acceptance. The Phase 27 artifact operations are portable, database-free, and network-denied; the
 full closure gate still starts the inherited Compose/PostgreSQL stack solely to prove zero schema or
-row drift. A separately authorized
-external qualification capture requires an existing token plus independently reviewed current
-use-rights evidence and never falls back to mock evidence.
+row drift and inherited behavior. No Phase 27 command loads a credential, contacts a provider, or
+accepts provider terms.
 LLM use remains limited to structured extraction from text; no LLM may emit an approval, label,
 signal, allocation, risk override, or execution instruction.
 
@@ -282,23 +296,23 @@ Run both test suites:
 .\scripts\test.ps1
 ```
 
-Run Python/frontend linting, type checks, generated-contract drift, and static Phase 23 policy checks:
+Run Python/frontend linting, type checks, generated-contract drift, and static Phase 27 policy checks:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "23"
+$env:FABLE5_VERIFY_PHASE = "27"
 .\scripts\check.ps1
 ```
 
-Run the complete Phase 23 closure sequence from a clean committed tree. The full verifier is direct;
-the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 23:
+Run the complete Phase 27 closure sequence from a clean committed tree. The full verifier is direct;
+the single-flight runner remains a Phase 9-only historical evidence tool and rejects Phase 27:
 
 ```powershell
-$env:FABLE5_VERIFY_PHASE = "23"
+$env:FABLE5_VERIFY_PHASE = "27"
 .\scripts\check.ps1
 .\scripts\test.ps1
 npm run build
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 23
-.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 23
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --static-only --phase 27
+.\.venv\Scripts\python.exe scripts\verify_phase1.py --phase 27
 ```
 
 The full verifier fails closed unless the worktree and index are clean before startup and after
@@ -306,10 +320,30 @@ cleanup, binds and reports the same commit SHA/tree at both points, and rejects 
 remaining `fable5_acceptance_*` container, network, or volume. On Linux, Phase 11 uses
 `mcr.microsoft.com/playwright:v1.61.1-noble@sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48`.
 Normal acceptance mounts the repository read-only and keeps browser output inside the container.
-Phase 23 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
+Phase 27 rechecks the unaffected inherited Phase 8 modes/shared layout, Phase 10 completed/blocked
 paper-simulation behavior, and Phase 11 evidence-download accessibility. Windows uses the native
 pinned Playwright installation. Ubuntu CI pre-pulls that digest-qualified image exactly once and
-never updates snapshots. Phase 23 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+never updates snapshots. Phase 27 does not rewrite the frozen Phase 8 or Phase 10 visual baselines.
+
+### Family A selected-composition rights and entitlement evidence intake
+
+Generate the deterministic no-input Phase 27 artifact to stdout only:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\generate_family_a_rights_and_entitlement_evidence_intake.py `
+  --confirm-rights-and-entitlement-evidence-intake-only
+```
+
+Verify the committed canonical artifact offline:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_family_a_rights_and_entitlement_evidence_intake.py `
+  --artifact docs\PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE.json
+```
+
+The current receipt must remain `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` with
+`verified_evidence_recorded=false` and `acquisition_authorized=false`. These commands create no
+provider evidence, data authority, research output, order authority, execution, or live path.
 
 ### Family A admission specification
 
@@ -696,6 +730,10 @@ retention/deletion, attribution, and third-party-content rights needed for opera
 - `docs/PHASE_26_FAMILY_A_OPERATIONAL_DATA_COMPOSITION_DECISIONS.md`: exact CRSP/SEC/RTDSM
   product, delivery, capability-assignment, rights-block, and false-authority decisions.
 - `docs/handoffs/PHASE_26.md`: Phase 26 implementation/acceptance contract and Phase 27 stop boundary.
+- `docs/PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE_DECISIONS.md`: exact CRSP Linux
+  entitlement, RTDSM authenticated-response, SEC current-policy, audit, fail-closed, and
+  false-authority requirements.
+- `docs/handoffs/PHASE_27.md`: Phase 27 offline evidence-intake contract and Phase 28 stop boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
@@ -705,8 +743,9 @@ retention/deletion, attribution, and third-party-content rights needed for opera
   operational-composition decision-requirements, the Phase 22 additive macro-vintage candidate
   inventory amendment, the Phase 23 RTDSM public-terms rights review, the Phase 24 RTDSM
   rights-clarification requirements, the Phase 25 rights-response evidence-intake and
-  adapter-pattern feasibility contracts and tests, and the Phase 26 exact operational
-  CRSP/SEC/RTDSM composition decision.
+  adapter-pattern feasibility contracts and tests, the Phase 26 exact operational CRSP/SEC/RTDSM
+  composition decision, and the Phase 27 offline selected-composition evidence-intake evaluator and
+  documentation contract.
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
@@ -725,28 +764,21 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Phase 24 is accepted at implementation commit `c1dad09f08b18a5a7d527579ca677633b49184fb`, tree
-`27392b6eb3239e01e533d07d42d164124fb7aa18`, and merge commit
-`145f67f188befae46443d061d029c243858841b4`. Phase 25 is implemented at local commit
-`4d70b823947fd61d0ea17df14c9f1ff9f93fd45b` on branch
-`codex/phase-25-rtdsm-rights-response-adapter-patterns`; this repository records no same-SHA Ubuntu
-acceptance run for Phase 25, so Phase 25 is implemented but not formally accepted. The Phase 26
-operational data-composition decision (`FAMILY_A_CRSP_SEC_RTDSM_V1`) exists only as uncommitted
-work in this working tree; its local gates (the Phase 26 pytest suites, the artifact verifier, and
-`verify_phase1.py --static-only --phase 26`) passed on 2026-07-21, but Phase 26 has no committed
-SHA, no CI run, and no formal acceptance evidence, and must not be described as accepted.
+Phase 26 is formally accepted at commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
+`d1b74532704708e97047e4abf704532102ba510a`, with same-SHA Ubuntu workflow run `29952642818`.
+Phase 27 is separately authorized as an offline, metadata-only selected-composition
+rights-and-entitlement evidence-intake evaluator and documentation contract. No CRSP executed
+agreement or exact Linux flat-file entitlement,
+authenticated RTDSM exact-scope response, or current SEC policy-revalidation evidence was supplied,
+so its truthful current result is `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`.
 
-Immediate sequence: (1) commit the Phase 26 working-tree changes at one honest SHA/tree without
-discarding any of them, and commit the separately authorized 2026-07-21 planning documents
-(`AGENTS.md` additions, `DEVELOPMENT.md`) as a distinct follow-up commit — the Phase 26 static
-gate's path allowlist intentionally flags those two paths, so Phase 26 acceptance must bind the
-implementation commit's SHA (see `DEVELOPMENT.md` § Validation record); (2) complete the direct
-local Phase 25 and Phase 26 gates and same-SHA
-Ubuntu acceptance before calling either phase formally accepted; (3) the planned 2026-07-22
-external live-data paper test is an operator acceptance activity under the already accepted
-Phase 12 read-only boundary (see `DEVELOPMENT.md`), not a phase advance and not Family A progress.
-The canonical Family A rights result remains `BLOCKED`. Do not contact a provider, download or
-persist provider observations, load credentials outside the documented Phase 12/13 capture
-commands, select or activate an operational data adapter, create a non-synthetic snapshot, run
-research on non-qualified data, compute performance, promote a strategy, change risk, submit an
-order, or add any live capability without separate authority.
+The Phase 27 evaluator remains database-free and network-disabled, accepts sanitized metadata only,
+and commits only the deterministic canonical no-input artifact, never provider-supplied intake or
+evidence bodies. A future complete and independently verified evidence set may use only
+`VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORITY`; the outcome remains `BLOCKED`,
+and exact-schema authority remains false. Phase 28 is not authorized. Do not contact a provider,
+accept terms, load credentials, request or persist provider observations, qualify schemas or
+point-in-time fitness, create a non-synthetic snapshot, run research, compute performance, promote a
+strategy, change risk, submit an order, or add any live capability without the separately required
+authority.

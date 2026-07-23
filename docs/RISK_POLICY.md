@@ -320,3 +320,17 @@ entitlement, schema, and point-in-time qualification remain fail-closed dependen
 No strategy may consume this composition until those dependencies pass and the later required
 cost, slippage, purged/embargoed walk-forward, leakage, risk-limit, and audit gates remain satisfied.
 No live path exists; simulated paper trading remains the only permitted execution mode.
+
+## Family A rights and entitlement evidence intake (Phase 27)
+
+Phase 27 adds an offline, metadata-only evidence evaluator and freezes the evidence requirements for
+the exact Phase 26 composition without changing a risk limit or granting data, research, or execution
+authority. No qualifying CRSP executed-license and Linux-entitlement evidence, authenticated RTDSM
+response, or current SEC policy evidence was supplied; the current result is `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`.
+
+A future verified evidence substate would satisfy only the Phase 26 current-rights dependency and
+would still require separate acquisition and exact-schema authority. It cannot clear schema/PIT,
+cost, slippage, walk-forward, leakage, holdout, approval, currentness, revocation, or pre-order-risk
+checks. It cannot produce a candidate, recommendation, position size, order, execution authority, or
+live path. Every existing risk and promotion gate remains fail-closed and unchanged.

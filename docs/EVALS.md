@@ -620,3 +620,25 @@ exact-scope rights, SEC policy revalidation, exact schemas, and point-in-time qu
 complete. Acceptance rejects reordered or substituted products, reassigned capabilities, upgraded
 rights/dependencies, acquisition authority, credentials, provider observations, production adapter
 activation, research, performance, execution, order, or live behavior.
+
+## 27. Phase 27 Family A rights and entitlement evidence intake
+
+Phase 27 is an offline, metadata-only evidence gate over the exact Phase 26 composition. No
+qualifying CRSP executed-license/Linux-entitlement evidence, authenticated RTDSM exact-scope
+response, or current SEC policy evidence was supplied. The required current result is therefore
+`BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`.
+
+Acceptance requires a closed `PASS`/`FAIL`/`CONDITIONAL`/`MISSING` vocabulary; independently verified
+immutable evidence IDs; enforceable, acceptance-tested conditions; exact CRSP product and Linux
+delivery scope; all ten Phase 24 RTDSM questions and nineteen Phase 25 scope rows; SEC-only
+first-party-policy currentness evidence for the two selected nightly bulk archives; mutual
+consistency; accepted Phase 26 lineage; provider and aggregate evidence hashes; git SHA; UTC times;
+seed/trial count `0/0`; and explicit false data, research, execution, order, and live authority.
+
+This phase computes no return, metric, DSR, PBO, cost, slippage, fold, leakage result, performance, or
+promotion state. Even a future
+`VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORITY` determination keeps outcome
+`BLOCKED`, leaves exact-schema authority false, and satisfies only the first Phase 26 post-selection
+dependency. Exact delivery/schema and PIT
+qualification, the non-synthetic evaluation policy and holdout, and every research gate in this
+document remain separately blocked.

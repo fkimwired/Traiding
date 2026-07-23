@@ -394,6 +394,32 @@ an exact executed product/delivery entitlement, RTDSM remains blocked pending au
 exact-scope rights evidence, and SEC policy/currentness plus data fitness require revalidation. No
 provider request, credential, observation, payload, cache, snapshot, or adapter is authorized.
 
+## Phase 27 rights and entitlement evidence-intake boundary
+
+Phase 27 defines an offline, metadata-only evidence evaluator and documentation contract for the
+selected composition; it does not acquire evidence or data. Its current result is `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` because no qualifying CRSP, RTDSM, or SEC evidence
+was supplied.
+
+- CRSP requires an independently verified executed agreement, exact product/SKU, and exact Linux
+  flat-file entitlement covering the licensed entity, territory, users/devices, environments,
+  automated delivery, exact-byte and snapshot storage, backups, normalization/PIT transformation,
+  non-display research, derived artifacts, display/export/sharing/redistribution, attribution,
+  third-party rights, audit, retention/deletion, termination, revocation, and currentness.
+- RTDSM requires authenticated authority evidence, explicit answers to all ten Phase 24 questions,
+  all nineteen Phase 25 exact-scope rows, BLS-originated PCPI coverage, and independently evidenced
+  mutual consistency for the exact PCPI monthly-vintage workbook.
+- SEC requires an independently reviewed current first-party policy snapshot for the selected nightly
+  submissions and companyfacts archives, including reuse, declared User-Agent/contact, efficient
+  needed-only access, aggregate rate/security guidance, attribution, seal/logo, non-affiliation,
+  content exceptions, and revalidation rules. This is policy evidence, not schema or PIT fitness.
+
+The Phase 18 source catalog is historical evidence and cannot self-revalidate. Daily or quarterly
+EDGAR indexes are later PIT dependencies, not additions to the closed Phase 26 delivery selection.
+Even a future `VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORITY` determination
+keeps the outcome `BLOCKED` and exact-schema authority false; it grants no credential, request,
+payload, snapshot, research, performance, order, execution, or live authority.
+
 ## Current free-source candidate matrix (2026-07-21 UTC)
 
 Method: first-party documentation and terms pages only, fetched read-only on 2026-07-21 UTC. No
@@ -592,6 +618,6 @@ For 2026-07-22 (Track A) the only fit-for-purpose source is the Alpaca paper env
 frozen IEX connectivity probe, entirely inside the accepted Phase 12 boundary. For operational
 monitoring, SEC EDGAR filing events and BLS release-calendar corroboration are candidates under
 their documented fair-access/usage rules. For research and point-in-time backtesting, only the
-Phase 26 composition (CRSP + SEC EDGAR + RTDSM) is planned, and every element remains blocked
+Phase 26 composition (CRSP + SEC EDGAR + RTDSM) is selected, while every element remains blocked
 behind its rights/entitlement, schema, and qualification gates. No source in this matrix becomes
 research-qualified by virtue of being free, reachable, or demonstrated.

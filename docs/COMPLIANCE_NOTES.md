@@ -95,6 +95,19 @@ contribute. Persist prompt/model/schema version and trace every derived feature 
   uses remain proposed-not-authorized, all questions unanswered, all evidence missing, and all
   transitions unapplied. The packet is not legal advice, current rights evidence, or permission to
   contact a rights holder, access an account, request data, or persist a payload.
+- Phase 27 freezes an offline, metadata-only evidence-intake evaluator and documentation contract for
+  the exact Phase 26
+  `FAMILY_A_CRSP_SEC_RTDSM_V1` composition. No executed CRSP agreement or Linux flat-file
+  entitlement, authenticated RTDSM response, or current SEC policy-revalidation evidence was
+  supplied, so the result remains `BLOCKED /
+  COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`. A future verified evidence determination still
+  requires separate acquisition and schema authority and grants no research, risk, order, execution,
+  or live authority.
+- Private-license authority and public-policy evidence remain separate. An official SEC policy
+  snapshot may support a current SEC public-policy finding after independent review, but a public
+  page, email, verbal statement, or screenshot cannot verify CRSP or RTDSM private-use authority.
+  Account and entitlement identities are hash-only; raw agreements, responses, credentials, and
+  personal identifiers are excluded from repository artifacts.
 - Current public caveats remain binding review inputs: Tiingo use is plan/entitlement dependent;
   CRSP/CCM is licensed and CCM also requires Compustat Xpressfeed; SEC automation must follow current
   fair-access policy, with the declared User-Agent/company-contact requirement sourced to Accessing
@@ -223,3 +236,12 @@ identities. It contains no account, credential, entitlement, executed agreement,
 observation, dataset, schema sample, research output, performance, approval, risk clearance, order,
 or fill. `OPERATIONAL_COMPOSITION_SELECTED` is not acquisition authority; all provider data paths
 remain absent and the only execution mode remains paper.
+
+Phase 27 adds only an offline, network-disabled metadata evaluator, stdout-only generator, bounded
+verifier, tests, a canonical no-input artifact, and documentation over the accepted Phase 26
+identity. It accepts sanitized metadata only and commits no provider-supplied intake, contract, or
+page body, personal or account identifier, credential, entitlement token, observation, dataset,
+schema sample, adapter, snapshot, feature, signal, return, metric, performance result, approval, risk
+clearance, order, or fill.
+`COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` is a truthful blocked determination, not
+permission to seek, acquire, persist, or use provider data.

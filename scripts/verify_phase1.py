@@ -2254,6 +2254,82 @@ PHASE_26_INHERITED_TABLES = PHASE_25_INHERITED_TABLES
 PHASE_26_CREDENTIAL_ENV_NAMES = PHASE_25_CREDENTIAL_ENV_NAMES
 PHASE_26_ARTIFACT_SCHEMA_VERSION = "phase26-family-a-operational-data-composition-decision-v1"
 PHASE_26_COMPOSITION_ID = "FAMILY_A_CRSP_SEC_RTDSM_V1"
+PHASE_27_BASELINE_SHA = "b1ad522c666f472f02ad5995d8fa52e3413c2cac"
+EXPECTED_PHASE_27_BASELINE_TREE = "d1b74532704708e97047e4abf704532102ba510a"
+PHASE_27_PHASE26_ARTIFACT_PATH = PHASE_26_ARTIFACT_PATH
+PHASE_27_PHASE26_ARTIFACT_FILE_SHA256 = (
+    "366206d2d0122e28ad95056765f840e3e12087ab1b29f17956f206ba27840175"
+)
+PHASE_27_ARTIFACT_PATH = "docs/PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE.json"
+PHASE_27_GENERATOR_PATH = "scripts/generate_family_a_rights_and_entitlement_evidence_intake.py"
+PHASE_27_PORTABLE_VERIFIER_PATH = (
+    "scripts/verify_family_a_rights_and_entitlement_evidence_intake.py"
+)
+PHASE_27_REQUIRED_PATHS = (
+    PHASE_27_ARTIFACT_PATH,
+    "docs/PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE_DECISIONS.md",
+    "docs/handoffs/PHASE_27.md",
+    PHASE_27_GENERATOR_PATH,
+    PHASE_27_PORTABLE_VERIFIER_PATH,
+    "services/data/src/fable5_data/phase27/__init__.py",
+    "services/data/src/fable5_data/phase27/canonical.py",
+    "services/data/src/fable5_data/phase27/contracts.py",
+    "services/data/src/fable5_data/phase27/package.py",
+    "services/data/tests/test_phase27_contracts.py",
+    "services/data/tests/test_phase27_package.py",
+    "services/data/tests/test_phase27_security.py",
+    "tests/test_phase27_portable.py",
+    "tests/test_phase27_static.py",
+)
+PHASE_27_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "DEVELOPMENT.md",
+        "Makefile",
+        "README.md",
+        "docs/COMPLIANCE_NOTES.md",
+        "docs/DATA_SOURCES.md",
+        "docs/EVALS.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/RISK_POLICY.md",
+        *PHASE_27_REQUIRED_PATHS,
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        "scripts/verify_phase1.py",
+        "services/frontend/e2e/phase8.accessibility.spec.ts",
+        "services/frontend/e2e/phase8.visual.spec.ts",
+        "tests/test_phase5_postgres.py",
+        "tests/test_phase9_static.py",
+        "tests/test_phase10_static.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase12_static.py",
+        "tests/test_phase13_static.py",
+        "tests/test_phase14_static.py",
+        "tests/test_phase15_static.py",
+        "tests/test_phase16_static.py",
+        "tests/test_phase17_static.py",
+        "tests/test_phase18_static.py",
+        "tests/test_phase19_static.py",
+        "tests/test_phase20_static.py",
+        "tests/test_phase21_static.py",
+        "tests/test_phase22_static.py",
+        "tests/test_phase23_static.py",
+        "tests/test_phase24_static.py",
+        "tests/test_phase25_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_27_INHERITED_TABLES = PHASE_26_INHERITED_TABLES
+PHASE_27_CREDENTIAL_ENV_NAMES = PHASE_26_CREDENTIAL_ENV_NAMES
+PHASE_27_ARTIFACT_SCHEMA_VERSION = "phase27-family-a-composition-rights-entitlement-evidence-v1"
+PHASE_27_COMPOSITION_ID = PHASE_26_COMPOSITION_ID
+PHASE_27_DETERMINATION = "COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING"
+PHASE_27_ARTIFACT_ID = "6d3bc146-67ad-5aa1-8836-dd5130d8736e"
+PHASE_27_ARTIFACT_SHA256 = "9721a4e1ebf1024a9d11695c9144f54046954e012470c7ca6c715f32a714925e"
+PHASE_27_ARTIFACT_FILE_SHA256 = "b2525ad22c1a0f1569188a7aefa3d735da1903d098725a8346c762d7c0d4214b"
+PHASE_27_EVIDENCE_BUNDLE_ID = "63bc191d-03ef-54ae-afa6-599e4f287cfe"
+PHASE_27_EVIDENCE_BUNDLE_SHA256 = "f2d6a793e0208f57b4675f2efffe6de330a2ea9a8d895420c4011c3b12e02d14"
+PHASE_27_POLICY_SHA256 = "3792dffdf784c5354b973b0de3ecc6c5119cc97a67cdf065d2e826caede29505"
 PHASE_7_CHECK_CODES = (
     "RESEARCH_PASS",
     "PHASE6_LINEAGE_COMPLETE",
@@ -2505,7 +2581,7 @@ def phase_number(value: str) -> int:
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
             "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, "
-            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, or 26"
+            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27"
         ) from exc
     if phase not in {
         1,
@@ -2534,10 +2610,11 @@ def phase_number(value: str) -> int:
         24,
         25,
         26,
+        27,
     }:
         raise argparse.ArgumentTypeError(
             "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, "
-            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, or 26"
+            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27"
         )
     return phase
 
@@ -2909,7 +2986,7 @@ def verify_static_inherited(phase: int = 1, *, announce: bool = True) -> None:
         ci_phases = [
             int(value)
             for value in re.findall(
-                r"--phase\s+(26|25|24|23|22|21|20|19|18|17|16|15|14|13|12|11|10|[1-9])\b",
+                r"--phase\s+(27|26|25|24|23|22|21|20|19|18|17|16|15|14|13|12|11|10|[1-9])\b",
                 ci,
             )
         ]
@@ -6453,8 +6530,8 @@ def verify_phase15_static(
 
 
 def verify_phase16_static(*, release_closure: bool = True, active_phase: int = 16) -> None:
-    if active_phase not in {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
-        raise AssertionError("Phase 16 inherited static checks support only phases 16 through 24")
+    if active_phase not in {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
+        raise AssertionError("Phase 16 inherited static checks support only phases 16 through 27")
     missing = [path for path in PHASE_16_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 16 paths: {', '.join(missing)}")
@@ -6851,8 +6928,8 @@ def verify_phase16_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase17_static(*, release_closure: bool = True, active_phase: int = 17) -> None:
-    if active_phase not in {17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
-        raise AssertionError("Phase 17 inherited static checks support only phases 17 through 24")
+    if active_phase not in {17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
+        raise AssertionError("Phase 17 inherited static checks support only phases 17 through 27")
     missing = [path for path in PHASE_17_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 17 paths: {', '.join(missing)}")
@@ -7303,8 +7380,8 @@ def verify_phase17_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase18_static(*, release_closure: bool = True, active_phase: int = 18) -> None:
-    if active_phase not in {18, 19, 20, 21, 22, 23, 24, 25, 26}:
-        raise AssertionError("Phase 18 inherited static checks support only phases 18 through 24")
+    if active_phase not in {18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
+        raise AssertionError("Phase 18 inherited static checks support only phases 18 through 27")
     missing = [path for path in PHASE_18_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 18 paths: {', '.join(missing)}")
@@ -7746,8 +7823,8 @@ def verify_phase18_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase19_static(*, release_closure: bool = True, active_phase: int = 19) -> None:
-    if active_phase not in {19, 20, 21, 22, 23, 24, 25, 26}:
-        raise AssertionError("Phase 19 inherited static checks support only phases 19 through 24")
+    if active_phase not in {19, 20, 21, 22, 23, 24, 25, 26, 27}:
+        raise AssertionError("Phase 19 inherited static checks support only phases 19 through 27")
     missing = [path for path in PHASE_19_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 19 paths: {', '.join(missing)}")
@@ -8185,8 +8262,8 @@ def verify_phase19_static(*, release_closure: bool = True, active_phase: int = 1
 
 
 def verify_phase20_static(*, release_closure: bool = True, active_phase: int = 20) -> None:
-    if active_phase not in {20, 21, 22, 23, 24, 25, 26}:
-        raise AssertionError("Phase 20 inherited static checks support only phases 20 through 24")
+    if active_phase not in {20, 21, 22, 23, 24, 25, 26, 27}:
+        raise AssertionError("Phase 20 inherited static checks support only phases 20 through 27")
     missing = [path for path in PHASE_20_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
         raise AssertionError(f"Missing Phase 20 paths: {', '.join(missing)}")
@@ -8683,7 +8760,7 @@ def verify_phase20_static(*, release_closure: bool = True, active_phase: int = 2
 
 
 def verify_phase21_static(*, release_closure: bool = True, active_phase: int = 21) -> None:
-    if active_phase not in {21, 22, 23, 24, 25, 26}:
+    if active_phase not in {21, 22, 23, 24, 25, 26, 27}:
         raise AssertionError(f"Unsupported active phase for Phase 21 inheritance: {active_phase}")
     missing = [path for path in PHASE_21_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -10876,6 +10953,338 @@ def verify_phase26_static() -> None:
         raise AssertionError("Phase 26 introduced an unauthorized Phase 27 surface")
 
 
+def verify_phase27_static() -> None:
+    missing = [path for path in PHASE_27_REQUIRED_PATHS if not (ROOT / path).exists()]
+    if missing:
+        raise AssertionError(f"Missing Phase 27 paths: {', '.join(missing)}")
+
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{PHASE_27_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 26 baseline is unavailable") from exc
+    if git_text("show", "-s", "--format=%T", PHASE_27_BASELINE_SHA) != (
+        EXPECTED_PHASE_27_BASELINE_TREE
+    ):
+        raise AssertionError("The accepted Phase 26 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_27_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 27 HEAD is not descended from accepted Phase 26")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_27_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    forbidden_changes = sorted(changed_paths - PHASE_27_ALLOWED_WRITES)
+    if forbidden_changes:
+        raise AssertionError(
+            "Phase 27 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)
+        )
+
+    phase27_maintenance_deltas = PHASE_26_MAINTENANCE_OVERLAY_PATHS & PHASE_27_ALLOWED_WRITES
+    if phase27_maintenance_deltas != {"DEVELOPMENT.md"}:
+        raise AssertionError("Phase 27 maintenance-overlay exception is not exactly DEVELOPMENT.md")
+    for relative in sorted(PHASE_26_MAINTENANCE_OVERLAY_PATHS - {"DEVELOPMENT.md"}):
+        if (ROOT / relative).read_bytes() != git_blob(PHASE_27_BASELINE_SHA, relative):
+            raise AssertionError(f"Phase 27 changed frozen Phase 26 maintenance path {relative}")
+
+    migration_root = ROOT / "services/api/migrations/versions"
+    expected_migrations = {
+        path
+        for path in git_text(
+            "ls-tree",
+            "-r",
+            "--name-only",
+            PHASE_27_BASELINE_SHA,
+            "--",
+            "services/api/migrations/versions",
+        ).splitlines()
+        if path.endswith(".py")
+    }
+    actual_migrations = {path.relative_to(ROOT).as_posix() for path in migration_root.glob("*.py")}
+    if actual_migrations != expected_migrations:
+        raise AssertionError("Phase 27 changed the inherited migration catalog")
+    for relative in sorted(expected_migrations):
+        if (ROOT / relative).read_bytes() != git_blob(PHASE_27_BASELINE_SHA, relative):
+            raise AssertionError(f"Phase 27 changed inherited migration {relative}")
+    for frozen_path in (
+        "AGENTS.md",
+        "compose.yaml",
+        "package.json",
+        "package-lock.json",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "pyproject.toml",
+        "requirements.lock",
+        "scripts/run_phase_gate.py",
+        PHASE_27_PHASE26_ARTIFACT_PATH,
+    ):
+        if (ROOT / frozen_path).read_bytes() != git_blob(PHASE_27_BASELINE_SHA, frozen_path):
+            raise AssertionError(f"Phase 27 changed frozen inherited surface {frozen_path}")
+    if hashlib.sha256((ROOT / PHASE_27_PHASE26_ARTIFACT_PATH).read_bytes()).hexdigest() != (
+        PHASE_27_PHASE26_ARTIFACT_FILE_SHA256
+    ):
+        raise AssertionError("Phase 27 changed the accepted Phase 26 artifact")
+    for phase26_path in sorted((ROOT / "services/data/src/fable5_data/phase26").glob("*.py")):
+        relative = phase26_path.relative_to(ROOT).as_posix()
+        if phase26_path.read_bytes() != git_blob(PHASE_27_BASELINE_SHA, relative):
+            raise AssertionError(f"Phase 27 changed frozen Phase 26 implementation {relative}")
+    if any(path.startswith("services/api/") for path in changed_paths):
+        raise AssertionError("Phase 27 changed the accepted API or migration surface")
+    if '"27": "0011_phase14"' not in normalized(ROOT / "tests/test_phase5_postgres.py"):
+        raise AssertionError("Phase 27 PostgreSQL acceptance changed migration head")
+
+    from fable5_data.phase27 import canonical as phase27
+    from fable5_data.phase27.contracts import (
+        Determination,
+        Phase27RightsEntitlementEvidencePackage,
+    )
+    from fable5_data.phase27.package import (
+        build_phase27_package,
+        canonical_phase27_package_bytes,
+    )
+
+    committed = (ROOT / PHASE_27_ARTIFACT_PATH).read_bytes()
+    if hashlib.sha256(committed).hexdigest() != PHASE_27_ARTIFACT_FILE_SHA256:
+        raise AssertionError("Phase 27 committed artifact file identity drifted")
+    if committed != canonical_phase27_package_bytes():
+        raise AssertionError("Phase 27 committed artifact is not canonical")
+    try:
+        artifact = Phase27RightsEntitlementEvidencePackage.model_validate_json(
+            committed, strict=True
+        )
+    except Exception as exc:
+        raise AssertionError("Phase 27 committed artifact fails strict validation") from exc
+    if artifact != build_phase27_package():
+        raise AssertionError("Phase 27 committed artifact differs from its pure builder")
+    if (
+        artifact.schema_version != PHASE_27_ARTIFACT_SCHEMA_VERSION
+        or artifact.composition_id != PHASE_27_COMPOSITION_ID
+        or artifact.determination
+        is not Determination.COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING
+        or artifact.outcome.value != "BLOCKED"
+        or str(artifact.artifact_id) != PHASE_27_ARTIFACT_ID
+        or artifact.artifact_sha256 != PHASE_27_ARTIFACT_SHA256
+        or str(artifact.evidence_bundle_id) != PHASE_27_EVIDENCE_BUNDLE_ID
+        or artifact.evidence_bundle_sha256 != PHASE_27_EVIDENCE_BUNDLE_SHA256
+        or artifact.policy_sha256 != PHASE_27_POLICY_SHA256
+        or artifact.product_ids != phase27.PRODUCT_IDS
+        or artifact.delivery_ids != phase27.DELIVERY_IDS
+        or len(artifact.product_evaluations) != 3
+        or len(artifact.crsp_requirement_evaluations) != len(phase27.CRSP_REQUIREMENT_ROWS)
+        or len(artifact.sec_requirement_evaluations) != len(phase27.SEC_REQUIREMENT_ROWS)
+    ):
+        raise AssertionError("Phase 27 identity, determination, or closed registries drifted")
+    if (
+        artifact.verified_evidence_recorded
+        or artifact.current_rights_evidence_for_exact_composition
+    ):
+        raise AssertionError("Phase 27 fabricated verified rights or entitlement evidence")
+    dumped = artifact.model_dump(mode="python")
+    for field, expected in phase27.BOUNDARY_VALUES.items():
+        if dumped[field] is not expected:
+            raise AssertionError(f"Phase 27 unexpectedly changed {field}")
+
+    domain_root = ROOT / "services/data/src/fable5_data/phase27"
+    imported = set().union(*(imported_module_roots(path) for path in domain_root.glob("*.py")))
+    forbidden_imports = sorted(
+        imported
+        & {
+            "aiohttp",
+            "asyncio",
+            "fastapi",
+            "httpx",
+            "os",
+            "psycopg",
+            "requests",
+            "socket",
+            "sqlalchemy",
+            "subprocess",
+            "urllib",
+            "yfinance",
+        }
+    )
+    if forbidden_imports:
+        raise AssertionError(
+            "Phase 27 domain imports forbidden modules: " + ", ".join(forbidden_imports)
+        )
+    domain_source = "\n".join(normalized(path) for path in domain_root.glob("*.py"))
+    for forbidden_clock in ("datetime.now", "datetime.utcnow", "date.today"):
+        if forbidden_clock in domain_source:
+            raise AssertionError(f"Phase 27 used runtime clock authority: {forbidden_clock}")
+
+    generator = normalized(ROOT / PHASE_27_GENERATOR_PATH)
+    portable = normalized(ROOT / PHASE_27_PORTABLE_VERIFIER_PATH)
+    if generator.count('"--confirm-rights-and-entitlement-evidence-intake-only"') != 1:
+        raise AssertionError("Phase 27 generator confirmation contract drifted")
+    if generator.count('"--evidence-metadata"') != 1 or portable.count('"--artifact"') != 1:
+        raise AssertionError("Phase 27 bounded CLI input contract drifted")
+    for required_sensitive_literal in (
+        '"body"',
+        '"header"',
+        '"credential"',
+        '"secret"',
+        '"token"',
+        '"cookie"',
+        '"raw_account"',
+        '"raw_entitlement"',
+    ):
+        if required_sensitive_literal not in generator:
+            raise AssertionError(
+                f"Phase 27 generator lacks sensitive-input denial {required_sensitive_literal}"
+            )
+    for path, source in (
+        (PHASE_27_GENERATOR_PATH, generator),
+        (PHASE_27_PORTABLE_VERIFIER_PATH, portable),
+    ):
+        for required in (
+            'event.startswith("socket.")',
+            'frozenset({"os.system", "subprocess.Popen"})',
+            "sys.addaudithook(_offline_audit_hook)",
+            "_prove_offline_boundary()",
+        ):
+            if required not in source:
+                raise AssertionError(f"Phase 27 CLI {path} lacks active offline denial")
+
+    cli_environment = os.environ.copy()
+    for name in tuple(cli_environment):
+        if any(token in name.upper() for token in ("TOKEN", "SECRET", "PASSWORD", "API_KEY")):
+            cli_environment.pop(name, None)
+    generator_command = [
+        sys.executable,
+        PHASE_27_GENERATOR_PATH,
+        "--confirm-rights-and-entitlement-evidence-intake-only",
+    ]
+    generated = [
+        subprocess.run(
+            generator_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=cli_environment,
+        )
+        for _ in range(2)
+    ]
+    if any(result.returncode != 0 or result.stderr for result in generated) or any(
+        result.stdout != committed for result in generated
+    ):
+        raise AssertionError("Phase 27 generator failed exact canonicalization")
+    verifier_command = [
+        sys.executable,
+        PHASE_27_PORTABLE_VERIFIER_PATH,
+        "--artifact",
+        PHASE_27_ARTIFACT_PATH,
+    ]
+    verified = [
+        subprocess.run(
+            verifier_command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=cli_environment,
+        )
+        for _ in range(2)
+    ]
+    if any(result.returncode != 0 or result.stderr for result in verified):
+        raise AssertionError("Phase 27 portable verifier rejected committed artifact")
+    if verified[0].stdout != verified[1].stdout:
+        raise AssertionError("Phase 27 portable verifier receipt is nondeterministic")
+    try:
+        receipt = json.loads(verified[0].stdout)
+    except json.JSONDecodeError as exc:
+        raise AssertionError("Phase 27 portable verifier returned invalid JSON") from exc
+    expected_receipt_keys = {
+        "acquisition_authorized",
+        "artifact_id",
+        "artifact_sha256",
+        "composition_id",
+        "determination",
+        "evidence_bundle_id",
+        "evidence_bundle_sha256",
+        "outcome",
+        "verified",
+        "verified_evidence_recorded",
+    }
+    if (
+        not isinstance(receipt, dict)
+        or set(receipt) != expected_receipt_keys
+        or receipt.get("verified") is not True
+        or receipt.get("composition_id") != PHASE_27_COMPOSITION_ID
+        or receipt.get("determination") != PHASE_27_DETERMINATION
+        or receipt.get("outcome") != "BLOCKED"
+        or receipt.get("verified_evidence_recorded") is not False
+        or receipt.get("acquisition_authorized") is not False
+    ):
+        raise AssertionError("Phase 27 portable verifier receipt is incomplete or overbroad")
+
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-27-ci\n")
+        or 'FABLE5_VERIFY_PHASE: "27"' not in workflow
+        or "phase27-compose:" not in workflow
+        or workflow.count("python scripts/verify_phase1.py --static-only --phase 27") != 1
+        or workflow.count("python scripts/verify_phase1.py --phase 27") != 1
+        or "secrets." in workflow
+    ):
+        raise AssertionError("Phase 27 CI does not run exact static and full verification offline")
+    for environment_name in PHASE_27_CREDENTIAL_ENV_NAMES:
+        if f'{environment_name}: ""' not in workflow:
+            raise AssertionError(f"Phase 27 CI does not clear {environment_name}")
+    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+        source = normalized(ROOT / entrypoint)
+        if (
+            "FABLE5_VERIFY_PHASE" not in source
+            or "--phase" not in source
+            or "25, 26, or 27" not in source
+        ):
+            raise AssertionError(f"{entrypoint} does not advertise exact Phase 27 support")
+    for browser_path in (
+        ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
+        ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
+    ):
+        browser = normalized(browser_path)
+        if 'process.env.FABLE5_VERIFY_PHASE ?? "27"' not in browser or '"27",' not in browser:
+            raise AssertionError(f"Phase 27 browser inheritance is inactive in {browser_path}")
+    combined_docs = normalized(
+        ROOT / "docs/PHASE_27_FAMILY_A_RIGHTS_AND_ENTITLEMENT_EVIDENCE_INTAKE_DECISIONS.md"
+    ) + normalized(ROOT / "docs/handoffs/PHASE_27.md")
+    for required in (
+        PHASE_27_BASELINE_SHA,
+        EXPECTED_PHASE_27_BASELINE_TREE,
+        "29952642818",
+        PHASE_27_COMPOSITION_ID,
+        PHASE_27_DETERMINATION,
+        "Stop after Phase 27",
+    ):
+        if required not in combined_docs:
+            raise AssertionError(f"Phase 27 documentation is missing {required}")
+    if (ROOT / "docs/handoffs/PHASE_28.md").exists() or (
+        ROOT / "services/data/src/fable5_data/phase28"
+    ).exists():
+        raise AssertionError("Phase 27 introduced an unauthorized Phase 28 surface")
+
+
 def verify_static(phase: int = 1) -> None:
     if phase == 9:
         with phase9_stage(phase, "phase1_8_static"):
@@ -11095,6 +11504,23 @@ def verify_static(phase: int = 1) -> None:
         verify_phase26_static()
         print("Static repository policy checks passed for Phase 26.")
         return
+    if phase == 27:
+        verify_static_inherited(27, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=27)
+        verify_phase11_static(release_closure=False, active_phase=27)
+        verify_phase12_static(release_closure=False, active_phase=27)
+        verify_phase13_static(release_closure=False, active_phase=27)
+        verify_phase14_static(release_closure=False, active_phase=27)
+        verify_phase15_static(release_closure=False, active_phase=27)
+        verify_phase16_static(release_closure=False, active_phase=27)
+        verify_phase17_static(release_closure=False, active_phase=27)
+        verify_phase18_static(release_closure=False, active_phase=27)
+        verify_phase19_static(release_closure=False, active_phase=27)
+        verify_phase20_static(release_closure=False, active_phase=27)
+        verify_phase21_static(release_closure=False, active_phase=27)
+        verify_phase27_static()
+        print("Static repository policy checks passed for Phase 27.")
+        return
     verify_static_inherited(phase)
 
 
@@ -11178,7 +11604,7 @@ def acceptance_environment(
         if re.fullmatch(r"[0-9a-f]{40}", git_sha) is None:
             raise RuntimeError(f"git rev-parse returned an invalid commit SHA: {git_sha!r}")
         if (
-            phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}
+            phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
             and expected_git_identity is not None
         ):
             git_tree = subprocess.run(
@@ -12303,7 +12729,7 @@ def verify_phase5_api(api_url: str, phase4_snapshot_id: str) -> str:
 
 
 def phase6_request_timeout_profile(phase: int) -> tuple[int, int, int]:
-    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
         return (
             PHASE_9_PHASE6_REQUEST_TIMEOUT_SECONDS,
             PHASE_9_PHASE6_DETAIL_TIMEOUT_SECONDS,
@@ -16071,7 +16497,7 @@ def verify_phase8_browser(
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
     browser_environment.pop(PHASE_9_BROWSER_TIMEOUT_FLAG, None)
-    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+    if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
         browser_environment[PHASE_9_BROWSER_TIMEOUT_FLAG] = "1"
     linux_phase9 = phase == 9 and sys.platform.startswith("linux")
     linux_phase10 = phase == 10 and (sys.platform.startswith("linux") or phase10_linux_profile)
@@ -16091,6 +16517,7 @@ def verify_phase8_browser(
         23,
         24,
         25,
+        27,
     } and sys.platform.startswith("linux")
     if linux_phase9:
         command = phase9_linux_playwright_command(project, frontend_url)
@@ -16111,7 +16538,7 @@ def verify_phase8_browser(
             output_path=f"/tmp/phase{phase}-inherited-playwright-results",
             verify_phase=phase,
         )
-    elif phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+    elif phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
         command = [
             npm,
             "--workspace",
@@ -16144,7 +16571,7 @@ def verify_phase8_browser(
         )
     coverage = (
         "unaffected inherited modes and shared layout"
-        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}
+        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
         else "all four modes"
     )
     print(
@@ -16344,7 +16771,7 @@ def verify_phase10_browser(
     )
     before = snapshot_tables(project, environment, all_tables)
     browser_environment = environment.copy()
-    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
         browser_environment.pop(PHASE_10_LINUX_SNAPSHOT_FLAG, None)
         browser_environment.pop("FABLE5_UPDATE_SNAPSHOTS", None)
         browser_environment.pop("FABLE5_VISUAL_CORPUS", None)
@@ -16365,7 +16792,7 @@ def verify_phase10_browser(
         else frontend_url
     )
     browser_environment["PLAYWRIGHT_BASE_URL"] = browser_frontend_url
-    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26} and linux:
+    if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27} and linux:
         command = phase11_linux_playwright_command(
             project,
             browser_frontend_url,
@@ -16393,7 +16820,7 @@ def verify_phase10_browser(
     try:
         run(command, env=browser_environment)
     finally:
-        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26} and linux:
+        if phase in {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27} and linux:
             cleanup_phase11_linux_playwright_container(project, browser_environment)
         elif linux:
             cleanup_phase10_linux_playwright_container(project, browser_environment)
@@ -21349,12 +21776,12 @@ def verify_phase9_compose_cleanup(
 def verify_compose(phase: int = 1) -> None:
     acceptance_identity = (
         phase10_clean_git_identity("preflight", phase=phase)
-        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}
+        if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
         else None
     )
     if shutil.which("docker") is None:
         raise RuntimeError("Docker is required for full verification; use --static-only otherwise.")
-    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+    if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}:
         verify_phase10_acceptance_resource_namespace(
             "preflight",
             os.environ.copy(),
@@ -21529,6 +21956,7 @@ def verify_compose(phase: int = 1) -> None:
                                             23,
                                             24,
                                             25,
+                                            27,
                                         }:
                                             verify_phase8_browser(
                                                 project,
@@ -21553,6 +21981,7 @@ def verify_compose(phase: int = 1) -> None:
                                         23,
                                         24,
                                         25,
+                                        27,
                                     }:
                                         with phase9_stage(phase, "phase10_acceptance"):
                                             with phase9_stage(phase, "phase10_schema_cycle"):
@@ -21603,6 +22032,7 @@ def verify_compose(phase: int = 1) -> None:
                                             23,
                                             24,
                                             25,
+                                            27,
                                         }:
                                             with phase9_stage(phase, "phase11_acceptance"):
                                                 with phase9_stage(phase, "phase11_api"):
@@ -21633,6 +22063,7 @@ def verify_compose(phase: int = 1) -> None:
                                             23,
                                             24,
                                             25,
+                                            27,
                                         }:
                                             with phase9_stage(phase, "phase12_acceptance"):
                                                 with phase9_stage(
@@ -21687,6 +22118,7 @@ def verify_compose(phase: int = 1) -> None:
                                             23,
                                             24,
                                             25,
+                                            27,
                                         }:
                                             with phase9_stage(phase, "phase13_acceptance"):
                                                 with phase9_stage(
@@ -21740,6 +22172,7 @@ def verify_compose(phase: int = 1) -> None:
                                             23,
                                             24,
                                             25,
+                                            27,
                                         }:
                                             with phase9_stage(phase, "phase14_acceptance"):
                                                 with phase9_stage(
@@ -21797,6 +22230,7 @@ def verify_compose(phase: int = 1) -> None:
                                             24,
                                             25,
                                             26,
+                                            27,
                                         }:
                                             with phase9_stage(phase, "phase15_acceptance"):
                                                 with phase9_stage(
@@ -21819,7 +22253,20 @@ def verify_compose(phase: int = 1) -> None:
                                                         project,
                                                         environment,
                                                     )
-                                        if phase in {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                                        if phase in {
+                                            16,
+                                            17,
+                                            18,
+                                            19,
+                                            20,
+                                            21,
+                                            22,
+                                            23,
+                                            24,
+                                            25,
+                                            26,
+                                            27,
+                                        }:
                                             with phase9_stage(phase, "phase16_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21849,7 +22296,19 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase16_before,
                                                     )
-                                        if phase in {17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                                        if phase in {
+                                            17,
+                                            18,
+                                            19,
+                                            20,
+                                            21,
+                                            22,
+                                            23,
+                                            24,
+                                            25,
+                                            26,
+                                            27,
+                                        }:
                                             with phase9_stage(phase, "phase17_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21879,7 +22338,18 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase17_before,
                                                     )
-                                        if phase in {18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                                        if phase in {
+                                            18,
+                                            19,
+                                            20,
+                                            21,
+                                            22,
+                                            23,
+                                            24,
+                                            25,
+                                            26,
+                                            27,
+                                        }:
                                             with phase9_stage(phase, "phase18_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21909,7 +22379,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase18_before,
                                                     )
-                                        if phase in {19, 20, 21, 22, 23, 24, 25, 26}:
+                                        if phase in {19, 20, 21, 22, 23, 24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase19_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21939,7 +22409,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase19_before,
                                                     )
-                                        if phase in {20, 21, 22, 23, 24, 25, 26}:
+                                        if phase in {20, 21, 22, 23, 24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase20_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21969,7 +22439,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase20_before,
                                                     )
-                                        if phase in {21, 22, 23, 24, 25, 26}:
+                                        if phase in {21, 22, 23, 24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase21_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -21999,7 +22469,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase21_before,
                                                     )
-                                        if phase in {22, 23, 24, 25, 26}:
+                                        if phase in {22, 23, 24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase22_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -22029,7 +22499,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase22_before,
                                                     )
-                                        if phase in {23, 24, 25, 26}:
+                                        if phase in {23, 24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase23_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -22059,7 +22529,7 @@ def verify_compose(phase: int = 1) -> None:
                                                         environment,
                                                         phase23_before,
                                                     )
-                                        if phase in {24, 25, 26}:
+                                        if phase in {24, 25, 26, 27}:
                                             with phase9_stage(phase, "phase24_acceptance"):
                                                 with phase9_stage(
                                                     phase,
@@ -22129,16 +22599,74 @@ def verify_compose(phase: int = 1) -> None:
                     text=True,
                     env=environment,
                 )
-                if phase in {9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                if phase in {
+                    9,
+                    10,
+                    11,
+                    12,
+                    13,
+                    14,
+                    15,
+                    16,
+                    17,
+                    18,
+                    19,
+                    20,
+                    21,
+                    22,
+                    23,
+                    24,
+                    25,
+                    26,
+                    27,
+                }:
                     if cleanup.returncode != 0:
                         raise AssertionError(
                             f"Phase {phase} inherited Compose cleanup exited {cleanup.returncode}"
                         )
-                    if phase in {9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                    if phase in {
+                        9,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                    }:
                         verify_phase9_compose_cleanup(project, environment, phase=phase)
         finally:
             try:
-                if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}:
+                if phase in {
+                    10,
+                    11,
+                    12,
+                    13,
+                    14,
+                    15,
+                    16,
+                    17,
+                    18,
+                    19,
+                    20,
+                    21,
+                    22,
+                    23,
+                    24,
+                    25,
+                    26,
+                    27,
+                }:
                     verify_phase10_acceptance_resource_namespace(
                         "post-cleanup",
                         environment,
@@ -22188,6 +22716,8 @@ def verify_compose(phase: int = 1) -> None:
         print("Full Compose Phase 25 verification passed.")
     if phase == 26:
         print("Full Compose Phase 26 verification passed.")
+    if phase == 27:
+        print("Full Compose Phase 27 verification passed.")
 
 
 def main() -> int:
@@ -22198,11 +22728,11 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         type=phase_number,
-        default=os.environ.get("FABLE5_VERIFY_PHASE", "26"),
+        default=os.environ.get("FABLE5_VERIFY_PHASE", "27"),
         help=(
             "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "
-            "13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, or 26 "
-            "(default: FABLE5_VERIFY_PHASE or 26)."
+            "13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27 "
+            "(default: FABLE5_VERIFY_PHASE or 27)."
         ),
     )
     args = parser.parse_args()

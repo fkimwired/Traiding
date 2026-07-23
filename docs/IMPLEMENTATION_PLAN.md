@@ -76,6 +76,8 @@ do not receive executable scaffolds.
 
 | 26 | one exact closed Family A operational data composition | deterministic generated JSON and offline verification; `FAMILY_A_CRSP_SEC_RTDSM_V1` assigns all seven required capabilities across CRSP U.S. Stock Databases, SEC EDGAR bulk archives, and Philadelphia Fed RTDSM PCPI; composition selected while rights, entitlement, schema, and PIT qualification stay blocked; no credential, data acquisition, adapter activation, research, performance, execution, order, or live path |
 
+| 27 | offline metadata-only rights and entitlement evidence intake for the exact Phase 26 composition | strict evaluator, stdout-only generator, bounded verifier, tests, canonical no-input artifact, and documentation for exact CRSP Linux-entitlement, RTDSM authenticated-response, and SEC current-policy requirements; current `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`; no provider-supplied intake body, provider contact, credential, data, schema/PIT qualification, research, candidate screen, performance, execution, order, or live path |
+
 ## Required handoff template
 
 Every implementer task must include:
@@ -165,19 +167,18 @@ commit `c1dad09f08b18a5a7d527579ca677633b49184fb`, tree
 Phase 25 boundary is in `docs/handoffs/PHASE_25.md`; Phase 25 is implemented at local commit
 `4d70b823947fd61d0ea17df14c9f1ff9f93fd45b`, and this repository records no same-SHA Ubuntu
 acceptance run, so Phase 25 is implemented but not formally accepted. The Phase 26 boundary is in
-`docs/handoffs/PHASE_26.md`; the Phase 26 composition decision exists only as uncommitted
-working-tree changes whose local gates passed on 2026-07-21, with no committed SHA, CI run, or
-formal acceptance evidence. Statements elsewhere that describe Phase 25 as "accepted" are not
-supported by recorded acceptance evidence in this repository and must be treated as pending until a
-same-SHA Ubuntu run is recorded here.
+`docs/handoffs/PHASE_26.md`; Phase 26 is formally accepted at commit
+`b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
+`d1b74532704708e97047e4abf704532102ba510a`, with same-SHA Ubuntu workflow run `29952642818`.
+Phase 26 acceptance does not convert Phase 25's missing RTDSM response or any other missing
+provider-rights evidence into a pass.
 
-## Proposed next phase (requires separate authorization; not yet authorized)
+## Authorized current phase: Phase 27 offline evidence intake
 
-Exactly one next phase is proposed. **Phase 27 — Family A composition rights-and-entitlement
-evidence intake (portable, evidence-only).** It extends the accepted Phase 25 evidence-intake
-pattern from the single RTDSM candidate to the full Phase 26 composition, recording and offline-
-verifying only independently authenticated evidence for the three blocked post-selection
-dependencies named by Phase 26:
+The repository owner separately authorized **Phase 27 - Family A Selected-Composition Rights and
+Entitlement Evidence Intake** after Phase 26 formal acceptance. Phase 27 adds an offline portable
+metadata intake/evaluator and supporting documentation for independently authenticated evidence
+addressing the first blocked Phase 26 post-selection dependency across the selected composition:
 
 1. current executed CRSP U.S. Stock Databases use rights and the exact Linux flat-file delivery
    entitlement;
@@ -185,12 +186,16 @@ dependencies named by Phase 26:
 3. a current SEC EDGAR fair-access/reuse policy revalidation with exact URLs and UTC retrieval
    dates.
 
-Phase 27 performs no provider outreach itself, loads no credential, requests, downloads, or
-persists no provider observation, activates no adapter, creates no snapshot, defines no evaluation
-policy or holdout, and cannot produce research admission. Its only positive outcome is
-verified-evidence-recorded, and even that outcome leaves data acquisition requiring separate
-authorization. Phase 27 must not be confused with feature implementation, data acquisition, or
-research admission, and it must not begin before Phase 26 is committed and formally accepted.
+No qualifying evidence was supplied. The current result is `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`. Phase 27 performs no provider outreach, loads no credential,
+requests, downloads, or persists no provider observation, activates no adapter, creates no snapshot,
+defines no evaluation policy or holdout, and cannot produce research admission. A future verified
+substate still requires separate acquisition and exact-schema authority.
+
+The exact boundary is in `docs/handoffs/PHASE_27.md`. Stop after the offline evaluator, stdout-only
+generator, bounded verifier, tests, canonical no-input artifact, decisions/handoff documentation,
+and acceptance evidence. Do not commit provider-supplied intake or evidence JSON, supply or fabricate
+provider evidence, or perform an external request. Phase 28 is not authorized.
 
 The planned 2026-07-22 external live-data paper test is not Phase 27 and advances no Family A step.
 It is an operator acceptance activity conducted entirely inside the formally accepted Phase 12
