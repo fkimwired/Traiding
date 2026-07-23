@@ -2319,6 +2319,71 @@ PHASE_27_ALLOWED_WRITES = frozenset(
         "tests/test_repository_policy.py",
     }
 )
+T009_DOCUMENTATION_BASELINE_SHA = "b887ed4c0a7552a784c4aeaf433aa4fb3e5569a4"
+EXPECTED_T009_DOCUMENTATION_BASELINE_TREE = "4dd37c02cdfb76ccb69564031656c7131a0de2b9"
+T009_DOCUMENTATION_BASELINE_PARENT_SHA = PHASE_27_BASELINE_SHA
+T009_DOCUMENTATION_PATH = "docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md"
+T009_DOCUMENTATION_OVERLAY_PATHS = frozenset({T009_DOCUMENTATION_PATH})
+T009_DOCUMENTATION_MECHANISM_PATHS = frozenset(
+    {
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+T009_DOCUMENTATION_OWNERSHIP_PATHS = (
+    T009_DOCUMENTATION_OVERLAY_PATHS | T009_DOCUMENTATION_MECHANISM_PATHS
+)
+T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "59e91f3f005f7380f6925efc05286aa13169561e0b32dc1c46bb17a919d3cab6"
+)
+T009_DOCUMENTATION_FILE_SHA256 = "870227c6dd0fdeb0d8e38108db9eff841c4089fed241e289816c2ec5549bf7e8"
+T009_DOCUMENTATION_PROHIBITED_PATTERNS = (
+    ("external-url", re.compile(r"https?://", re.IGNORECASE)),
+    (
+        "external-email",
+        re.compile(r"(?:mailto:|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})", re.IGNORECASE),
+    ),
+    (
+        "network-command",
+        re.compile(
+            r"\b(?:curl|wget|Invoke-WebRequest|Invoke-RestMethod)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "network-call",
+        re.compile(
+            r"\b(?:requests|httpx)\s*\.\s*(?:get|post|put|patch|delete|request)\s*\("
+            r"|\bfetch\s*\(",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "credential-assignment",
+        re.compile(
+            r"^\s*(?:\$env:|export\s+|set\s+)?"
+            r"[A-Z0-9_]*(?:API_KEY|SECRET|TOKEN|PASSWORD)[A-Z0-9_]*\s*=",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+    (
+        "http-mutation",
+        re.compile(
+            r"^\s*(?:POST|PUT|PATCH|DELETE)\s+(?:https?://|/)",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+    (
+        "positive-authority",
+        re.compile(
+            r"^\s*(?:outcome:\s*(?:PASS|READY)|verified_evidence_recorded:\s*true"
+            r"|acquisition_authorized:\s*true"
+            r"|current_rights_evidence_for_exact_composition:\s*true)\s*$",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    ),
+)
 PHASE_27_INHERITED_TABLES = PHASE_26_INHERITED_TABLES
 PHASE_27_CREDENTIAL_ENV_NAMES = PHASE_26_CREDENTIAL_ENV_NAMES
 PHASE_27_ARTIFACT_SCHEMA_VERSION = "phase27-family-a-composition-rights-entitlement-evidence-v1"
@@ -10953,6 +11018,25 @@ def verify_phase26_static() -> None:
         raise AssertionError("Phase 26 introduced an unauthorized Phase 27 surface")
 
 
+def t009_documentation_path_manifest_sha256(paths: set[str] | frozenset[str]) -> str:
+    return hashlib.sha256(("\n".join(sorted(paths)) + "\n").encode("utf-8")).hexdigest()
+
+
+def t009_documentation_ownership_delta(
+    changed_paths: set[str],
+) -> tuple[set[str], set[str]]:
+    return (
+        set(T009_DOCUMENTATION_OWNERSHIP_PATHS - changed_paths),
+        set(changed_paths - T009_DOCUMENTATION_OWNERSHIP_PATHS),
+    )
+
+
+def t009_documentation_prohibited_findings(source: str) -> set[str]:
+    return {
+        code for code, pattern in T009_DOCUMENTATION_PROHIBITED_PATTERNS if pattern.search(source)
+    }
+
+
 def verify_phase27_static() -> None:
     missing = [path for path in PHASE_27_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -10980,6 +11064,32 @@ def verify_phase27_static() -> None:
     if ancestry.returncode != 0:
         raise AssertionError("Phase 27 HEAD is not descended from accepted Phase 26")
 
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{T009_DOCUMENTATION_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted Phase 27 baseline is unavailable") from exc
+    if git_text("show", "-s", "--format=%T", T009_DOCUMENTATION_BASELINE_SHA) != (
+        EXPECTED_T009_DOCUMENTATION_BASELINE_TREE
+    ):
+        raise AssertionError("The accepted Phase 27 baseline tree does not match")
+    if git_text("show", "-s", "--format=%P", T009_DOCUMENTATION_BASELINE_SHA) != (
+        T009_DOCUMENTATION_BASELINE_PARENT_SHA
+    ):
+        raise AssertionError("The accepted Phase 27 baseline parent does not match")
+    t009_ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", T009_DOCUMENTATION_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if t009_ancestry.returncode != 0:
+        raise AssertionError("T-009 HEAD is not descended from accepted Phase 27")
+
     changed_paths = {
         path.replace("\\", "/")
         for path in git_text("diff", "--name-only", PHASE_27_BASELINE_SHA, "--").splitlines()
@@ -10995,7 +11105,74 @@ def verify_phase27_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
-    forbidden_changes = sorted(changed_paths - PHASE_27_ALLOWED_WRITES)
+    if T009_DOCUMENTATION_OVERLAY_PATHS & PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-009 documentation overlay rewrote the Phase 27 allowlist")
+    if not T009_DOCUMENTATION_MECHANISM_PATHS <= PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-009 mechanism is outside the accepted Phase 27 maintenance paths")
+    if (
+        len(T009_DOCUMENTATION_OVERLAY_PATHS) != 1
+        or len(T009_DOCUMENTATION_MECHANISM_PATHS) != 3
+        or len(T009_DOCUMENTATION_OWNERSHIP_PATHS) != 4
+    ):
+        raise AssertionError("T-009 documentation ownership cardinality has drifted")
+    if PHASE_27_ARTIFACT_PATH in T009_DOCUMENTATION_OWNERSHIP_PATHS:
+        raise AssertionError("T-009 documentation ownership includes the Phase 27 artifact")
+    if (ROOT / PHASE_27_ARTIFACT_PATH).read_bytes() != git_blob(
+        T009_DOCUMENTATION_BASELINE_SHA, PHASE_27_ARTIFACT_PATH
+    ):
+        raise AssertionError("T-009 changed the accepted Phase 27 artifact")
+    if (
+        t009_documentation_path_manifest_sha256(T009_DOCUMENTATION_OWNERSHIP_PATHS)
+        != T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    ):
+        raise AssertionError("T-009 documentation ownership path manifest has drifted")
+
+    t009_changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text(
+            "diff", "--name-only", T009_DOCUMENTATION_BASELINE_SHA, "--"
+        ).splitlines()
+        if path
+    }
+    t009_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    t009_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    missing_t009, forbidden_t009 = t009_documentation_ownership_delta(t009_changed_paths)
+    if missing_t009:
+        raise AssertionError(
+            "T-009 documentation ownership is missing paths: " + ", ".join(sorted(missing_t009))
+        )
+    if forbidden_t009:
+        raise AssertionError(
+            "T-009 changed paths outside the exact documentation ownership policy: "
+            + ", ".join(sorted(forbidden_t009))
+        )
+    t009_document = ROOT / T009_DOCUMENTATION_PATH
+    if not t009_document.is_file() or t009_document.is_symlink():
+        raise AssertionError("T-009 documentation path is not a file")
+    if hashlib.sha256(t009_document.read_bytes()).hexdigest() != T009_DOCUMENTATION_FILE_SHA256:
+        raise AssertionError("T-009 documentation content hash does not match")
+    try:
+        t009_source = t009_document.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssertionError("T-009 documentation is not valid UTF-8") from exc
+    prohibited_findings = t009_documentation_prohibited_findings(t009_source)
+    if prohibited_findings:
+        raise AssertionError(
+            "T-009 documentation contains prohibited external-action or authority patterns: "
+            + ", ".join(sorted(prohibited_findings))
+        )
+
+    forbidden_changes = sorted(
+        changed_paths - PHASE_27_ALLOWED_WRITES - T009_DOCUMENTATION_OVERLAY_PATHS
+    )
     if forbidden_changes:
         raise AssertionError(
             "Phase 27 changed paths outside the exact allowlist: " + ", ".join(forbidden_changes)

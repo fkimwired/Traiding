@@ -293,8 +293,25 @@ def test_phase26_maintenance_overlay_is_exact_and_phase27_changes_only_developme
     )
 
 
-def test_phase26_overlay_stays_closed_while_phase27_owns_the_later_delta() -> None:
+def test_phase26_overlay_stays_closed_while_phase27_and_t009_own_the_later_delta() -> None:
     verifier = phase26_verifier_module()
+    accepted_phase27_identity = subprocess.run(
+        [
+            "git",
+            "show",
+            "-s",
+            "--format=%T %P",
+            verifier.T009_DOCUMENTATION_BASELINE_SHA,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.strip()
+    assert accepted_phase27_identity == (
+        f"{verifier.EXPECTED_T009_DOCUMENTATION_BASELINE_TREE} "
+        f"{verifier.T009_DOCUMENTATION_BASELINE_PARENT_SHA}"
+    )
     changed_paths: set[str] = set()
     for command in (
         ["git", "diff", "--name-only", verifier.PHASE_26_BASELINE_SHA, "--"],
@@ -316,7 +333,16 @@ def test_phase26_overlay_stays_closed_while_phase27_owns_the_later_delta() -> No
         - verifier.PHASE_26_ALLOWED_WRITES
         - verifier.PHASE_26_MAINTENANCE_OVERLAY_PATHS
     )
-    assert unexpected <= verifier.PHASE_27_ALLOWED_WRITES
+    assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS == {
+        "docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md"
+    }
+    assert not (verifier.T009_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert unexpected <= (
+        verifier.PHASE_27_ALLOWED_WRITES | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
+    assert (
+        unexpected - verifier.PHASE_27_ALLOWED_WRITES == verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
 
 
 def test_phase26_maintenance_overlay_rejects_a_missing_path() -> None:

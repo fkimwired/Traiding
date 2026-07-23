@@ -22,6 +22,22 @@ PHASE27_ARTIFACT_FILE_SHA256 = "b2525ad22c1a0f1569188a7aefa3d735da1903d098725a83
 PHASE27_EVIDENCE_BUNDLE_ID = "63bc191d-03ef-54ae-afa6-599e4f287cfe"
 PHASE27_EVIDENCE_BUNDLE_SHA256 = "f2d6a793e0208f57b4675f2efffe6de330a2ea9a8d895420c4011c3b12e02d14"
 PHASE27_POLICY_SHA256 = "3792dffdf784c5354b973b0de3ecc6c5119cc97a67cdf065d2e826caede29505"
+T009_BASELINE_SHA = "b887ed4c0a7552a784c4aeaf433aa4fb3e5569a4"
+T009_BASELINE_TREE = "4dd37c02cdfb76ccb69564031656c7131a0de2b9"
+T009_BASELINE_PARENT_SHA = BASELINE_SHA
+T009_DOCUMENTATION_PATH = "docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md"
+T009_DOCUMENTATION_FILE_SHA256 = "870227c6dd0fdeb0d8e38108db9eff841c4089fed241e289816c2ec5549bf7e8"
+T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "59e91f3f005f7380f6925efc05286aa13169561e0b32dc1c46bb17a919d3cab6"
+)
+EXPECTED_T009_DOCUMENTATION_OWNERSHIP_PATHS = frozenset(
+    {
+        T009_DOCUMENTATION_PATH,
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
 EXPECTED_PHASE27_ALLOWED_WRITES = frozenset(
     {
         ".github/workflows/ci.yml",
@@ -105,6 +121,19 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
     assert set(verifier.PHASE_27_REQUIRED_PATHS) <= verifier.PHASE_27_ALLOWED_WRITES
     assert verifier.PHASE_27_ALLOWED_WRITES == EXPECTED_PHASE27_ALLOWED_WRITES
     assert len(verifier.PHASE_27_ALLOWED_WRITES) == 47
+    assert verifier.T009_DOCUMENTATION_BASELINE_SHA == T009_BASELINE_SHA
+    assert verifier.EXPECTED_T009_DOCUMENTATION_BASELINE_TREE == T009_BASELINE_TREE
+    assert verifier.T009_DOCUMENTATION_BASELINE_PARENT_SHA == T009_BASELINE_PARENT_SHA
+    assert verifier.T009_DOCUMENTATION_PATH == T009_DOCUMENTATION_PATH
+    assert (
+        verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS == EXPECTED_T009_DOCUMENTATION_OWNERSHIP_PATHS
+    )
+    assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS == {T009_DOCUMENTATION_PATH}
+    assert len(verifier.T009_DOCUMENTATION_OVERLAY_PATHS) == 1
+    assert len(verifier.T009_DOCUMENTATION_MECHANISM_PATHS) == 3
+    assert len(verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS) == 4
+    assert not (verifier.T009_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert verifier.T009_DOCUMENTATION_MECHANISM_PATHS <= verifier.PHASE_27_ALLOWED_WRITES
     assert verifier.PHASE_27_INHERITED_TABLES == verifier.PHASE_26_INHERITED_TABLES
     assert len(verifier.PHASE_27_INHERITED_TABLES) == 57
     assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
@@ -121,6 +150,26 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
         ).stdout.strip()
         == BASELINE_TREE
     )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%T", T009_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T009_BASELINE_TREE
+    )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%P", T009_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T009_BASELINE_PARENT_SHA
+    )
 
 
 def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
@@ -133,10 +182,104 @@ def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
     ):
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
-    assert not changed - verifier.PHASE_27_ALLOWED_WRITES
+    assert not (
+        changed - verifier.PHASE_27_ALLOWED_WRITES - verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
     assert not verifier.PHASE_27_ALLOWED_WRITES - changed
+    assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS <= changed
     assert "services/api/live_order_submit.py" not in verifier.PHASE_27_ALLOWED_WRITES
     assert "docs/handoffs/PHASE_28.md" not in verifier.PHASE_27_ALLOWED_WRITES
+
+
+def test_t009_documentation_ownership_is_exact_and_content_pinned() -> None:
+    verifier = verifier_module()
+    assert (
+        verifier.T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+        == T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    assert (
+        verifier.t009_documentation_path_manifest_sha256(
+            verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS
+        )
+        == T009_DOCUMENTATION_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    changed: set[str] = set()
+    for command in (
+        ["git", "diff", "--name-only", T009_BASELINE_SHA, "--"],
+        ["git", "diff", "--cached", "--name-only", "--"],
+        ["git", "ls-files", "--others", "--exclude-standard", "--"],
+    ):
+        result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
+        changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
+    assert verifier.t009_documentation_ownership_delta(changed) == (set(), set())
+    document = ROOT / T009_DOCUMENTATION_PATH
+    assert document.is_file()
+    assert not document.is_symlink()
+    assert verifier.T009_DOCUMENTATION_FILE_SHA256 == T009_DOCUMENTATION_FILE_SHA256
+    raw = document.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == T009_DOCUMENTATION_FILE_SHA256
+    assert hashlib.sha256(raw + b"\n").hexdigest() != T009_DOCUMENTATION_FILE_SHA256
+    assert PHASE27_ARTIFACT.relative_to(ROOT).as_posix() not in (
+        verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS
+    )
+    accepted_phase27_artifact = subprocess.run(
+        ["git", "show", f"{T009_BASELINE_SHA}:{PHASE27_ARTIFACT.relative_to(ROOT).as_posix()}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert PHASE27_ARTIFACT.read_bytes() == accepted_phase27_artifact
+
+
+def test_t009_documentation_ownership_rejects_missing_and_prohibited_paths() -> None:
+    verifier = verifier_module()
+    missing = set(verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS) - {T009_DOCUMENTATION_PATH}
+    assert verifier.t009_documentation_ownership_delta(missing) == (
+        {T009_DOCUMENTATION_PATH},
+        set(),
+    )
+    live_path = "services/api/live_order_submit.py"
+    planted = set(verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS) | {live_path}
+    assert verifier.t009_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path},
+    )
+    second_doc = "docs/T009_UNOWNED_COMPANION.md"
+    planted.add(second_doc)
+    assert verifier.t009_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path, second_doc},
+    )
+    phase28_path = "docs/handoffs/PHASE_28.md"
+    planted.add(phase28_path)
+    assert verifier.t009_documentation_ownership_delta(planted) == (
+        set(),
+        {live_path, phase28_path, second_doc},
+    )
+
+
+def test_t009_documentation_rejects_external_action_and_positive_authority_canaries() -> None:
+    verifier = verifier_module()
+    document = (ROOT / T009_DOCUMENTATION_PATH).read_text(encoding="utf-8")
+    assert verifier.t009_documentation_prohibited_findings(document) == set()
+    canaries = (
+        ("external-url", "https://provider.invalid/rights"),
+        ("external-email", "mailto:rights@example.invalid"),
+        ("network-command", "Invoke-WebRequest provider.invalid"),
+        ("network-call", "requests.get(provider_url)"),
+        ("credential-assignment", "$env:FABLE5_API_KEY = 'canary'"),
+        ("http-mutation", "POST /v1/orders"),
+        ("positive-authority", "outcome: PASS"),
+        ("positive-authority", "outcome: READY"),
+        ("positive-authority", "verified_evidence_recorded: true"),
+        ("positive-authority", "acquisition_authorized: true"),
+        (
+            "positive-authority",
+            "current_rights_evidence_for_exact_composition: true",
+        ),
+    )
+    for expected, canary in canaries:
+        assert verifier.t009_documentation_prohibited_findings(canary) == {expected}
 
 
 def test_phase27_freezes_phase26_and_all_but_the_governance_overlay_delta() -> None:
