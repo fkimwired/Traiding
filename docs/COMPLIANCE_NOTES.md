@@ -245,3 +245,27 @@ schema sample, adapter, snapshot, feature, signal, return, metric, performance r
 clearance, order, or fill.
 `COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` is a truthful blocked determination, not
 permission to seek, acquire, persist, or use provider data.
+
+Phase 28 adds only an isolated CLI, deterministic socket-free mock, fixed six-GET paper/data
+adapter, transient validator/classifier, sanitized JSON evidence, focused tests, and verification
+integration for exact `AAPL`/`MSFT`/`SPY`, IEX/USD observations. IEX is explicitly labeled a
+partial-market feed that does not represent the consolidated U.S. market. The only classification
+values are `MATCH`, `NO_MATCH`, and `INSUFFICIENT_DATA`, and none carries a trade, forecast,
+ranking, allocation, or execution meaning.
+
+Raw response bodies, headers, prices, sizes, conditions, exchange codes, asset identifiers, and
+provider timestamps are discarded after in-memory validation. Evidence contains only sanitized
+statuses, reason codes, UTC inspection times, request/response/observation hashes, a sanitized
+observation-metadata snapshot ID/hash, fixed registry hashes, Git SHA, seed/trial count `0/0`,
+`forecast_horizon=NONE_OBSERVATION_ONLY`, the mandatory paper-only/no-advice label, and explicit
+false persistence/research/execution/order authority. Phase 28 adds no database, API, frontend,
+migration, provider SDK, research snapshot, strategy, performance, order, execution, cancellation,
+liquidation, or live-money surface.
+
+The 2026-07-24 first-party review is a narrow technical/operator classification, not legal advice
+or evidence of broader rights. It supports only transient, local, personal/non-commercial
+observation with no raw display, persistence, or redistribution. External mode remains blocked if
+the actual intended use, account coverage, or current terms differ or cannot be confirmed. The
+internal revalidation deadline is `2026-08-01T00:00:00Z`; a confirmation flag cannot extend it. No
+credentialed external run is authorized or performed by the implementation task; a credential,
+successful retrieval, free access, or an open-source client cannot create authority.

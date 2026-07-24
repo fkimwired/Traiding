@@ -62,8 +62,8 @@ def test_phase14_baseline_parser_registries_and_exact_allowlist_are_frozen() -> 
     assert verifier.PHASE_14_PAYLOAD_SCHEMA_VERSION == PHASE14_PAYLOAD_SCHEMA_VERSION
     assert verifier.PHASE_14_CHECK_SCHEMA_VERSION == PHASE14_CHECK_SCHEMA_VERSION
     assert verifier.PHASE_14_POLICY_ID == PHASE14_POLICY_ID
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 

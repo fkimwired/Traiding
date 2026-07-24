@@ -8,22 +8,27 @@ accepted phase decision document. No task in this file authorizes an order path,
 credential outside the documented capture commands, provider-data persistence, or any Family A
 research-admission step.
 
-## 1. Current verified baseline (2026-07-22)
+## 1. Current verified baseline (2026-07-24)
 
-- Branch: `codex/phase-27-family-a-rights-entitlement-intake`. Its accepted input baseline is
-  Phase 26 commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
-  `d1b74532704708e97047e4abf704532102ba510a`.
-- Phase 26 is formally accepted at that exact SHA/tree with same-SHA Ubuntu run `29952642818`;
-  `preflight`, `unit`, and `phase26-compose` all passed. The acceptance proves the repository and
-  closed-composition boundary only. It supplies no CRSP entitlement, RTDSM rights response, SEC
-  policy currentness, provider data, schema/PIT qualification, research, or execution authority.
+- Branch: `codex/phase-28-alpaca-iex-observation-pilot`. Its accepted input baseline is T-010
+  commit `e9f4d99d8c1bc5c5b4ac615cf3592d5f0ae3113e`, whose same-SHA CI run `30060339481`
+  passed.
+- Phase 27 is formally accepted at commit `b887ed4c0a7552a784c4aeaf433aa4fb3e5569a4`, tree
+  `4dd37c02cdfb76ccb69564031656c7131a0de2b9`, with same-SHA CI run `29979398219`.
+  T-009 and T-007 are accepted documentation descendants at
+  `1d8aa00f80fdd60b2b5ab3d431448de28a872c17` and
+  `4180ce659aa621d6155cac1118f7011deb92aa9f`. These descendants preserve the accepted Phase 27
+  identity and result.
 - Phase 25 remains implemented at `4d70b823947fd61d0ea17df14c9f1ff9f93fd45b` without its own
   recorded same-SHA Ubuntu acceptance run. Phase 26's later acceptance does not convert the missing
   Phase 25 RTDSM response into verified rights evidence.
-- Phase 27 is separately authorized and implemented on this branch over the accepted Phase 26
-  baseline. It must remain an offline metadata-only intake with the truthful
+- Phase 27 remains an offline metadata-only intake with the truthful
   `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` result until independently verified
   evidence is actually supplied in a separately reviewed workflow.
+- Phase 28 is separately authorized over T-010 as an isolated CLI-only, fixed-universe Alpaca IEX
+  observation pilot. Its external mode remains
+  `BLOCKED / EXTERNAL_OBSERVATION_REQUIRES_SEPARATE_AUTHORIZATION`; this implementation task
+  performs only deterministic mock and local validation.
 - What the product can demonstrate today, locally, with no credentials: the full Compose stack;
   four-mode frontend over immutable Phase 2–14 evidence; deterministic local mock paper simulation
   (Phase 10) with evidence bundles and offline verification (Phase 11); deterministic mock paper
@@ -56,7 +61,11 @@ research-admission step.
   initial commit is `c11e899a25732b49d9d7b3a95e2d12c4b6eff215`; the immutable Phase 17/18
   commit-to-commit boundaries remain frozen, while the exact later T-003 frontend overlay and the
   exact clock-authority repair delta are enforced by repository-policy tests.
-- T-006–T-010: not started.
+- **T-007, T-009, and T-010 - implemented, reviewed, committed, and accepted.** T-007 is
+  `4180ce659aa621d6155cac1118f7011deb92aa9f`; T-009 is
+  `1d8aa00f80fdd60b2b5ab3d431448de28a872c17`; T-010 is
+  `e9f4d99d8c1bc5c5b4ac615cf3592d5f0ae3113e`.
+- T-006 and T-008: not started.
 
 ### Local Alpaca CLI disposition (2026-07-22)
 
@@ -181,8 +190,55 @@ accepted Phase 26 lineage, git SHA, seed/trial count `0/0`, UTC timestamps, inde
 evidence references, and explicit false authority fields. Stop `P27-DOC` after the documents; do not
 use this unit to change the separately owned offline evaluator, generator, verifier, tests, or CI,
 and do not create provider evidence or an external request. Only sanitized metadata is accepted;
-provider-supplied intake and evidence bodies are not committed. Phase 28 requires separate
-authorization.
+provider-supplied intake and evidence bodies are not committed. The subsequently authorized Phase
+28 pilot does not change this Phase 27 boundary.
+
+### Phase 28 authorization and current state (2026-07-24)
+
+The repository owner authorized **Phase 28 - Alpaca IEX Observation-Only Candidate-Screen Pilot**,
+anchored at accepted T-010. This authorization supersedes the formerly reserved Phase 28 Family A
+acquisition/schema boundary without changing any Phase 26/27 Family A identity or evidence state.
+
+**P28-CORE - isolated pilot.** Governing phase: Phase 28 only. Implement a CLI-only package with
+exactly six GETs: asset status for `AAPL`, `MSFT`, and `SPY`, followed by latest multi-symbol bars,
+latest multi-symbol quotes, and multi-symbol snapshots. The feed and currency are fixed at
+`iex`/`USD`. Exactly eight ordered observation predicates emit only `MATCH`, `NO_MATCH`, or
+`INSUFFICIENT_DATA`. Raw values exist in memory only and the JSON output is sanitized historical
+evidence. Acceptance commands are the four focused paper-service Phase 28 test files,
+`tests/test_phase28_static.py`, Ruff, mypy, and the Phase 28 static verifier named in the handoff.
+Literal negative assertion: a non-GET request, seventh endpoint, fourth symbol, alternate feed,
+credential/output canary, raw value, database/API/frontend import, order/execution operation, or
+live path fails. Evidence includes config, universe, signal-registry, and transport-profile hashes;
+evidence, sanitized-observation-snapshot, and inspection IDs/hashes; Git SHA; UTC timestamps;
+seed/trial count `0/0`; `forecast_horizon=NONE_OBSERVATION_ONLY`; fixed labels; closed outcomes;
+and explicit false persistence/research/execution/order/live authority. Stop before any
+credentialed external request or any scope expansion.
+
+**P28-DOC - decisions, handoff, exact-use review, and status.** Governing phase: Phase 28
+documentation only. Allowed writes are the Phase 28 decisions/handoff and directly required status,
+data-source, compliance, evaluation, and risk-policy reconciliations. Acceptance is `git diff
+--check`, the focused policy/status/static tests, and the Phase 28 static verifier. Literal negative
+assertion: documentation cannot claim consolidated coverage, research qualification, provider
+rights for broader use, performance, advice, execution, orders, or live authority. Evidence records
+the 2026-07-24 first-party source URLs and review date, accepted T-010 SHA, source-path/content
+manifest, Git SHA, seed/trial count `0/0`, and UTC verification time. Stop if any accepted artifact,
+identity, or allowlist would change.
+
+**P28-VERIFY - exact ownership and CI integration.** Governing phase: Phase 28 verification
+maintenance only. Acceptance is the focused Phase 28 suite, repository policy/status tests, static
+Phase 28 verifier, full regressions, and later clean committed-tree verification when separately
+authorized. Literal negative assertion: CI reads no provider credential and makes no provider
+request; path drift, accepted-identity drift, secrets, raw values, order/execution/live tokens, or a
+mock claiming external observation fail. Evidence records exact path/content manifests, preserved
+hashes, command results, Git SHA, seed/trial count `0/0`, and UTC time. Stop rather than weaken an
+inherited guardrail or cross the Phase 28 boundary.
+
+The exact-use review is a narrow technical/operator classification, not legal advice. Current
+first-party material supports only a transient local personal/non-commercial observation with no
+raw display, persistence, or redistribution. If actual intended use, account coverage, or current
+terms differ or cannot be confirmed, external mode remains blocked. Its fail-closed internal
+revalidation deadline is `2026-08-01T00:00:00Z`; a confirmation flag cannot extend that deadline.
+No credentialed run is authorized by this implementation task.
 
 ### Historical known condition before the 2026-07-22 reconciliation
 

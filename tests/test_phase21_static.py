@@ -128,8 +128,8 @@ def test_phase21_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert len(verifier.PHASE_21_ALLOWED_WRITES) == 41
     assert verifier.PHASE_21_INHERITED_TABLES == verifier.PHASE_20_INHERITED_TABLES
     assert len(verifier.PHASE_21_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -387,8 +387,8 @@ def test_phase21_ci_wrappers_browser_zero_write_cleanup_and_phase22_denial_are_a
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
         assert "--phase" in wrapper
-        assert "25, 26, or 27" in wrapper
-        assert "28" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
+        assert "25, 26, 27, or 28" in wrapper
+        assert "29" not in wrapper.split("must be one of", 1)[1].split(".", 1)[0]
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",

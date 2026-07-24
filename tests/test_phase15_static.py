@@ -68,8 +68,8 @@ def test_phase15_baseline_parser_registries_and_exact_allowlist_are_frozen() -> 
     )
     assert len(verifier.PHASE_15_INHERITED_TABLES) == 57
     assert len(set(verifier.PHASE_15_INHERITED_TABLES)) == 57
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 

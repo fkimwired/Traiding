@@ -58,8 +58,8 @@ def test_phase11_baseline_parser_and_exact_allowlist_are_frozen() -> None:
     assert verifier.EXPECTED_PHASE_11_BASELINE_TREE == BASELINE_TREE
     assert verifier.PHASE_11_BUNDLE_SCHEMA_VERSION == BUNDLE_VERSION
     assert verifier.PHASE_11_BUNDLE_PATH == BUNDLE_PATH
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 

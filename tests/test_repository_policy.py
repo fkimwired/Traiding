@@ -390,11 +390,22 @@ def test_phase26_overlay_stays_closed_while_later_maintenance_owners_are_exact()
         | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
         | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
         | verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        | verifier.PHASE_28_ALLOWED_WRITES
     )
-    assert unexpected - verifier.PHASE_27_ALLOWED_WRITES == (
-        verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    prior_owned = (
+        verifier.PHASE_27_ALLOWED_WRITES
+        | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
         | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
         | verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+    )
+    assert unexpected - prior_owned == verifier.PHASE_28_ALLOWED_WRITES - prior_owned
+    assert verifier.phase28_ownership_delta(set(verifier.PHASE_28_ALLOWED_WRITES)) == (
+        set(),
+        set(),
+    )
+    assert (
+        verifier.phase28_path_manifest_sha256(verifier.PHASE_28_ALLOWED_WRITES)
+        == verifier.PHASE_28_PATH_MANIFEST_SHA256
     )
     accepted_t009_document = subprocess.run(
         [
@@ -577,7 +588,7 @@ def test_phase27_entrypoints_ci_and_runner_select_the_active_phase() -> None:
         assert "--phase" in source
         assert (
             "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, "
-            "20, 21, 22, 23, 24, 25, 26, or 27" in source
+            "20, 21, 22, 23, 24, 25, 26, 27, or 28" in source
         )
     workflow = normalized(ROOT / ".github/workflows/ci.yml")
     assert workflow.startswith("name: phase-27-ci\n")
@@ -598,9 +609,13 @@ def test_phase27_entrypoints_ci_and_runner_select_the_active_phase() -> None:
     assert "preflight:" in workflow
     assert "unit:" in workflow
     assert "phase27-compose:" in workflow
+    assert "phase28-static:" in workflow
+    assert "phase28-compose:" in workflow
     assert "timeout-minutes: 180" in workflow
     assert "verify_phase1.py --static-only --phase 27" in workflow
     assert "verify_phase1.py --phase 27" in workflow
+    assert "verify_phase1.py --static-only --phase 28" in workflow
+    assert "verify_phase1.py --phase 28" in workflow
     assert "run_phase_gate.py run --phase 12" not in workflow
     assert "npm ci" in workflow
     assert "npx playwright install --with-deps chromium" not in workflow

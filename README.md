@@ -734,6 +734,11 @@ retention/deletion, attribution, and third-party-content rights needed for opera
   entitlement, RTDSM authenticated-response, SEC current-policy, audit, fail-closed, and
   false-authority requirements.
 - `docs/handoffs/PHASE_27.md`: Phase 27 offline evidence-intake contract and Phase 28 stop boundary.
+- `docs/PHASE_28_ALPACA_IEX_OBSERVATION_ONLY_CANDIDATE_SCREEN_DECISIONS.md`: fixed Alpaca
+  AAPL/MSFT/SPY, IEX/USD, six-GET, deterministic-predicate, transient-data, sanitized-evidence,
+  exact-use, and false-authority decisions.
+- `docs/handoffs/PHASE_28.md`: Phase 28 implementation/acceptance contract and external-run stop
+  boundary.
 - `services/extraction`: canonical Phase 2 schema, mock extractor, persistence, workflow, and tests.
 - `services/mapping`: pure Phase 3 mapper, immutable persistence boundary, and tests.
 - `services/data`: vendor-neutral Phase 4 contracts and synthetic snapshots plus isolated Phase 13
@@ -749,9 +754,9 @@ retention/deletion, attribution, and third-party-content rights needed for opera
 - `services/backtester`: deterministic Phase 5 evaluation gates and immutable evidence.
 - `services/research`: deterministic Phase 6 research workflows and immutable lineage.
 - `services/risk`: fail-closed Phase 7 approval and pre-order-risk assessment, without execution.
-- `services/paper`: deterministic local simulation and Phase 11 bundle evidence, plus the Phase 12
-  six-read shadow-readiness contract, deterministic mock, fixed paper adapter, sanitized persistence,
-  and explicit local capture workflow; no order or live path.
+- `services/paper`: deterministic local simulation and Phase 11 bundle evidence, the Phase 12
+  six-read shadow-readiness contract, and the isolated Phase 28 fixed-universe IEX observation-only
+  CLI pilot with deterministic mock and sanitized evidence; no order or live path.
 - `strategy_specs/`: reserved for source-specific Phase 2 artifacts, not invented post content.
 
 ## Validation posture
@@ -764,21 +769,26 @@ inputs; missing values block promotion rather than receiving optimistic defaults
 
 ## Next step
 
-Phase 26 is formally accepted at commit `b1ad522c666f472f02ad5995d8fa52e3413c2cac`, tree
-`d1b74532704708e97047e4abf704532102ba510a`, with same-SHA Ubuntu workflow run `29952642818`.
-Phase 27 is separately authorized as an offline, metadata-only selected-composition
-rights-and-entitlement evidence-intake evaluator and documentation contract. No CRSP executed
-agreement or exact Linux flat-file entitlement,
-authenticated RTDSM exact-scope response, or current SEC policy-revalidation evidence was supplied,
-so its truthful current result is `BLOCKED /
-COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`.
+Phase 27 is formally accepted at commit `b887ed4c0a7552a784c4aeaf433aa4fb3e5569a4`, tree
+`4dd37c02cdfb76ccb69564031656c7131a0de2b9`, with same-SHA Ubuntu workflow run `29979398219`.
+
+Phase 28 truthful current result is `BLOCKED /
+EXTERNAL_OBSERVATION_REQUIRES_SEPARATE_AUTHORIZATION`.
 
 The Phase 27 evaluator remains database-free and network-disabled, accepts sanitized metadata only,
 and commits only the deterministic canonical no-input artifact, never provider-supplied intake or
 evidence bodies. A future complete and independently verified evidence set may use only
 `VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORITY`; the outcome remains `BLOCKED`,
-and exact-schema authority remains false. Phase 28 is not authorized. Do not contact a provider,
-accept terms, load credentials, request or persist provider observations, qualify schemas or
-point-in-time fitness, create a non-synthetic snapshot, run research, compute performance, promote a
-strategy, change risk, submit an order, or add any live capability without the separately required
-authority.
+and exact-schema authority remains false. Its truthful current result remains `BLOCKED /
+COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING` with `verified_evidence_recorded=false`.
+
+Phase 28 is authorized only as a CLI-only fixed `AAPL`/`MSFT`/`SPY` observation pilot using six
+fixed Alpaca GETs with `feed=iex` and `currency=USD`. IEX is partial-market, not consolidated data.
+Raw provider values are transient; sanitized evidence contains only closed
+`MATCH`/`NO_MATCH`/`INSUFFICIENT_DATA` observation classifications, hashes, timestamps, labels, and
+false authority fields. The deterministic mock performs no network request. A credentialed external
+run still requires separate explicit authorization and current exact-use confirmation; the
+fail-closed internal review deadline is `2026-08-01T00:00:00Z`. Do not
+persist raw provider data, qualify it for research, create a strategy or recommendation, compute
+performance, change risk, submit an order, or add any API, frontend, database, execution, or live
+capability.

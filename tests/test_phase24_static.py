@@ -40,8 +40,8 @@ def test_phase24_baseline_parser_allowlist_and_static_inheritance_are_exact() ->
     assert set(verifier.PHASE_24_REQUIRED_PATHS) <= verifier.PHASE_24_ALLOWED_WRITES
     assert verifier.PHASE_24_INHERITED_TABLES == verifier.PHASE_23_INHERITED_TABLES
     assert len(verifier.PHASE_24_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
     assert (
@@ -202,8 +202,8 @@ def test_phase24_is_frozen_while_phase25_wrappers_and_browser_inheritance_are_ac
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source and "--phase" in source
-        assert "25, 26, or 27" in source
-        assert "28" not in source.split("must be one of", 1)[1].split(".", 1)[0]
+        assert "25, 26, 27, or 28" in source
+        assert "29" not in source.split("must be one of", 1)[1].split(".", 1)[0]
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",

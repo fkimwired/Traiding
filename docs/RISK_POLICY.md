@@ -334,3 +334,19 @@ would still require separate acquisition and exact-schema authority. It cannot c
 cost, slippage, walk-forward, leakage, holdout, approval, currentness, revocation, or pre-order-risk
 checks. It cannot produce a candidate, recommendation, position size, order, execution authority, or
 live path. Every existing risk and promotion gate remains fail-closed and unchanged.
+
+## Alpaca IEX observation-only candidate-screen pilot (Phase 28)
+
+Phase 28 emits only `MATCH`, `NO_MATCH`, or `INSUFFICIENT_DATA` for a fixed
+`AAPL`/`MSFT`/`SPY` partial-market observation. The word "candidate" does not create a research
+candidate, recommendation, rank, forecast, position, quantity, limit, risk decision, approval, or
+execution intent. No Phase 28 result may enter a Phase 5 evaluation, Phase 6 research artifact,
+Phase 7 approval, Phase 10 simulation, or any order workflow.
+
+The raw IEX values are transient and not research-qualified; only sanitized historical evidence
+may leave the workflow. Phase 28 computes or mutates no risk limit, exposure, loss stop, drawdown
+state, allocation, or authority. Missing, stale, invalid, mismatched, or uncomputable evidence fails
+closed as `INSUFFICIENT_DATA` or a blocked run. IEX is partial-market rather than consolidated
+coverage, and a later separately authorized external observation still cannot clear any existing
+data, research, governance, currentness, revocation, or pre-order-risk gate. Paper-only remains the
+sole permitted execution mode, and no order or live-money path exists.

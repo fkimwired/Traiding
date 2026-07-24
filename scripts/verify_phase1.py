@@ -2540,6 +2540,239 @@ T010_CLAUDE_FILE_SHA256 = "f6b8a657be1596f2547ea9d6711a36bafd171243f8f194476a7ac
 T010_STATUS_TEST_FILE_SHA256 = "5ed0f5efc8e112623a716a5f2631b8b2c36de374894198c1065b1ec277b4e958"
 T010_EXTERNAL_RULES_HEADING = b"# External observation and free-source rules"
 T010_EXTERNAL_RULES_SHA256 = "dae3a082ef1c5427d63ab3c2732c0a0e2cc0fae57854d6ef3569d26a13c44b99"
+PHASE_28_BASELINE_SHA = "e9f4d99d8c1bc5c5b4ac615cf3592d5f0ae3113e"
+EXPECTED_PHASE_28_BASELINE_TREE = "380ee0c86874e0aca3d7e30e9ff6d76f36441284"
+PHASE_28_REQUIRED_PATHS = (
+    "docs/PHASE_28_ALPACA_IEX_OBSERVATION_ONLY_CANDIDATE_SCREEN_DECISIONS.md",
+    "docs/handoffs/PHASE_28.md",
+    "scripts/capture_alpaca_iex_observation_pilot.py",
+    "services/paper/src/fable5_paper/phase28/__init__.py",
+    "services/paper/src/fable5_paper/phase28/adapters.py",
+    "services/paper/src/fable5_paper/phase28/alpaca.py",
+    "services/paper/src/fable5_paper/phase28/canonical.py",
+    "services/paper/src/fable5_paper/phase28/contracts.py",
+    "services/paper/src/fable5_paper/phase28/settings.py",
+    "services/paper/src/fable5_paper/phase28/workflow.py",
+    "services/paper/tests/test_phase28_adapters.py",
+    "services/paper/tests/test_phase28_contracts.py",
+    "services/paper/tests/test_phase28_security.py",
+    "services/paper/tests/test_phase28_workflow.py",
+    "tests/test_phase28_static.py",
+)
+PHASE_28_ALLOWED_WRITES = frozenset(
+    {
+        ".github/workflows/ci.yml",
+        "DEVELOPMENT.md",
+        "Makefile",
+        "README.md",
+        "docs/COMPLIANCE_NOTES.md",
+        "docs/DATA_SOURCES.md",
+        "docs/EVALS.md",
+        "docs/IMPLEMENTATION_PLAN.md",
+        "docs/PHASE_28_ALPACA_IEX_OBSERVATION_ONLY_CANDIDATE_SCREEN_DECISIONS.md",
+        "docs/RISK_POLICY.md",
+        "docs/handoffs/PHASE_28.md",
+        "scripts/capture_alpaca_iex_observation_pilot.py",
+        "scripts/check.ps1",
+        "scripts/check.sh",
+        "scripts/verify_phase1.py",
+        "services/paper/src/fable5_paper/phase28/__init__.py",
+        "services/paper/src/fable5_paper/phase28/adapters.py",
+        "services/paper/src/fable5_paper/phase28/alpaca.py",
+        "services/paper/src/fable5_paper/phase28/canonical.py",
+        "services/paper/src/fable5_paper/phase28/contracts.py",
+        "services/paper/src/fable5_paper/phase28/settings.py",
+        "services/paper/src/fable5_paper/phase28/workflow.py",
+        "services/paper/tests/test_phase28_adapters.py",
+        "services/paper/tests/test_phase28_contracts.py",
+        "services/paper/tests/test_phase28_security.py",
+        "services/paper/tests/test_phase28_workflow.py",
+        "tests/test_phase11_static.py",
+        "tests/test_phase12_static.py",
+        "tests/test_phase13_static.py",
+        "tests/test_phase14_static.py",
+        "tests/test_phase15_static.py",
+        "tests/test_phase16_static.py",
+        "tests/test_phase17_static.py",
+        "tests/test_phase18_static.py",
+        "tests/test_phase19_static.py",
+        "tests/test_phase20_static.py",
+        "tests/test_phase21_static.py",
+        "tests/test_phase22_static.py",
+        "tests/test_phase23_static.py",
+        "tests/test_phase24_static.py",
+        "tests/test_phase25_static.py",
+        "tests/test_phase27_static.py",
+        "tests/test_phase28_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+PHASE_28_PATH_MANIFEST_SHA256 = "8d73a16c1bc4da4c2381fc0748e780c899729a07e664d29f56465e4ae9bf8150"
+PHASE_28_CONTENT_PATHS = PHASE_28_ALLOWED_WRITES - {"scripts/verify_phase1.py"}
+PHASE_28_FILE_SHA256 = {
+    ".github/workflows/ci.yml": "e50d23cb912b426898fec3529779bfdd0db9f83203b16cfbac4418d1857f41e7",
+    "DEVELOPMENT.md": "70a1ed91951fb4e88cf6e00d2ecdf8e0de4c862684f500b98a4e9ece090d19f3",
+    "Makefile": "146521557c1072da1b6f795a51a613ceca8b409eec9647bb69d09ee285a335b0",
+    "README.md": "7258843ff3ea358cb0ba79b779153ca7ffa381752405084085dd738dde568739",
+    "docs/COMPLIANCE_NOTES.md": "9a69ce258df488bf781aa14a43ffd8d8ac74ae242cc9111d1040ab56649c5a7b",
+    "docs/DATA_SOURCES.md": "9e8963d82e8b9335beaeddfaf7bf8ec5ee5428afc0b5e12b91c647bb4d7dad20",
+    "docs/EVALS.md": "1300e07b8240d715433ddb57fe436fdd147833a5f32625e33e017a115bc585ba",
+    "docs/IMPLEMENTATION_PLAN.md": (
+        "c7c9aa8311d7926039ae0fc2fa0fe445a61702cd012db98efdad861b0c4f799d"
+    ),
+    "docs/PHASE_28_ALPACA_IEX_OBSERVATION_ONLY_CANDIDATE_SCREEN_DECISIONS.md": (
+        "954e2da06cdbc30e8250362a3a6e143bc9ce7a9ee580bf267e007f6af31c455b"
+    ),
+    "docs/RISK_POLICY.md": "9264e3a887607e1779bdee72396e534ea931c7e1de6b3e30362475a25383abe1",
+    "docs/handoffs/PHASE_28.md": "8ce01c529f4ae4e63bb9254404ab3eae84e45183bb04768603e42ce737efa08a",
+    "scripts/capture_alpaca_iex_observation_pilot.py": (
+        "4c969e325b1dc2dff3a72274a3155b07ad6517019ce420ae8cc9c4524b42dc7a"
+    ),
+    "scripts/check.ps1": "b37417bc6d7ecd4700313042b4a9585aab8929a5fcd9a063d5f1287080f59736",
+    "scripts/check.sh": "ed958ed86c2dfecb22cf2964f68d6b18b598a51fca5a6a2b95842992bc0daafd",
+    "services/paper/src/fable5_paper/phase28/__init__.py": (
+        "e8bf6f727f54e645310b9891501af0f25ec7ce64179ef2eca31fe6a31cad3031"
+    ),
+    "services/paper/src/fable5_paper/phase28/adapters.py": (
+        "fec5fc34a69b8b244bb621199be4183fb51e493c64c2ff4e872df4464826d8e6"
+    ),
+    "services/paper/src/fable5_paper/phase28/alpaca.py": (
+        "353e1b73979d8819d6bd1433cd2ebf5d4490cd613a203984b10217ae652d39d4"
+    ),
+    "services/paper/src/fable5_paper/phase28/canonical.py": (
+        "e5df1db30fd6d464873b45e19d7c3e1e5a70649f99b677fafbc193978da3a2c8"
+    ),
+    "services/paper/src/fable5_paper/phase28/contracts.py": (
+        "30b0626390df7fc83f2275829da55157db6570258cd289f5b0489f0d193bde39"
+    ),
+    "services/paper/src/fable5_paper/phase28/settings.py": (
+        "a815440dde61857295049869bbc02780bf43a8ff79974966873b38111c920bbd"
+    ),
+    "services/paper/src/fable5_paper/phase28/workflow.py": (
+        "b804f0b3422f1d1d7a16ee56a91e047ce5f0a6abfd8db6de039f8d4a0e62277e"
+    ),
+    "services/paper/tests/test_phase28_adapters.py": (
+        "fae8eb7d598ea2624ca51a97bfa735449ebf170afa66064d573a17961456763a"
+    ),
+    "services/paper/tests/test_phase28_contracts.py": (
+        "ffe3c698f5f873dd0360591d81ac3ff7905957797813f9b2b6fa5625ade69be7"
+    ),
+    "services/paper/tests/test_phase28_security.py": (
+        "418fdf72f173f7f77294c9c59d11ee89f6885defbf6becd531b31b9cdb0d11cf"
+    ),
+    "services/paper/tests/test_phase28_workflow.py": (
+        "efbe5b641babd9ab22d9ace17baf9134dd75e3233a0d8651821948c140a6f406"
+    ),
+    "tests/test_phase11_static.py": (
+        "e9944d41d675cc1f368eb68c32bbb74f99674f8bb16ae85f4d6117328772d146"
+    ),
+    "tests/test_phase12_static.py": (
+        "5acec4f5445105116a0886ff8f20d6744a59cd643c742d0d68a4407729d7f90d"
+    ),
+    "tests/test_phase13_static.py": (
+        "1d661aa534824cd2d043ba01c4b7eba25da370154220ab00121b73d4d2bb6d3e"
+    ),
+    "tests/test_phase14_static.py": (
+        "d1d081f97078bd9b1a8eedec4d9fc42672b6d65639f690ef12abaf3cdda979d1"
+    ),
+    "tests/test_phase15_static.py": (
+        "a4903288e934bfc1c94e07f220d2b152c5bdfafb40e2f450a2b7a2d8ff74deb5"
+    ),
+    "tests/test_phase16_static.py": (
+        "587c285b80d43e0faf91de0445f688bbfcabad5346b68874144cbb0349b1c4fb"
+    ),
+    "tests/test_phase17_static.py": (
+        "d60fc1a5c67e57aa3d18541ad76d75835755324f250d38d5cba86eeb7a4b3e60"
+    ),
+    "tests/test_phase18_static.py": (
+        "4fab3b253beea48b58d626e02ce61b8c4d25e56eceb644a8a9a7cb94e3a8880e"
+    ),
+    "tests/test_phase19_static.py": (
+        "6bf8721787f133227ccc7463318eb80b277ec1351c4bb43d78ade759747dfe63"
+    ),
+    "tests/test_phase20_static.py": (
+        "c84744164114b3b451c5893ca9e833c356c850f27e5fdc1ba5509fe8a7b13fa9"
+    ),
+    "tests/test_phase21_static.py": (
+        "79d64b6311c2995976b7fce6016ed28f341de031242fb8940192ed095be341d6"
+    ),
+    "tests/test_phase22_static.py": (
+        "34dd44256b320945f12de23922e6fe86c73d5b273a1ff5020438292951979587"
+    ),
+    "tests/test_phase23_static.py": (
+        "57c654f69f60379cb15a4651127935381d2d538ad693d9a6110e29431929574d"
+    ),
+    "tests/test_phase24_static.py": (
+        "b30c13824b11d79d44618b1431f8022a621f798216f177addab1583f67bc4d33"
+    ),
+    "tests/test_phase25_static.py": (
+        "b5642a1d06f0a502a783939cf315ff8f19930d6de6d094e4e36764269de00151"
+    ),
+    "tests/test_phase27_static.py": (
+        "20aa25595b9a78cca929e33500200dd45860b4b73c95c36bc2a51284d6139e7e"
+    ),
+    "tests/test_phase28_static.py": (
+        "9532c593ad9bf810ca2eb7474deebea7994162679e21a9969604f1367ecd1a79"
+    ),
+    "tests/test_repository_policy.py": (
+        "67dd3f7fd8eed5fba6d0942c6f0d80930d7da599e3bd883c35a1069273280c80"
+    ),
+}
+PHASE_28_CONTENT_MANIFEST_SHA256 = (
+    "9c7ad11956a2bb35f3a96da71341cc2ab0b403f3b690f472a9ab17461fd3b436"
+)
+PHASE_28_PRODUCTION_PATHS = frozenset(
+    {
+        "scripts/capture_alpaca_iex_observation_pilot.py",
+        "services/paper/src/fable5_paper/phase28/__init__.py",
+        "services/paper/src/fable5_paper/phase28/adapters.py",
+        "services/paper/src/fable5_paper/phase28/alpaca.py",
+        "services/paper/src/fable5_paper/phase28/canonical.py",
+        "services/paper/src/fable5_paper/phase28/contracts.py",
+        "services/paper/src/fable5_paper/phase28/settings.py",
+        "services/paper/src/fable5_paper/phase28/workflow.py",
+    }
+)
+PHASE_28_FORBIDDEN_PRODUCTION_PATTERNS = (
+    (
+        "order-operation",
+        re.compile(
+            r"\b(?:submit|place|create|replace|cancel)[_-]?order\b"
+            r"|/v2/orders\b|\bliquidat(?:e|ion)\b|\bclose[_-]?position\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "http-mutation",
+        re.compile(
+            r"\.(?:post|put|patch|delete)\s*\("
+            r"|[\"'](?:POST|PUT|PATCH|DELETE)[\"']",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "live-host",
+        re.compile(r"(?<!paper-)api\.alpaca\.markets", re.IGNORECASE),
+    ),
+    (
+        "provider-sdk",
+        re.compile(r"\balpaca[_-]?(?:py|trade[_-]?api)\b", re.IGNORECASE),
+    ),
+    (
+        "database-or-product-layer",
+        re.compile(
+            r"\b(?:fastapi|psycopg|sqlalchemy)\b|fable5_(?:api|frontend)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "retry-poll-stream",
+        re.compile(
+            r"\b(?:polling|websocket|setInterval)\b|\b(?:retry|sleep)\s*\(",
+            re.IGNORECASE,
+        ),
+    ),
+)
 PHASE_27_INHERITED_TABLES = PHASE_26_INHERITED_TABLES
 PHASE_27_CREDENTIAL_ENV_NAMES = PHASE_26_CREDENTIAL_ENV_NAMES
 PHASE_27_ARTIFACT_SCHEMA_VERSION = "phase27-family-a-composition-rights-entitlement-evidence-v1"
@@ -2802,7 +3035,7 @@ def phase_number(value: str) -> int:
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
             "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, "
-            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27"
+            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, or 28"
         ) from exc
     if phase not in {
         1,
@@ -2832,10 +3065,11 @@ def phase_number(value: str) -> int:
         25,
         26,
         27,
+        28,
     }:
         raise argparse.ArgumentTypeError(
             "phase must be 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, "
-            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27"
+            "15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, or 28"
         )
     return phase
 
@@ -11265,6 +11499,51 @@ def t010_external_rules_section(source: bytes) -> bytes:
     return source[source.index(T010_EXTERNAL_RULES_HEADING) :]
 
 
+def phase28_path_manifest_sha256(paths: set[str] | frozenset[str]) -> str:
+    return hashlib.sha256(("\n".join(sorted(paths)) + "\n").encode("utf-8")).hexdigest()
+
+
+def phase28_content_manifest_sha256(file_sha256: dict[str, str]) -> str:
+    manifest = "".join(f"{path}\0{file_sha256[path]}\n" for path in sorted(file_sha256)).encode(
+        "utf-8"
+    )
+    return hashlib.sha256(manifest).hexdigest()
+
+
+def phase28_content_findings(
+    actual_file_sha256: dict[str, str],
+) -> tuple[set[str], set[str], set[str]]:
+    expected_paths = set(PHASE_28_FILE_SHA256)
+    actual_paths = set(actual_file_sha256)
+    return (
+        expected_paths - actual_paths,
+        actual_paths - expected_paths,
+        {
+            path
+            for path in expected_paths & actual_paths
+            if actual_file_sha256[path] != PHASE_28_FILE_SHA256[path]
+        },
+    )
+
+
+def phase28_ownership_delta(
+    changed_paths: set[str],
+) -> tuple[set[str], set[str]]:
+    return (
+        set(PHASE_28_ALLOWED_WRITES - changed_paths),
+        set(changed_paths - PHASE_28_ALLOWED_WRITES),
+    )
+
+
+def phase28_forbidden_surface_findings(sources: dict[str, str]) -> set[str]:
+    return {
+        f"{path}:{code}"
+        for path, source in sources.items()
+        for code, pattern in PHASE_28_FORBIDDEN_PRODUCTION_PATTERNS
+        if pattern.search(source)
+    }
+
+
 def verify_phase27_static() -> None:
     missing = [path for path in PHASE_27_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -11385,6 +11664,39 @@ def verify_phase27_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
+    phase28_changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_28_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    phase28_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    phase28_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    verified_phase28_paths: frozenset[str] = frozenset()
+    if phase28_changed_paths:
+        if git_text("show", "-s", "--format=%T", PHASE_28_BASELINE_SHA) != (
+            EXPECTED_PHASE_28_BASELINE_TREE
+        ):
+            raise AssertionError("The accepted T-010 baseline tree does not match")
+        missing_phase28, unexpected_phase28 = phase28_ownership_delta(phase28_changed_paths)
+        if missing_phase28 or unexpected_phase28:
+            details = []
+            if missing_phase28:
+                details.append("missing=" + ",".join(sorted(missing_phase28)))
+            if unexpected_phase28:
+                details.append("unexpected=" + ",".join(sorted(unexpected_phase28)))
+            raise AssertionError(
+                "Phase 27 cannot recognize a partial or widened Phase 28 overlay: "
+                + "; ".join(details)
+            )
+        verified_phase28_paths = PHASE_28_ALLOWED_WRITES
     if T009_DOCUMENTATION_OVERLAY_PATHS & PHASE_27_ALLOWED_WRITES:
         raise AssertionError("T-009 documentation overlay rewrote the Phase 27 allowlist")
     if not T009_DOCUMENTATION_MECHANISM_PATHS <= PHASE_27_ALLOWED_WRITES:
@@ -11498,7 +11810,10 @@ def verify_phase27_static() -> None:
         if path
     )
     missing_t009, forbidden_t009 = t009_documentation_ownership_delta(
-        t009_changed_paths - T007_DOCUMENTATION_OVERLAY_PATHS - T010_STATUS_CURRENCY_OVERLAY_PATHS
+        t009_changed_paths
+        - T007_DOCUMENTATION_OVERLAY_PATHS
+        - T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - (verified_phase28_paths - T009_DOCUMENTATION_OWNERSHIP_PATHS)
     )
     if missing_t009:
         raise AssertionError(
@@ -11543,7 +11858,9 @@ def verify_phase27_static() -> None:
         if path
     )
     missing_t007, forbidden_t007 = t007_documentation_ownership_delta(
-        t007_changed_paths - T010_STATUS_CURRENCY_OVERLAY_PATHS
+        t007_changed_paths
+        - T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - (verified_phase28_paths - T007_DOCUMENTATION_OWNERSHIP_PATHS)
     )
     if missing_t007:
         raise AssertionError(
@@ -11609,7 +11926,9 @@ def verify_phase27_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
-    missing_t010, forbidden_t010 = t010_status_currency_ownership_delta(t010_changed_paths)
+    missing_t010, forbidden_t010 = t010_status_currency_ownership_delta(
+        t010_changed_paths - (verified_phase28_paths - T010_STATUS_CURRENCY_OWNERSHIP_PATHS)
+    )
     if missing_t010:
         raise AssertionError(
             "T-010 status-currency ownership is missing paths: " + ", ".join(sorted(missing_t010))
@@ -11672,6 +11991,7 @@ def verify_phase27_static() -> None:
         - T009_DOCUMENTATION_OVERLAY_PATHS
         - T007_DOCUMENTATION_OVERLAY_PATHS
         - T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - verified_phase28_paths
     )
     if forbidden_changes:
         raise AssertionError(
@@ -11930,10 +12250,11 @@ def verify_phase27_static() -> None:
             raise AssertionError(f"Phase 27 CI does not clear {environment_name}")
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
+        supported_phases = "25, 26, 27, or 28" if verified_phase28_paths else "25, 26, or 27"
         if (
             "FABLE5_VERIFY_PHASE" not in source
             or "--phase" not in source
-            or "25, 26, or 27" not in source
+            or supported_phases not in source
         ):
             raise AssertionError(f"{entrypoint} does not advertise exact Phase 27 support")
     for browser_path in (
@@ -11956,10 +12277,581 @@ def verify_phase27_static() -> None:
     ):
         if required not in combined_docs:
             raise AssertionError(f"Phase 27 documentation is missing {required}")
-    if (ROOT / "docs/handoffs/PHASE_28.md").exists() or (
-        ROOT / "services/data/src/fable5_data/phase28"
+    if (ROOT / "services/data/src/fable5_data/phase28").exists():
+        raise AssertionError("Phase 28 introduced the superseded Family A acquisition surface")
+    if (ROOT / "docs/handoffs/PHASE_29.md").exists() or (
+        ROOT / "services/paper/src/fable5_paper/phase29"
     ).exists():
-        raise AssertionError("Phase 27 introduced an unauthorized Phase 28 surface")
+        raise AssertionError("Phase 28 introduced an unauthorized Phase 29 surface")
+
+
+def verify_phase28_static() -> None:
+    missing = [path for path in PHASE_28_REQUIRED_PATHS if not (ROOT / path).is_file()]
+    if missing:
+        raise AssertionError(f"Missing Phase 28 paths: {', '.join(missing)}")
+    if git_text("show", "-s", "--format=%T", PHASE_28_BASELINE_SHA) != (
+        EXPECTED_PHASE_28_BASELINE_TREE
+    ):
+        raise AssertionError("The accepted T-010 baseline tree does not match")
+    ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", PHASE_28_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if ancestry.returncode != 0:
+        raise AssertionError("Phase 28 HEAD is not descended from accepted T-010")
+
+    changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text("diff", "--name-only", PHASE_28_BASELINE_SHA, "--").splitlines()
+        if path
+    }
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    if len(PHASE_28_ALLOWED_WRITES) != 44:
+        raise AssertionError("Phase 28 ownership is not exactly 44 paths")
+    if not set(PHASE_28_REQUIRED_PATHS) <= PHASE_28_ALLOWED_WRITES:
+        raise AssertionError("Phase 28 required paths escaped exact ownership")
+    if phase28_path_manifest_sha256(PHASE_28_ALLOWED_WRITES) != PHASE_28_PATH_MANIFEST_SHA256:
+        raise AssertionError("Phase 28 ownership path manifest has drifted")
+    missing_owned, forbidden_owned = phase28_ownership_delta(changed_paths)
+    if missing_owned:
+        raise AssertionError(
+            "Phase 28 ownership is missing paths: " + ", ".join(sorted(missing_owned))
+        )
+    if forbidden_owned:
+        raise AssertionError(
+            "Phase 28 changed paths outside exact ownership: " + ", ".join(sorted(forbidden_owned))
+        )
+    for relative in sorted(PHASE_28_ALLOWED_WRITES):
+        path = ROOT / relative
+        if not path.is_file() or path.is_symlink():
+            raise AssertionError(f"Phase 28 owned path is not a regular file: {relative}")
+    if PHASE_28_CONTENT_PATHS != PHASE_28_ALLOWED_WRITES - {"scripts/verify_phase1.py"}:
+        raise AssertionError("Phase 28 content ownership policy has drifted")
+    if set(PHASE_28_FILE_SHA256) != PHASE_28_CONTENT_PATHS:
+        raise AssertionError("Phase 28 content hash registry has path drift")
+    if phase28_content_manifest_sha256(PHASE_28_FILE_SHA256) != PHASE_28_CONTENT_MANIFEST_SHA256:
+        raise AssertionError("Phase 28 content manifest policy has drifted")
+    actual_phase28_sha256 = {
+        relative: hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
+        for relative in PHASE_28_CONTENT_PATHS
+    }
+    missing_hashes, extra_hashes, changed_hashes = phase28_content_findings(actual_phase28_sha256)
+    if missing_hashes or extra_hashes or changed_hashes:
+        details: list[str] = []
+        if missing_hashes:
+            details.append("missing-hashes=" + ",".join(sorted(missing_hashes)))
+        if extra_hashes:
+            details.append("extra-hashes=" + ",".join(sorted(extra_hashes)))
+        if changed_hashes:
+            details.append("content-drift=" + ",".join(sorted(changed_hashes)))
+        raise AssertionError("Phase 28 content verification failed: " + "; ".join(details))
+    if phase28_content_manifest_sha256(actual_phase28_sha256) != PHASE_28_CONTENT_MANIFEST_SHA256:
+        raise AssertionError("Phase 28 actual content manifest does not match")
+
+    protected_paths = (
+        "AGENTS.md",
+        "CLAUDE.md",
+        "compose.yaml",
+        "package.json",
+        "package-lock.json",
+        "packages/contracts/openapi.json",
+        "packages/contracts/src/api.generated.ts",
+        "packages/contracts/src/runtime.generated.ts",
+        "pyproject.toml",
+        "requirements.lock",
+        "scripts/run_phase_gate.py",
+        PHASE_27_ARTIFACT_PATH,
+        T009_DOCUMENTATION_PATH,
+        T007_DOCUMENTATION_PATH,
+        "tests/test_status_currency.py",
+    )
+    for relative in protected_paths:
+        if (ROOT / relative).read_bytes() != git_blob(PHASE_28_BASELINE_SHA, relative):
+            raise AssertionError(f"Phase 28 changed protected accepted surface {relative}")
+    if len(PHASE_27_ALLOWED_WRITES) != 47:
+        raise AssertionError("Phase 28 changed the original Phase 27 allowlist")
+    if hashlib.sha256((ROOT / PHASE_27_ARTIFACT_PATH).read_bytes()).hexdigest() != (
+        PHASE_27_ARTIFACT_FILE_SHA256
+    ):
+        raise AssertionError("Phase 28 changed the accepted Phase 27 artifact")
+    if hashlib.sha256((ROOT / T009_DOCUMENTATION_PATH).read_bytes()).hexdigest() != (
+        T009_DOCUMENTATION_FILE_SHA256
+    ):
+        raise AssertionError("Phase 28 changed the accepted T-009 document")
+    if hashlib.sha256((ROOT / T007_DOCUMENTATION_PATH).read_bytes()).hexdigest() != (
+        T007_DOCUMENTATION_FILE_SHA256
+    ):
+        raise AssertionError("Phase 28 changed the accepted T-007 document")
+    if hashlib.sha256((ROOT / "CLAUDE.md").read_bytes()).hexdigest() != T010_CLAUDE_FILE_SHA256:
+        raise AssertionError("Phase 28 changed the accepted T-010 CLAUDE mirror")
+    if hashlib.sha256((ROOT / "tests/test_status_currency.py").read_bytes()).hexdigest() != (
+        T010_STATUS_TEST_FILE_SHA256
+    ):
+        raise AssertionError("Phase 28 changed the accepted T-010 status test")
+
+    prohibited_prefixes = (
+        "services/api/",
+        "services/frontend/",
+        "services/data/",
+        "packages/contracts/",
+    )
+    prohibited_suffixes = (".sql",)
+    prohibited_changed = sorted(
+        path
+        for path in changed_paths
+        if path.startswith(prohibited_prefixes)
+        or path.endswith(prohibited_suffixes)
+        or "/migrations/" in path
+    )
+    if prohibited_changed:
+        raise AssertionError(
+            "Phase 28 changed a database, API, frontend, data, or generated-contract surface: "
+            + ", ".join(prohibited_changed)
+        )
+
+    production_sources = {
+        relative: normalized(ROOT / relative) for relative in PHASE_28_PRODUCTION_PATHS
+    }
+    findings = phase28_forbidden_surface_findings(production_sources)
+    if findings:
+        raise AssertionError(
+            "Phase 28 production surface contains forbidden capability: "
+            + ", ".join(sorted(findings))
+        )
+    for relative, source in production_sources.items():
+        tree = ast.parse(source, filename=relative)
+        if any(isinstance(node, (ast.While, ast.AsyncFor)) for node in ast.walk(tree)):
+            raise AssertionError(f"Phase 28 production surface loops or streams: {relative}")
+
+    from fable5_paper.phase28 import canonical as phase28
+    from fable5_paper.phase28.contracts import (
+        AlpacaIexObservationEvidence,
+        InspectionCode,
+        ObservationOutcome,
+        ObservationSourceKind,
+        PredicateCode,
+    )
+
+    fixed_endpoints = (
+        (
+            "ASSET_AAPL",
+            "GET",
+            "paper-api.alpaca.markets",
+            443,
+            "/v2/assets/AAPL",
+        ),
+        (
+            "ASSET_MSFT",
+            "GET",
+            "paper-api.alpaca.markets",
+            443,
+            "/v2/assets/MSFT",
+        ),
+        (
+            "ASSET_SPY",
+            "GET",
+            "paper-api.alpaca.markets",
+            443,
+            "/v2/assets/SPY",
+        ),
+        (
+            "LATEST_BARS",
+            "GET",
+            "data.alpaca.markets",
+            443,
+            "/v2/stocks/bars/latest?symbols=AAPL%2CMSFT%2CSPY&feed=iex&currency=USD",
+        ),
+        (
+            "LATEST_QUOTES",
+            "GET",
+            "data.alpaca.markets",
+            443,
+            "/v2/stocks/quotes/latest?symbols=AAPL%2CMSFT%2CSPY&feed=iex&currency=USD",
+        ),
+        (
+            "SNAPSHOTS",
+            "GET",
+            "data.alpaca.markets",
+            443,
+            "/v2/stocks/snapshots?symbols=AAPL%2CMSFT%2CSPY&feed=iex&currency=USD",
+        ),
+    )
+    if phase28.PHASE28_UNIVERSE != ("AAPL", "MSFT", "SPY"):
+        raise AssertionError("Phase 28 universe changed")
+    if phase28.PHASE28_FEED != "iex" or phase28.PHASE28_CURRENCY != "USD":
+        raise AssertionError("Phase 28 feed or currency changed")
+    if (
+        phase28.PHASE28_FRESHNESS_TTL_SECONDS != 120
+        or phase28.PHASE28_BAR_SNAPSHOT_ROLLOVER_TOLERANCE_SECONDS != 60
+        or phase28.PHASE28_QUOTE_SNAPSHOT_TOLERANCE_SECONDS != 30
+    ):
+        raise AssertionError("Phase 28 freshness or coherence boundary changed")
+    if phase28.PHASE28_EXACT_USE_REVIEW_EXPIRES_AT_UTC != datetime(2026, 8, 1, 0, 0, tzinfo=UTC):
+        raise AssertionError("Phase 28 exact-use review deadline changed")
+    if phase28.PHASE28_EXACT_USE_REVIEW_SHA256 != (
+        "d41e5d822918d5eaee04331d06c8dc5c567c1537363313a791573bfee7ad7725"
+    ):
+        raise AssertionError("Phase 28 exact-use review identity changed")
+    expected_hashes = {
+        "config": (
+            phase28.PHASE28_CONFIG_SHA256,
+            "23c2059c06938c47e615539a4d4584770007ed7722796f0f38488020e449b514",
+        ),
+        "universe": (
+            phase28.PHASE28_UNIVERSE_SHA256,
+            "9c3f395b31a29e37b1937128d12b451ffc3e7c78360139046d4ee327cb0e0add",
+        ),
+        "signal": (
+            phase28.PHASE28_SIGNAL_REGISTRY_SHA256,
+            "b2327239149834cee7526ba983c5f4fe329ec08b0ef40eea5ebe3823d2cadc7b",
+        ),
+        "transport": (
+            phase28.PHASE28_TRANSPORT_PROFILE_SHA256,
+            "7bbabcd4965ff65ea26c9c56a2f19ede8e20342bedfaf26e020044316664a51d",
+        ),
+    }
+    for label, (actual, expected) in expected_hashes.items():
+        if actual != expected:
+            raise AssertionError(f"Phase 28 {label} identity changed")
+    if phase28.PHASE28_EXACT_USE_REVIEW_SOURCE_URLS != (
+        "https://files.alpaca.markets/disclosures/library/TermsAndConditions.pdf",
+        "https://files.alpaca.markets/disclosures/library/AcctAppMarginAndCustAgmt.pdf",
+        "https://alpaca.markets/support/redistribute-alpaca-api",
+        "https://docs.alpaca.markets/us/docs/market-data-faq",
+    ):
+        raise AssertionError("Phase 28 exact-use review source registry changed")
+    actual_endpoints = tuple(
+        (
+            endpoint.code,
+            endpoint.method,
+            endpoint.host,
+            endpoint.port,
+            endpoint.target,
+        )
+        for endpoint in phase28.PHASE28_FIXED_ENDPOINTS
+    )
+    if actual_endpoints != fixed_endpoints or tuple(InspectionCode) != tuple(
+        row[0] for row in fixed_endpoints
+    ):
+        raise AssertionError("Phase 28 exact six-GET request manifest changed")
+    if tuple(ObservationOutcome) != ("MATCH", "NO_MATCH", "INSUFFICIENT_DATA"):
+        raise AssertionError("Phase 28 outcome vocabulary changed")
+    if tuple(PredicateCode) != (
+        "ASSET_ACTIVE",
+        "ASSET_TRADABLE",
+        "LATEST_BAR_VALID_AND_FRESH",
+        "LATEST_QUOTE_VALID_AND_FRESH",
+        "SNAPSHOT_COMPLETE_AND_FRESH",
+        "CROSS_ENDPOINT_COHERENT",
+        "SESSION_DIRECTION_POSITIVE",
+        "INTRADAY_DIRECTION_POSITIVE",
+    ):
+        raise AssertionError("Phase 28 predicate registry changed")
+    if "trade, quote, minute, daily, and prior daily bar" not in (
+        phase28.PHASE28_SIGNAL_DEFINITIONS[4].definition
+    ):
+        raise AssertionError("Phase 28 snapshot completeness no longer requires latest trade")
+    if phase28.PHASE28_SIGNAL_DEFINITIONS[5].definition != (
+        "bar-to-minute-bar agrees within 60 seconds and quote-to-quote within 30 seconds"
+    ):
+        raise AssertionError("Phase 28 pairwise coherence semantics changed")
+    for label in (
+        "partial-market feed",
+        "paper-only testing",
+        "not research-qualified",
+        "a trade signal",
+        "investment advice",
+    ):
+        if label not in phase28.PHASE28_NOTICE:
+            raise AssertionError(f"Phase 28 notice is missing {label}")
+
+    transport = production_sources["services/paper/src/fable5_paper/phase28/alpaca.py"]
+    if transport.count('connection.request(\n                "GET",') != 1:
+        raise AssertionError("Phase 28 transport is not one fixed GET primitive")
+    for required in (
+        "http.client.HTTPSConnection",
+        "ssl.create_default_context()",
+        "context.check_hostname",
+        "ssl.CERT_REQUIRED",
+        "body=None",
+    ):
+        if required not in transport:
+            raise AssertionError(f"Phase 28 transport lacks {required}")
+    if "review_clock" in transport:
+        raise AssertionError("Phase 28 exact-use authority accepts a caller-controlled clock")
+    transport_tree = ast.parse(
+        transport,
+        filename="services/paper/src/fable5_paper/phase28/alpaca.py",
+    )
+    parent_by_node = {
+        child: parent
+        for parent in ast.walk(transport_tree)
+        for child in ast.iter_child_nodes(parent)
+    }
+    request_calls = [
+        node
+        for node in ast.walk(transport_tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "connection"
+        and node.func.attr == "request"
+    ]
+    if len(request_calls) != 1:
+        raise AssertionError("Phase 28 transport request AST count changed")
+    loop_types = (
+        ast.For,
+        ast.While,
+        ast.AsyncFor,
+        ast.ListComp,
+        ast.SetComp,
+        ast.DictComp,
+        ast.GeneratorExp,
+    )
+    ancestor = parent_by_node.get(request_calls[0])
+    while ancestor is not None:
+        if isinstance(ancestor, loop_types):
+            raise AssertionError("Phase 28 transport request is nested in a loop or comprehension")
+        ancestor = parent_by_node.get(ancestor)
+    review_guard_calls = [
+        node
+        for node in ast.walk(transport_tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_require_current_exact_use_review"
+    ]
+    if len(review_guard_calls) != 4:
+        raise AssertionError("Phase 28 exact-use system-clock guard call count changed")
+    fetch_source = transport.split(
+        "    def fetch(self, code: InspectionCode) -> _TransportResponse:", 1
+    )[1].split("\n\nclass AlpacaIexObservationOnlyAdapter:", 1)[0]
+    first_review_guard = fetch_source.index("_require_current_exact_use_review()")
+    connection_construction = fetch_source.index("connection = self._connection_factory(")
+    second_review_guard = fetch_source.index(
+        "_require_current_exact_use_review()", first_review_guard + 1
+    )
+    request_start = fetch_source.index("connection.request(")
+    if not (first_review_guard < connection_construction < second_review_guard < request_start):
+        raise AssertionError("Phase 28 exact-use guards do not surround connection/request")
+    constructor_source = transport.split("class AlpacaIexObservationOnlyAdapter:", 1)[1].split(
+        "def build_alpaca_iex_observation_only_adapter(",
+        1,
+    )[0]
+    builder_source = transport.split(
+        "def build_alpaca_iex_observation_only_adapter(",
+        1,
+    )[1].split("\n\n__all__", 1)[0]
+    if (
+        constructor_source.count("_require_current_exact_use_review()") != 1
+        or builder_source.count("_require_current_exact_use_review()") != 1
+    ):
+        raise AssertionError("Phase 28 constructor/builder exact-use guard changed")
+    if (
+        "hide_input_in_errors=True" not in transport
+        or transport.count("(sanitized=True)") < 2
+        or "def __repr__(self) -> str:" not in transport
+        or "def __str__(self) -> str:" not in transport
+    ):
+        raise AssertionError("Phase 28 strict response error/repr sanitization changed")
+    contracts_source = production_sources["services/paper/src/fable5_paper/phase28/contracts.py"]
+    for required_contract_guard in (
+        "self.request_started_at_utc >= PHASE28_EXACT_USE_REVIEW_EXPIRES_AT_UTC",
+        "non-observed inspection cannot carry an observation hash",
+        "blocked_seen = False",
+        "external fail-closed ordering changed",
+        "external inspection was unattempted before a block",
+        "predicate classification lacks an observed dependency",
+    ):
+        if required_contract_guard not in contracts_source:
+            raise AssertionError(f"Phase 28 evidence contract lacks {required_contract_guard}")
+    workflow_source = production_sources["services/paper/src/fable5_paper/phase28/workflow.py"]
+    coherence_source = workflow_source.split("bar_gap = abs(", 1)[1].split(
+        "session_positive: bool | None", 1
+    )[0]
+    for required in (
+        "_utc(bar.event_time_utc)",
+        "_utc(snapshot.minute_bar.event_time_utc)",
+        "_utc(quote.event_time_utc)",
+        "_utc(snapshot.latest_quote.event_time_utc)",
+        "PHASE28_BAR_SNAPSHOT_ROLLOVER_TOLERANCE_SECONDS",
+        "PHASE28_QUOTE_SNAPSHOT_TOLERANCE_SECONDS",
+    ):
+        if required not in coherence_source:
+            raise AssertionError(f"Phase 28 coherence implementation lacks {required}")
+    if "bar.event_time_utc) - _utc(quote.event_time_utc" in coherence_source:
+        raise AssertionError("Phase 28 compares unlike bar and quote timestamps")
+
+    cli = production_sources["scripts/capture_alpaca_iex_observation_pilot.py"]
+    for option in (
+        '"--deterministic-mock"',
+        '"--confirm-credentialed-paper-only-external-observation"',
+        '"--confirm-2026-07-24-exact-use-review"',
+    ):
+        if cli.count(option) != 1:
+            raise AssertionError(f"Phase 28 CLI option changed: {option}")
+    for forbidden_option in (
+        '"--symbol"',
+        '"--symbols"',
+        '"--host"',
+        '"--url"',
+        '"--path"',
+        '"--feed"',
+        '"--currency"',
+        '"--timeframe"',
+        '"--retry"',
+        '"--account"',
+        '"--side"',
+        '"--qty"',
+        '"--price"',
+    ):
+        if forbidden_option in cli:
+            raise AssertionError(
+                f"Phase 28 CLI made a frozen input configurable: {forbidden_option}"
+            )
+
+    mock_environment = os.environ.copy()
+    for name in tuple(mock_environment):
+        if any(token in name.upper() for token in ("TOKEN", "SECRET", "PASSWORD", "API_KEY")):
+            mock_environment.pop(name, None)
+    mock_environment["FABLE5_CODE_VERSION_GIT_SHA"] = PHASE_28_BASELINE_SHA
+    command = [
+        sys.executable,
+        "scripts/capture_alpaca_iex_observation_pilot.py",
+        "--deterministic-mock",
+    ]
+    generated = [
+        subprocess.run(
+            command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            env=mock_environment,
+        )
+        for _ in range(2)
+    ]
+    if any(result.returncode != 0 or result.stderr for result in generated):
+        raise AssertionError("Phase 28 deterministic mock failed")
+    if generated[0].stdout != generated[1].stdout:
+        raise AssertionError("Phase 28 deterministic mock evidence is not byte-identical")
+    try:
+        artifact = AlpacaIexObservationEvidence.model_validate_json(
+            generated[0].stdout, strict=True
+        )
+    except Exception as exc:
+        raise AssertionError("Phase 28 deterministic mock evidence is invalid") from exc
+    if (
+        artifact.source_kind is not ObservationSourceKind.DETERMINISTIC_MOCK
+        or tuple(symbol.outcome for symbol in artifact.symbols)
+        != (
+            ObservationOutcome.MATCH,
+            ObservationOutcome.NO_MATCH,
+            ObservationOutcome.INSUFFICIENT_DATA,
+        )
+        or any(item.external_request_performed for item in artifact.inspections)
+        or artifact.random_seed != 0
+        or artifact.trial_count != 0
+        or artifact.forecast_horizon != "NONE_OBSERVATION_ONLY"
+        or artifact.observation_snapshot_kind != "SANITIZED_OBSERVATION_METADATA_ONLY"
+        or artifact.exact_use_review_sha256 != phase28.PHASE28_EXACT_USE_REVIEW_SHA256
+        or artifact.exact_use_review_revalidation_deadline_utc
+        != phase28.PHASE28_EXACT_USE_REVIEW_EXPIRES_AT_UTC
+    ):
+        raise AssertionError("Phase 28 deterministic mock overclaims or changed classifications")
+    if any(item.request_id_sha256 is not None for item in artifact.inspections):
+        raise AssertionError("Phase 28 mock evidence claimed an external request ID")
+    authority = artifact.authority.model_dump(mode="python")
+    if authority != {
+        "provider_payload_persisted": False,
+        "raw_price_persisted": False,
+        "research_qualified": False,
+        "strategy_execution_eligible": False,
+        "order_submission_authorized": False,
+        "live_path_absent": True,
+        "simulated_paper_only": True,
+        "no_personalized_investment_advice": True,
+        "no_real_performance_claimed": True,
+    }:
+        raise AssertionError("Phase 28 evidence authority fields changed")
+    rendered_artifact = generated[0].stdout.decode("utf-8")
+    for forbidden_key in (
+        '"price":',
+        '"bid":',
+        '"ask":',
+        '"size":',
+        '"volume":',
+        '"body":',
+        '"headers":',
+        '"request_id":',
+        '"credential":',
+        '"secret":',
+        '"token":',
+        '"account":',
+        '"position":',
+        '"order":',
+    ):
+        if forbidden_key in rendered_artifact:
+            raise AssertionError(f"Phase 28 evidence exposed raw field {forbidden_key}")
+
+    workflow = normalized(ROOT / ".github/workflows/ci.yml")
+    if (
+        not workflow.startswith("name: phase-27-ci\n")
+        or 'FABLE5_VERIFY_PHASE: "27"' not in workflow
+        or workflow.count("python scripts/verify_phase1.py --static-only --phase 27") != 1
+        or workflow.count("python scripts/verify_phase1.py --phase 27") != 1
+        or workflow.count("python scripts/verify_phase1.py --static-only --phase 28") != 1
+        or workflow.count("python scripts/verify_phase1.py --phase 28") != 1
+        or "phase28-static:" not in workflow
+        or "phase28-compose:" not in workflow
+        or "secrets." in workflow
+        or "--confirm-credentialed-paper-only-external-observation" in workflow
+    ):
+        raise AssertionError("Phase 28 CI is not exact, additive, offline, and credential-free")
+    for name in PHASE_27_CREDENTIAL_ENV_NAMES:
+        if f'{name}: ""' not in workflow:
+            raise AssertionError(f"Phase 28 CI does not clear {name}")
+    for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
+        source = normalized(ROOT / entrypoint)
+        if (
+            "FABLE5_VERIFY_PHASE" not in source
+            or "--phase" not in source
+            or "25, 26, 27, or 28" not in source
+        ):
+            raise AssertionError(f"{entrypoint} does not advertise Phase 28")
+
+    combined_docs = normalized(
+        ROOT / "docs/PHASE_28_ALPACA_IEX_OBSERVATION_ONLY_CANDIDATE_SCREEN_DECISIONS.md"
+    ) + normalized(ROOT / "docs/handoffs/PHASE_28.md")
+    for required in (
+        PHASE_28_BASELINE_SHA,
+        "AAPL",
+        "MSFT",
+        "SPY",
+        "EXTERNAL_OBSERVATION_REQUIRES_SEPARATE_AUTHORIZATION",
+        "COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING",
+        "partial-market",
+        "paper-only",
+        "no-advice",
+        "Stop after Phase 28",
+    ):
+        if required not in combined_docs:
+            raise AssertionError(f"Phase 28 documentation is missing {required}")
+    if (ROOT / "services/data/src/fable5_data/phase28").exists():
+        raise AssertionError("Phase 28 restored the superseded Family A acquisition boundary")
+    if (ROOT / "docs/handoffs/PHASE_29.md").exists() or (
+        ROOT / "services/paper/src/fable5_paper/phase29"
+    ).exists():
+        raise AssertionError("Phase 28 introduced an unauthorized Phase 29 surface")
 
 
 def verify_static(phase: int = 1) -> None:
@@ -12197,6 +13089,24 @@ def verify_static(phase: int = 1) -> None:
         verify_phase21_static(release_closure=False, active_phase=27)
         verify_phase27_static()
         print("Static repository policy checks passed for Phase 27.")
+        return
+    if phase == 28:
+        verify_static_inherited(27, announce=False)
+        verify_phase10_static(release_closure=False, active_phase=27)
+        verify_phase11_static(release_closure=False, active_phase=27)
+        verify_phase12_static(release_closure=False, active_phase=27)
+        verify_phase13_static(release_closure=False, active_phase=27)
+        verify_phase14_static(release_closure=False, active_phase=27)
+        verify_phase15_static(release_closure=False, active_phase=27)
+        verify_phase16_static(release_closure=False, active_phase=27)
+        verify_phase17_static(release_closure=False, active_phase=27)
+        verify_phase18_static(release_closure=False, active_phase=27)
+        verify_phase19_static(release_closure=False, active_phase=27)
+        verify_phase20_static(release_closure=False, active_phase=27)
+        verify_phase21_static(release_closure=False, active_phase=27)
+        verify_phase27_static()
+        verify_phase28_static()
+        print("Static repository policy checks passed for Phase 28.")
         return
     verify_static_inherited(phase)
 
@@ -22451,6 +23361,10 @@ def verify_phase9_compose_cleanup(
 
 
 def verify_compose(phase: int = 1) -> None:
+    if phase == 28:
+        verify_compose(27)
+        print("Full Compose Phase 28 inherited verification passed.")
+        return
     acceptance_identity = (
         phase10_clean_git_identity("preflight", phase=phase)
         if phase in {10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
@@ -23408,7 +24322,7 @@ def main() -> int:
         default=os.environ.get("FABLE5_VERIFY_PHASE", "27"),
         help=(
             "Apply repository policy checks for phase 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "
-            "13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, or 27 "
+            "13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, or 28 "
             "(default: FABLE5_VERIFY_PHASE or 27)."
         ),
     )

@@ -642,3 +642,25 @@ promotion state. Even a future
 dependency. Exact delivery/schema and PIT
 qualification, the non-synthetic evaluation policy and holdout, and every research gate in this
 document remain separately blocked.
+
+## 28. Phase 28 Alpaca IEX observation-only candidate-screen pilot
+
+Phase 28 evaluates only whether the fixed CLI contract safely and deterministically classifies
+transient `AAPL`/`MSFT`/`SPY` IEX/USD observations. The closed per-symbol vocabulary is `MATCH`,
+`NO_MATCH`, or `INSUFFICIENT_DATA`. These are observation classifications, not research outcomes,
+forecasts, recommendations, ranks, strategy signals, risk approvals, or order instructions.
+
+Acceptance requires exactly six GET-only inspections in canonical order; the exact universe, feed,
+currency, endpoint, and eight-predicate registries; deterministic mock coverage of all three
+outcomes without a socket; strict fail-closed freshness/schema/symbol validation; transient raw
+values; sanitized evidence without raw provider values; an opaque sanitized-observation-metadata
+snapshot ID/hash; Git SHA, UTC timestamps, seed/trial count `0/0`;
+`forecast_horizon=NONE_OBSERVATION_ONLY`; the IEX
+partial-market/paper-only/no-advice notice; and explicit false persistence, research, execution,
+order, and live authority. Security tests reject credential leakage, raw numeric output, redirects,
+retries, polling, alternate hosts/requests/symbols/feeds, database/API/frontend imports, provider
+SDKs, and every order or live-capable surface.
+
+No credentialed external run occurs during implementation or CI. A later authorized result is
+historical evidence only and cannot become a data snapshot, satisfy any Phase 5-7 gate, clear the
+Phase 27 evidence block, establish performance, or authorize execution.

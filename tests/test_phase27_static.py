@@ -230,8 +230,8 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
     )
     assert verifier.PHASE_27_INHERITED_TABLES == verifier.PHASE_26_INHERITED_TABLES
     assert len(verifier.PHASE_27_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
     assert (
@@ -322,6 +322,7 @@ def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
         - verifier.T009_DOCUMENTATION_OVERLAY_PATHS
         - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
         - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - verifier.PHASE_28_ALLOWED_WRITES
     )
     assert not verifier.PHASE_27_ALLOWED_WRITES - changed
     assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS <= changed
@@ -355,6 +356,7 @@ def test_t009_documentation_ownership_is_exact_and_content_pinned() -> None:
         changed
         - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
         - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - (verifier.PHASE_28_ALLOWED_WRITES - verifier.T009_DOCUMENTATION_OWNERSHIP_PATHS)
     ) == (set(), set())
     document = ROOT / T009_DOCUMENTATION_PATH
     assert document.is_file()
@@ -447,7 +449,9 @@ def test_t007_documentation_ownership_is_exact_and_content_pinned() -> None:
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
     assert verifier.t007_documentation_ownership_delta(
-        changed - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        changed
+        - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        - (verifier.PHASE_28_ALLOWED_WRITES - verifier.T007_DOCUMENTATION_OWNERSHIP_PATHS)
     ) == (set(), set())
     document = ROOT / T007_DOCUMENTATION_PATH
     assert document.is_file()
@@ -579,8 +583,11 @@ def test_t010_status_currency_ownership_and_content_are_exact() -> None:
     ):
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
-    assert verifier.t010_status_currency_ownership_delta(changed) == (set(), set())
-    assert changed == EXPECTED_T010_OWNERSHIP_PATHS
+    t010_owned = changed - (
+        verifier.PHASE_28_ALLOWED_WRITES - verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS
+    )
+    assert verifier.t010_status_currency_ownership_delta(t010_owned) == (set(), set())
+    assert t010_owned == EXPECTED_T010_OWNERSHIP_PATHS
 
     claude = ROOT / "CLAUDE.md"
     status_test = ROOT / "tests/test_status_currency.py"
@@ -858,7 +865,7 @@ def test_phase27_domain_and_clis_are_offline_clockless_and_sanitized() -> None:
         assert denied in generator
 
 
-def test_phase27_active_dispatch_ci_wrappers_and_phase28_stop_are_exact() -> None:
+def test_phase27_active_dispatch_and_authorized_phase28_overlay_are_exact() -> None:
     verifier = normalized(ROOT / "scripts/verify_phase1.py")
     for required in (
         "def verify_phase27_static()",
@@ -874,11 +881,15 @@ def test_phase27_active_dispatch_ci_wrappers_and_phase28_stop_are_exact() -> Non
     assert "phase27-compose:" in workflow
     assert workflow.count("python scripts/verify_phase1.py --static-only --phase 27") == 1
     assert workflow.count("python scripts/verify_phase1.py --phase 27") == 1
+    assert workflow.count("python scripts/verify_phase1.py --static-only --phase 28") == 1
+    assert workflow.count("python scripts/verify_phase1.py --phase 28") == 1
+    assert "phase28-static:" in workflow
+    assert "phase28-compose:" in workflow
     assert "secrets." not in workflow
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source and "--phase" in source
-        assert "25, 26, or 27" in source
+        assert "25, 26, 27, or 28" in source
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
@@ -886,5 +897,7 @@ def test_phase27_active_dispatch_ci_wrappers_and_phase28_stop_are_exact() -> Non
         source = normalized(path)
         assert 'process.env.FABLE5_VERIFY_PHASE ?? "27"' in source
         assert '"27",' in source
-    assert not (ROOT / "docs/handoffs/PHASE_28.md").exists()
+    assert (ROOT / "docs/handoffs/PHASE_28.md").is_file()
     assert not (ROOT / "services/data/src/fable5_data/phase28").exists()
+    assert (ROOT / "services/paper/src/fable5_paper/phase28").is_dir()
+    assert not (ROOT / "docs/handoffs/PHASE_29.md").exists()

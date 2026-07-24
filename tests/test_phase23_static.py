@@ -66,8 +66,8 @@ def test_phase23_baseline_parser_and_static_dispatch_are_exact() -> None:
     assert set(verifier.PHASE_23_REQUIRED_PATHS) <= verifier.PHASE_23_ALLOWED_WRITES
     assert verifier.PHASE_23_INHERITED_TABLES == verifier.PHASE_22_INHERITED_TABLES
     assert len(verifier.PHASE_23_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 
@@ -240,7 +240,7 @@ def test_phase23_ci_wrappers_full_gate_and_docs_are_active(
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         wrapper = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in wrapper
-        assert "25, 26, or 27" in wrapper
+        assert "25, 26, 27, or 28" in wrapper
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",

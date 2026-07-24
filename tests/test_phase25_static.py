@@ -40,8 +40,8 @@ def test_phase25_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
     assert set(verifier.PHASE_25_REQUIRED_PATHS) <= verifier.PHASE_25_ALLOWED_WRITES
     assert verifier.PHASE_25_INHERITED_TABLES == verifier.PHASE_24_INHERITED_TABLES
     assert len(verifier.PHASE_25_INHERITED_TABLES) == 57
-    assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(value)) for value in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
     assert (
@@ -219,7 +219,7 @@ def test_phase25_is_frozen_while_phase27_dispatch_is_active() -> None:
     for entrypoint in ("scripts/check.ps1", "scripts/check.sh", "Makefile"):
         source = normalized(ROOT / entrypoint)
         assert "FABLE5_VERIFY_PHASE" in source and "--phase" in source
-        assert "25, 26, or 27" in source
+        assert "25, 26, 27, or 28" in source
     for path in (
         ROOT / "services/frontend/e2e/phase8.accessibility.spec.ts",
         ROOT / "services/frontend/e2e/phase8.visual.spec.ts",
@@ -244,5 +244,6 @@ def test_phase25_is_frozen_while_phase27_dispatch_is_active() -> None:
     assert (ROOT / "services/data/src/fable5_data/phase26").is_dir()
     assert (ROOT / "docs/handoffs/PHASE_27.md").is_file()
     assert (ROOT / "services/data/src/fable5_data/phase27").is_dir()
-    assert not (ROOT / "docs/handoffs/PHASE_28.md").exists()
+    assert (ROOT / "docs/handoffs/PHASE_28.md").is_file()
     assert not (ROOT / "services/data/src/fable5_data/phase28").exists()
+    assert not (ROOT / "docs/handoffs/PHASE_29.md").exists()

@@ -64,8 +64,8 @@ def test_phase13_baseline_parser_registries_and_exact_allowlist_are_frozen() -> 
     assert verifier.PHASE_13_CHECK_SCHEMA_VERSION == "phase13-pit-qualification-check-v1"
     assert verifier.PHASE_13_CAPABILITIES == CAPABILITIES
     assert verifier.PHASE_13_CHECK_CODES == CHECKS
-    assert [verifier.phase_number(str(phase)) for phase in range(1, 28)] == list(range(1, 28))
-    for invalid in ("0", "28", "not-a-phase"):
+    assert [verifier.phase_number(str(phase)) for phase in range(1, 29)] == list(range(1, 29))
+    for invalid in ("0", "29", "not-a-phase"):
         with pytest.raises(argparse.ArgumentTypeError):
             verifier.phase_number(invalid)
 

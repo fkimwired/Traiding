@@ -420,6 +420,50 @@ Even a future `VERIFIED_EVIDENCE_RECORDED_REQUIRES_SEPARATE_ACQUISITION_AUTHORIT
 keeps the outcome `BLOCKED` and exact-schema authority false; it grants no credential, request,
 payload, snapshot, research, performance, order, execution, or live authority.
 
+## Phase 28 Alpaca IEX observation-only pilot boundary
+
+Phase 28 adds one isolated CLI-only demonstration surface, not a research source or a change to the
+Phase 26 composition. Its universe is exactly `AAPL`, `MSFT`, and `SPY`; feed and currency are
+exactly `iex` and `USD`. It permits only three asset GETs plus one latest-bars, one latest-quotes,
+and one snapshots GET on the exact paper/data hosts. The deterministic mock performs no network
+request. A credentialed external run requires separate explicit authorization and is not performed
+by Phase 28 implementation or CI.
+
+IEX is a partial-market feed and does not represent the consolidated U.S. market. Phase 28 may
+derive only transient, local `MATCH`/`NO_MATCH`/`INSUFFICIENT_DATA` observation classifications
+from in-memory validated values. The raw provider body, headers, prices, sizes, conditions,
+exchange codes, asset identifiers, and timestamps are discarded rather than persisted or
+displayed. Sanitized evidence is historical and cannot become a research snapshot, backtest input,
+strategy signal, performance result, risk input, order, or execution authority.
+
+The exact-use review was refreshed from first-party sources on 2026-07-24 without login,
+credentials, a data-endpoint request, provider contact, or terms acceptance. Its conservative
+internal revalidation deadline is `2026-08-01T00:00:00Z`, which is an engineering control rather
+than a provider-stated expiry:
+
+- [asset-by-symbol](https://docs.alpaca.markets/us/reference/get-v2-assets-symbol_or_asset_id),
+  [latest bars](https://docs.alpaca.markets/us/v1.1/reference/stocklatestbars-1),
+  [latest quotes](https://docs.alpaca.markets/us/reference/stocklatestquotes-1), and
+  [snapshots](https://docs.alpaca.markets/us/reference/stocksnapshots-1) define the fixed GET
+  surfaces;
+- [Market Data FAQ](https://docs.alpaca.markets/us/docs/market-data-faq) establishes that IEX is
+  only one exchange rather than consolidated U.S. market coverage;
+- [Terms and Conditions](https://files.alpaca.markets/disclosures/library/TermsAndConditions.pdf)
+  provide the personal/non-commercial boundary and service/currentness limitations;
+- the [customer agreement](https://files.alpaca.markets/disclosures/library/AcctAppMarginAndCustAgmt.pdf)
+  records market-data proprietary-interest and reproduction/distribution restrictions; and
+- the [redistribution support answer](https://alpaca.markets/support/redistribute-alpaca-api)
+  prohibits redistributing Alpaca API data.
+
+This is a narrow technical/operator classification, not legal advice or evidence of broader
+provider rights. It supports proceeding only with transient, local, personal/non-commercial
+observation with no raw display, persistence, or redistribution. It does not support a research
+dataset, commercial/public/multi-user use, raw storage, performance, strategy use, or execution.
+If actual intended use, account coverage, or current terms differ or cannot be confirmed, the
+external mode remains blocked. At or after the internal deadline, a refreshed first-party review
+and separately reviewed code update are required before transport. Free access, an API key, an
+open-source client, or successful retrieval cannot override that block.
+
 ## Current free-source candidate matrix (2026-07-21 UTC)
 
 Method: first-party documentation and terms pages only, fetched read-only on 2026-07-21 UTC. No
@@ -434,8 +478,9 @@ Statuses: `TOMORROW_READ_ONLY_CANDIDATE`, `OPERATIONAL_MONITORING_CANDIDATE`,
 ### Free price/telemetry (Track A demonstration surface)
 
 **Alpaca Paper Trading + Basic (free) market data, IEX feed** — publisher Alpaca (AlpacaDB, Inc.).
-Status: `TOMORROW_READ_ONLY_CANDIDATE` (inside the accepted Phase 12 boundary only);
-`POINT_IN_TIME_INADEQUATE` and `RESEARCH_ADMISSION_BLOCKED` for any research use.
+Status: accepted Phase 12 readiness telemetry and authorized Phase 28 fixed-universe transient
+observation pilot only; `POINT_IN_TIME_INADEQUATE` and `RESEARCH_ADMISSION_BLOCKED` for every
+research use.
 
 - Paper trading is free for all Alpaca users; paper host `https://paper-api.alpaca.markets` with a
   **separate paper API key pair**; the disclosures page states the Paper Trading API "does not
@@ -465,10 +510,11 @@ Status: `TOMORROW_READ_ONLY_CANDIDATE` (inside the accepted Phase 12 boundary on
   posture. No attribution requirement found. Paper-account Trading-API numeric rate limit:
   UNVERIFIED (only `X-RateLimit-*` headers and 429 semantics are documented); the 200/min figure
   is documented for the market-data plan.
-- Citations (all retrieved 2026-07-21 UTC): docs.alpaca.markets/docs/paper-trading;
+- Matrix citations (retrieved 2026-07-21 UTC): docs.alpaca.markets/docs/paper-trading;
   docs.alpaca.markets/docs/about-market-data-api; docs.alpaca.markets/docs/historical-stock-data-1;
   docs.alpaca.markets/docs/market-data-faq; alpaca.markets/data; alpaca.markets/disclosures;
-  files.alpaca.markets/disclosures/library/TermsAndConditions.pdf.
+  files.alpaca.markets/disclosures/library/TermsAndConditions.pdf. The narrower Phase 28 exact-use
+  review and its 2026-07-24 source set are recorded immediately above.
 
 ### Filing/fundamental data
 

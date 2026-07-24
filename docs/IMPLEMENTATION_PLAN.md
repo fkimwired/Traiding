@@ -36,6 +36,8 @@ Phase 1 control plane
   -> Phase 24 Family A RTDSM rights-clarification requirements (portable, requirements-only)
   -> Phase 25 RTDSM rights-response evidence intake and adapter-pattern feasibility
   -> Phase 26 Family A operational data-composition decision (portable, selection-only)
+  -> Phase 27 Family A rights and entitlement evidence intake (offline, metadata-only)
+  -> Phase 28 Alpaca IEX observation-only candidate-screen pilot (CLI-only)
 ```
 
 No phase may bypass an earlier contract. Deferred/rejected ideas remain visible research decisions but
@@ -77,6 +79,7 @@ do not receive executable scaffolds.
 | 26 | one exact closed Family A operational data composition | deterministic generated JSON and offline verification; `FAMILY_A_CRSP_SEC_RTDSM_V1` assigns all seven required capabilities across CRSP U.S. Stock Databases, SEC EDGAR bulk archives, and Philadelphia Fed RTDSM PCPI; composition selected while rights, entitlement, schema, and PIT qualification stay blocked; no credential, data acquisition, adapter activation, research, performance, execution, order, or live path |
 
 | 27 | offline metadata-only rights and entitlement evidence intake for the exact Phase 26 composition | strict evaluator, stdout-only generator, bounded verifier, tests, canonical no-input artifact, and documentation for exact CRSP Linux-entitlement, RTDSM authenticated-response, and SEC current-policy requirements; current `BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`; no provider-supplied intake body, provider contact, credential, data, schema/PIT qualification, research, candidate screen, performance, execution, order, or live path |
+| 28 | CLI-only Alpaca IEX observation-only candidate-screen pilot | exact fixed `AAPL`/`MSFT`/`SPY`, IEX/USD, six-GET contract; deterministic mock; strict transient validation; `MATCH`/`NO_MATCH`/`INSUFFICIENT_DATA`; sanitized JSON evidence; current external `BLOCKED / EXTERNAL_OBSERVATION_REQUIRES_SEPARATE_AUTHORIZATION`; no credentialed run during implementation, raw persistence, database, API, frontend, research, strategy, performance, risk promotion, order, execution, or live path |
 
 ## Required handoff template
 
@@ -173,31 +176,47 @@ acceptance run, so Phase 25 is implemented but not formally accepted. The Phase 
 Phase 26 acceptance does not convert Phase 25's missing RTDSM response or any other missing
 provider-rights evidence into a pass.
 
-## Authorized current phase: Phase 27 offline evidence intake
+## Authorized current phase: Phase 28 Alpaca IEX observation-only pilot
 
-The repository owner separately authorized **Phase 27 - Family A Selected-Composition Rights and
-Entitlement Evidence Intake** after Phase 26 formal acceptance. Phase 27 adds an offline portable
-metadata intake/evaluator and supporting documentation for independently authenticated evidence
-addressing the first blocked Phase 26 post-selection dependency across the selected composition:
+Phase 27 is formally accepted at commit `b887ed4c0a7552a784c4aeaf433aa4fb3e5569a4`, tree
+`4dd37c02cdfb76ccb69564031656c7131a0de2b9`, with same-SHA Ubuntu workflow run `29979398219`.
+T-009, T-007, and T-010 are accepted maintenance descendants at
+`1d8aa00f80fdd60b2b5ab3d431448de28a872c17`,
+`4180ce659aa621d6155cac1118f7011deb92aa9f`, and
+`e9f4d99d8c1bc5c5b4ac615cf3592d5f0ae3113e`, respectively. None changed the Phase 27 artifact,
+allowlist, or truthful result:
 
-1. current executed CRSP U.S. Stock Databases use rights and the exact Linux flat-file delivery
-   entitlement;
-2. the authenticated RTDSM exact-scope rights response answering all ten Phase 24 questions; and
-3. a current SEC EDGAR fair-access/reuse policy revalidation with exact URLs and UTC retrieval
-   dates.
+```text
+BLOCKED / COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING / false
+```
 
-No qualifying evidence was supplied. The current result is `BLOCKED /
-COMPOSITION_RIGHTS_ENTITLEMENT_EVIDENCE_MISSING`. Phase 27 performs no provider outreach, loads no credential,
-requests, downloads, or persists no provider observation, activates no adapter, creates no snapshot,
-defines no evaluation policy or holdout, and cannot produce research admission. A future verified
-substate still requires separate acquisition and exact-schema authority.
+The repository owner separately authorized **Phase 28 - Alpaca IEX Observation-Only
+Candidate-Screen Pilot**, anchored at T-010. That authorization explicitly supersedes the formerly
+reserved Phase 28 Family A acquisition/schema boundary. It permits only an isolated CLI with:
 
-The exact boundary is in `docs/handoffs/PHASE_27.md`. Stop after the offline evaluator, stdout-only
-generator, bounded verifier, tests, canonical no-input artifact, decisions/handoff documentation,
-and acceptance evidence. Do not commit provider-supplied intake or evidence JSON, supply or fabricate
-provider evidence, or perform an external request. Phase 28 is not authorized.
+1. the fixed `AAPL`, `MSFT`, `SPY` universe;
+2. three fixed paper-host asset GETs and one each of the fixed data-host latest-bar, latest-quote,
+   and snapshot GETs;
+3. exact `feed=iex` and `currency=USD`;
+4. eight predefined deterministic observation predicates and only
+   `MATCH`/`NO_MATCH`/`INSUFFICIENT_DATA` outcomes;
+5. transient raw response validation and sanitized JSON evidence; and
+6. mandatory IEX partial-market, paper-only, research-unqualified, and no-advice labels.
 
-The planned 2026-07-22 external live-data paper test is not Phase 27 and advances no Family A step.
-It is an operator acceptance activity conducted entirely inside the formally accepted Phase 12
-read-only boundary (six allowlisted GETs, sanitized append-only evidence, explicit local capture
-command); its scope, runbook, and go/no-go conditions are defined in `DEVELOPMENT.md`.
+The exact boundary is in `docs/handoffs/PHASE_28.md`. The first-party exact-use review dated
+2026-07-24 is a narrow technical/operator classification, not legal advice or general rights
+evidence. It permits the implementation to expose external mode only for transient local
+personal/non-commercial observation with no raw display, persistence, or redistribution and only
+after current scope confirmation. If actual use or current terms differ, external mode remains
+blocked. The internal revalidation deadline is `2026-08-01T00:00:00Z`; at or after it, transport
+must fail closed until a refreshed first-party review and separately reviewed code update replace
+the expired control.
+
+No credentialed external observation is authorized by this implementation task. The current
+external result is `BLOCKED / EXTERNAL_OBSERVATION_REQUIRES_SEPARATE_AUTHORIZATION`. The
+deterministic mock performs no network request and can prove only the local contract.
+
+Stop after the Phase 28 CLI, deterministic mock, documentation, tests, and verification
+integration. Do not add a database, migration, API, frontend, provider SDK, raw-data artifact,
+research snapshot, strategy, performance result, risk promotion, order, execution, cancellation,
+liquidation, or live path. Do not begin a replacement Family A acquisition/schema phase.
