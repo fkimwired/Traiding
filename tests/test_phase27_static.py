@@ -59,6 +59,28 @@ EXPECTED_T007_DOCUMENTATION_OWNERSHIP_PATHS = frozenset(
         "tests/test_repository_policy.py",
     }
 )
+T010_BASELINE_SHA = "4180ce659aa621d6155cac1118f7011deb92aa9f"
+T010_BASELINE_TREE = "1c50bd2569dc635c3e5662179ab276f6b971230c"
+T010_BASELINE_PARENT_SHA = T007_BASELINE_SHA
+T010_CLAUDE_BASELINE_FILE_SHA256 = (
+    "d54d22a79595c2b911deb9248bcc17e4049dccd1524b85e044ed5a57ad4d64d9"
+)
+T010_CLAUDE_FILE_SHA256 = "f6b8a657be1596f2547ea9d6711a36bafd171243f8f194476a7acdb4557ca9f2"
+T010_STATUS_TEST_FILE_SHA256 = "5ed0f5efc8e112623a716a5f2631b8b2c36de374894198c1065b1ec277b4e958"
+T010_EXTERNAL_RULES_HEADING = b"# External observation and free-source rules"
+T010_EXTERNAL_RULES_SHA256 = "dae3a082ef1c5427d63ab3c2732c0a0e2cc0fae57854d6ef3569d26a13c44b99"
+T010_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "ebaf7434a43533aa1248b4c6f1b1c964026e7c53be24bcec3c6b4cd076a92247"
+)
+EXPECTED_T010_OWNERSHIP_PATHS = frozenset(
+    {
+        "CLAUDE.md",
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+        "tests/test_status_currency.py",
+    }
+)
 EXPECTED_T007_DOCUMENTATION_URLS = frozenset(
     {
         "https://www.sec.gov/about/developer-resources",
@@ -185,6 +207,27 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
         verifier.T009_DOCUMENTATION_MECHANISM_PATHS
     )
     assert verifier.T007_DOCUMENTATION_REQUIRED_URLS == EXPECTED_T007_DOCUMENTATION_URLS
+    assert verifier.T010_STATUS_CURRENCY_BASELINE_SHA == T010_BASELINE_SHA
+    assert verifier.EXPECTED_T010_STATUS_CURRENCY_BASELINE_TREE == T010_BASELINE_TREE
+    assert verifier.T010_STATUS_CURRENCY_BASELINE_PARENT_SHA == T010_BASELINE_PARENT_SHA
+    assert verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS == EXPECTED_T010_OWNERSHIP_PATHS
+    assert verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS == {
+        "CLAUDE.md",
+        "tests/test_status_currency.py",
+    }
+    assert len(verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS) == 2
+    assert len(verifier.T010_STATUS_CURRENCY_MECHANISM_PATHS) == 3
+    assert len(verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS) == 5
+    assert not (verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert not (
+        verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS & verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
+    assert not (
+        verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS & verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+    )
+    assert verifier.T010_STATUS_CURRENCY_MECHANISM_PATHS == (
+        verifier.T007_DOCUMENTATION_MECHANISM_PATHS
+    )
     assert verifier.PHASE_27_INHERITED_TABLES == verifier.PHASE_26_INHERITED_TABLES
     assert len(verifier.PHASE_27_INHERITED_TABLES) == 57
     assert [verifier.phase_number(str(value)) for value in range(1, 28)] == list(range(1, 28))
@@ -241,6 +284,26 @@ def test_phase27_baseline_parser_allowlist_and_inheritance_are_exact() -> None:
         ).stdout.strip()
         == T007_BASELINE_PARENT_SHA
     )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%T", T010_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T010_BASELINE_TREE
+    )
+    assert (
+        subprocess.run(
+            ["git", "show", "-s", "--format=%P", T010_BASELINE_SHA],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == T010_BASELINE_PARENT_SHA
+    )
 
 
 def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
@@ -258,10 +321,12 @@ def test_phase27_changed_paths_stay_inside_the_exact_allowlist() -> None:
         - verifier.PHASE_27_ALLOWED_WRITES
         - verifier.T009_DOCUMENTATION_OVERLAY_PATHS
         - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+        - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
     )
     assert not verifier.PHASE_27_ALLOWED_WRITES - changed
     assert verifier.T009_DOCUMENTATION_OVERLAY_PATHS <= changed
     assert verifier.T007_DOCUMENTATION_OVERLAY_PATHS <= changed
+    assert verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS <= changed
     assert "services/api/live_order_submit.py" not in verifier.PHASE_27_ALLOWED_WRITES
     assert "docs/handoffs/PHASE_28.md" not in verifier.PHASE_27_ALLOWED_WRITES
 
@@ -287,7 +352,9 @@ def test_t009_documentation_ownership_is_exact_and_content_pinned() -> None:
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
     assert verifier.t009_documentation_ownership_delta(
-        changed - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+        changed
+        - verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+        - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
     ) == (set(), set())
     document = ROOT / T009_DOCUMENTATION_PATH
     assert document.is_file()
@@ -379,7 +446,9 @@ def test_t007_documentation_ownership_is_exact_and_content_pinned() -> None:
     ):
         result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
         changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
-    assert verifier.t007_documentation_ownership_delta(changed) == (set(), set())
+    assert verifier.t007_documentation_ownership_delta(
+        changed - verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+    ) == (set(), set())
     document = ROOT / T007_DOCUMENTATION_PATH
     assert document.is_file()
     assert not document.is_symlink()
@@ -487,6 +556,97 @@ def test_t007_documentation_ownership_rejects_missing_and_prohibited_paths() -> 
     assert verifier.t007_documentation_ownership_delta(planted) == (
         set(),
         {live_path, phase28_path, second_doc},
+    )
+
+
+def test_t010_status_currency_ownership_and_content_are_exact() -> None:
+    verifier = verifier_module()
+    assert (
+        verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATH_MANIFEST_SHA256
+        == T010_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    assert (
+        verifier.t010_status_currency_path_manifest_sha256(
+            verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS
+        )
+        == T010_OWNERSHIP_PATH_MANIFEST_SHA256
+    )
+    changed: set[str] = set()
+    for command in (
+        ["git", "diff", "--name-only", T010_BASELINE_SHA, "--"],
+        ["git", "diff", "--cached", "--name-only", "--"],
+        ["git", "ls-files", "--others", "--exclude-standard", "--"],
+    ):
+        result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
+        changed.update(path.replace("\\", "/") for path in result.stdout.splitlines() if path)
+    assert verifier.t010_status_currency_ownership_delta(changed) == (set(), set())
+    assert changed == EXPECTED_T010_OWNERSHIP_PATHS
+
+    claude = ROOT / "CLAUDE.md"
+    status_test = ROOT / "tests/test_status_currency.py"
+    for path in (claude, status_test):
+        assert path.is_file()
+        assert not path.is_symlink()
+    assert verifier.T010_CLAUDE_BASELINE_FILE_SHA256 == T010_CLAUDE_BASELINE_FILE_SHA256
+    assert verifier.T010_CLAUDE_FILE_SHA256 == T010_CLAUDE_FILE_SHA256
+    assert verifier.T010_STATUS_TEST_FILE_SHA256 == T010_STATUS_TEST_FILE_SHA256
+    assert hashlib.sha256(claude.read_bytes()).hexdigest() == T010_CLAUDE_FILE_SHA256
+    assert hashlib.sha256(status_test.read_bytes()).hexdigest() == T010_STATUS_TEST_FILE_SHA256
+
+    accepted_claude = subprocess.run(
+        ["git", "show", f"{T010_BASELINE_SHA}:CLAUDE.md"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+    assert hashlib.sha256(accepted_claude).hexdigest() == T010_CLAUDE_BASELINE_FILE_SHA256
+    external_rules = verifier.t010_external_rules_section((ROOT / "AGENTS.md").read_bytes())
+    assert external_rules.startswith(T010_EXTERNAL_RULES_HEADING)
+    assert hashlib.sha256(external_rules).hexdigest() == T010_EXTERNAL_RULES_SHA256
+    assert claude.read_bytes() == accepted_claude + external_rules
+
+    for preserved in (
+        PHASE27_ARTIFACT.relative_to(ROOT).as_posix(),
+        T009_DOCUMENTATION_PATH,
+        T007_DOCUMENTATION_PATH,
+    ):
+        accepted = subprocess.run(
+            ["git", "show", f"{T010_BASELINE_SHA}:{preserved}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert (ROOT / preserved).read_bytes() == accepted
+
+
+def test_t010_status_currency_ownership_rejects_missing_extra_live_and_phase28_paths() -> None:
+    verifier = verifier_module()
+    missing = set(verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS) - {"tests/test_status_currency.py"}
+    assert verifier.t010_status_currency_ownership_delta(missing) == (
+        {"tests/test_status_currency.py"},
+        set(),
+    )
+
+    planted = set(verifier.T010_STATUS_CURRENCY_OWNERSHIP_PATHS)
+    extra_path = "README.md"
+    planted.add(extra_path)
+    assert verifier.t010_status_currency_ownership_delta(planted) == (
+        set(),
+        {extra_path},
+    )
+
+    live_order_path = "services/api/live_order_submit.py"
+    planted.add(live_order_path)
+    assert verifier.t010_status_currency_ownership_delta(planted) == (
+        set(),
+        {extra_path, live_order_path},
+    )
+
+    phase28_path = "docs/handoffs/PHASE_28.md"
+    planted.add(phase28_path)
+    assert verifier.t010_status_currency_ownership_delta(planted) == (
+        set(),
+        {extra_path, live_order_path, phase28_path},
     )
 
 

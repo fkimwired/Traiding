@@ -37,3 +37,30 @@
 - Use UTC for stored timestamps and make availability timestamps explicit for point-in-time data.
 - Run `python scripts/verify_phase1.py --static-only` before handing off Phase 1 changes.
 
+# External observation and free-source rules
+
+- An **external live-data paper test** is a read-only observation of a paper-only external
+  environment (for example, the accepted Phase 12 six-GET Alpaca paper boundary) combined with
+  clearly labeled simulated behavior. It is never live trading. No live endpoint, live credential,
+  live enum/flag/configuration branch, order submission, replacement, cancellation, liquidation, or
+  position-closing path may exist, even dormant, and "live testing" language never authorizes one.
+- Read-only external observation and execution are different capabilities. Observation evidence
+  (readiness checks, connectivity, freshness) never becomes execution, promotion, or order
+  authority, and an expired or historical observation never revalidates itself.
+- A free source may be selected for a use only after a current first-party terms review covering
+  the exact intended use: storage, internal/non-display, derived data, retention, attribution,
+  redistribution, and revocation/currentness. Free access, an API key, an open-source client
+  library, or successful retrieval is never evidence of data rights.
+- Demonstration or connectivity data is never research-qualified data. A quote or telemetry value
+  used to prove readiness must not be persisted as, or later relabeled into, a research snapshot,
+  backtest input, or strategy signal.
+- Secrets load only through the explicitly authorized local commands from the documented
+  environment variables, are represented as secret types, and never appear in stdout, logs,
+  persisted rows, artifacts, generated contracts, fixtures, builds, or commits. Raw provider
+  payloads (bodies, headers, account/order/position details, raw prices) are validated transiently
+  and reduced to sanitized statuses, counts, and hashes; they are never persisted or committed.
+- Every delegated implementation task must name: the one governing phase or accepted earlier-phase
+  maintenance boundary, executable acceptance commands, at least one literal negative/adversarial
+  assertion, the required evidence artifact with config hash, snapshot/evidence id, git SHA, seed
+  and trial count where applicable, and UTC timestamp, and an explicit stop condition.
+

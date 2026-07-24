@@ -293,7 +293,7 @@ def test_phase26_maintenance_overlay_is_exact_and_phase27_changes_only_developme
     )
 
 
-def test_phase26_overlay_stays_closed_while_later_documentation_owners_are_exact() -> None:
+def test_phase26_overlay_stays_closed_while_later_maintenance_owners_are_exact() -> None:
     verifier = phase26_verifier_module()
     accepted_phase27_identity = subprocess.run(
         [
@@ -329,6 +329,23 @@ def test_phase26_overlay_stays_closed_while_later_documentation_owners_are_exact
         f"{verifier.EXPECTED_T007_DOCUMENTATION_BASELINE_TREE} "
         f"{verifier.T007_DOCUMENTATION_BASELINE_PARENT_SHA}"
     )
+    accepted_t007_identity = subprocess.run(
+        [
+            "git",
+            "show",
+            "-s",
+            "--format=%T %P",
+            verifier.T010_STATUS_CURRENCY_BASELINE_SHA,
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.strip()
+    assert accepted_t007_identity == (
+        f"{verifier.EXPECTED_T010_STATUS_CURRENCY_BASELINE_TREE} "
+        f"{verifier.T010_STATUS_CURRENCY_BASELINE_PARENT_SHA}"
+    )
     changed_paths: set[str] = set()
     for command in (
         ["git", "diff", "--name-only", verifier.PHASE_26_BASELINE_SHA, "--"],
@@ -354,19 +371,30 @@ def test_phase26_overlay_stays_closed_while_later_documentation_owners_are_exact
         "docs/RIGHTS_EVIDENCE_REQUIREMENTS_FAMILY_A.md"
     }
     assert verifier.T007_DOCUMENTATION_OVERLAY_PATHS == {"docs/PLAN_SEC_EDGAR_QUALIFICATION.md"}
+    assert verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS == {
+        "CLAUDE.md",
+        "tests/test_status_currency.py",
+    }
     assert not (verifier.T009_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
     assert not (verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
+    assert not (verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS & verifier.PHASE_27_ALLOWED_WRITES)
     assert not (
         verifier.T007_DOCUMENTATION_OVERLAY_PATHS & verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+    )
+    assert not (
+        verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
+        & (verifier.T009_DOCUMENTATION_OVERLAY_PATHS | verifier.T007_DOCUMENTATION_OVERLAY_PATHS)
     )
     assert unexpected <= (
         verifier.PHASE_27_ALLOWED_WRITES
         | verifier.T009_DOCUMENTATION_OVERLAY_PATHS
         | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+        | verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
     )
-    assert (
-        unexpected - verifier.PHASE_27_ALLOWED_WRITES
-        == verifier.T009_DOCUMENTATION_OVERLAY_PATHS | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+    assert unexpected - verifier.PHASE_27_ALLOWED_WRITES == (
+        verifier.T009_DOCUMENTATION_OVERLAY_PATHS
+        | verifier.T007_DOCUMENTATION_OVERLAY_PATHS
+        | verifier.T010_STATUS_CURRENCY_OVERLAY_PATHS
     )
     accepted_t009_document = subprocess.run(
         [
@@ -379,6 +407,17 @@ def test_phase26_overlay_stays_closed_while_later_documentation_owners_are_exact
         check=True,
     ).stdout
     assert (ROOT / verifier.T009_DOCUMENTATION_PATH).read_bytes() == accepted_t009_document
+    accepted_t007_document = subprocess.run(
+        [
+            "git",
+            "show",
+            f"{verifier.T010_STATUS_CURRENCY_BASELINE_SHA}:{verifier.T007_DOCUMENTATION_PATH}",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    ).stdout
+    assert (ROOT / verifier.T007_DOCUMENTATION_PATH).read_bytes() == accepted_t007_document
 
 
 def test_phase26_maintenance_overlay_rejects_a_missing_path() -> None:

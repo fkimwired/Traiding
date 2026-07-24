@@ -2511,6 +2511,35 @@ T007_DOCUMENTATION_PROHIBITED_PATTERNS = (
         ),
     ),
 )
+T010_STATUS_CURRENCY_BASELINE_SHA = "4180ce659aa621d6155cac1118f7011deb92aa9f"
+EXPECTED_T010_STATUS_CURRENCY_BASELINE_TREE = "1c50bd2569dc635c3e5662179ab276f6b971230c"
+T010_STATUS_CURRENCY_BASELINE_PARENT_SHA = T007_DOCUMENTATION_BASELINE_SHA
+T010_STATUS_CURRENCY_OVERLAY_PATHS = frozenset(
+    {
+        "CLAUDE.md",
+        "tests/test_status_currency.py",
+    }
+)
+T010_STATUS_CURRENCY_MECHANISM_PATHS = frozenset(
+    {
+        "scripts/verify_phase1.py",
+        "tests/test_phase27_static.py",
+        "tests/test_repository_policy.py",
+    }
+)
+T010_STATUS_CURRENCY_OWNERSHIP_PATHS = (
+    T010_STATUS_CURRENCY_OVERLAY_PATHS | T010_STATUS_CURRENCY_MECHANISM_PATHS
+)
+T010_STATUS_CURRENCY_OWNERSHIP_PATH_MANIFEST_SHA256 = (
+    "ebaf7434a43533aa1248b4c6f1b1c964026e7c53be24bcec3c6b4cd076a92247"
+)
+T010_CLAUDE_BASELINE_FILE_SHA256 = (
+    "d54d22a79595c2b911deb9248bcc17e4049dccd1524b85e044ed5a57ad4d64d9"
+)
+T010_CLAUDE_FILE_SHA256 = "f6b8a657be1596f2547ea9d6711a36bafd171243f8f194476a7acdb4557ca9f2"
+T010_STATUS_TEST_FILE_SHA256 = "5ed0f5efc8e112623a716a5f2631b8b2c36de374894198c1065b1ec277b4e958"
+T010_EXTERNAL_RULES_HEADING = b"# External observation and free-source rules"
+T010_EXTERNAL_RULES_SHA256 = "dae3a082ef1c5427d63ab3c2732c0a0e2cc0fae57854d6ef3569d26a13c44b99"
 PHASE_27_INHERITED_TABLES = PHASE_26_INHERITED_TABLES
 PHASE_27_CREDENTIAL_ENV_NAMES = PHASE_26_CREDENTIAL_ENV_NAMES
 PHASE_27_ARTIFACT_SCHEMA_VERSION = "phase27-family-a-composition-rights-entitlement-evidence-v1"
@@ -11217,6 +11246,25 @@ def t007_documentation_prohibited_findings(source: str) -> set[str]:
     return findings
 
 
+def t010_status_currency_path_manifest_sha256(paths: set[str] | frozenset[str]) -> str:
+    return hashlib.sha256(("\n".join(sorted(paths)) + "\n").encode("utf-8")).hexdigest()
+
+
+def t010_status_currency_ownership_delta(
+    changed_paths: set[str],
+) -> tuple[set[str], set[str]]:
+    return (
+        set(T010_STATUS_CURRENCY_OWNERSHIP_PATHS - changed_paths),
+        set(changed_paths - T010_STATUS_CURRENCY_OWNERSHIP_PATHS),
+    )
+
+
+def t010_external_rules_section(source: bytes) -> bytes:
+    if source.count(T010_EXTERNAL_RULES_HEADING) != 1:
+        raise AssertionError("AGENTS external-observation rules heading is not unique")
+    return source[source.index(T010_EXTERNAL_RULES_HEADING) :]
+
+
 def verify_phase27_static() -> None:
     missing = [path for path in PHASE_27_REQUIRED_PATHS if not (ROOT / path).exists()]
     if missing:
@@ -11296,6 +11344,32 @@ def verify_phase27_static() -> None:
     if t007_ancestry.returncode != 0:
         raise AssertionError("T-007 HEAD is not descended from accepted T-009")
 
+    try:
+        subprocess.run(
+            ["git", "cat-file", "-e", f"{T010_STATUS_CURRENCY_BASELINE_SHA}^{{commit}}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AssertionError("The exact accepted T-007 baseline is unavailable") from exc
+    if git_text("show", "-s", "--format=%T", T010_STATUS_CURRENCY_BASELINE_SHA) != (
+        EXPECTED_T010_STATUS_CURRENCY_BASELINE_TREE
+    ):
+        raise AssertionError("The accepted T-007 baseline tree does not match")
+    if git_text("show", "-s", "--format=%P", T010_STATUS_CURRENCY_BASELINE_SHA) != (
+        T010_STATUS_CURRENCY_BASELINE_PARENT_SHA
+    ):
+        raise AssertionError("The accepted T-007 baseline parent does not match")
+    t010_ancestry = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", T010_STATUS_CURRENCY_BASELINE_SHA, "HEAD"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if t010_ancestry.returncode != 0:
+        raise AssertionError("T-010 HEAD is not descended from accepted T-007")
+
     changed_paths = {
         path.replace("\\", "/")
         for path in git_text("diff", "--name-only", PHASE_27_BASELINE_SHA, "--").splitlines()
@@ -11365,6 +11439,47 @@ def verify_phase27_static() -> None:
     ):
         raise AssertionError("T-007 documentation ownership path manifest has drifted")
 
+    prior_content_overlays = T009_DOCUMENTATION_OVERLAY_PATHS | T007_DOCUMENTATION_OVERLAY_PATHS
+    if T010_STATUS_CURRENCY_OVERLAY_PATHS & PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-010 status-currency overlay rewrote the Phase 27 allowlist")
+    if T010_STATUS_CURRENCY_OVERLAY_PATHS & prior_content_overlays:
+        raise AssertionError(
+            "T-010 status-currency overlay rewrote an accepted documentation overlay"
+        )
+    if T010_STATUS_CURRENCY_MECHANISM_PATHS != T007_DOCUMENTATION_MECHANISM_PATHS:
+        raise AssertionError("T-010 status-currency mechanism drifted from its authorization")
+    if not T010_STATUS_CURRENCY_MECHANISM_PATHS <= PHASE_27_ALLOWED_WRITES:
+        raise AssertionError("T-010 mechanism is outside the accepted maintenance paths")
+    if (
+        len(T010_STATUS_CURRENCY_OVERLAY_PATHS) != 2
+        or len(T010_STATUS_CURRENCY_MECHANISM_PATHS) != 3
+        or len(T010_STATUS_CURRENCY_OWNERSHIP_PATHS) != 5
+    ):
+        raise AssertionError("T-010 status-currency ownership cardinality has drifted")
+    if PHASE_27_ARTIFACT_PATH in T010_STATUS_CURRENCY_OWNERSHIP_PATHS:
+        raise AssertionError("T-010 status-currency ownership includes the Phase 27 artifact")
+    if T009_DOCUMENTATION_PATH in T010_STATUS_CURRENCY_OWNERSHIP_PATHS:
+        raise AssertionError("T-010 status-currency ownership includes the accepted T-009 document")
+    if T007_DOCUMENTATION_PATH in T010_STATUS_CURRENCY_OWNERSHIP_PATHS:
+        raise AssertionError("T-010 status-currency ownership includes the accepted T-007 document")
+    if (ROOT / PHASE_27_ARTIFACT_PATH).read_bytes() != git_blob(
+        T010_STATUS_CURRENCY_BASELINE_SHA, PHASE_27_ARTIFACT_PATH
+    ):
+        raise AssertionError("T-010 changed the accepted Phase 27 artifact")
+    if (ROOT / T009_DOCUMENTATION_PATH).read_bytes() != git_blob(
+        T010_STATUS_CURRENCY_BASELINE_SHA, T009_DOCUMENTATION_PATH
+    ):
+        raise AssertionError("T-010 changed the accepted T-009 document")
+    if (ROOT / T007_DOCUMENTATION_PATH).read_bytes() != git_blob(
+        T010_STATUS_CURRENCY_BASELINE_SHA, T007_DOCUMENTATION_PATH
+    ):
+        raise AssertionError("T-010 changed the accepted T-007 document")
+    if (
+        t010_status_currency_path_manifest_sha256(T010_STATUS_CURRENCY_OWNERSHIP_PATHS)
+        != T010_STATUS_CURRENCY_OWNERSHIP_PATH_MANIFEST_SHA256
+    ):
+        raise AssertionError("T-010 status-currency ownership path manifest has drifted")
+
     t009_changed_paths = {
         path.replace("\\", "/")
         for path in git_text(
@@ -11383,7 +11498,7 @@ def verify_phase27_static() -> None:
         if path
     )
     missing_t009, forbidden_t009 = t009_documentation_ownership_delta(
-        t009_changed_paths - T007_DOCUMENTATION_OVERLAY_PATHS
+        t009_changed_paths - T007_DOCUMENTATION_OVERLAY_PATHS - T010_STATUS_CURRENCY_OVERLAY_PATHS
     )
     if missing_t009:
         raise AssertionError(
@@ -11427,7 +11542,9 @@ def verify_phase27_static() -> None:
         for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
         if path
     )
-    missing_t007, forbidden_t007 = t007_documentation_ownership_delta(t007_changed_paths)
+    missing_t007, forbidden_t007 = t007_documentation_ownership_delta(
+        t007_changed_paths - T010_STATUS_CURRENCY_OVERLAY_PATHS
+    )
     if missing_t007:
         raise AssertionError(
             "T-007 documentation ownership is missing paths: " + ", ".join(sorted(missing_t007))
@@ -11475,11 +11592,86 @@ def verify_phase27_static() -> None:
             + ", ".join(sorted(prohibited_findings))
         )
 
+    t010_changed_paths = {
+        path.replace("\\", "/")
+        for path in git_text(
+            "diff", "--name-only", T010_STATUS_CURRENCY_BASELINE_SHA, "--"
+        ).splitlines()
+        if path
+    }
+    t010_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("diff", "--cached", "--name-only", "--").splitlines()
+        if path
+    )
+    t010_changed_paths.update(
+        path.replace("\\", "/")
+        for path in git_text("ls-files", "--others", "--exclude-standard", "--").splitlines()
+        if path
+    )
+    missing_t010, forbidden_t010 = t010_status_currency_ownership_delta(t010_changed_paths)
+    if missing_t010:
+        raise AssertionError(
+            "T-010 status-currency ownership is missing paths: " + ", ".join(sorted(missing_t010))
+        )
+    if forbidden_t010:
+        raise AssertionError(
+            "T-010 changed paths outside the exact status-currency ownership policy: "
+            + ", ".join(sorted(forbidden_t010))
+        )
+
+    claude_path = ROOT / "CLAUDE.md"
+    status_test_path = ROOT / "tests/test_status_currency.py"
+    for path, label in (
+        (claude_path, "T-010 CLAUDE mirror"),
+        (status_test_path, "T-010 status-currency test"),
+    ):
+        if not path.is_file() or path.is_symlink():
+            raise AssertionError(f"{label} path is not a regular file")
+    claude_bytes = claude_path.read_bytes()
+    status_test_bytes = status_test_path.read_bytes()
+    if hashlib.sha256(claude_bytes).hexdigest() != T010_CLAUDE_FILE_SHA256:
+        raise AssertionError("T-010 CLAUDE mirror content hash does not match")
+    if hashlib.sha256(status_test_bytes).hexdigest() != T010_STATUS_TEST_FILE_SHA256:
+        raise AssertionError("T-010 status-currency test content hash does not match")
+
+    accepted_claude = git_blob(T010_STATUS_CURRENCY_BASELINE_SHA, "CLAUDE.md")
+    if hashlib.sha256(accepted_claude).hexdigest() != T010_CLAUDE_BASELINE_FILE_SHA256:
+        raise AssertionError("T-010 accepted CLAUDE baseline hash does not match")
+    external_rules = t010_external_rules_section((ROOT / "AGENTS.md").read_bytes())
+    if hashlib.sha256(external_rules).hexdigest() != T010_EXTERNAL_RULES_SHA256:
+        raise AssertionError("T-010 AGENTS external-observation rules identity has drifted")
+    expected_claude = accepted_claude + external_rules
+    if claude_bytes != expected_claude:
+        raise AssertionError(
+            "T-010 CLAUDE is not the accepted baseline plus the verbatim external rules"
+        )
+    try:
+        status_test_source = status_test_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssertionError("T-010 status-currency test is not valid UTF-8") from exc
+    for required_literal in (
+        "AGENTS.md",
+        "CLAUDE.md",
+        "GATE_SHA256",
+        "HYPOTHETICAL_LANGUAGE",
+        "PHASE_28.md",
+        "TRUTHFUL_CURRENT_RESULT",
+        "assert_status_current",
+        "canonical_gates",
+        "positive_status_phases",
+    ):
+        if required_literal not in status_test_source:
+            raise AssertionError(
+                f"T-010 status-currency test lacks required guard {required_literal}"
+            )
+
     forbidden_changes = sorted(
         changed_paths
         - PHASE_27_ALLOWED_WRITES
         - T009_DOCUMENTATION_OVERLAY_PATHS
         - T007_DOCUMENTATION_OVERLAY_PATHS
+        - T010_STATUS_CURRENCY_OVERLAY_PATHS
     )
     if forbidden_changes:
         raise AssertionError(
